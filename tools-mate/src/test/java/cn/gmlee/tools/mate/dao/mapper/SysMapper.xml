@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.gmlee.tools.mate.dao.mapper.SysMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.gmlee.tools.mate.dao.entity.Sys">
+        <id column="id" property="id" />
+        <result column="sys_name" property="sysName" />
+        <result column="sys_type" property="sysType" />
+        <result column="app_code" property="appCode" />
+        <result column="app_key" property="appKey" />
+        <result column="app_audit" property="appAudit" />
+        <result column="app_url" property="appUrl" />
+        <result column="user_type" property="userType" />
+        <result column="admin" property="admin" />
+        <result column="other_info" property="otherInfo" />
+        <result column="status" property="status" />
+        <result column="auth_id" property="authId" />
+        <result column="auth_type" property="authType" />
+        <result column="auth_name" property="authName" />
+        <result column="created_by" property="createdBy" />
+        <result column="creator" property="creator" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="updater" property="updater" />
+        <result column="del" property="del" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, sys_name, sys_type, app_code, app_key, app_audit, app_url, user_type, admin, other_info, status, auth_id, auth_type, auth_name, created_by, creator, updated_by, updater, del, updated_at, created_at
+    </sql>
+
+</mapper>

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.gmlee.tools.datalog.dao.mapper.DatalogMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="DatalogResultMap" type="cn.gmlee.tools.datalog.model.Datalog">
+        <id column="id" property="id" />
+        <result column="start_ms" property="startMs" />
+        <result column="total_ms" property="totalMs" />
+        <result column="original_sql" property="originalSql" />
+        <result column="where_sql" property="whereSql" />
+        <result column="old_data_json" property="oldDataJson" />
+        <result column="new_data_json" property="newDataJson" />
+        <result column="datalog_select_sql" property="datalogSelectSql" />
+        <result column="data_table" property="dataTable" />
+        <result column="data_log" property="dataLog" />
+        <result column="api" property="api" />
+        <result column="site" property="site" />
+        <result column="params" property="params" />
+        <result column="request_ip" property="requestIp" />
+        <result column="request_url" property="requestUrl" />
+        <result column="request_time" property="requestTime" />
+        <result column="user_id" property="userId" />
+        <result column="username" property="username" />
+        <result column="create_at" property="createAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Datalog_Column_List">
+        id, start_ms, total_ms, original_sql, where_sql, old_data_json, new_data_json,
+        datalog_select_sql, data_table, data_log,
+        api, site, params, request_ip, request_url, request_time, user_id, username, create_at
+    </sql>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into `datalog` (
+            <if test="id!=null">
+                id,
+            </if>
+            <if test="startMs!=null">
+                start_ms,
+            </if>
+            <if test="totalMs!=null">
+                total_ms,
+            </if>
+            <if test="originalSql!=null">
+                original_sql,
+            </if>
+            <if test="whereSql!=null">
+                where_sql,
+            </if>
+            <if test="oldDataJson!=null">
+                old_data_json,
+            </if>
+            <if test="newDataJson!=null">
+                new_data_json,
+            </if>
+            <if test="datalogSelectSql!=null">
+                datalog_select_sql,
+            </if>
+            <if test="dataTable!=null">
+                data_table,
+            </if>
+            <if test="dataLog!=null">
+                data_log,
+            </if>
+            <if test="api!=null">
+                api,
+            </if>
+            <if test="site!=null">
+                site,
+            </if>
+            <if test="params!=null">
+                params,
+            </if>
+            <if test="requestIp!=null">
+                request_ip,
+            </if>
+            <if test="requestUrl!=null">
+                request_url,
+            </if>
+            <if test="requestTime!=null">
+                request_Time,
+            </if>
+            <if test="userId!=null">
+                user_id,
+            </if>
+            <if test="username!=null">
+                username,
+            </if>
+            <if test="createAt!=null">
+                create_at
+            </if>
+        ) values (
+            <if test="id!=null">
+                #{id},
+            </if>
+            <if test="startMs!=null">
+                #{startMs},
+            </if>
+            <if test="totalMs!=null">
+                #{totalMs},
+            </if>
+            <if test="originalSql!=null">
+                #{originalSql},
+            </if>
+            <if test="whereSql!=null">
+                #{whereSql},
+            </if>
+            <if test="oldDataJson!=null">
+                #{oldDataJson},
+            </if>
+            <if test="newDataJson!=null">
+                #{newDataJson},
+            </if>
+            <if test="datalogSelectSql!=null">
+                #{datalogSelectSql},
+            </if>
+            <if test="dataTable!=null">
+                #{dataTable},
+            </if>
+            <if test="dataLog!=null">
+                #{dataLog},
+            </if>
+            <if test="api!=null">
+                #{api},
+            </if>
+            <if test="site!=null">
+                #{site},
+            </if>
+            <if test="params!=null">
+                #{params},
+            </if>
+            <if test="requestIp!=null">
+                #{requestIp},
+            </if>
+            <if test="requestUrl!=null">
+                #{requestUrl},
+            </if>
+            <if test="requestTime!=null">
+                #{requestTime},
+            </if>
+            <if test="userId!=null">
+                #{userId},
+            </if>
+            <if test="username!=null">
+                #{username},
+            </if>
+            <if test="createAt!=null">
+                #{createAt}
+            </if>
+        )
+    </insert>
+</mapper>

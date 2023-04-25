@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <groupId>cn.gmlee.tools</groupId>
+    <artifactId>tools</artifactId>
+    <version>5.0.0</version>
+    <!--
+        版本号说明: 主版本号.次版本号.修订号[-(日期|英文)]
+        1） 主版本号：产品方向改变，或者大规模API不兼容，或者架构不兼容升级。
+        2） 次版本号：保持相对兼容性，增加主要功能特性，影响范围极小的API不兼容修改。
+        3） 修订号：保持完全兼容性，修复BUG、新增次要功能特性等。
+        4） 日期后缀：应用发布日日期，格式一律为yyyyMMdd
+        版本号示例: 3.0.1 / 3.0.1-Final / 3.0.1-Alpha / 3.0.1-Beta / 3.0.1-Build / 3.0.1-SNAPSHOT (必须大写)
+        版本号示例: 3.0.1-20210220 / 3.0.1-20210220-1 / 3.0.1-2021.2 / 3.0.1-202102-1
+    -->
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>tools-parent</module>
+        <module>tools-framework</module>
+        <module>tools-thirdParty</module>
+        <!-- 临时注释 -->
+        <module>tools-api</module>
+        <module>tools-base</module>
+        <module>tools-cloud</module>
+        <module>tools-mail</module>
+        <module>tools-code</module>
+        <module>tools-ds</module>
+        <module>tools-es</module>
+        <module>tools-jackson</module>
+        <module>tools-overstep</module>
+        <module>tools-logback</module>
+        <module>tools-mybatis</module>
+        <module>tools-cache2</module>
+        <module>tools-datalog</module>
+        <module>tools-mate</module>
+        <module>tools-redis</module>
+        <module>tools-kv</module>
+        <module>tools-request</module>
+        <module>tools-webapp</module>
+        <module>tools-often</module>
+    </modules>
+
+    <properties>
+        <encoding>UTF-8</encoding>
+
+        <!-- old: 2.3.4.RELEASE < 2.4.2 -->
+        <spring-boot.version>2.3.4.RELEASE</spring-boot.version>
+        <!-- old: Hoxton.SR8 < Hoxton.SR10 -->
+        <spring-cloud.version>Hoxton.SR10</spring-cloud.version>
+        <!-- old: 2.2.3.RELEASE < 2.2.5.RELEASE -->
+        <cloud.alibaba.version>2.2.5.RELEASE</cloud.alibaba.version>
+        <jaxrs.version>3.0.12.Final</jaxrs.version>
+        <swagger.version>2.9.2</swagger.version>
+        <monitor.version>2.2.1</monitor.version>
+        <zipkin.version>2.12.9</zipkin.version>
+        <seata-cloud.version>2.1.0.RELEASE</seata-cloud.version>
+        <!-- 第三方 Framework -->
+        <asm.version>9.3</asm.version>
+        <javassist.version>3.29.0-GA</javassist.version>
+        <seata.version>1.3.0</seata.version>
+        <mybatis-plus.version>3.4.3</mybatis-plus.version>
+        <mybatis-mate.version>1.0.8</mybatis-mate.version>
+        <mybatis.version>2.2.0</mybatis.version>
+        <pagehelper.version>5.2.0</pagehelper.version>
+        <druid.version>1.2.1</druid.version>
+        <redis.version>3.3.0</redis.version>
+        <!-- 第三方 Sdk -->
+        <fastjson.version>1.2.78</fastjson.version>
+        <wxpay.version>0.0.3</wxpay.version>
+        <alipay.version>4.9.9</alipay.version>
+        <zxing.version>3.3.3</zxing.version>
+        <mail.version>1.4.7</mail.version>
+        <jaxb.version>2.3.0</jaxb.version>
+        <log4j.version>1.2.17</log4j.version>
+        <sun.mail.version>1.5.2</sun.mail.version>
+        <logback-redis.version>1.1.6</logback-redis.version>
+        <bcprov.version>1.56</bcprov.version>
+        <http-client.version>4.5.5</http-client.version>
+        <async.http-client.version>4.1.3</async.http-client.version>
+        <poi.version>5.0.0</poi.version>
+        <!-- 特殊工具 -->
+        <proguard.version>4.4</proguard.version>
+        <lombok.version>1.18.22</lombok.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.alibaba.cloud</groupId>
+                <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+                <version>${cloud.alibaba.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-generator</artifactId>
+                <version>3.4.1</version>
+            </dependency>
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*.xml</include>
+                </includes>
+                <filtering>false</filtering>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>17</source>
+                    <target>17</target>
+                    <encoding>${encoding}</encoding>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>source</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <version>3.2.1</version>
+                        <configuration>
+                            <attach>true</attach>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>jar-no-fork</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>javadoc</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>3.2.0</version>
+                        <configuration>
+                            <charset>${encoding}</charset>
+                            <encoding>${encoding}</encoding>
+                            <docencoding>${encoding}</docencoding>
+                            <additionalJOptions>
+                                <additionalJOption>-Xdoclint:none</additionalJOption>
+                            </additionalJOptions>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                    <encoding>${encoding}</encoding>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>dep</id>
+            <build>
+                <plugins>
+                    <!-- 只部署PG包 -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-deploy-plugin</artifactId>
+                        <version>2.8.2</version>
+                        <executions>
+                            <execution>
+                                <id>default-deploy</id>
+                                <phase>deploy</phase>
+                                <goals>
+                                    <goal>deploy-file</goal>
+                                </goals>
+                                <!-- skip默认deploy插件的执行 -->
+                                <configuration>
+                                    <skip>true</skip>
+                                    <packaging>jar</packaging>
+                                    <!-- 开发阶段上传到snapshot仓库，上线阶段上传到release仓库 -->
+                                    <repositoryId>${project.distributionManagement.repository.id}</repositoryId>
+                                    <url>${project.distributionManagement.repository.url}</url>
+                                    <file>${project.build.directory}/${project.build.finalName}-pg.jar</file>
+                                    <groupId>${project.groupId}</groupId>
+                                    <artifactId>${project.artifactId}</artifactId>
+                                    <version>${project.version}</version>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>pg</id>
+            <build>
+                <plugins>
+                    <!-- 用混淆插件混淆代码 -->
+                    <plugin>
+                        <groupId>com.github.wvengen</groupId>
+                        <artifactId>proguard-maven-plugin</artifactId>
+                        <version>2.3.1</version>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>proguard</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <attach>true</attach>
+                            <!-- 指定生成的包类型 -->
+                            <attachArtifactClassifier>pg</attachArtifactClassifier>
+                            <injarNotExistsSkip>true</injarNotExistsSkip>
+                            <!--指定混淆的jar包，我这里是将上一步输出的jar包进行混淆-->
+                            <injar>${project.build.finalName}.jar</injar>
+                            <!--指定输出的jar包名-->
+                            <outjar>${project.build.finalName}-pg.jar</outjar>
+                            <obfuscate>true</obfuscate>
+                            <!-- attach 的作用是在 install 与 deploy 时将生成的 pg 文件也安装与部署 -->
+                            <options> <!-- 详细配置方式参考 ProGuard 官方文档 -->
+                                <!-- 忽略所有告警 -->
+                                <option>-ignorewarnings</option>
+                                <!-- 不压缩类文件 -->
+                                <option>-dontshrink</option>
+                                <!-- 不略过非公开内容 -->
+                                <option>-dontskipnonpubliclibraryclasses</option>
+                                <option>-dontskipnonpubliclibraryclassmembers</option>
+                                <!-- 不用大小写混淆机制 -->
+                                <option>-dontusemixedcaseclassnames</option>
+                                <!-- 不优化代码 -->
+                                <option>-dontoptimize</option>
+                                <option>-dontnote</option>
+
+                                <!-- 保留包名 -->
+                                <option>-keeppackagenames</option>
+
+                                <!-- 保留形参 -->
+                                <option>-keepparameternames</option>
+
+                                <option>-keepattributes Signature</option>
+
+                                <!-- 保留文件 (解决Springboot自动装载失效问题,同时需要使用4.4以上版本) -->
+                                <option>-keepdirectories</option>
+
+                                <!--保持源码名与行号（异常时有明确的栈信息），注解（默认会过滤掉所有注解，会影响框架的注解）-->
+                                <option>-keepattributes Exceptions,InnerClasses,*Annotation*,Signature,LineNumberTable</option>
+
+                                <!-- 内部类不变 -->
+                                <option>-keep class cn.gmlee.**.**$* { *; }</option>
+
+                                <!-- 方法名不变 -->
+                                <option>-keep class cn.gmlee.** { &lt;methods&gt;; }</option>
+
+                                <!-- 全局变量不变 -->
+                                <option>-keep class cn.gmlee.** { &lt;fields&gt;; }</option>
+
+
+                                <!-- 以下内容不参与混淆 -->
+                                <option>-keep class cn.gmlee.**.*assist*.** {*;}</option>
+
+                                <!-- 第三方内容不混淆 -->
+                                <option>-keep class !cn.gm*.**</option>
+
+                                <!-- 混淆时应用侵入式重载 -->
+                                <option>-overloadaggressively</option>
+                            </options>
+                            <!-- 添加依赖，必须添加，不然会报一些莫名错误-->
+                            <libs>
+                                <lib>${env.JAVA_HOME}\jre\lib\rt.jar</lib>
+                                <lib>${env.JAVA_HOME}\jre\lib\jce.jar</lib>
+                            </libs>
+                        </configuration>
+
+                        <dependencies>
+                            <!--<dependency>
+                                <groupId>net.sf.proguard</groupId>
+                                <artifactId>proguard-base</artifactId>
+                                <version>${proguard.version}</version>
+                            </dependency>
+                            <dependency>
+                                <groupId>net.sf.proguard</groupId>
+                                <artifactId>proguard</artifactId>
+                                <version>${proguard.version}</version>
+                            </dependency>-->
+                        </dependencies>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
+    <distributionManagement>
+        <!--
+        <repository>
+            <id>nexus-releases</id>
+            <name>nexus-releases</name>
+            <url>http://172.19.192.248:8081/repository/maven-releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>nexus-snapshot</id>
+            <name>nexus-snapshot</name>
+            <url>http://172.19.192.248:8081/repository/maven-snapshots/</url>
+        </snapshotRepository>
+        -->
+        <repository>
+            <id>css-releases</id>
+            <url>http://maven.gmlee.cn/repository/lala-release/</url>
+        </repository>
+        <snapshotRepository>
+            <id>css-snapshots</id>
+            <url>http://maven.gmlee.cn/repository/lala-snapshot/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <repositories>
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>warn</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+                <checksumPolicy>fail</checksumPolicy>
+            </snapshots>
+            <id>central</id>
+            <url>https://central</url>
+        </repository>
+    </repositories>
+</project>

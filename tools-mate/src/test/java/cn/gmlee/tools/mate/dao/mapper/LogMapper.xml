@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.gmlee.tools.mate.dao.mapper.LogMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.gmlee.tools.mate.dao.entity.Log">
+        <id column="id" property="id" />
+        <result column="sys_id" property="sysId" />
+        <result column="sys_name" property="sysName" />
+        <result column="url" property="url" />
+        <result column="print" property="print" />
+        <result column="type" property="type" />
+        <result column="request_ip" property="requestIp" />
+        <result column="request_headers" property="requestHeaders" />
+        <result column="request_params" property="requestParams" />
+        <result column="request_time" property="requestTime" />
+        <result column="response_params" property="responseParams" />
+        <result column="response_time" property="responseTime" />
+        <result column="elapsed_time" property="elapsedTime" />
+        <result column="site" property="site" />
+        <result column="ex" property="ex" />
+        <result column="status" property="status" />
+        <result column="auth_id" property="authId" />
+        <result column="auth_type" property="authType" />
+        <result column="auth_name" property="authName" />
+        <result column="created_by" property="createdBy" />
+        <result column="creator" property="creator" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="updater" property="updater" />
+        <result column="del" property="del" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, sys_id, sys_name, url, print, type, request_ip, request_headers, request_params, request_time, response_params, response_time, elapsed_time, site, ex, status, auth_id, auth_type, auth_name, created_by, creator, updated_by, updater, del, updated_at, created_at
+    </sql>
+
+</mapper>

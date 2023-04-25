@@ -1,0 +1,4 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+cn.gmlee.tools.request.config.ReplaceStreamFilterAutoConfiguration,\
+cn.gmlee.tools.request.config.EdFilterAutoConfiguration,\
+cn.gmlee.tools.request.config.ParameterAutoConfiguration

@@ -1,0 +1,1 @@
+执行undo_log.sql文件添加微服务数据库的seata支持.

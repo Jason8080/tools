@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.gmlee.tools.mate.dao.mapper.UserMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="cn.gmlee.tools.mate.dao.entity.User">
+        <id column="id" property="id" />
+        <result column="sys_id" property="sysId" />
+        <result column="type" property="type" />
+        <result column="id_card" property="idCard" />
+        <result column="mobile" property="mobile" />
+        <result column="email" property="email" />
+        <result column="username" property="username" />
+        <result column="password" property="password" />
+        <result column="pwd" property="pwd" />
+        <result column="otp" property="otp" />
+        <result column="salt" property="salt" />
+        <result column="gender" property="gender" />
+        <result column="real_name" property="realName" />
+        <result column="birthday" property="birthday" />
+        <result column="portrait" property="portrait" />
+        <result column="city" property="city" />
+        <result column="register_time" property="registerTime" />
+        <result column="other_info" property="otherInfo" />
+        <result column="status" property="status" />
+        <result column="auth_id" property="authId" />
+        <result column="auth_type" property="authType" />
+        <result column="auth_name" property="authName" />
+        <result column="created_by" property="createdBy" />
+        <result column="creator" property="creator" />
+        <result column="updated_by" property="updatedBy" />
+        <result column="updater" property="updater" />
+        <result column="del" property="del" />
+        <result column="updated_at" property="updatedAt" />
+        <result column="created_at" property="createdAt" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, sys_id, type, id_card, mobile, email, username, password, pwd, otp, salt, gender, real_name, birthday, portrait, city, register_time, other_info, status, auth_id, auth_type, auth_name, created_by, creator, updated_by, updater, del, updated_at, created_at
+    </sql>
+
+</mapper>

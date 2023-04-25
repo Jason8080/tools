@@ -1,0 +1,294 @@
+package cn.gmlee.tools.base.util;
+
+import cn.gmlee.tools.base.enums.Function;
+
+import java.util.*;
+
+/**
+ * 集合工具
+ *
+ * @author Jas °
+ * @date 2020 /9/18 (周五)
+ */
+public class CollectionUtil {
+
+    /**
+     * 替换元素.
+     * <p>
+     * 注意: 在原集合上进行替换
+     * </p>
+     *
+     * @param <T>    the type parameter
+     * @param ts     the ts
+     * @param oldVal the old val
+     * @param newVal the new val
+     * @return the t [ ]
+     */
+    public static <T> Collection<T> replace(Collection<T> ts, T oldVal, T newVal) {
+        if (BoolUtil.notEmpty(ts)) {
+            ts.remove(oldVal);
+            ts.add(newVal);
+        }
+        return ts;
+    }
+
+    /**
+     * 替换元素.
+     * <p>
+     * 注意: 生成新数组; 且长度保持一致
+     * </p>
+     *
+     * @param <T>    the type parameter
+     * @param ts     the ts
+     * @param oldVal the old val
+     * @param newVal the new val
+     * @return the t [ ]
+     */
+    public static <T> List<T> replace(T[] ts, T oldVal, T newVal) {
+        List<T> newTs = new ArrayList();
+        if (BoolUtil.notEmpty(ts)) {
+            for (int i = 0; i < ts.length; i++) {
+                if (BoolUtil.eq(ts[i], oldVal)) {
+                    newTs.add(newVal);
+                } else {
+                    newTs.add(ts[i]);
+                }
+            }
+        }
+        return newTs;
+    }
+
+    /**
+     * 删除元素.
+     * <p>
+     * 注意: 生成新数组
+     * </p>
+     *
+     * @param <T>   the type parameter
+     * @param ts    the ts
+     * @param value the old val
+     * @return the t [ ]
+     */
+    public static <T> Collection<T> remove(Collection<T> ts, T value) {
+        if (BoolUtil.notEmpty(ts)) {
+            for (T t : ts) {
+                if (!BoolUtil.eq(t, value)) {
+                    ts.remove(value);
+                }
+            }
+        }
+        return ts;
+    }
+
+    /**
+     * 删除元素.
+     * <p>
+     * 注意: 生成新数组
+     * </p>
+     *
+     * @param <T>   the type parameter
+     * @param ts    the ts
+     * @param value the old val
+     * @return the t [ ]
+     */
+    public static <T> List<T> remove(List<T> ts, T value) {
+        if (BoolUtil.notEmpty(ts)) {
+            for (T t : ts) {
+                if (!BoolUtil.eq(t, value)) {
+                    ts.remove(value);
+                }
+            }
+        }
+        return ts;
+    }
+
+    /**
+     * 删除元素.
+     * <p>
+     * 注意: 生成新数组
+     * </p>
+     *
+     * @param <T>   the type parameter
+     * @param ts    the ts
+     * @param value the old val
+     * @return the t [ ]
+     */
+    public static <T> List<T> remove(T[] ts, T value) {
+        List<T> newTs = new ArrayList();
+        if (BoolUtil.notEmpty(ts)) {
+            for (int i = 0; i < ts.length; i++) {
+                if (!BoolUtil.eq(ts[i], value)) {
+                    newTs.add(ts[i]);
+                }
+            }
+        }
+        return newTs;
+    }
+
+
+    /**
+     * 批量删除keys.
+     *
+     * @param map  the map
+     * @param keys the keys
+     */
+    public static void removeKeys(Map map, Object... keys) {
+        if (BoolUtil.notEmpty(map) && BoolUtil.notEmpty(keys)) {
+            for (Object key : keys) {
+                map.remove(key);
+            }
+        }
+    }
+
+    /**
+     * 根据条件过滤键值对.
+     *
+     * @param <K> the type parameter
+     * @param <V> the type parameter
+     * @param map the map
+     * @param run the run
+     */
+    public static <K, V> void filter(Map<K, V> map, Function.Two2r<K, V, Boolean> run) {
+        if (BoolUtil.isEmpty(map)) {
+            return;
+        }
+        Iterator<Map.Entry<K, V>> it = map.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<K, V> next = it.next();
+            Boolean ok = ExceptionUtil.sandbox(() -> run.run(next.getKey(), next.getValue()), false);
+            if (!ok) {
+                it.remove();
+            }
+        }
+    }
+
+    /**
+     * 将Map按照Key升序排序.
+     *
+     * @param <T> the type parameter
+     * @param map the map
+     * @return the tree map
+     */
+    public static <T> TreeMap<String, T> keySort(Map<String, T> map) {
+        TreeMap<String, T> treeMap = new TreeMap<>((o1, o2) -> o1.compareTo(o2));
+        if (BoolUtil.notEmpty(map)) {
+            treeMap.putAll(map);
+        }
+        return treeMap;
+    }
+
+    /**
+     * 将value转成string
+     *
+     * @param <T>         the type parameter
+     * @param map         the map
+     * @param excludeNull the exclude null
+     * @return map map
+     */
+    public static <T> Map<String, String> valueToString(Map<String, T> map, boolean excludeNull) {
+        Map<String, String> all = new HashMap(map.size());
+        map.forEach((k, v) -> {
+            if (v != null) {
+                all.put(k, v.toString());
+            } else if (!excludeNull) {
+                all.put(k, null);
+            }
+        });
+        return all;
+    }
+
+    /**
+     * 合并数组.
+     *
+     * @param <T> the type parameter
+     * @param t   the t
+     * @param ts  the ts
+     * @return 返回新数组 ; 可能返回null (t 或 ts为空时)
+     */
+    public static <T> T[] merge(T[] t, T... ts) {
+        if (BoolUtil.isEmpty(t)) {
+            return ts;
+        }
+        if (BoolUtil.isEmpty(ts)) {
+            return t;
+        }
+        T[] newTs = (T[]) new Object[t.length + ts.length];
+        System.arraycopy(t, 0, newTs, 0, t.length);
+        System.arraycopy(ts, 0, newTs, t.length, t.length);
+        return newTs;
+    }
+
+    /**
+     * 合并集合.
+     *
+     * @param <T> the type parameter
+     * @param t   the t
+     * @param ts  the ts
+     * @return 返回新集合 ; 可能返回null (t 或 ts为空时)
+     */
+    public static <T> Collection<T> merge(Collection<T> t, T... ts) {
+        if (BoolUtil.isEmpty(t)) {
+            return Arrays.asList(ts);
+        }
+        if (BoolUtil.isEmpty(ts)) {
+            return t;
+        }
+        List<T> newTs = new ArrayList(t.size() + ts.length);
+        newTs.addAll(t);
+        newTs.addAll(Arrays.asList(ts));
+        return newTs;
+    }
+
+    /**
+     * 替换键.
+     *
+     * @param <K> the type parameter
+     * @param <V> the type parameter
+     * @param map the map
+     * @param run 新键解析
+     */
+    public static <K, V> void keyReplace(Map<K, V> map, Function.Two2r<K, V, K> run) {
+        if (BoolUtil.isEmpty(map)) {
+            return;
+        }
+        Set<K> keys = new HashMap(map).keySet();
+        Iterator<K> it = keys.iterator();
+        while (it.hasNext()) {
+            K k = it.next();
+            V v = map.get(k);
+            // 返回新键
+            K key = ExceptionUtil.suppress(() -> run.run(k, v));
+            if (Objects.equals(k, key)) {
+                continue;
+            }
+            map.remove(k);
+            map.put(key, v);
+        }
+    }
+
+    /**
+     * 替换值.
+     *
+     * @param <K> the type parameter
+     * @param <V> the type parameter
+     * @param map the map
+     * @param run 新值解析
+     */
+    public static <K, V> void valReplace(Map<K, V> map, Function.Two2r<K, V, V> run) {
+        if (BoolUtil.isEmpty(map)) {
+            return;
+        }
+        Set<K> keys = new HashMap(map).keySet();
+        Iterator<K> it = keys.iterator();
+        while (it.hasNext()) {
+            K k = it.next();
+            V v = map.get(k);
+            // 返回新键
+            V val = ExceptionUtil.suppress(() -> run.run(k, v));
+            if (Objects.equals(v, val)) {
+                continue;
+            }
+            map.put(k, val);
+        }
+    }
+}

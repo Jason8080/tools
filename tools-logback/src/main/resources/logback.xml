@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false">
+    <!-- 以下字段支持自定义 -->
+    <property name="CUSTOM_LOG_LEVEL" value="DEBUG"/>
+    <property name="CUSTOM_LOG_PATTERN" value="PATTERN-COLOR"/>
+    <property name="CUSTOM_SYS_PATH" value="/data/logs/"/>
+    <property name="CUSTOM_SYS_NAME" value="tools-logback"/>
+    <property name="CUSTOM_BUG_PACKAGE" value="cn.gmlee"/>
+    <property name="CUSTOM_SQL_PACKAGE" value="cn.gmlee"/>
+
+    <include resource="logback-default.xml"/>
+    <include resource="logback-${spring.profiles.active}.xml"/>
+
+    <include resource="logback-base.xml"/>
+
+    <!-- SQL -->
+    <logger name="${CUSTOM_SQL_PACKAGE}" level="DEBUG" additivity="false">
+        <appender-ref ref="async-full"/>
+        <appender-ref ref="async-console"/>
+    </logger>
+
+    <!-- 项目日志 -->
+    <logger name="${CUSTOM_BUG_PACKAGE}" level="DEBUG" additivity="false">
+        <appender-ref ref="async-full"/>
+        <appender-ref ref="async-console"/>
+    </logger>
+
+    <!-- 全量日志 -->
+    <root level="${CUSTOM_LOG_LEVEL}">
+        <appender-ref ref="async-console"/>
+        <appender-ref ref="async-warnAppender"/>
+        <appender-ref ref="async-errorAppender"/>
+    </root>
+</configuration>

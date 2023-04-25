@@ -1,0 +1,5 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  cn.gmlee.tools.api.config.OneHandlerAutoConfiguration,\
+  cn.gmlee.tools.api.config.ApiCoexistAutoConfiguration,\
+  cn.gmlee.tools.api.config.ApiGrayFilterAutoConfiguration,\
+  cn.gmlee.tools.api.config.ApiCoexistFeignLineGrayAutoConfiguration

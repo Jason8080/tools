@@ -1,0 +1,4 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  cn.gmlee.tools.cache2.config.CacheAutoConfiguration,\
+  cn.gmlee.tools.cache2.config.MemoryCacheServerConfig,\
+  cn.gmlee.tools.cache2.config.RedisCacheServerConfig

@@ -1,0 +1,119 @@
+<!--定义公共配置-->
+<included>
+    <!--日志格式-->
+    <property name="PATTERN-SIMPLE" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %X{TRACE_ID} [%-15.15(%thread)] %-5level %-50.50(%logger{50}):%-4.4(%line) - %msg%n"/>
+    <property name="PATTERN-COLOR" value="%boldWhite(%d{yyyy})-%boldGreen(%d{MM})-%boldMagenta(%d{dd}) %boldYellow(%d{HH}):%boldBlue(%d{mm}):%boldCyan(%d{ss}).%d{SSS} %X{TRACE_ID} %magenta([%-15.15(%thread)]) %highlight(%-5level) %cyan(%-50.50(%logger{50})):%white(%-4.4(%line)) %gray(-) %highlight(%msg%n)"/>
+    <!--日志编码-->
+    <property name="CHARSET" value="utf-8"/>
+    <!--单个日志文件大小-->
+    <property name="MAX_FILE_SIZE" value="10MB"/>
+    <!--日志过期时间-->
+    <property name="MAX_HISTORY" value="1"/>
+
+    <!--控制台打印日志-->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${${CUSTOM_LOG_PATTERN}}</pattern>
+            <charset>${CHARSET}</charset>
+        </encoder>
+    </appender>
+
+    <!-- 全量日志 -->
+    <appender name="allAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--当前日志文件名-->
+        <File>${CUSTOM_SYS_PATH}/${CUSTOM_SYS_NAME}/${CUSTOM_SYS_NAME}_all.log</File>
+        <!--日志滚动策略-->
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--日志归档文件名-->
+            <fileNamePattern>${CUSTOM_SYS_PATH}/${CUSTOM_SYS_NAME}/${CUSTOM_SYS_NAME}_all_%d{yyyy-MM-dd}.log.%i.gz</fileNamePattern>
+            <!--按天滚动-->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <!--单个日志文件最大，也会滚动-->
+                <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <!--日志存活时间，大于这个时间的日志都将会删除-->
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <!--日志格式-->
+            <pattern>${PATTERN-SIMPLE}</pattern>
+            <!--日志编码-->
+            <charset>${CHARSET}</charset>
+        </encoder>
+    </appender>
+
+
+    <!-- 告警日志: 可忽略检查 -->
+    <appender name="warnAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${CUSTOM_SYS_PATH}/${CUSTOM_SYS_NAME}/${CUSTOM_SYS_NAME}_warn.log</File>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${CUSTOM_SYS_PATH}/${CUSTOM_SYS_NAME}/${CUSTOM_SYS_NAME}_warn_%d{yyyy-MM-dd}.log.%i.gz</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${PATTERN-SIMPLE}</pattern>
+            <charset>${CHARSET}</charset>
+        </encoder>
+    </appender>
+
+
+    <!-- 错误日志: 必看 -->
+    <appender name="errorAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <File>${CUSTOM_SYS_PATH}/${CUSTOM_SYS_NAME}/${CUSTOM_SYS_NAME}_error.log</File>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${CUSTOM_SYS_PATH}/${CUSTOM_SYS_NAME}/${CUSTOM_SYS_NAME}_error_%d{yyyy-MM-dd}.log.%i.gz</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>${MAX_HISTORY}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${PATTERN-SIMPLE}</pattern>
+            <charset>${CHARSET}</charset>
+        </encoder>
+    </appender>
+
+
+    <appender name="async-console" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="console"/>
+        <includeCallerData>true</includeCallerData>
+    </appender>
+
+    <appender name="async-allAppender" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="allAppender"/>
+        <includeCallerData>true</includeCallerData>
+    </appender>
+
+    <appender name="async-warnAppender" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="warnAppender"/>
+        <includeCallerData>true</includeCallerData>
+    </appender>
+
+    <appender name="async-errorAppender" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="errorAppender"/>
+        <includeCallerData>true</includeCallerData>
+    </appender>
+
+    <!-- 设置为不丢失日志. 默认如果队列的80%已满, 则会丢弃TRACT、DEBUG、INFO级别的日志 -->
+    <!-- 更改默认的队列的深度,该值会影响性能.默认值为256 -->
+    <!-- 添加附加的 appender, 最多只能添加一个 -->
+    <appender name="async-full" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <queueSize>256</queueSize>
+        <includeCallerData>true</includeCallerData>
+        <appender-ref ref="allAppender"/>
+    </appender>
+</included>

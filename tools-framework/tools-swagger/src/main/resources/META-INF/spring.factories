@@ -1,0 +1,4 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  cn.gmlee.tools.swagger.config.SwaggerAutoConfiguration,\
+  cn.gmlee.tools.swagger.config.SwaggerWebMvcAutoConfiguration,\
+  cn.gmlee.tools.swagger.config.SwaggerWebMvcConfigurerAdapter
