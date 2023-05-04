@@ -198,7 +198,7 @@
             <build>
                 <plugins>
                     <!--发布到中央SNAPSHOT仓库插件-->
-                    <plugin>
+                    <!--<plugin>
                         <groupId>org.sonatype.plugins</groupId>
                         <artifactId>nexus-staging-maven-plugin</artifactId>
                         <version>1.6.13</version>
@@ -208,7 +208,7 @@
                             <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
                             <autoReleaseAfterClose>true</autoReleaseAfterClose>
                         </configuration>
-                    </plugin>
+                    </plugin>-->
 
                     <!--发布到中央RELEASE仓库插件-->
                     <plugin>
@@ -241,7 +241,7 @@
                     </plugin>
 
                     <!--生成API文档插件-->
-                    <!--<plugin>
+                    <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-javadoc-plugin</artifactId>
                         <version>3.5.0</version>
@@ -256,7 +256,7 @@
                                 </goals>
                             </execution>
                         </executions>
-                    </plugin>-->
+                    </plugin>
 
                     <!--gpg插件-->
                     <plugin>
