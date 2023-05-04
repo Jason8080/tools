@@ -133,7 +133,7 @@ public class VcService {
      */
     public JsonResult generateJsonResult(String key) {
         if (!ask(key)) {
-            return new JsonResult(XCode.SOA_INCORRECT7004);
+            return new JsonResult(XCode.ACCOUNT_INCORRECT7004);
         }
         return generateVcJsonResult(XCode.CONSENSUS_VC2012.code, XCode.CONSENSUS_VC2012.msg);
     }
@@ -148,7 +148,7 @@ public class VcService {
      */
     public JsonResult generateJsonResult(String key, Integer code, String msg) {
         if (!ask(key)) {
-            return new JsonResult(XCode.SOA_INCORRECT7004);
+            return new JsonResult(XCode.ACCOUNT_INCORRECT7004);
         }
         return generateVcJsonResult(code, msg);
     }

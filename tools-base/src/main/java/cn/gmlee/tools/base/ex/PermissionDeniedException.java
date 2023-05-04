@@ -14,6 +14,6 @@ public class PermissionDeniedException extends SkillException {
      * 默认权限不足异常.
      */
     public PermissionDeniedException() {
-        super(XCode.SOA_PERMISSION7002.code, XCode.SOA_PERMISSION7002.msg);
+        super(XCode.ACCOUNT_PERMISSION7002.code, XCode.ACCOUNT_PERMISSION7002.msg);
     }
 }

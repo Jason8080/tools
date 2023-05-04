@@ -14,7 +14,7 @@ public class LoginException extends SkillException {
      * Instantiates a new Login exception.
      */
     public LoginException() {
-        this(XCode.SOA_AUTH7001.code, XCode.SOA_AUTH7001.msg);
+        this(XCode.ACCOUNT_AUTH7001.code, XCode.ACCOUNT_AUTH7001.msg);
     }
 
 
@@ -35,7 +35,7 @@ public class LoginException extends SkillException {
      * @return the login exception
      */
     public static LoginException newly(String msg) {
-        return new LoginException(XCode.SOA_AUTH7001.code, msg);
+        return new LoginException(XCode.ACCOUNT_AUTH7001.code, msg);
     }
 
     /**
@@ -45,7 +45,7 @@ public class LoginException extends SkillException {
      * @return the login exception
      */
     public static LoginException newly(Integer code) {
-        return new LoginException(code, XCode.SOA_AUTH7001.msg);
+        return new LoginException(code, XCode.ACCOUNT_AUTH7001.msg);
     }
 
     /**

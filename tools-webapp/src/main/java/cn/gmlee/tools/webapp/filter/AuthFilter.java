@@ -52,7 +52,7 @@ public class AuthFilter extends OncePerRequestFilter {
         } catch (SkillException e) {
             response.setCharacterEncoding(Charset.defaultCharset().name());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            JsonResult result = new JsonResult(XCode.SOA_AUTH7001.code, e.getMessage());
+            JsonResult result = new JsonResult(XCode.ACCOUNT_AUTH7001.code, e.getMessage());
             response.getWriter().println(JsonUtil.toJson(result));
             return;
         }

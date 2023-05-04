@@ -101,7 +101,7 @@ public class LoginService<U, P, S, D, C> {
     public void set(String token) throws SkillException {
         Login<U, P, S, D, C> login = getLogin(NullUtil.get(token));
         if (required && login == null) {
-            ExceptionUtil.cast(XCode.SOA_AUTH7001);
+            ExceptionUtil.cast(XCode.ACCOUNT_AUTH7001);
         } else if (login != null) {
             LoginUtil.set(login);
         }

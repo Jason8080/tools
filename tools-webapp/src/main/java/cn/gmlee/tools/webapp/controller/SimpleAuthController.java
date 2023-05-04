@@ -45,12 +45,12 @@ public class SimpleAuthController<User> extends ParameterController {
         super.parameterPre(appId);
         // 令牌效验
         if (StringUtils.isEmpty(token)) {
-            throw new SkillException(XCode.SOA_AUTH7001.code, XCode.SOA_AUTH7001.msg);
+            throw new SkillException(XCode.ACCOUNT_AUTH7001.code, XCode.ACCOUNT_AUTH7001.msg);
         }
         // 登陆效验
         user = getUser(token);
         if (Objects.isNull(user)) {
-            throw new SkillException(XCode.SOA_AUTH7001.code, XCode.SOA_AUTH7001.msg);
+            throw new SkillException(XCode.ACCOUNT_AUTH7001.code, XCode.ACCOUNT_AUTH7001.msg);
         }
         // 兼容程序员的错误存储方式
         Class<User> genericClass = ClassUtil.getGenericClass(this);

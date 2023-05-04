@@ -50,12 +50,12 @@ public class AuthController<U, P, S, D, C> extends ParameterController {
         super.parameterPre(appId);
         // 令牌效验
         if (StringUtils.isEmpty(token)) {
-            throw new SkillException(XCode.SOA_AUTH7001.code, XCode.SOA_AUTH7001.msg);
+            throw new SkillException(XCode.ACCOUNT_AUTH7001.code, XCode.ACCOUNT_AUTH7001.msg);
         }
         // 登陆效验
         Login<U, P, S, D, C> old = loginService.getLogin(token);
         if (Objects.isNull(old)) {
-            throw new SkillException(XCode.SOA_AUTH7001.code, XCode.SOA_AUTH7001.msg);
+            throw new SkillException(XCode.ACCOUNT_AUTH7001.code, XCode.ACCOUNT_AUTH7001.msg);
         }
         user = old.getUser();
         permissions = old.getPermissions();

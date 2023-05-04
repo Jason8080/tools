@@ -30,7 +30,7 @@ public class LoginUtil {
      */
     public static Login get(boolean required) {
         if (required && users.get() == null) {
-            throw new SkillException(XCode.SOA_AUTH7001.code, "请重新登陆");
+            throw new SkillException(XCode.ACCOUNT_AUTH7001.code, "请重新登陆");
         }
         return users.get();
     }
@@ -65,7 +65,7 @@ public class LoginUtil {
     public static <U> U getUser(Class<U> clazz, boolean required) {
         U u = getUser(clazz);
         if (required && u == null) {
-            return ExceptionUtil.cast(XCode.SOA_AUTH7001);
+            return ExceptionUtil.cast(XCode.ACCOUNT_AUTH7001);
         }
         return u;
     }
@@ -103,7 +103,7 @@ public class LoginUtil {
     public static <P> P getPermissions(Class<P> clazz, boolean required) {
         P p = getPermissions(clazz);
         if (required && p == null) {
-            return ExceptionUtil.cast(XCode.SOA_PERMISSION7002);
+            return ExceptionUtil.cast(XCode.ACCOUNT_PERMISSION7002);
         }
         return p;
     }
