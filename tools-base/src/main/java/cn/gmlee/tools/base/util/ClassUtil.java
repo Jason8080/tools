@@ -28,8 +28,8 @@ public class ClassUtil extends TimerTask {
 
     private static final Logger log = LoggerFactory.getLogger(ClassUtil.class);
 
-    private static final Map<Object, Map> classMapCache = new ConcurrentHashMap();
-    private static final Map<Object, Map> fieldMapCache = new ConcurrentHashMap();
+    private static final Map<Object, Map> classMapCache = new HashMap();
+    private static final Map<Object, Map> fieldMapCache = new HashMap();
 
     {
         // 定时清理缓存
@@ -149,7 +149,7 @@ public class ClassUtil extends TimerTask {
      * @param source the source
      * @return the map
      */
-    public static <T, V> Map<String, V> generateMapUseCache(T source) {
+    public synchronized static <T, V> Map<String, V> generateMapUseCache(T source) {
         Map<String, V> map = classMapCache.get(source);
         if (BoolUtil.notEmpty(map)) {
             return map;
@@ -201,7 +201,7 @@ public class ClassUtil extends TimerTask {
      * @param source the source
      * @return the fields map use cache
      */
-    public static <T> Map<String, Field> getFieldsMapUseCache(T source) {
+    public synchronized static <T> Map<String, Field> getFieldsMapUseCache(T source) {
         Map<String, Field> map = fieldMapCache.get(source);
         if (BoolUtil.notEmpty(map)) {
             return map;
