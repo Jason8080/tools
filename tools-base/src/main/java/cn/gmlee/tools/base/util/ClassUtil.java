@@ -14,6 +14,8 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -27,11 +29,11 @@ public class ClassUtil extends TimerTask {
 
     private static final Logger log = LoggerFactory.getLogger(ClassUtil.class);
 
-    private static final Map<Object, Map> classMapCache = new LinkedHashMap();
-    private static final Map<Object, Map> fieldMapCache = new LinkedHashMap();
+    private static final Map<Object, Map> classMapCache = new ConcurrentHashMap();
+    private static final Map<Object, Map> fieldMapCache = new ConcurrentHashMap();
 
     {
-        // 定时清理缓存; 多线程下需关注线程安全问题
+        // 定时清理缓存
         new Timer().schedule(new ClassUtil(), 0, 24 * 3600 * 1000);
     }
 
