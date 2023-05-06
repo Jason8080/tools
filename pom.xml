@@ -21,7 +21,7 @@
 
     <!--项目信息-->
     <name>tools</name>
-    <description>TOOLS(图尔斯): 是一款Java语言的开发库, 包含但不限于: 基础工具库, 常见解决方案等</description>
+    <description>TOOLS(图尔斯): 是一款Java开发库, 包含但不限于: 基础工具包, 解决方案, 微架构等</description>
     <url>https://github.com/Jason8080/tools</url>
 
     <!--开源协议-->
