@@ -19,13 +19,8 @@
 
 ##### 2.1.1 版本简介
 
-- 最新版本: 4.0.0
-
-- 继承示例: 一级控制系统、二级开发项目、三级引用模块
-
-  - 系统继承的好处: 可由技术负责人 **统一** 升级调整 **所有项目** 版本
-  - 项目继承的好处: 可由项目负责人 **选择** 升级调整 **自身项目** 版本
-  - 模块继承的弊端: 可由项开发人员 **自由** 升级调整 **自身模块** 版本
+- 继承示例
+  > 统一版本控制、引用依赖以及常规配置
 
   ```xml
   <parent>
@@ -35,7 +30,7 @@
   </parent>
   ```
 
-- 引用示例: 三级引用模块
+- 引用示例
 
   > 复杂的旧系统可以直接加版本号引用工具包, 否则请选用继承, 新系统建议系统继承
 
@@ -421,8 +416,8 @@
   > 缺点: 采用了配置化存储密钥方案, 不可动态更新应用密钥, 仅用于后端口接口签名不支持
 
   ```properties
-  common.api.sign.expireSecond=10
-  common.api.sign.appKeys={'应用编号1':'密钥1','应用编号2':'密钥2'}
+  tools.api.sign.expireSecond=10
+  tools.api.sign.appKeys={'应用编号1':'密钥1','应用编号2':'密钥2'}
   ```
 
   
@@ -571,10 +566,10 @@
   > 优势: 采用了Redis存储密钥方案, 可以动态更新应用密钥, 提高密钥安全性, 可用于前端签名
 
   ```properties
-  common.webapp.sign.appKeyPrefix=REDIS:SIGN:APP_KEY_
-  common.webapp.sign.noncePrefix=REDIS:SIGN:IDEM_NONCE_
-  common.webapp.sign.expireSecond=10
-  common.webapp.sign.appKeys={'应用编号1':'密钥1','应用编号2':'密钥2'}
+  tools.webapp.sign.appKeyPrefix=REDIS:SIGN:APP_KEY_
+  tools.webapp.sign.noncePrefix=REDIS:SIGN:IDEM_NONCE_
+  tools.webapp.sign.expireSecond=10
+  tools.webapp.sign.appKeys={'应用编号1':'密钥1','应用编号2':'密钥2'}
   ```
 
   
