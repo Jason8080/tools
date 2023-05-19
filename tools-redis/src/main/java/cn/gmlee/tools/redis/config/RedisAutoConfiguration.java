@@ -27,11 +27,11 @@ public class RedisAutoConfiguration extends CachingConfigurerSupport {
     /**
      * 是否激活泛型支持.
      * <p>
-     * false: 关闭泛型支持, 存储到纯json内容,取出是LikeHashMap (不好用)
+     * false: 关闭泛型支持, 存储到纯json内容, 不作处理时取出是LikeHashMap (原生)
      * true: 激活类型信息: 存储到redis的是带类路径的内容,直接反序列化成对象 (方便使用,前提是路径字节码存在)
      * </p>
      */
-    @Value("${tools.redis.serializer.activateDefaultTyping:true}")
+    @Value("${tools.redis.serializer.activateDefaultTyping:false}")
     private Boolean activateDefaultTyping;
 
     /**
