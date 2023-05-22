@@ -1,5 +1,7 @@
 package cn.gmlee.tools.redis.config;
 
+import cn.gmlee.tools.base.util.ExcelUtil;
+import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.redis.assist.RedisAssist;
 import cn.gmlee.tools.redis.assist.SerializerAssist;
 import cn.gmlee.tools.redis.util.RedisClient;
@@ -12,6 +14,8 @@ import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
+import org.springframework.data.redis.serializer.OxmSerializer;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -41,15 +45,21 @@ public class RedisAutoConfiguration extends CachingConfigurerSupport {
      * true
      * </p>
      */
-    @Value("${tools.redis.serializer.valueToString:false}")
-    private Boolean valueToString;
+    @Value("${tools.redis.serializer.valueStrategy:json}")
+    private String valueStrategy;
 
 
     @Bean
     @ConditionalOnMissingBean(RedisSerializer.class)
     public RedisSerializer redisSerializer() {
         ObjectMapper objectMapper = SerializerAssist.getObjectMapper(activateDefaultTyping);
-        return valueToString ? new StringRedisSerializer() : SerializerAssist.getJackson2JsonRedisSerializer(objectMapper);
+        switch (valueStrategy){
+            case "json" : return SerializerAssist.getJackson2JsonRedisSerializer(objectMapper);
+            case "string" : return new StringRedisSerializer();
+            case "jdk" : return new JdkSerializationRedisSerializer();
+            case "oxm" : return new OxmSerializer();
+        }
+        return ExceptionUtil.cast(String.format("暂不支持%s序列化", valueStrategy));
     }
 
 

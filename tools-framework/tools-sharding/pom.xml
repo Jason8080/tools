@@ -5,12 +5,12 @@
     <parent>
         <artifactId>tools-framework</artifactId>
         <groupId>cn.gmlee.tools</groupId>
-        <version>4.20.1</version>
+        <version>4.20.2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>tools-sharding</artifactId>
-    <version>4.20.1</version>
+    <version>4.20.2</version>
 
     <packaging>jar</packaging>
 
@@ -22,12 +22,12 @@
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-ds</artifactId>
-            <version>4.20.1</version>
+            <version>4.20.2</version>
         </dependency>
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-spring</artifactId>
-            <version>4.20.1</version>
+            <version>4.20.2</version>
         </dependency>
         <!-- ============================================================ -->
         <dependency>
