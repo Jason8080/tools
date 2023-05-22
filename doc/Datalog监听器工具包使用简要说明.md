@@ -17,7 +17,7 @@
   <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>tools-datalog</artifactId>
-      <version>4.20.0</version>
+      <version>4.20.1</version>
   </dependency>
   ```
 

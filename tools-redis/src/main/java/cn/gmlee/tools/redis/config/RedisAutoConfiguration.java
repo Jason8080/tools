@@ -46,11 +46,17 @@ public class RedisAutoConfiguration extends CachingConfigurerSupport {
 
 
     @Bean
-    @ConditionalOnMissingBean(RedisClient.class)
-    public RedisClient redisClient(RedisConnectionFactory redisConnectionFactory) {
-        RedisAssist.setValidateConnection(redisConnectionFactory);
+    @ConditionalOnMissingBean(RedisSerializer.class)
+    public RedisSerializer redisSerializer() {
         ObjectMapper objectMapper = SerializerAssist.getObjectMapper(activateDefaultTyping);
-        RedisSerializer redisSerializer = valueToString ? new StringRedisSerializer() : SerializerAssist.getJackson2JsonRedisSerializer(objectMapper);
+        return valueToString ? new StringRedisSerializer() : SerializerAssist.getJackson2JsonRedisSerializer(objectMapper);
+    }
+
+
+    @Bean
+    @ConditionalOnMissingBean(RedisClient.class)
+    public RedisClient redisClient(RedisConnectionFactory redisConnectionFactory, RedisSerializer redisSerializer) {
+        RedisAssist.setValidateConnection(redisConnectionFactory);
         return new RedisClient(RedisAssist.redisTemplateByJackson(redisConnectionFactory, redisSerializer));
     }
 
