@@ -14,10 +14,7 @@ import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
-import org.springframework.data.redis.serializer.OxmSerializer;
-import org.springframework.data.redis.serializer.RedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
+import org.springframework.data.redis.serializer.*;
 
 /**
  * redis 配置类
@@ -54,8 +51,8 @@ public class RedisAutoConfiguration extends CachingConfigurerSupport {
     public RedisSerializer redisSerializer() {
         ObjectMapper objectMapper = SerializerAssist.getObjectMapper(activateDefaultTyping);
         switch (valueStrategy){
-            case "json" : return SerializerAssist.getJackson2JsonRedisSerializer(objectMapper);
-            case "string" : return new StringRedisSerializer();
+            case "json" : return new GenericJackson2JsonRedisSerializer(objectMapper);
+            case "string" : return new GenericToStringSerializer(Object.class);
             case "jdk" : return new JdkSerializationRedisSerializer();
             case "oxm" : return new OxmSerializer();
         }

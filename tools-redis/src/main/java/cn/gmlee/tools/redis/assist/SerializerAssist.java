@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 
 /**
@@ -14,17 +15,6 @@ import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
  * @date 2021 /2/3 (周三)
  */
 public class SerializerAssist {
-    /**
-     * 获取Jackson基础配置.
-     *
-     * @return the object mapper
-     */
-    public static Jackson2JsonRedisSerializer getJackson2JsonRedisSerializer(ObjectMapper objectMapper) {
-        Jackson2JsonRedisSerializer jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer(Object.class);
-        jackson2JsonRedisSerializer.setObjectMapper(objectMapper);
-        return jackson2JsonRedisSerializer;
-    }
-
     /**
      * 获取Jackson基础配置.
      *
