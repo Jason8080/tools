@@ -1,6 +1,5 @@
 package cn.gmlee.tools.redis.config;
 
-import cn.gmlee.tools.base.util.ExcelUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.redis.assist.RedisAssist;
 import cn.gmlee.tools.redis.assist.SerializerAssist;
@@ -9,10 +8,14 @@ import cn.gmlee.tools.redis.util.RedisId;
 import cn.gmlee.tools.redis.util.RedisLock;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.*;
 
@@ -22,6 +25,8 @@ import org.springframework.data.redis.serializer.*;
  * @author Jas°
  * @date 2020 /8/28 (周五)
  */
+@Order
+@AutoConfigureBefore(org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration.class)
 @PropertySource(value = {"classpath:redis.properties", "classpath:application.properties"}, ignoreResourceNotFound = true)
 public class RedisAutoConfiguration extends CachingConfigurerSupport {
 
@@ -48,6 +53,7 @@ public class RedisAutoConfiguration extends CachingConfigurerSupport {
 
     @Bean
     @ConditionalOnMissingBean(RedisSerializer.class)
+    @ConditionalOnProperty("tools.redis.serializer.valueStrategy")
     public RedisSerializer redisSerializer() {
         ObjectMapper objectMapper = SerializerAssist.getObjectMapper(activateDefaultTyping);
         switch (valueStrategy){
