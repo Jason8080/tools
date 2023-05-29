@@ -10,7 +10,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 /**
@@ -18,10 +17,11 @@ import org.springframework.context.annotation.Import;
  */
 @Import({
         VariableLockAspect.class,
+        VariableLockAutoConfiguration.RedisServerAutoConfiguration.class,
+        VariableLockAutoConfiguration.MemoryServerAutoConfiguration.class,
 })
 public class VariableLockAutoConfiguration {
 
-    @Configuration
     @ConditionalOnClass(RedisClient.class)
     static class RedisServerAutoConfiguration{
         @Bean
@@ -31,7 +31,6 @@ public class VariableLockAutoConfiguration {
         }
     }
 
-    @Configuration
     @ConditionalOnMissingClass("cn.gmlee.tools.redis.util.RedisClient")
     static class MemoryServerAutoConfiguration{
         @Bean
