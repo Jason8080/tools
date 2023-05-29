@@ -19,7 +19,7 @@
     <dependency>
         <groupId>cn.gmlee</groupId>
         <artifactId>tools-shardingJdbc</artifactId>
-        <version>4.20.4</version>
+        <version>4.20.5</version>
     </dependency>
     ```
     
