@@ -32,7 +32,6 @@ import java.util.List;
  * @author Jas°
  * @Date 2020 /8/20 16:12
  */
-@org.springframework.context.annotation.Configuration
 @ConditionalOnMissingBean({MyBatisPlusConfiguration.class})
 @MapperScan({"**.dao.mapper.**"})
 @ConditionalOnClass({MybatisProperties.class})

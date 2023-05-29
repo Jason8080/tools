@@ -1,0 +1,3 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  cn.gmlee.tools.mybatis.config.plus.MyBatisPlusConfiguration,\
+  cn.gmlee.tools.mybatis.config.mybatis.MyBatisConfiguration

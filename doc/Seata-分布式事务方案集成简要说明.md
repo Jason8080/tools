@@ -17,7 +17,7 @@
   <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>tools-seata</artifactId>
-      <version>4.20.5</version>
+      <version>4.21.0</version>
   </dependency>
   ```
 

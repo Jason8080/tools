@@ -1,8 +1,8 @@
 package cn.gmlee.tools.mybatis.config.plus;
 
 import cn.gmlee.tools.base.util.NullUtil;
-import cn.gmlee.tools.mybatis.assist.LocalResourcesAssist;
 import cn.gmlee.tools.mybatis.assist.ConfigurationAssist;
+import cn.gmlee.tools.mybatis.assist.LocalResourcesAssist;
 import com.baomidou.mybatisplus.autoconfigure.MybatisPlusProperties;
 import com.baomidou.mybatisplus.core.MybatisConfiguration;
 import com.baomidou.mybatisplus.core.config.GlobalConfig;
@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
@@ -32,7 +31,6 @@ import java.util.List;
  * @author Jas°
  * @Date 2020 /8/20 16:12
  */
-@Configuration
 @MapperScan({"**.dao.mapper.**"})
 @ConditionalOnClass(MybatisSqlSessionFactoryBean.class)
 @EnableConfigurationProperties(MybatisPlusProperties.class)
@@ -44,7 +42,6 @@ public class MyBatisPlusConfiguration {
     @javax.annotation.Resource
     private MybatisPlusProperties mybatisPlusProperties;
 
-    @SuppressWarnings("all")
     @Autowired(required = false)
     private List<Interceptor> interceptors;
 
