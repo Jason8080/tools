@@ -27,15 +27,15 @@ public class MemoryVariableLockServer implements VariableLockServer {
     public void lock(VariableLock vl, String... values) {
         String key = getKey(vl, values);
         // 加锁是否成功
-        boolean success = memoryMap.put(key, getVal(values)) != null;
-        log.info("【变量锁】加锁完成: {} {} {}", success, key, getVal(values));
-        AssertUtil.isTrue(success, String.format("Please wait while other operations are underway.."));
+        AssertUtil.isTrue(!memoryMap.containsKey(key), String.format("Please wait while other operations are underway.."));
+        memoryMap.put(key, getVal(values));
+        log.info("【变量锁】加锁完成: {} {} {}", true, key, getVal(values));
     }
 
     public void unlock(VariableLock vl, String... values) {
         String key = getKey(vl, values);
         // 是否解锁成功
-        Boolean success = memoryMap.remove(key) != null;
-        log.info("【变量锁】解锁完成: {} {} {}", success, key, getVal(values));
+        memoryMap.remove(key);
+        log.info("【变量锁】解锁完成: {} {} {}", true, key, getVal(values));
     }
 }
