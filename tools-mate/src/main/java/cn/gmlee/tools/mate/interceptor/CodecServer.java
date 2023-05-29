@@ -36,45 +36,57 @@ public interface CodecServer {
     }
 
     /**
-     * Encode.
+     * 编码.
+     * <p>
+     *     当mapper处理的数据集为对象或集合对象时触发
+     * </p>
      *
-     * @param fieldsMap the fields map
-     * @param obj       the obj
-     * @param key       the key
-     * @param field     the field
+     * @param fieldsMap 持久化对象反射后的字段集
+     * @param obj       持久化对象
+     * @param key       字段名称
+     * @param field     字段
      */
     default void encode(Map<String, Field> fieldsMap, Object obj, String key, Field field) {
     }
 
     /**
-     * Encode.
+     * 编码.
+     * <p>
+     *     当mapper处理的数据集为Map时触发
+     * </p>
      *
-     * @param valuesMap the values map
+     * @param valuesMap 持久化数据集
      * @param obj       同{@param valuesMap}
-     * @param key       the key
-     * @param value     the value
+     * @param key       字段名
+     * @param value     字段值
      */
     default void encode(Map<String, Object> valuesMap, Object obj, String key, Object value) {
     }
 
     /**
-     * Decode.
+     * 解码.
+     * <p>
+     *     当mapper处理的数据集为对象或集合对象时触发
+     * </p>
      *
-     * @param fieldsMap the fields map
-     * @param obj       the obj
-     * @param key       the key
-     * @param field     the field
+     * @param fieldsMap 反射后的字段集
+     * @param obj       持久化对象
+     * @param key       字段名
+     * @param field     字段
      */
     default void decode(Map<String, Field> fieldsMap, Object obj, String key, Field field) {
     }
 
     /**
-     * Decode.
+     * 解码.
+     * <p>
+     *     当mapper处理的数据集为Map时触发
+     * </p>
      *
-     * @param valuesMap the fields map
+     * @param valuesMap 持久化数据集
      * @param obj       同{@param valuesMap}
-     * @param key       the key
-     * @param field     the field
+     * @param key       字段名
+     * @param field     字段值
      */
     default void decode(Map<String, Object> valuesMap, Object obj, String key, Object field) {
     }
