@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
 /**
- * The type Datalog auto configuration.
+ * 数据权限装配.
  *
  * @author Jas °
  * @date 2021 /4/2 (周五)
