@@ -88,8 +88,8 @@ public interface CodecServer {
      * @param valuesMap 持久化数据集
      * @param obj       同{@param valuesMap}
      * @param key       字段名
-     * @param field     字段值
+     * @param value     字段值
      */
-    default void decode(Map<String, Object> valuesMap, Object obj, String key, Object field) {
+    default void decode(Map<String, Object> valuesMap, Object obj, String key, Object value) {
     }
 }
