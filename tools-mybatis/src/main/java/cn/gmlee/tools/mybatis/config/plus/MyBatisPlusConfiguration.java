@@ -32,8 +32,8 @@ import java.util.List;
  * @Date 2020 /8/20 16:12
  */
 @MapperScan({"**.dao.mapper.**"})
-@ConditionalOnClass(MybatisSqlSessionFactoryBean.class)
 @EnableConfigurationProperties(MybatisPlusProperties.class)
+@ConditionalOnClass({MybatisSqlSessionFactoryBean.class, MybatisPlusProperties.class})
 public class MyBatisPlusConfiguration {
 
     @Value("${tools.mysql.dynamic.mapperPackageName:mapper}")

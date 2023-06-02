@@ -36,7 +36,7 @@ import java.util.*;
  * The type Data auth interceptor.
  */
 @Intercepts({
-        @Signature(type = Executor.class, method = "update", args = {MappedStatement.class}),
+        @Signature(type = Executor.class, method = "update", args = {MappedStatement.class, Object.class}),
         @Signature(type = ParameterHandler.class, method = "setParameters", args = {PreparedStatement.class}),
         @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class}),
         @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class}),
