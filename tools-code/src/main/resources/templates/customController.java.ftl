@@ -2,9 +2,9 @@ package ${package.Controller};
 
 
 
-import JsonResult;
-import PageRequest;
-import ApiPrint;
+import cn.gmlee.tools.base.anno.ApiPrint;
+import cn.gmlee.tools.base.mod.JsonResult;
+import cn.gmlee.tools.base.mod.PageRequest;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;

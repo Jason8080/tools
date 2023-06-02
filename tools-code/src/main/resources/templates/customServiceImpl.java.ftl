@@ -5,7 +5,7 @@ import ${package.Controller}.vo.${entity}Vo;
 import ${package.Mapper}.${table.mapperName};
 import ${package.Service}.${table.serviceName};
 
-import BeanUtil;
+import cn.gmlee.tools.base.util.BeanUtil;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
