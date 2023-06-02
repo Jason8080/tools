@@ -17,7 +17,7 @@
   <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>tools-swagger</artifactId>
-      <version>4.21.2</version>
+      <version>4.21.3</version>
   </dependency>
   ```
 

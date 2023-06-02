@@ -10,13 +10,11 @@ import java.util.Map;
  * </p>
  */
 public interface CodecServer {
-    /**
-     * The constant ENCODE.
-     */
+    // 编码总开关
     String ENCODE = "encode";
-    /**
-     * The constant DECODE.
-     */
+    // 入参spring编码开关: update(@Param("mobile") String mobile);
+    String ENCODE_STRING = "encode_string";
+    // 解码总开关
     String DECODE = "decode";
 
     /**
@@ -28,6 +26,10 @@ public interface CodecServer {
     default boolean enable(String codec) {
         if (ENCODE.equalsIgnoreCase(codec)) {
             return true;
+        }
+        if (ENCODE_STRING.equalsIgnoreCase(codec)) {
+            // 默认不开启
+            return false;
         }
         if (DECODE.equalsIgnoreCase(codec)) {
             return true;

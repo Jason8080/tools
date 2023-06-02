@@ -30,6 +30,7 @@ import java.math.BigDecimal;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.Statement;
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -165,7 +166,14 @@ public class DataAuthInterceptor implements Interceptor {
         Iterator<Map.Entry<String, Object>> it = parameterMap.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<String, Object> next = it.next();
+            String key = next.getKey();
             Object value = next.getValue();
+            // 支持String入参编码
+            if(codecServer.enable(CodecServer.ENCODE_STRING) && value instanceof String){
+                // 字段编码处理
+                codecServer.encode(parameterMap, null, key, value);
+                continue;
+            }
             encode(value, list);
         }
     }
@@ -196,7 +204,14 @@ public class DataAuthInterceptor implements Interceptor {
 
     private void encodeObj(Object o) {
         // 忽略基础字段
-        if (o == null || BoolUtil.isBaseClass(o, String.class, Date.class, BigDecimal.class)){
+        if (o == null ||
+                BoolUtil.isBaseClass(o,
+                        String.class,
+                        Date.class,
+                        BigDecimal.class,
+                        LocalDateTime.class
+                )
+        ){
             return;
         }
         // 如果是Map
@@ -325,7 +340,14 @@ public class DataAuthInterceptor implements Interceptor {
             Iterator<Object> it = objects.iterator();
             while (it.hasNext()){
                 Object o = it.next();
-                if(o == null || BoolUtil.isBaseClass(o, String.class, Date.class, BigDecimal.class)){
+                if(o == null ||
+                        BoolUtil.isBaseClass(o,
+                            String.class,
+                            Date.class,
+                            BigDecimal.class,
+                            LocalDateTime.class
+                        )
+                ){
                     continue;
                 }
                 // 如果是Map
