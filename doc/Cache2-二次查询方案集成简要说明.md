@@ -50,7 +50,7 @@
 <dependency>
     <groupId>${project.groupId}</groupId>
     <artifactId>tools-cache2</artifactId>
-    <version>4.21.3</version>
+    <version>4.22.0</version>
 </dependency>
 ```
 
