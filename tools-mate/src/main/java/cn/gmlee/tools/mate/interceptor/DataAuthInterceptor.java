@@ -132,7 +132,7 @@ public class DataAuthInterceptor implements Interceptor {
             map.put(key, po);
             po = map;
         }
-        encode((Map<String, Object>) po);
+        encode((Map<String, Object>) po, new ArrayList());
         return null;
     }
 
@@ -152,30 +152,32 @@ public class DataAuthInterceptor implements Interceptor {
                 map.put(key, po);
                 po = map;
             }
-            encode((Map<String, Object>) po);
+            encode((Map<String, Object>) po, new ArrayList());
         }
         return null;
     }
 
-    private void encode(Map<String, Object> parameterMap) {
+    private void encode(Map<String, Object> parameterMap, List<Object> list) {
         if (BoolUtil.isEmpty(parameterMap)) {
             return;
         }
         // 已加密对象
-        List<Object> list = new ArrayList();
         Iterator<Map.Entry<String, Object>> it = parameterMap.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<String, Object> next = it.next();
-            String key = next.getKey();
-            Object value = next.getValue();
-            // 支持String入参编码
-            if(codecServer.enable(CodecServer.ENCODE_STRING) && value instanceof String){
-                // 字段编码处理
-                codecServer.encode(parameterMap, null, key, value);
-                continue;
-            }
-            encode(value, list);
+            encode(parameterMap, next.getKey(), next.getValue(), list);
         }
+    }
+
+    private void encode(Map<String, Object> sourceMap, String key, Object val, List list) {
+        // 支持String入参编码
+        if(codecServer.enable(CodecServer.ENCODE_STRING)){
+            if(val instanceof String){
+                codecServer.encode(sourceMap, null, key, val);
+                return;
+            }
+        }
+        encode(val, list);
     }
 
     private void encode(Collection c, List list) {
