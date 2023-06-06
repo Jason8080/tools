@@ -40,7 +40,7 @@ import java.util.*;
         @Signature(type = Executor.class, method = "update", args = {MappedStatement.class, Object.class}),
         @Signature(type = ParameterHandler.class, method = "setParameters", args = {PreparedStatement.class}),
         @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class}),
-        @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class}),
+        @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, }),
         @Signature(type = ResultSetHandler.class, method = "handleResultSets", args = {Statement.class}),
         @Signature(type = ResultSetHandler.class, method = "handleCursorResultSets", args = {Statement.class}),
         @Signature(type = ResultSetHandler.class, method = "handleOutputParameters", args = {CallableStatement.class}),
@@ -105,9 +105,11 @@ public class DataAuthInterceptor implements Interceptor {
                 return encode(invocation);
             }
             case "setParameters": {
-//                return encode2(invocation);
+                return null;
+//                return encodeSetParameters(invocation);
             }
             case "query": {
+                encodeQuery(invocation);
                 return rowDataAuth(invocation);
             }
             case "handleResultSets": {
@@ -136,6 +138,46 @@ public class DataAuthInterceptor implements Interceptor {
         return null;
     }
 
+    private Object encodeSetParameters(Invocation invocation) {
+        // 编码开关
+        if (!codecServer.enable(CodecServer.ENCODE)) {
+            return null;
+        }
+        // 加密
+        if (invocation.getTarget() instanceof ParameterHandler) {
+            ParameterHandler ph = (ParameterHandler) invocation.getTarget();
+            Object po = ph.getParameterObject();
+            if (po != null && !(po instanceof Map)) {
+                String key = po.getClass().getSimpleName().toLowerCase();
+                Map<String, Object> map = new HashMap();
+                map.put(key, po);
+                po = map;
+            }
+            encode((Map<String, Object>) po, new HashSet<>());
+
+        }
+        return null;
+    }
+
+    private Object encodeQuery(Invocation invocation) {
+        // 编码开关
+        if (!codecServer.enable(CodecServer.ENCODE)) {
+            return null;
+        }
+        // 加密
+        if (invocation.getTarget() instanceof Executor) {
+            Object po = invocation.getArgs()[1];
+            if (po != null && !(po instanceof Map)) {
+                String key = po.getClass().getSimpleName().toLowerCase();
+                Map<String, Object> map = new HashMap();
+                map.put(key, po);
+                po = map;
+            }
+            encode((Map<String, Object>) po, new HashSet<>());
+        }
+        return null;
+    }
+
     private void encode(Map<String, Object> parameterMap, Set<Object> set) {
         if (BoolUtil.isEmpty(parameterMap)) {
             return;
@@ -144,12 +186,12 @@ public class DataAuthInterceptor implements Interceptor {
         Iterator<Map.Entry<String, Object>> it = parameterMap.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry<String, Object> next = it.next();
-            if (set.contains(next.getValue())) {
+            Object value = next.getValue();
+            if (set.contains(value) && !(value instanceof String)) {
                 continue;
             }
-            String encode = encode(next.getKey(), next.getValue(), set);
+            String encode = encode(next.getKey(), value, set);
             if (encode != null) {
-                set.add(encode);
                 parameterMap.put(next.getKey(), encode);
             }
         }
@@ -159,6 +201,10 @@ public class DataAuthInterceptor implements Interceptor {
         // 支持String入参编码
         if (val instanceof String && codecServer.enable(CodecServer.ENCODE_STRING)) {
             return codecServer.encode(null, key, val);
+        }
+        // 重复编码检查
+        if(set.contains(val) && !(val instanceof String)){
+            return null;
         }
         if (val instanceof Map) {
             Iterator<? extends Map.Entry<?, ?>> it = ((Map<?, ?>) val).entrySet().iterator();
@@ -175,8 +221,10 @@ public class DataAuthInterceptor implements Interceptor {
                 String encode = encode((String) newKey, newVal, set);
                 if (encode != null) {
                     ((Map) val).put(newKey, newVal);
+//                    set.add(newVal);
                 }
             }
+            set.add(val);
             return null;
         }
         if (val instanceof List) {
@@ -190,8 +238,10 @@ public class DataAuthInterceptor implements Interceptor {
                 if (encode != null) {
                     ((List<?>) val).remove(value);
                     ((List) val).add(encode);
+//                    set.add(value);
                 }
             }
+            set.add(val);
             return null;
         }
         if (val instanceof Object[]) {
@@ -203,8 +253,10 @@ public class DataAuthInterceptor implements Interceptor {
                 String encode = encode(key, value, set);
                 if (encode != null) {
                     ((Object[]) val)[i] = encode;
+//                    set.add(value);
                 }
             }
+            set.add(val);
             return null;
         }
         encodeObj(val, set);
@@ -231,14 +283,14 @@ public class DataAuthInterceptor implements Interceptor {
                 Map.Entry<String, Object> next = it.next();
                 String key = next.getKey();
                 Object value = next.getValue();
-                if (set.contains(value)) {
+                if (set.contains(value) && !(value instanceof String)) {
                     continue;
                 }
                 // 字段编码处理
                 String encode = codecServer.encode(o, key, value);
                 if (encode != null) {
-                    set.add(encode);
                     valuesMap.put(key, encode);
+//                    set.add(value);
                 }
             }
         }
@@ -251,15 +303,16 @@ public class DataAuthInterceptor implements Interceptor {
             Field field = next.getValue();
             // 字段编码处理
             Object value = ClassUtil.getValue(o, field);
-            if (set.contains(value)) {
+            if (set.contains(value) && !(value instanceof String)) {
                 continue;
             }
             String encode = codecServer.encode(o, key, value);
             if (encode != null) {
-                set.add(encode);
                 ClassUtil.setValue(o, field, encode);
+//                set.add(value);
             }
         }
+        set.add(o);
     }
 
     private Object rowDataAuth(Invocation invocation) throws Exception {
