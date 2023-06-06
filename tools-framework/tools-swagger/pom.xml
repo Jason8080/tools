@@ -5,7 +5,7 @@
     <parent>
         <artifactId>tools-framework</artifactId>
         <groupId>cn.gmlee.tools</groupId>
-        <version>4.22.1</version>
+        <version>4.22.2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -17,7 +17,7 @@
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-base</artifactId>
-            <version>4.22.1</version>
+            <version>4.22.2</version>
         </dependency>
         <!-- ============================================================ -->
         <dependency>
