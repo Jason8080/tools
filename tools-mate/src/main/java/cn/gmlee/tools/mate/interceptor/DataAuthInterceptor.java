@@ -34,13 +34,17 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 /**
- * The type Data auth interceptor.
+ * 数据鉴权拦截器.
+ * <p>
+ *     功能包含: 数据(行、列)权限, 数据编解码
+ *     @Signature method sequence: query > setParameters > handleResultSets
+ * </p>
  */
 @Intercepts({
-        @Signature(type = Executor.class, method = "update", args = {MappedStatement.class, Object.class}),
-        @Signature(type = ParameterHandler.class, method = "setParameters", args = {PreparedStatement.class}),
         @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class}),
         @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, }),
+        @Signature(type = Executor.class, method = "update", args = {MappedStatement.class, Object.class}),
+        @Signature(type = ParameterHandler.class, method = "setParameters", args = {PreparedStatement.class}),
         @Signature(type = ResultSetHandler.class, method = "handleResultSets", args = {Statement.class}),
         @Signature(type = ResultSetHandler.class, method = "handleCursorResultSets", args = {Statement.class}),
         @Signature(type = ResultSetHandler.class, method = "handleOutputParameters", args = {CallableStatement.class}),
