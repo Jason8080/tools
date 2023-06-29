@@ -11,6 +11,19 @@ import java.util.*;
  * @date 2020 /9/18 (周五)
  */
 public class CollectionUtil {
+    /**
+     * 添加元素.
+     *
+     * @param <T> the type parameter
+     * @param ts  the ts
+     * @return the collection
+     */
+    public static <T> Collection<T> addAll(Collection<T> ts, T... elements) {
+        if (BoolUtil.notEmpty(ts) && BoolUtil.notEmpty(elements)) {
+            Collections.addAll(ts, elements);
+        }
+        return ts;
+    }
 
     /**
      * 替换元素.
