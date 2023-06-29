@@ -1,6 +1,7 @@
 package cn.gmlee.tools.redis.util;
 
 import cn.gmlee.tools.base.enums.Int;
+import cn.gmlee.tools.base.ex.agreed.WantRetryException;
 import cn.gmlee.tools.base.util.AssertUtil;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
@@ -11,6 +12,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.Thread.sleep;
 
@@ -81,20 +83,28 @@ public class RedisLock {
      * @return the boolean
      */
     public boolean lock(String key, Object val, long expire, boolean spin) {
+        if(!spin){
+            return locking(key, val, expire);
+        }
+        // 最多自旋99次
+        AtomicInteger count = new AtomicInteger(99);
         try {
-            while (spin && !locking(key, val, expire)) {
+            while (spin && count.decrementAndGet() > 0) {
+                if (locking(key, val, expire)) {
+                    return true;
+                }
                 sleep(Int.THREE);
             }
         } catch (InterruptedException e) {
-            logger.error(String.format("分布式锁自旋睡眠出错: "), e);
+            logger.error("分布式锁自旋睡眠出错", e);
         }
-        return true;
+        throw new RuntimeException("分布式锁自旋n次仍然加锁失败");
     }
 
     private boolean locking(String key, Object val, long expire) {
         if (expire < Int.ONE) {
-            // 避免死循环不能返回false
-            return true;
+            // 时间太短直接失败
+            return false;
         }
         AssertUtil.allNotNull(key, ExceptionUtil.sandbox(() -> String.format("键值对是空 -> %s: %s", key, val)), val);
         return redisClient.setNx(key, val, expire);
