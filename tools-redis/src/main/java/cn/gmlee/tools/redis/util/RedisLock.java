@@ -93,6 +93,7 @@ public class RedisLock {
                 if (locking(key, val, expire)) {
                     return true;
                 }
+                logger.info("分布式锁自旋中...");
                 sleep(Int.THREE);
             }
         } catch (InterruptedException e) {
