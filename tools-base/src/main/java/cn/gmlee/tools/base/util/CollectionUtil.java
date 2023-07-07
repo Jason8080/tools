@@ -19,7 +19,7 @@ public class CollectionUtil {
      * @return the collection
      */
     public static <T> Collection<T> addAll(Collection<T> ts, T... elements) {
-        if (BoolUtil.notEmpty(ts) && BoolUtil.notEmpty(elements)) {
+        if (BoolUtil.notNull(ts) && BoolUtil.notEmpty(elements)) {
             Collections.addAll(ts, elements);
         }
         return ts;
