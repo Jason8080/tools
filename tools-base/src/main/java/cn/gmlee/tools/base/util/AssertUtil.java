@@ -254,28 +254,35 @@ public class AssertUtil {
         }
     }
 
-    public static <T extends Comparable> void gt(T source, T target, String msg) {
+    public static void eq(Comparable source, Comparable target, String msg) {
+        boolean gt = BoolUtil.eq(source, target);
+        if (!gt) {
+            throw new AssertException(msg);
+        }
+    }
+
+    public static void gt(Comparable source, Comparable target, String msg) {
         boolean gt = BoolUtil.gt(source, target);
         if (!gt) {
             throw new AssertException(msg);
         }
     }
 
-    public static <T extends Comparable> void gte(T source, T target, String msg) {
+    public static void gte(Comparable source, Comparable target, String msg) {
         boolean gte = BoolUtil.gte(source, target);
         if (!gte) {
             throw new AssertException(msg);
         }
     }
 
-    public static <T extends Comparable> void lt(T source, T target, String msg) {
+    public static void lt(Comparable source, Comparable target, String msg) {
         boolean lt = BoolUtil.lt(source, target);
         if (!lt) {
             throw new AssertException(msg);
         }
     }
 
-    public static <T extends Comparable> void lte(T source, T target, String msg) {
+    public static void lte(Comparable source, Comparable target, String msg) {
         boolean lte = BoolUtil.lte(source, target);
         if (!lte) {
             throw new AssertException(msg);

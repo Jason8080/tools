@@ -740,13 +740,12 @@ public class BoolUtil {
     /**
      * 在指定数值之间.
      *
-     * @param <T>    the type parameter
      * @param min    the min
      * @param max    the max
      * @param target the target
      * @return the boolean
      */
-    public static <T extends Comparable> boolean between(T min, T max, T target) {
+    public static boolean between(Comparable min, Comparable max, Comparable target) {
         return gte(target, min) && lte(target, max);
     }
 
@@ -764,12 +763,11 @@ public class BoolUtil {
     /**
      * 判断数值是否相等.
      *
-     * @param <T>    the type parameter
      * @param source the source
      * @param target the target
      * @return the boolean
      */
-    public static <T extends Number & Comparable> boolean eq(T source, T target) {
+    public static boolean eq(Comparable source, Comparable target) {
         if (allNotNull(source, target)) {
             return source.compareTo(target) == Int.ZERO;
         }
@@ -779,13 +777,11 @@ public class BoolUtil {
     /**
      * 判断source是否大于target.
      *
-     * @param <T>    the type parameter
-     * @param <V>    the type parameter
      * @param source the source
      * @param target the target
      * @return the boolean
      */
-    public static <T extends Comparable, V extends Comparable> boolean gt(T source, V target) {
+    public static boolean gt(Comparable source, Comparable target) {
         if (allNotNull(source, target)) {
             int i = source.compareTo(target);
             return i > 0;
@@ -797,14 +793,12 @@ public class BoolUtil {
     /**
      * 全部大于目标值.
      *
-     * @param <T>     the type parameter
-     * @param <V>     the type parameter
      * @param target  the target
      * @param sources the sources
      * @return the boolean
      */
-    public static <T extends Comparable, V extends Comparable> boolean allGt(V target, T... sources) {
-        for (T source : sources) {
+    public static boolean allGt(Comparable target, Comparable... sources) {
+        for (Comparable source : sources) {
             boolean gt = gt(source, target);
             if (!gt) {
                 return false;
@@ -816,13 +810,11 @@ public class BoolUtil {
     /**
      * 判断source是否大于等于target.
      *
-     * @param <T>    the type parameter
-     * @param <V>    the type parameter
      * @param source the source
      * @param target the target
      * @return the boolean
      */
-    public static <T extends Comparable, V extends Comparable> boolean gte(T source, V target) {
+    public static boolean gte(Comparable source, Comparable target) {
         if (allNotNull(source, target)) {
             int i = source.compareTo(target);
             return i >= 0;
@@ -833,14 +825,12 @@ public class BoolUtil {
     /**
      * 全部大于等于目标值.
      *
-     * @param <T>     the type parameter
-     * @param <V>     the type parameter
      * @param target  the target
      * @param sources the sources
      * @return the boolean
      */
-    public static <T extends Comparable, V extends Comparable> boolean allGte(V target, T... sources) {
-        for (T source : sources) {
+    public static boolean allGte(Comparable target, Comparable... sources) {
+        for (Comparable source : sources) {
             boolean gt = gte(source, target);
             if (!gt) {
                 return false;
@@ -852,13 +842,11 @@ public class BoolUtil {
     /**
      * 判断source是否小于target.
      *
-     * @param <T>    the type parameter
-     * @param <V>    the type parameter
      * @param source the source
      * @param target the target
      * @return the boolean
      */
-    public static <T extends Comparable, V extends Comparable> boolean lt(T source, V target) {
+    public static boolean lt(Comparable source, Comparable target) {
         if (allNotNull(source, target)) {
             int i = source.compareTo(target);
             return i < 0;
@@ -869,14 +857,12 @@ public class BoolUtil {
     /**
      * 全部小于目标值.
      *
-     * @param <T>     the type parameter
-     * @param <V>     the type parameter
      * @param target  the target
      * @param sources the sources
      * @return the boolean
      */
-    public static <T extends Comparable, V extends Comparable> boolean allLt(V target, T... sources) {
-        for (T source : sources) {
+    public static boolean allLt(Comparable target, Comparable... sources) {
+        for (Comparable source : sources) {
             boolean gt = lt(source, target);
             if (!gt) {
                 return false;
@@ -888,13 +874,11 @@ public class BoolUtil {
     /**
      * 判断source是否小于等于target.
      *
-     * @param <T>    the type parameter
-     * @param <V>    the type parameter
      * @param source the source
      * @param target the target
      * @return the boolean
      */
-    public static <T extends Comparable, V extends Comparable> boolean lte(T source, V target) {
+    public static boolean lte(Comparable source, Comparable target) {
         if (allNotNull(source, target)) {
             int i = source.compareTo(target);
             return i <= 0;
@@ -905,14 +889,12 @@ public class BoolUtil {
     /**
      * 全部小于等于目标值.
      *
-     * @param <T>     the type parameter
-     * @param <V>     the type parameter
      * @param target  the target
      * @param sources the sources
      * @return the boolean
      */
-    public static <T extends Comparable, V extends Comparable> boolean allLte(V target, T... sources) {
-        for (T source : sources) {
+    public static boolean allLte(Comparable target, Comparable... sources) {
+        for (Comparable source : sources) {
             boolean gt = lte(source, target);
             if (!gt) {
                 return false;
