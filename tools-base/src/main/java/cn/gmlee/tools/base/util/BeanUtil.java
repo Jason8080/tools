@@ -31,7 +31,7 @@ public class BeanUtil<T> {
             convert(source, target);
             this.target = target;
         } catch (Exception e) {
-            throw new SkillException(XCode.THIRD_PARTY3000.code, e);
+            throw new SkillException(XCode.THIRD_PARTY_FAIL.code, e);
         }
     }
 

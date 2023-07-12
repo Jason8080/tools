@@ -280,7 +280,7 @@ public class RsaUtil {
             // 因为验签是不需要解密查看内容的所以直接不可逆加密
             return Md5Util.encode(sb.toString());
         } catch (Exception e) {
-            throw new SkillException(XCode.CONSENSUS_SIGN2001.code, e);
+            throw new SkillException(XCode.API_SIGN.code, e);
         }
     }
 

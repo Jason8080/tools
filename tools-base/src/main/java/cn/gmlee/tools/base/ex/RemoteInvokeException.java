@@ -14,7 +14,7 @@ public class RemoteInvokeException extends SkillException {
      * Instantiates a new Remote invoke exception.
      */
     public RemoteInvokeException() {
-        super(XCode.THIRD_PARTY3000.code, XCode.THIRD_PARTY3000.msg);
+        super(XCode.THIRD_PARTY_FAIL.code, XCode.THIRD_PARTY_FAIL.msg);
     }
 
     /**

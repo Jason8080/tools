@@ -6,24 +6,42 @@ import cn.gmlee.tools.base.enums.XCode;
 /**
  * 通用断言异常
  *
- * @author Jas°
- * @date 2020/9/28 (周一)
+ * @author Jas °
  */
 public class AssertException extends SkillException {
 
+    /**
+     * Instantiates a new Assert exception.
+     */
     public AssertException() {
-        super(XCode.CONSENSUS_USER2002.code, XCode.CONSENSUS_USER2002.msg);
+        super(XCode.ASSERT_FAIL);
     }
 
+    /**
+     * Instantiates a new Assert exception.
+     *
+     * @param message the message
+     */
     public AssertException(String message) {
-        super(XCode.CONSENSUS_USER2002.code, message);
+        super(XCode.ASSERT_FAIL.code, message);
     }
 
+    /**
+     * Instantiates a new Assert exception.
+     *
+     * @param message the message
+     * @param cause   the cause
+     */
     public AssertException(String message, Throwable cause) {
-        super(XCode.CONSENSUS_USER2002.code, message, cause);
+        super(XCode.ASSERT_FAIL.code, message, cause);
     }
 
+    /**
+     * Instantiates a new Assert exception.
+     *
+     * @param cause the cause
+     */
     public AssertException(Throwable cause) {
-        super(XCode.CONSENSUS_USER2002.code, cause);
+        super(XCode.ASSERT_FAIL.code, cause);
     }
 }

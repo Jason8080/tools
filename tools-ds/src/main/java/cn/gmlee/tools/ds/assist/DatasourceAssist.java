@@ -37,7 +37,7 @@ public class DatasourceAssist {
             Class<?> aClass = Class.forName(className);
             return (Class<T>) aClass;
         } catch (ClassNotFoundException e) {
-            throw new SkillException(XCode.THIRD_PARTY3000.code, "Data source cannot load..", e);
+            throw new SkillException(XCode.THIRD_PARTY_FAIL.code, "Data source cannot load..", e);
         }
     }
 
@@ -91,7 +91,7 @@ public class DatasourceAssist {
             dynamicDataSource.afterPropertiesSet();
             return dynamicDataSource;
         }
-        throw new SkillException(XCode.THIRD_PARTY3000.code, "至少需要 1 个数据源");
+        throw new SkillException(XCode.THIRD_PARTY_FAIL.code, "至少需要 1 个数据源");
     }
 
 
@@ -109,6 +109,6 @@ public class DatasourceAssist {
                     .bind(ConfigurationPropertyName.EMPTY, Bindable.of(DatasourceAssist.getDatasourceType(dsMap)))
                     .get();
         }
-        throw new SkillException(XCode.THIRD_PARTY3000.code, "数据源缺少 必要的 参数");
+        throw new SkillException(XCode.THIRD_PARTY_FAIL.code, "数据源缺少 必要的 参数");
     }
 }

@@ -133,9 +133,9 @@ public class VcService {
      */
     public JsonResult generateJsonResult(String key) {
         if (!ask(key)) {
-            return new JsonResult(XCode.ACCOUNT_INCORRECT7004);
+            return new JsonResult(XCode.LOGIN_AUTH_INCORRECT);
         }
-        return generateVcJsonResult(XCode.CONSENSUS_VC2012.code, XCode.CONSENSUS_VC2012.msg);
+        return generateVcJsonResult(XCode.RETYPE_VC.code, XCode.RETYPE_VC.msg);
     }
 
     /**
@@ -148,7 +148,7 @@ public class VcService {
      */
     public JsonResult generateJsonResult(String key, Integer code, String msg) {
         if (!ask(key)) {
-            return new JsonResult(XCode.ACCOUNT_INCORRECT7004);
+            return new JsonResult(XCode.LOGIN_AUTH_INCORRECT);
         }
         return generateVcJsonResult(code, msg);
     }

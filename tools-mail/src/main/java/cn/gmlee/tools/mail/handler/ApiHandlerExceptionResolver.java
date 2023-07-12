@@ -33,7 +33,7 @@ public class ApiHandlerExceptionResolver implements HandlerExceptionResolver {
     @Override
     public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
         if (ex instanceof SkillException) {
-            if (BoolUtil.eq(XCode.UNKNOWN5000.code, ((SkillException) ex).getCode())) {
+            if (BoolUtil.eq(XCode.FAIL.code, ((SkillException) ex).getCode())) {
                 send(ex);
             }
         } else {

@@ -46,17 +46,17 @@ public class SignController extends ParameterController {
         super.parameterPre(appId);
         // 签名效验
         if(!timestampOK(timestamp)){
-            throw new SkillException(XCode.CONSENSUS_SIGN2001.code, "签名过期");
+            throw new SkillException(XCode.API_SIGN.code, "签名过期");
         }
         if(!nonceOK(nonce, signature)){
-            throw new SkillException(XCode.CONSENSUS_SIGN2001.code, "重复请求");
+            throw new SkillException(XCode.API_SIGN.code, "重复请求");
         }
         String secretKey = getSecretKey(appId);
         if(StringUtils.isEmpty(secretKey)){
-            throw new SkillException(XCode.CONSENSUS_SIGN2001.code, "暂无私钥");
+            throw new SkillException(XCode.API_SIGN.code, "暂无私钥");
         }
         if(!SignUtil.check(request, secretKey, signAssist.getExtraHeaders())){
-            throw new SkillException(XCode.CONSENSUS_SIGN2001.code, "非法请求");
+            throw new SkillException(XCode.API_SIGN.code, "非法请求");
         }
     }
 

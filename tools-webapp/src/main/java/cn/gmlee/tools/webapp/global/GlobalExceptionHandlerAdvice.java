@@ -5,7 +5,6 @@ import cn.gmlee.tools.base.ex.AgreedException;
 import cn.gmlee.tools.base.ex.RemoteInvokeException;
 import cn.gmlee.tools.base.ex.SkillException;
 import cn.gmlee.tools.base.ex.VcException;
-import cn.gmlee.tools.base.ex.agreed.UserExperienceException;
 import cn.gmlee.tools.base.mod.JsonResult;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import org.slf4j.Logger;
@@ -77,7 +76,7 @@ public class GlobalExceptionHandlerAdvice {
     @ExceptionHandler({HttpMessageNotReadableException.class})
     public JsonResult invalidFormatException(HttpServletRequest request, HttpMessageNotReadableException ex) {
         logger.info("已捕捉: 消息读取异常\r\n{}", ExceptionUtil.getAllMsg(ex));
-        return JsonResult.FAIL.newly(XCode.UNREASONABLE4000, ExceptionUtil.getOriginMsg(ex));
+        return JsonResult.FAIL.newly(XCode.REQUEST_FAIL, ExceptionUtil.getOriginMsg(ex));
     }
 
     /**
@@ -130,19 +129,6 @@ public class GlobalExceptionHandlerAdvice {
     @ExceptionHandler({AgreedException.class})
     public JsonResult agreedException(HttpServletRequest request, AgreedException ex) {
         logger.info("已捕捉: 约定响应异常\r\n{}", ExceptionUtil.getAllMsg(ex));
-        return JsonResult.FAIL.newly(ex.getCode(), ex.getMessage());
-    }
-
-    /**
-     * 用户体验异常.
-     *
-     * @param request the request
-     * @param ex      the ex
-     * @return the json result
-     */
-    @ExceptionHandler({UserExperienceException.class})
-    public JsonResult userExperienceException(HttpServletRequest request, UserExperienceException ex) {
-        logger.info("已捕捉: 用户体验异常\r\n{}", ExceptionUtil.getAllMsg(ex));
         return JsonResult.FAIL.newly(ex.getCode(), ex.getMessage());
     }
 

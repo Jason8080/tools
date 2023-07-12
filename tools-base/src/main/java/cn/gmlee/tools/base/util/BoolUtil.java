@@ -190,7 +190,10 @@ public class BoolUtil {
         if (result == null) {
             return false;
         }
-        return between(XCode.OK1000.code, XCode.OK_COMMAND_MAX.code, result.getCode());
+        if (eq(XCode.OK.code, result.getCode())) {
+            return true;
+        }
+        return between(XCode.OK_COMMAND_MIN, XCode.OK_COMMAND_MAX, result.getCode());
     }
 
     /**

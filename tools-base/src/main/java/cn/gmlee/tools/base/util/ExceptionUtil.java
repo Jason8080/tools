@@ -39,7 +39,7 @@ public class ExceptionUtil {
      * @return the t
      */
     public static <T> T cast() {
-        throw new SkillException(XCode.UNKNOWN5000.code);
+        throw new SkillException(XCode.FAIL.code);
     }
 
     /**
@@ -84,7 +84,7 @@ public class ExceptionUtil {
      * @return the t
      */
     public static <T> T cast(String msg) {
-        throw new SkillException(XCode.UNKNOWN5000.code, msg);
+        throw new SkillException(XCode.FAIL.code, msg);
     }
 
     /**
@@ -99,7 +99,7 @@ public class ExceptionUtil {
             SkillException ex = (SkillException) e;
             throw ex;
         }
-        throw new SkillException(XCode.UNKNOWN5000.code, e);
+        throw new SkillException(XCode.FAIL.code, e);
     }
 
     /**
@@ -148,7 +148,7 @@ public class ExceptionUtil {
      * @return the t
      */
     public static <T> T cast(String msg, Throwable e) {
-        throw new SkillException(XCode.UNKNOWN5000.code, msg, e);
+        throw new SkillException(XCode.FAIL.code, msg, e);
     }
 
     /**

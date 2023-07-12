@@ -45,7 +45,7 @@ public class AppletUtil {
         if(httpResult.isJson()){
             String result = httpResult.byteResponseBody2String();
             String msg = String.format("请确保页面[%s]存在 ", page);
-            ExceptionUtil.cast(XCode.THIRD_PARTY3000.code, msg + result);
+            ExceptionUtil.cast(XCode.THIRD_PARTY_FAIL.code, msg + result);
         }
         return ImgUtil.bytes2base64(httpResult.getResult());
     }

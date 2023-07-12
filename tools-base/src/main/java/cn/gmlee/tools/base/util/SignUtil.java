@@ -103,7 +103,7 @@ public class SignUtil {
         try {
             return Md5Util.encode(concat);
         } catch (Exception e) {
-            throw new SkillException(XCode.CONSENSUS_SIGN2001.code, e);
+            throw new SkillException(XCode.API_SIGN.code, e);
         }
     }
 

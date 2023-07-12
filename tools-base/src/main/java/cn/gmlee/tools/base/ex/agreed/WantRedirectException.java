@@ -15,7 +15,7 @@ public class WantRedirectException extends AgreedException {
      * Instantiates a new Want retry exception.
      */
     public WantRedirectException() {
-        super(XCode.CONSENSUS_REDIRECT2011.code, XCode.CONSENSUS_REDIRECT2011.msg);
+        super(XCode.REDIRECT.code, XCode.REDIRECT.msg);
     }
 
     /**
@@ -24,16 +24,6 @@ public class WantRedirectException extends AgreedException {
      * @param message the message
      */
     public WantRedirectException(String message) {
-        super(XCode.CONSENSUS_REDIRECT2011.code, message);
-    }
-
-    /**
-     * Instantiates a new Business exception.
-     *
-     * @param message the message
-     * @param cause   the cause
-     */
-    public WantRedirectException(String message, Throwable cause) {
-        super(XCode.CONSENSUS_REDIRECT2011.code, message, cause);
+        super(XCode.REDIRECT.code, message);
     }
 }

@@ -112,13 +112,13 @@ public class Snowflake {
                     wait(offset << 1);
                     timestamp = System.currentTimeMillis();
                     if (timestamp < lastTimestamp) {
-                        ExceptionUtil.cast(XCode.SERVER_TIME5001.code, String.format("你见过逆时针的时钟吗? 所以%s时间内无法生成", offset));
+                        ExceptionUtil.cast(XCode.SERVER_TIME.code, String.format("你见过逆时针的时钟吗? 所以%s时间内无法生成", offset));
                     }
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
             } else {
-                ExceptionUtil.cast(XCode.SERVER_TIME5001.code, String.format("你见过逆时针的时钟吗? 所以%s时间内无法生成", offset));
+                ExceptionUtil.cast(XCode.SERVER_TIME.code, String.format("你见过逆时针的时钟吗? 所以%s时间内无法生成", offset));
             }
         }
 

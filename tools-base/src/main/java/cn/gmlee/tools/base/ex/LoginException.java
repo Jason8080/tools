@@ -6,7 +6,6 @@ import cn.gmlee.tools.base.enums.XCode;
  * 登陆异常
  *
  * @author Jas °
- * @date 2020 /10/20 (周二)
  */
 public class LoginException extends SkillException {
 
@@ -14,7 +13,7 @@ public class LoginException extends SkillException {
      * Instantiates a new Login exception.
      */
     public LoginException() {
-        this(XCode.ACCOUNT_AUTH7001.code, XCode.ACCOUNT_AUTH7001.msg);
+        this(XCode.LOGIN_TIMEOUT.code, XCode.LOGIN_TIMEOUT.msg);
     }
 
 
@@ -35,7 +34,7 @@ public class LoginException extends SkillException {
      * @return the login exception
      */
     public static LoginException newly(String msg) {
-        return new LoginException(XCode.ACCOUNT_AUTH7001.code, msg);
+        return new LoginException(XCode.LOGIN_TIMEOUT.code, msg);
     }
 
     /**
@@ -45,7 +44,7 @@ public class LoginException extends SkillException {
      * @return the login exception
      */
     public static LoginException newly(Integer code) {
-        return new LoginException(code, XCode.ACCOUNT_AUTH7001.msg);
+        return new LoginException(code, XCode.LOGIN_TIMEOUT.msg);
     }
 
     /**

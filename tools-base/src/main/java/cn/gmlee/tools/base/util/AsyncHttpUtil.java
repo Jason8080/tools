@@ -192,7 +192,7 @@ public class AsyncHttpUtil {
             @Override
             public void cancelled() {
                 try {
-                    run.run(HttpResult.getInstance(request, new SkillException(XCode.UNREASONABLE_CANCELLED4003.code, "异步请求被取消")));
+                    run.run(HttpResult.getInstance(request, new SkillException(XCode.REQUEST_CANCELLED.code, "异步请求被取消")));
                 } catch (Throwable throwable) {
                     logger.error(String.format("异步响应处理失败"), throwable);
                 }

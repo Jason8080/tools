@@ -50,7 +50,7 @@ public class EdFilter extends OncePerRequestFilter {
             if (edProperties.getMust()) {
                 response.setCharacterEncoding(Charset.defaultCharset().name());
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                JsonResult result = new JsonResult(XCode.CONSENSUS2000.code, e.getMessage());
+                JsonResult result = new JsonResult(XCode.ASSERT_FAIL.code, e.getMessage());
                 response.getWriter().println(JsonUtil.toJson(result));
                 return;
             }

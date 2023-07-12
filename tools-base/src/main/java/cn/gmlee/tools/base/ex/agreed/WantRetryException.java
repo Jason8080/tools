@@ -15,7 +15,7 @@ public class WantRetryException extends AgreedException {
      * Instantiates a new Want retry exception.
      */
     public WantRetryException() {
-        super(XCode.CONSENSUS_RETRY2010.code, XCode.CONSENSUS_RETRY2010.msg);
+        super(XCode.RETRY.code, XCode.RETRY.msg);
     }
 
     /**
@@ -24,16 +24,6 @@ public class WantRetryException extends AgreedException {
      * @param message the message
      */
     public WantRetryException(String message) {
-        super(XCode.CONSENSUS_RETRY2010.code, message);
-    }
-
-    /**
-     * Instantiates a new Business exception.
-     *
-     * @param message the message
-     * @param cause   the cause
-     */
-    public WantRetryException(String message, Throwable cause) {
-        super(XCode.CONSENSUS_RETRY2010.code, message, cause);
+        super(XCode.RETRY.code, message);
     }
 }

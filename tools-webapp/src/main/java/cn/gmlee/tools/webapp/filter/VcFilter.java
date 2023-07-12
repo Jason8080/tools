@@ -54,7 +54,7 @@ public class VcFilter extends OncePerRequestFilter {
         } catch (SkillException e) {
             response.setCharacterEncoding(Charset.defaultCharset().name());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            JsonResult result = new JsonResult(XCode.UNKNOWN5000.code, e.getMessage());
+            JsonResult result = new JsonResult(XCode.FAIL.code, e.getMessage());
             response.getWriter().println(JsonUtil.toJson(result));
             return;
         }

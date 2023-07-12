@@ -20,6 +20,6 @@ public class ApiFallback {
      * @return 响应实体
      */
     public JsonResult defaultFallback() {
-        return new JsonResult(XCode.IM_FUSING6001.code, "不好意思, 熔断咯..");
+        return new JsonResult(XCode.IM_CONNECT.code, "不好意思, 熔断咯..");
     }
 }

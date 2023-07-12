@@ -32,6 +32,6 @@ public class NotFoundException implements ErrorController {
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "error", produces = MediaType.APPLICATION_JSON_VALUE)
     public Object error(){
-        return new JsonResult(XCode.UNREASONABLE_NOT_FOUND4004.code, "哇! 页面走丢了呢");
+        return new JsonResult(XCode.RESOURCE_NOT_FOUND.code, "哇! 页面走丢了呢");
     }
 }

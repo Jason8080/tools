@@ -6,14 +6,13 @@ import cn.gmlee.tools.base.enums.XCode;
  * 通用数据异常
  *
  * @author Jas °
- * @date 2020 /11/13 (周五)
  */
 public class DataException extends SkillException {
     /**
      * Instantiates a new Data exception.
      */
     public DataException() {
-        super(XCode.UNREASONABLE_NOT_FOUND4004.code, XCode.UNREASONABLE_NOT_FOUND4004.msg);
+        super(XCode.RESOURCE_NOT_FOUND.code, XCode.RESOURCE_NOT_FOUND.msg);
     }
 
     /**
@@ -41,7 +40,7 @@ public class DataException extends SkillException {
      * @param message the message
      */
     public DataException(String message) {
-        super(XCode.UNREASONABLE_NOT_FOUND4004.code, message);
+        super(XCode.RESOURCE_NOT_FOUND.code, message);
     }
 
     /**
@@ -51,6 +50,6 @@ public class DataException extends SkillException {
      * @param cause   the cause
      */
     public DataException(String message, Throwable cause) {
-        super(XCode.UNREASONABLE_NOT_FOUND4004.code, message, cause);
+        super(XCode.RESOURCE_NOT_FOUND.code, message, cause);
     }
 }

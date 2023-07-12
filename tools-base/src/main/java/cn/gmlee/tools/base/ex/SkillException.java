@@ -3,10 +3,9 @@ package cn.gmlee.tools.base.ex;
 import cn.gmlee.tools.base.enums.XCode;
 
 /**
- * 技术中台的异常
+ * Skill Exception.
  *
  * @author Jas °
- * @date 2020 /9/3 (周四)
  */
 public class SkillException extends RuntimeException {
 
@@ -25,8 +24,8 @@ public class SkillException extends RuntimeException {
      * Instantiates a new Skill exception.
      */
     public SkillException() {
-        super(XCode.UNKNOWN5000.msg);
-        this.code = XCode.UNKNOWN5000.code;
+        super(XCode.FAIL.msg);
+        this.code = XCode.FAIL.code;
     }
 
     /**

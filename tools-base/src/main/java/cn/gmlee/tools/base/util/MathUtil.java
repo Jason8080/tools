@@ -368,7 +368,7 @@ public class MathUtil {
         } else if (t1 instanceof BigInteger) {
             return (T) ((BigInteger) t1).add((BigInteger) t2);
         }
-        throw new SkillException(XCode.THIRD_PARTY3000.code, "不支持" + t1.getClass() + "类型的\"+\"运算");
+        throw new SkillException(XCode.THIRD_PARTY_FAIL.code, "不支持" + t1.getClass() + "类型的\"+\"运算");
     }
 
     private static <T> T subtract(T t1, T t2) {
@@ -379,7 +379,7 @@ public class MathUtil {
         } else if (t1 instanceof BigInteger) {
             return (T) ((BigInteger) t1).subtract((BigInteger) t2);
         }
-        throw new SkillException(XCode.THIRD_PARTY3000.code, "不支持" + t1.getClass() + "类型的\"-\"运算");
+        throw new SkillException(XCode.THIRD_PARTY_FAIL.code, "不支持" + t1.getClass() + "类型的\"-\"运算");
     }
 
     private static <T> T multiply(T t1, T t2) {
@@ -390,7 +390,7 @@ public class MathUtil {
         } else if (t1 instanceof BigInteger) {
             return (T) ((BigInteger) t1).multiply((BigInteger) t2);
         }
-        throw new SkillException(XCode.THIRD_PARTY3000.code, "不支持" + t1.getClass() + "类型的\"*\"运算");
+        throw new SkillException(XCode.THIRD_PARTY_FAIL.code, "不支持" + t1.getClass() + "类型的\"*\"运算");
     }
 
     private static <T> T divide(T t1, T t2) {
@@ -401,7 +401,7 @@ public class MathUtil {
         } else if (t1 instanceof BigInteger) {
             return (T) ((BigInteger) t1).divide((BigInteger) t2);
         }
-        throw new SkillException(XCode.THIRD_PARTY3000.code, "不支持" + t1.getClass() + "类型的\"/\"运算");
+        throw new SkillException(XCode.THIRD_PARTY_FAIL.code, "不支持" + t1.getClass() + "类型的\"/\"运算");
     }
 
     /**
@@ -468,7 +468,7 @@ public class MathUtil {
         } else if (op.equals(OR)) {
             resultStack.push(op1 || op2);
         } else {
-            throw new SkillException(XCode.THIRD_PARTY3000.code, "不支持" + op + "逻辑符");
+            throw new SkillException(XCode.THIRD_PARTY_FAIL.code, "不支持" + op + "逻辑符");
         }
     }
 
@@ -500,7 +500,7 @@ public class MathUtil {
         } else if (op.equals(NOT_EQUAL)) {
             return op2.compareTo(op1) != 0;
         }
-        throw new SkillException(XCode.THIRD_PARTY3000.code, "不支持" + op + "比较符");
+        throw new SkillException(XCode.THIRD_PARTY_FAIL.code, "不支持" + op + "比较符");
     }
 
 

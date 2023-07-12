@@ -1,6 +1,7 @@
 package cn.gmlee.tools.api.once;
 
-import cn.gmlee.tools.base.ex.agreed.UserExperienceException;
+import cn.gmlee.tools.base.enums.XCode;
+import cn.gmlee.tools.base.ex.SkillException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,6 +24,6 @@ public interface OnceHandler {
      * @return 处理结果 object
      */
     default Object handler(HttpServletRequest request, HttpServletResponse response, Object... args) {
-        throw new UserExperienceException("请求频繁");
+        throw new SkillException(XCode.REQUEST_FREQUENTLY);
     }
 }

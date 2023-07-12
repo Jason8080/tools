@@ -30,7 +30,7 @@ public class VcException extends SkillException {
      * Instantiates a new Vc exception.
      */
     public VcException() {
-        super(XCode.CONSENSUS_VC2012);
+        super(XCode.RETYPE_VC);
     }
 
 
@@ -40,7 +40,7 @@ public class VcException extends SkillException {
      * @param key the key
      */
     public VcException(String key) {
-        super(XCode.CONSENSUS_VC2012);
+        super(XCode.RETYPE_VC);
         this.key = key;
     }
 
@@ -51,7 +51,7 @@ public class VcException extends SkillException {
      * @param message the message
      */
     public VcException(String key, String message) {
-        super(XCode.CONSENSUS_VC2012.code, message);
+        super(XCode.RETYPE_VC.code, message);
         this.key = key;
     }
 
@@ -63,7 +63,7 @@ public class VcException extends SkillException {
      * @param cause   the cause
      */
     public VcException(String key, String message, Throwable cause) {
-        super(XCode.CONSENSUS_VC2012.code, message, cause);
+        super(XCode.RETYPE_VC.code, message, cause);
         this.key = key;
     }
 }

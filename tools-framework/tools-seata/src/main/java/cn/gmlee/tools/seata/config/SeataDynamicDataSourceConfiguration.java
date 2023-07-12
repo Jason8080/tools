@@ -52,6 +52,6 @@ public class SeataDynamicDataSourceConfiguration implements DynamicDatasourceAut
             dynamicDataSource.setTargetDataSources(targetDataSource);
             return dynamicDataSource;
         }
-        throw new SkillException(XCode.THIRD_PARTY3000.code, "至少需要 1 个数据源");
+        throw new SkillException(XCode.THIRD_PARTY_FAIL.code, "至少需要 1 个数据源");
     }
 }
