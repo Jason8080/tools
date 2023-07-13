@@ -24,6 +24,33 @@ public class BigDecimalUtil {
     private static final BigDecimal ONE_HUNDRED = BigDecimal.valueOf(100);
 
     /**
+     * Get big decimal.
+     *
+     * @param obj the obj
+     * @return the big decimal
+     */
+    public static BigDecimal get(Object obj) {
+        if (obj != null) {
+            if (obj instanceof BigDecimal) {
+                return (BigDecimal) obj;
+            } else if (obj instanceof Double) {
+                return BigDecimal.valueOf((Double) obj);
+            } else if (obj instanceof Integer) {
+                return new BigDecimal((Integer) obj);
+            } else if (obj instanceof Long) {
+                return BigDecimal.valueOf((Long) obj);
+            } else if (obj instanceof String) {
+                return new BigDecimal((String) obj);
+            } else if (obj instanceof BigInteger) {
+                return new BigDecimal((BigInteger) obj);
+            } else {
+                ExceptionUtil.cast(String.format("不支持的类型: %s", obj.getClass()));
+            }
+        }
+        return BigDecimal.ZERO;
+    }
+
+    /**
      * 加法.
      *
      * @param num  the num
@@ -144,32 +171,11 @@ public class BigDecimalUtil {
         if (BoolUtil.notEmpty(nums)) {
             BigDecimal[] decimals = new BigDecimal[nums.length];
             for (int i = 0; i < decimals.length; i++) {
-                decimals[i] = getBigDecimal(nums[i]);
+                decimals[i] = get(nums[i]);
             }
             return decimals;
         }
         return new BigDecimal[0];
-    }
-
-    private static BigDecimal getBigDecimal(Object obj) {
-        if (obj != null) {
-            if (obj instanceof BigDecimal) {
-                return (BigDecimal) obj;
-            } else if (obj instanceof Double) {
-                return BigDecimal.valueOf((Double) obj);
-            } else if (obj instanceof Integer) {
-                return new BigDecimal((Integer) obj);
-            } else if (obj instanceof Long) {
-                return BigDecimal.valueOf((Long) obj);
-            } else if (obj instanceof String) {
-                return new BigDecimal((String) obj);
-            } else if (obj instanceof BigInteger) {
-                return new BigDecimal((BigInteger) obj);
-            } else {
-                ExceptionUtil.cast(String.format("不支持的类型: %s", obj.getClass()));
-            }
-        }
-        return BigDecimal.ZERO;
     }
 
     // 泛数字工具有异常 --------------------------------------------------------------------------------------------------
@@ -186,7 +192,7 @@ public class BigDecimalUtil {
      */
     public static BigDecimal add(Object num, Object... nums) {
         if (BoolUtil.allNotNull(num, nums)) {
-            return add(getBigDecimal(num), convert(nums));
+            return add(get(num), convert(nums));
         }
         return BigDecimal.ZERO;
     }
@@ -203,7 +209,7 @@ public class BigDecimalUtil {
      */
     public static BigDecimal subtract(Object num, Object... nums) {
         if (BoolUtil.allNotNull(num, nums)) {
-            return subtract(getBigDecimal(num), convert(nums));
+            return subtract(get(num), convert(nums));
         }
         return BigDecimal.ZERO;
     }
@@ -220,7 +226,7 @@ public class BigDecimalUtil {
      */
     public static BigDecimal multiply(Object num, Object... nums) {
         if (BoolUtil.allNotNull(num, nums)) {
-            return multiply(getBigDecimal(num), convert(nums));
+            return multiply(get(num), convert(nums));
         }
         return BigDecimal.ZERO;
     }
@@ -237,7 +243,7 @@ public class BigDecimalUtil {
      */
     public static BigDecimal divide(Object num, Object... nums) {
         if (BoolUtil.allNotNull(num, nums)) {
-            return divide(getBigDecimal(num), convert(nums));
+            return divide(get(num), convert(nums));
         }
         return BigDecimal.ZERO;
     }
