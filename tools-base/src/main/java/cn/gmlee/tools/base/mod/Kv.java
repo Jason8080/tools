@@ -5,6 +5,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.HashMap;
 
 /**
  * @author Jas°
@@ -12,7 +13,7 @@ import java.io.Serializable;
 @Getter
 @Setter
 @ToString
-public class Kv<K,V> implements Serializable {
+public class Kv<K,V> extends HashMap<K,V> implements Serializable {
     private String name;
     private String desc;
     private K key;
