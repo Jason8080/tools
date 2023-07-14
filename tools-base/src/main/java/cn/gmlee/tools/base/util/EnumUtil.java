@@ -27,7 +27,7 @@ public class EnumUtil {
             Field[] fields = enumClass.getDeclaredFields();
             for (Field field : fields) {
                 if (Objects.equals(field.getName(), name)) {
-                    return (E) field.get(enumClass);
+                    return (E) ClassUtil.getValue(enumClass, field);
                 }
             }
         } catch (Exception e) {
@@ -51,7 +51,7 @@ public class EnumUtil {
                 String fieldName = field.getName();
                 if (!field.isEnumConstant() && !field.isSynthetic()) {
                     for (E e : enumClass.getEnumConstants()) {
-                        Object o = field.get(e);
+                        Object o = ClassUtil.getValue(e, field);
                         if (Objects.equals(o, value)) {
                             return e;
                         }
@@ -81,7 +81,7 @@ public class EnumUtil {
                 if (fieldName.equalsIgnoreCase(name)) {
                     if (!field.isEnumConstant() && !field.isSynthetic()) {
                         for (E e : enumClass.getEnumConstants()) {
-                            Object o = field.get(e);
+                            Object o = ClassUtil.getValue(e, field);
                             if (Objects.equals(o, value)) {
                                 return e;
                             }
