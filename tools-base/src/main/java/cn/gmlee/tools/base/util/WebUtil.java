@@ -985,7 +985,7 @@ public class WebUtil {
      * @param map the map
      * @return the map
      */
-    public static Map<String, String[]> toParameterMap(Map<String, Object> map){
+    public static Map<String, String[]> toParameterMap(Map<String, Object> map) {
         HashMap<String, String[]> parameters = new HashMap<>();
         putAll(parameters, map);
         return parameters;
@@ -1071,8 +1071,7 @@ public class WebUtil {
      */
     public static String addParam(String url, Map<String, Object> params) {
         if (BoolUtil.notEmpty(url) && BoolUtil.notEmpty(params)) {
-            StringBuilder sb = new StringBuilder(url);
-            sb.append(url.contains(PARAM_START_CODE) ? PARAM_SPLICE_CODE : PARAM_START_CODE);
+            StringBuilder sb = new StringBuilder();
             Iterator<Map.Entry<String, Object>> it = params.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry<String, Object> next = it.next();
@@ -1081,6 +1080,7 @@ public class WebUtil {
                 String str = addParam(sb.toString(), key, value.toString());
                 sb.append(str);
             }
+            sb.insert(0, url);
             return sb.toString();
         }
         return url;
@@ -1101,18 +1101,16 @@ public class WebUtil {
             if (url.endsWith(PARAM_START_CODE)) {
                 sb.append(key);
                 sb.append(PARAM_WITH_CODE);
-                sb.append(value);
             } else if (url.contains(PARAM_START_CODE)) {
                 sb.append(PARAM_SPLICE_CODE);
                 sb.append(key);
                 sb.append(PARAM_WITH_CODE);
-                sb.append(value);
             } else {
                 sb.append(PARAM_START_CODE);
                 sb.append(key);
                 sb.append(PARAM_WITH_CODE);
-                sb.append(value);
             }
+            sb.append(UrlUtil.encode(value));
         }
         return sb.toString();
     }
