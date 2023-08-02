@@ -1099,15 +1099,15 @@ public class WebUtil {
         StringBuilder sb = new StringBuilder(url);
         if (BoolUtil.allNotNull(key, value)) {
             if (url.endsWith(PARAM_START_CODE)) {
-                sb.append(key);
+                sb.append(UrlUtil.encode(key));
                 sb.append(PARAM_WITH_CODE);
             } else if (url.contains(PARAM_START_CODE)) {
                 sb.append(PARAM_SPLICE_CODE);
-                sb.append(key);
+                sb.append(UrlUtil.encode(key));
                 sb.append(PARAM_WITH_CODE);
             } else {
                 sb.append(PARAM_START_CODE);
-                sb.append(key);
+                sb.append(UrlUtil.encode(key));
                 sb.append(PARAM_WITH_CODE);
             }
             sb.append(UrlUtil.encode(value));
