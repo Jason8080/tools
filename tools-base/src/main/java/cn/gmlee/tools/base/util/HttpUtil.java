@@ -3,6 +3,7 @@ package cn.gmlee.tools.base.util;
 import cn.gmlee.tools.base.enums.XCode;
 import cn.gmlee.tools.base.mod.HttpResult;
 import cn.gmlee.tools.base.mod.Kv;
+import lombok.Setter;
 import org.apache.http.*;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.CookieSpecs;
@@ -75,6 +76,10 @@ public class HttpUtil {
      * 协议版本.
      */
     private static HttpVersion version;
+    /**
+     * 客户端自定义.
+     */
+    public static CloseableHttpClient closeableHttpClient;
     /**
      * 请求拦截器.
      */
@@ -538,6 +543,9 @@ public class HttpUtil {
      * @return the client
      */
     protected static CloseableHttpClient getClient(HttpRequestBase req, Cookie... cookies) {
+        if (HttpUtil.closeableHttpClient != null) {
+            return HttpUtil.closeableHttpClient;
+        }
         HttpClientBuilder custom = HttpClients.custom();
         reqInterceptors.forEach(x -> custom.addInterceptorFirst(x));
         resInterceptors.forEach(x -> custom.addInterceptorLast(x));
@@ -548,7 +556,7 @@ public class HttpUtil {
         if (!Objects.isNull(cookies)) {
             custom.setDefaultCookieStore(getStore(req, cookies));
         }
-        return custom
+        return HttpUtil.closeableHttpClient = custom
                 .setConnectionManagerShared(true)
                 .setConnectionManager(getConnectionManager())
                 .setKeepAliveStrategy(getKeepAliveStrategy())
