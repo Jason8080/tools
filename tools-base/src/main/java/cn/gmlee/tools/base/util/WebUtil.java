@@ -512,6 +512,21 @@ public class WebUtil {
      */
     public static String getServerAddress(HttpServletRequest req) {
         String url = WebUtil.getUrl(req);
+        return getServerAddress(url);
+    }
+
+    /**
+     * Gets server address.
+     * <p>
+     * https://localhost
+     * https://localhost:8080
+     * https://127.0.0.1:443
+     * </p>
+     *
+     * @param url the url
+     * @return the server address
+     */
+    public static String getServerAddress(String url) {
         // 编译正则表达式
         Pattern pattern = Regex.HTTP_SERVER_ADDR.patternIgnoreCase;
         // 忽略大小写的写法
