@@ -127,7 +127,7 @@ public class AsyncHttpUtil {
         HttpAsyncClientBuilder custom = HttpAsyncClients.custom();
         String url = req.getURI().toString();
         if (!BoolUtil.isNull(cookies)) {
-            custom.setDefaultCookieStore(HttpUtil.getStore(req, cookies));
+            custom.setDefaultCookieStore(HttpUtil.getStore(req.getURI().getHost(), cookies));
         }
         return custom
                 .setConnectionManager(getPoolingNHttpClientConnectionManager())

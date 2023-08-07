@@ -548,13 +548,32 @@ public class HttpUtil {
         HttpClientBuilder custom = HttpClients.custom();
         reqInterceptors.forEach(x -> custom.addInterceptorFirst(x));
         resInterceptors.forEach(x -> custom.addInterceptorLast(x));
-        String url = req.getURI().toString();
-        if (!Objects.isNull(url) && url.startsWith(HTTPS)) {
-            custom.setSSLSocketFactory(SSL_CONTEXT);
-        }
+        custom.setSSLSocketFactory(SSL_CONTEXT);
         if (!Objects.isNull(cookies)) {
-            custom.setDefaultCookieStore(getStore(req, cookies));
+            custom.setDefaultCookieStore(getStore(req.getURI().getHost(), cookies));
         }
+        return HttpUtil.closeableHttpClient = custom
+                .setConnectionManagerShared(true)
+                .setConnectionManager(getConnectionManager())
+                .setKeepAliveStrategy(getKeepAliveStrategy())
+                .setDefaultRequestConfig(CONFIG)
+                .evictExpiredConnections()
+                .build();
+    }
+
+    /**
+     * Gets http client.
+     *
+     * @return the http client
+     */
+    public static CloseableHttpClient getHttpClient() {
+        if (HttpUtil.closeableHttpClient != null) {
+            return HttpUtil.closeableHttpClient;
+        }
+        HttpClientBuilder custom = HttpClients.custom();
+        reqInterceptors.forEach(x -> custom.addInterceptorFirst(x));
+        resInterceptors.forEach(x -> custom.addInterceptorLast(x));
+        custom.setSSLSocketFactory(SSL_CONTEXT);
         return HttpUtil.closeableHttpClient = custom
                 .setConnectionManagerShared(true)
                 .setConnectionManager(getConnectionManager())
@@ -609,18 +628,18 @@ public class HttpUtil {
     /**
      * Gets store.
      *
-     * @param req     the req
+     * @param domain  the domain
      * @param cookies the cookies
      * @return the store
      */
-    protected static CookieStore getStore(HttpRequestBase req, Cookie[] cookies) {
+    public static CookieStore getStore(String domain, Cookie[] cookies) {
         BasicCookieStore store = new BasicCookieStore();
         if (BoolUtil.notNull(cookies)) {
             for (Cookie c : cookies) {
                 if (BoolUtil.allNotNull(c.getName(), c.getValue())) {
                     BasicClientCookie cookie = new BasicClientCookie(c.getName(), c.getValue());
                     cookie.setVersion(0);
-                    cookie.setDomain(req.getURI().getHost());
+                    cookie.setDomain(domain);
                     cookie.setPath("/");
                     store.addCookie(cookie);
                 }
