@@ -3,7 +3,6 @@ package cn.gmlee.tools.base.util;
 import cn.gmlee.tools.base.enums.XCode;
 import cn.gmlee.tools.base.mod.HttpResult;
 import cn.gmlee.tools.base.mod.Kv;
-import lombok.Setter;
 import org.apache.http.*;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.config.CookieSpecs;
@@ -438,7 +437,7 @@ public class HttpUtil {
      * @param post   the post
      * @param params the bytes
      */
-    protected static void setEntity(HttpEntityEnclosingRequestBase post, Object params) {
+    public static void setEntity(HttpEntityEnclosingRequestBase post, Object params) {
         //获取请求体流
         HttpEntity requestEntity = getEntity(params, post);
         //设置请求内容

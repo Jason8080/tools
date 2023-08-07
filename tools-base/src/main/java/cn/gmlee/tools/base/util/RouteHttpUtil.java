@@ -76,36 +76,36 @@ public class RouteHttpUtil {
     }
 
     /**
-     * 发起指定方式的请求
+     * 构建基础请求
      *
-     * @param url        the url
-     * @param method     the method
-     * @param reqHeaders the req headers
-     * @param bytes      the bytes
-     * @param cookies    the cookies
-     * @return http result
+     * @param method the method
      */
-    public static HttpResult way(String url, String method, Map<String, String> reqHeaders, byte[] bytes, Cookie... cookies) {
+    public static HttpRequestBase build(String url, String method) {
         switch (method) {
             case "GET":
-                return get(url, reqHeaders, cookies);
+                return new HttpGet(url);
             case "POST":
-                return post(url, reqHeaders, bytes, cookies);
+                return new HttpPost(url);
             case "PUT":
-                return unity(new HttpPut(url), reqHeaders, bytes, cookies);
+                return new HttpPut(url);
             case "HEAD":
-                return unity(new HttpHead(url), reqHeaders, bytes, cookies);
+                return new HttpHead(url);
             case "PATCH":
-                return unity(new HttpPatch(url), reqHeaders, bytes, cookies);
+                return new HttpPatch(url);
             case "TRACE":
-                return unity(new HttpTrace(url), reqHeaders, bytes, cookies);
+                return new HttpTrace(url);
             case "DELETE":
-                return unity(new HttpDelete(url), reqHeaders, bytes, cookies);
+                return new HttpDelete(url);
             case "OPTIONS":
-                return unity(new HttpOptions(url), reqHeaders, bytes, cookies);
+                return new HttpOptions(url);
             default:
-                return get(url, reqHeaders, cookies);
+                logger.warn("不支持方法{}; 已默认构建Get请求", method);
+                return new HttpGet(url);
         }
+    }
+
+    public static HttpResult way(String url, String method, Map<String, String> reqHeaders, byte[] bytes, Cookie... cookies) {
+        return unity(RouteHttpUtil.build(url, method), reqHeaders, bytes, cookies);
     }
 
 
@@ -221,8 +221,32 @@ public class RouteHttpUtil {
         return HttpUtil.execute(post, cookies);
     }
 
+    public static HttpRequestBase clone(HttpRequestBase request, String url) {
+        HttpRequestBase newRequest = RouteHttpUtil.build(url, request.getMethod());
+        // 加载配置
+        newRequest.setConfig(request.getConfig());
+        // 添加请求头
+        addHeader(newRequest, request.getAllHeaders());
+        // 设置请求内容
+        if (request instanceof HttpEntityEnclosingRequestBase && newRequest instanceof HttpEntityEnclosingRequestBase) {
+            ((HttpEntityEnclosingRequestBase) newRequest).setEntity(((HttpEntityEnclosingRequestBase) newRequest).getEntity());
+        }
+        return newRequest;
+    }
 
-    private static HttpResult unity(HttpRequestBase request, Map<String, String> reqHeaders, byte[] bytes, Cookie... cookies) {
+    public static void clone(HttpRequestBase request, HttpRequestBase newRequest) {
+        // 加载配置
+        newRequest.setConfig(request.getConfig());
+        // 添加请求头
+        addHeader(newRequest, request.getAllHeaders());
+        // 设置请求内容
+        if (request instanceof HttpEntityEnclosingRequestBase && newRequest instanceof HttpEntityEnclosingRequestBase) {
+            ((HttpEntityEnclosingRequestBase) newRequest).setEntity(((HttpEntityEnclosingRequestBase) newRequest).getEntity());
+        }
+    }
+
+
+    public static HttpResult unity(HttpRequestBase request, Map<String, String> reqHeaders, byte[] bytes, Cookie... cookies) {
         // 加载配置
         request.setConfig(HttpUtil.CONFIG);
         // 添加请求头
@@ -235,7 +259,7 @@ public class RouteHttpUtil {
         return HttpUtil.execute(request, cookies);
     }
 
-    private static void unity(HttpRequestBase request, Map<String, String> reqHeaders, byte[] bytes, FutureCallback<HttpResponse> callback, Cookie... cookies) {
+    public static void unity(HttpRequestBase request, Map<String, String> reqHeaders, byte[] bytes, FutureCallback<HttpResponse> callback, Cookie... cookies) {
         //加载配置
         request.setConfig(HttpUtil.CONFIG);
         //添加请求头
@@ -246,6 +270,19 @@ public class RouteHttpUtil {
         }
         //发起异步请求
         execute(request, callback, cookies);
+    }
+
+    private static void addHeader(HttpRequestBase http, Header... header) {
+        if (BoolUtil.notEmpty(header)) {
+            for (Header head : header) {
+                String key = head.getName();
+                if (HTTP.CONTENT_LEN.equalsIgnoreCase(key)) {
+                    continue;
+                }
+                String value = head.getValue();
+                http.addHeader(key, value);
+            }
+        }
     }
 
     private static void addHeader(Map<String, String> header, HttpRequestBase http) {
