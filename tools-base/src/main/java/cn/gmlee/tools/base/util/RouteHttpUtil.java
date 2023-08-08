@@ -229,7 +229,7 @@ public class RouteHttpUtil {
         addHeader(newRequest, request.getAllHeaders());
         // 设置请求内容
         if (request instanceof HttpEntityEnclosingRequestBase && newRequest instanceof HttpEntityEnclosingRequestBase) {
-            ((HttpEntityEnclosingRequestBase) newRequest).setEntity(((HttpEntityEnclosingRequestBase) newRequest).getEntity());
+            ((HttpEntityEnclosingRequestBase) newRequest).setEntity(((HttpEntityEnclosingRequestBase) request).getEntity());
         }
         return newRequest;
     }
