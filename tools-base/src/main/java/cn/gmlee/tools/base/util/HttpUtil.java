@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 模拟Http请求工具类
@@ -149,24 +150,18 @@ public class HttpUtil {
             CloseableHttpClient client = getClient(options);
             CloseableHttpResponse response = client.execute(options);
             int status = response.getStatusLine().getStatusCode();
-            if (status == XCode.HTTP_OK.code) {
-                Header[] allHeaders = response.getAllHeaders();
-                if (methods.length > 0) {
-                    for (String method : methods) {
-                        for (int i = 0; i < allHeaders.length; i++) {
-                            if ("Allow".equalsIgnoreCase(allHeaders[i].getName())) {
-                                String values = allHeaders[i].getValue();
-                                boolean contains = values.contains(method);
-                                if (contains) {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                    return false;
-                }
-                return true;
+            if (status != XCode.HTTP_OK.code) {
+                return false;
             }
+            if (methods.length == 0) {
+                return false;
+            }
+            Header[] allHeaders = response.getAllHeaders();
+            Optional<Header> opt = Arrays.stream(allHeaders)
+                    .filter(x -> "Allow".equalsIgnoreCase(x.getName()))
+                    .filter(x -> BoolUtil.containAll(x.getValue(), methods))
+                    .findAny();
+            return opt.isPresent();
         } catch (IOException e) {
             logger.debug("请求预检不支持: {}:{}", Arrays.asList(methods), url);
         }
@@ -192,7 +187,7 @@ public class HttpUtil {
         return execute(request);
     }
 
-    private static class HttpGetWithEntity extends HttpEntityEnclosingRequestBase {
+    public static class HttpGetWithEntity extends HttpEntityEnclosingRequestBase {
         /**
          * Instantiates a new Http get with entity.
          *
@@ -566,7 +561,7 @@ public class HttpUtil {
      *
      * @return the http client
      */
-    public static CloseableHttpClient getHttpClient() {
+    public static CloseableHttpClient getHttpClient(Cookie... cookies) {
         if (HttpUtil.closeableHttpClient != null) {
             return HttpUtil.closeableHttpClient;
         }
@@ -574,6 +569,9 @@ public class HttpUtil {
         reqInterceptors.forEach(x -> custom.addInterceptorFirst(x));
         resInterceptors.forEach(x -> custom.addInterceptorLast(x));
         custom.setSSLSocketFactory(SSL_CONTEXT);
+        if (!Objects.isNull(cookies)) {
+            custom.setDefaultCookieStore(getStore(null, cookies));
+        }
         return HttpUtil.closeableHttpClient = custom
                 .setConnectionManagerShared(true)
                 .setConnectionManager(getConnectionManager())
@@ -632,14 +630,14 @@ public class HttpUtil {
      * @param cookies the cookies
      * @return the store
      */
-    public static CookieStore getStore(String domain, Cookie[] cookies) {
+    public static CookieStore getStore(String domain, Cookie... cookies) {
         BasicCookieStore store = new BasicCookieStore();
         if (BoolUtil.notNull(cookies)) {
             for (Cookie c : cookies) {
                 if (BoolUtil.allNotNull(c.getName(), c.getValue())) {
                     BasicClientCookie cookie = new BasicClientCookie(c.getName(), c.getValue());
                     cookie.setVersion(0);
-                    cookie.setDomain(domain);
+                    cookie.setDomain(BoolUtil.isEmpty(domain) ? c.getDomain() : domain);
                     cookie.setPath("/");
                     store.addCookie(cookie);
                 }

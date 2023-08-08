@@ -83,7 +83,7 @@ public class RouteHttpUtil {
     public static HttpRequestBase build(String url, String method) {
         switch (method) {
             case "GET":
-                return new HttpGet(url);
+                return new HttpUtil.HttpGetWithEntity(url);
             case "POST":
                 return new HttpPost(url);
             case "PUT":
