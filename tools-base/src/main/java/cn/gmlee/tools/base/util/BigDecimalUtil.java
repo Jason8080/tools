@@ -12,7 +12,11 @@ import java.math.RoundingMode;
  */
 public class BigDecimalUtil {
     /**
-     * 按精度截断小数位
+     * 按精度进位
+     */
+    private static final int ROUND_UP = BigDecimal.ROUND_UP;
+    /**
+     * 按精度截断
      */
     private static final int ROUND_MODE = BigDecimal.ROUND_DOWN;
 
