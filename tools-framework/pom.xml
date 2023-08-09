@@ -5,13 +5,13 @@
     <parent>
         <artifactId>tools</artifactId>
         <groupId>cn.gmlee.tools</groupId>
-        <version>5.1.8</version>
+        <version>5.1.9</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>tools-framework</artifactId>
 
-    <version>5.1.8</version>
+    <version>5.1.9</version>
 
     <packaging>pom</packaging>
 

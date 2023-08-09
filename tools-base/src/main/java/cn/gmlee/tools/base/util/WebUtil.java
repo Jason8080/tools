@@ -139,7 +139,7 @@ public class WebUtil {
             log.debug("发现多级代理: {}", ip);
             ip = ip.substring(0, ip.indexOf(","));
         }
-        return ip;
+        return BoolUtil.isEmpty(ip) ? req.getRemoteAddr() : ip;
     }
 
     /**
