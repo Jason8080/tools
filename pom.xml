@@ -78,6 +78,7 @@
         <module>tools-request</module>
         <module>tools-webapp</module>
         <module>tools-often</module>
+        <module>tools-prevent</module>
     </modules>
 
     <properties>
