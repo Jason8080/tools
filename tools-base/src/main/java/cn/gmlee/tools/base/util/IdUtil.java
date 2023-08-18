@@ -1,6 +1,6 @@
 package cn.gmlee.tools.base.util;
 
-import cn.gmlee.tools.base.alg.Snowflake;
+import cn.gmlee.tools.base.alg.snowflake.Snowflake;
 
 import java.security.SecureRandom;
 import java.util.UUID;

@@ -117,8 +117,8 @@ public class TimerTaskManager {
      * 启动(如果被暂停过会自动重启).
      *
      * @param key    the key
-     * @param delay  the delay
-     * @param period the period
+     * @param delay  推迟时间
+     * @param period 间隔时间
      */
     public static void start(Serializable key, long delay, long period) {
         try {
@@ -132,8 +132,8 @@ public class TimerTaskManager {
      * 启动.
      *
      * @param task   the task
-     * @param delay  the delay
-     * @param period the period
+     * @param delay  推迟时间
+     * @param period 间隔时间
      */
     private synchronized static void start(Task task, long delay, long period) {
         if (task != null) {
