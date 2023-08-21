@@ -16,12 +16,12 @@ public class TokenBucketTests {
      * @param args the input arguments
      */
     public static void main(String[] args) {
-        // 每秒生成10个
-        Bucket bucket = TokenBucket.generate(10, 1000, 10);
-        Serializable key1 = TimerTaskManager.submit(() -> TokenBucket.consume(bucket, 10));
+        // 每秒生成1个
+        Bucket bucket = TokenBucket.generate(10, 10000, 10);
+        Serializable key1 = TimerTaskManager.submit(() -> TokenBucket.consume(bucket));
         Serializable key2 = TimerTaskManager.submit(() -> TokenBucket.consume(bucket));
         Serializable key3 = TimerTaskManager.submit(() -> TokenBucket.consume(bucket));
-        // 每秒消耗10个
+        // 每秒消耗1个
         TimerTaskManager.start(key1, 0, 1000);
         // 每2秒被拒绝+1
         TimerTaskManager.start(key2, 0, 2000);
