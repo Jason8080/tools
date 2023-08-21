@@ -58,7 +58,7 @@ public class TokenBucket {
         // 当前时间
         String current = TimeUtil.getCurrentDatetime(XTime.MS_MINUS_BLANK_COLON_DOT);
         // 生成令牌
-        int number = /*bucket.getNum().get() >= caliber  ? 0 : */generate(bucket); // 生成数量
+        int number = bucket.getNum().get() >= caliber  ? 0 : generate(bucket); // 生成数量
         int post = bucket.getNum().get(); // 生成后令牌数
         // 消耗令牌
         boolean allow = bucket.recharge(-caliber);
