@@ -26,6 +26,6 @@ public class TokenBucketTests {
         // 每2秒被拒绝+1
         TimerTaskManager.start(key2, 0, 2000);
         // 每5秒被拒绝+1
-        TimerTaskManager.start(key3, 0, 5000);
+        TimerTaskManager.start(key3, 0, 500);
     }
 }
