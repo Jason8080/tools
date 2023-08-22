@@ -2,6 +2,7 @@ package cn.gmlee.tools.base.util;
 
 import cn.gmlee.tools.base.enums.Function;
 import cn.gmlee.tools.base.enums.Int;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,26 +16,11 @@ import java.util.*;
  *
  * @author Jason
  */
+@Slf4j
 public class JdbcUtil {
-
-    /**
-     * The constant logger.
-     */
-    protected static final Logger logger = LoggerFactory.getLogger(JdbcUtil.class);
-
-    /**
-     * The constant SELECT.
-     */
     public static final String SELECT = "SELECT";
-    /**
-     * The constant SELECT1.
-     */
-    public static final String SELECT1 = SELECT;
-    /**
-     * The constant SHOW.
-     */
+    public static final String INSERT = "INSERT";
     public static final String SHOW = "SHOW";
-
     private static final ThreadUtil.Pool pool = ThreadUtil.getIndependentPool();
 
     /**
@@ -388,7 +374,7 @@ public class JdbcUtil {
                 return result;
             }
         } catch (Exception e) {
-            logger.error(String.format("执行%s出错", sql), e);
+            log.error(String.format("执行%s出错", sql), e);
         } finally {
             commit(con, close);
         }
@@ -425,7 +411,7 @@ public class JdbcUtil {
                 return result;
             }
         } catch (Exception e) {
-            logger.error(String.format("执行%s出错", sql), e);
+            log.error(String.format("执行%s出错", sql), e);
         } finally {
             commit(con, close);
         }
@@ -448,7 +434,7 @@ public class JdbcUtil {
                 con.close();
             }
         } catch (SQLException e) {
-            logger.error(String.format("提交失败"), e);
+            log.error(String.format("提交失败"), e);
         }
     }
 
@@ -468,7 +454,7 @@ public class JdbcUtil {
                 con.close();
             }
         } catch (SQLException e) {
-            logger.error(String.format("回滚失败"), e);
+            log.error(String.format("回滚失败"), e);
         }
     }
 
@@ -605,7 +591,7 @@ public class JdbcUtil {
     }
 
     private static boolean isResultSet(String sql) {
-        boolean isSelect = sql.startsWith(SELECT) || sql.startsWith(SELECT1.toLowerCase());
+        boolean isSelect = sql.startsWith(SELECT) || sql.startsWith(SELECT.toLowerCase());
         boolean isShow = sql.startsWith(SHOW) || sql.startsWith(SHOW.toLowerCase());
         return isSelect || isShow;
     }
@@ -621,7 +607,7 @@ public class JdbcUtil {
             //2、链接数据库
             return DriverManager.getConnection(url, username, password);
         } catch (Exception e) {
-            logger.error(String.format("获取连接%s:%s出错", username, password), e);
+            log.error(String.format("获取连接%s:%s出错", username, password), e);
             return ExceptionUtil.cast(e);
         }
     }

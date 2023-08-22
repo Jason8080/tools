@@ -1,12 +1,16 @@
 package cn.gmlee.tools.gray.conf;
 
+import cn.gmlee.tools.gray.filter.GrayFilter;
 import cn.gmlee.tools.gray.initializer.GrayDataInitializer;
 import cn.gmlee.tools.gray.initializer.GrayDataInitializerTemplate;
 import cn.gmlee.tools.gray.initializer.MysqlGrayDataInitializer;
 import cn.gmlee.tools.gray.initializer.OracleGrayDataInitializer;
+import cn.gmlee.tools.gray.interceptor.GrayEnvMarkInterceptor;
+import cn.gmlee.tools.gray.server.GrayServer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 
 import javax.sql.DataSource;
@@ -66,5 +70,39 @@ public class GrayDataAutoConfiguration {
         GrayDataInitializerTemplate template = new GrayDataInitializerTemplate(dataSource, properties);
         template.init(initializers.toArray(new GrayDataInitializer[0]));
         return template;
+    }
+
+    /**
+     * Gray data interceptor gray data interceptor.
+     *
+     * @param properties the properties
+     * @return the gray data interceptor
+     * @throws SQLException the sql exception
+     */
+    @Bean
+    @ConditionalOnMissingBean(GrayEnvMarkInterceptor.class)
+    public GrayEnvMarkInterceptor grayDataInterceptor(GrayProperties properties) throws SQLException {
+        return new GrayEnvMarkInterceptor(properties);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(GrayServer.class)
+    public GrayServer grayServer(GrayProperties properties){
+        return new GrayServer(properties);
+    }
+
+    /**
+     * Gray filter registration bean filter registration bean.
+     *
+     * @return the filter registration bean
+     */
+    @Bean("FilterRegistrationBean-GrayFilter")
+    @ConditionalOnMissingBean(name = "FilterRegistrationBean-GrayFilter")
+    public FilterRegistrationBean<GrayFilter> grayFilterFilterRegistrationBean(GrayServer grayServer) {
+        FilterRegistrationBean<GrayFilter> reg = new FilterRegistrationBean<>();
+        reg.setFilter(new GrayFilter(grayServer));
+        reg.addUrlPatterns("/*");
+        reg.setName("grayFilter");
+        return reg;
     }
 }
