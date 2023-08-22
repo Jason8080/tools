@@ -4,10 +4,12 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * Mock参数
+ * Gray参数
  */
 @Data
 @ConfigurationProperties(prefix = "tools.gray")
 public class GrayProperties {
     private String evn = "env";
+    private String head = "TOOLS-GRAY";
+    private String version = "1.0.0";
 }
