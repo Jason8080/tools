@@ -120,6 +120,11 @@
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
+                <artifactId>tools-gray</artifactId>
+                <version>5.1.9</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-webapp</artifactId>
                 <version>5.1.9</version>
             </dependency>
