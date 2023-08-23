@@ -5,7 +5,8 @@ import cn.gmlee.tools.gray.initializer.GrayDataInitializer;
 import cn.gmlee.tools.gray.initializer.GrayDataInitializerTemplate;
 import cn.gmlee.tools.gray.initializer.MysqlGrayDataInitializer;
 import cn.gmlee.tools.gray.initializer.OracleGrayDataInitializer;
-import cn.gmlee.tools.gray.interceptor.GrayEnvMarkInterceptor;
+import cn.gmlee.tools.gray.interceptor.GrayInsertMarkInterceptor;
+import cn.gmlee.tools.gray.interceptor.GraySelectFilterInterceptor;
 import cn.gmlee.tools.gray.server.GrayServer;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -80,11 +81,30 @@ public class GrayDataAutoConfiguration {
      * @throws SQLException the sql exception
      */
     @Bean
-    @ConditionalOnMissingBean(GrayEnvMarkInterceptor.class)
-    public GrayEnvMarkInterceptor grayDataInterceptor(GrayProperties properties) throws SQLException {
-        return new GrayEnvMarkInterceptor(properties);
+    @ConditionalOnMissingBean(GrayInsertMarkInterceptor.class)
+    public GrayInsertMarkInterceptor grayDataInterceptor(GrayProperties properties) throws SQLException {
+        return new GrayInsertMarkInterceptor(properties);
     }
 
+    /**
+     * Gray data interceptor gray select filter interceptor.
+     *
+     * @param properties the properties
+     * @return the gray select filter interceptor
+     * @throws SQLException the sql exception
+     */
+    @Bean
+    @ConditionalOnMissingBean(GraySelectFilterInterceptor.class)
+    public GraySelectFilterInterceptor graySelectFilterInterceptor(GrayProperties properties) throws SQLException {
+        return new GraySelectFilterInterceptor(properties);
+    }
+
+    /**
+     * Gray server gray server.
+     *
+     * @param properties the properties
+     * @return the gray server
+     */
     @Bean
     @ConditionalOnMissingBean(GrayServer.class)
     public GrayServer grayServer(GrayProperties properties){
@@ -94,6 +114,7 @@ public class GrayDataAutoConfiguration {
     /**
      * Gray filter registration bean filter registration bean.
      *
+     * @param grayServer the gray server
      * @return the filter registration bean
      */
     @Bean("FilterRegistrationBean-GrayFilter")

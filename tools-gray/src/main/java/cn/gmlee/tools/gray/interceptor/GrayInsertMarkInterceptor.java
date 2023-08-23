@@ -4,9 +4,17 @@ import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.JdbcUtil;
 import cn.gmlee.tools.base.util.QuickUtil;
 import cn.gmlee.tools.base.util.RegexUtil;
+import cn.gmlee.tools.gray.assist.SqlAssist;
 import cn.gmlee.tools.gray.conf.GrayProperties;
 import cn.gmlee.tools.gray.helper.GrayHelper;
+import javafx.beans.binding.IntegerExpression;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.expression.LongValue;
+import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
+import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.insert.Insert;
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.plugin.*;
@@ -22,11 +30,11 @@ import java.util.List;
 @Intercepts({
         @Signature(type = StatementHandler.class, method = "prepare", args = {Connection.class, Integer.class}),
 })
-public class GrayEnvMarkInterceptor implements Interceptor {
+public class GrayInsertMarkInterceptor implements Interceptor {
 
     private final GrayProperties properties;
 
-    public GrayEnvMarkInterceptor(GrayProperties properties) {
+    public GrayInsertMarkInterceptor(GrayProperties properties) {
         this.properties = properties;
     }
 
@@ -44,14 +52,14 @@ public class GrayEnvMarkInterceptor implements Interceptor {
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
         try {
-            filter(invocation);
+            mark(invocation);
         } catch (Throwable throwable) {
-            log.error("灰度环境过滤失败", throwable);
+            log.error("灰度环境标记失败", throwable);
         }
         return invocation.proceed();
     }
 
-    private void filter(Invocation invocation) throws Exception {
+    private void mark(Invocation invocation) throws Exception {
         // 非灰度环境不处理
         if (!GrayHelper.enable()) {
             return;
@@ -59,32 +67,20 @@ public class GrayEnvMarkInterceptor implements Interceptor {
         StatementHandler statementHandler = (StatementHandler) invocation.getTarget();
         BoundSql boundSql = statementHandler.getBoundSql();
         String originSql = boundSql.getSql();
-        boolean insert = originSql.trim().startsWith(JdbcUtil.INSERT);
+        Statement statement = CCJSqlParserUtil.parse(originSql);
         // 非插入句柄不处理
-        if (!insert) {
+        if (!(statement instanceof Insert)) {
             return;
         }
-        String newSql = sqlHandler(originSql);
-        Field field = boundSql.getClass().getDeclaredField("sql");
-        boolean ok = field.isAccessible();
-        QuickUtil.isFalse(ok, () -> field.setAccessible(true));
-        ExceptionUtil.suppress(() -> field.set(boundSql, newSql));
-        QuickUtil.isFalse(ok, () -> field.setAccessible(false));
+        String newSql = sqlHandler((Insert) statement);
+        SqlAssist.reset(boundSql, newSql);
     }
 
-    private String sqlHandler(String originSql) {
-        List<String> all = RegexUtil.find(originSql, "(?<=\\().*?(?=\\))");
-        for (int i = 0; i < all.size(); i++){
-            if(i == 0){
-                String origin = all.get(i);
-                String append = origin + ", \"" + properties.getEvn() + "\"";
-                originSql = originSql.replace(origin, append);
-                continue;
-            }
-            String origin = all.get(i);
-            String append = origin + ", " + "0";
-            originSql = originSql.replace(origin, append);
-        }
-        return originSql;
+    private String sqlHandler(Insert statement) {
+        Column column = new Column("\"" + properties.getEvn() + "\"");
+        statement.addColumns(column);
+        ExpressionList expressionList = (ExpressionList) statement.getItemsList();
+        expressionList.getExpressions().add(new LongValue(0));
+        return statement.toString();
     }
 }

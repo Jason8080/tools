@@ -12,6 +12,10 @@
     <groupId>com.gm</groupId>
     <artifactId>tools-gray</artifactId>
 
+    <properties>
+        <jsqlparser.version>4.6</jsqlparser.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
@@ -24,6 +28,13 @@
             <groupId>org.mybatis</groupId>
             <artifactId>mybatis</artifactId>
             <version>3.5.7</version>
+            <optional>true</optional>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.jsqlparser</groupId>
+            <artifactId>jsqlparser</artifactId>
+            <version>${jsqlparser.version}</version>
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
