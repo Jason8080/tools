@@ -1,7 +1,7 @@
-package cn.gmlee.tools.api.aop;
+package cn.gmlee.tools.redis.aop;
 
-import cn.gmlee.tools.api.anno.VariableLock;
-import cn.gmlee.tools.api.lock.VariableLockServer;
+import cn.gmlee.tools.redis.anno.VariableLock;
+import cn.gmlee.tools.redis.lock.VariableLockServer;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ClassUtil;
 import cn.gmlee.tools.base.util.WebUtil;
@@ -38,17 +38,12 @@ public class VariableLockAspect {
 
     @Before("pointcut()")
     public void before(JoinPoint point) {
-        // 请求对象
-        HttpServletRequest request = WebUtil.getRequest();
-        if (request == null) {
-            return;
-        }
         // 加锁数据
         VariableLock vl = getVariableLock(point);
         String[] names = vl.value();
         List<String> sb = new ArrayList<>(names.length);
         for (int i = 0; i< names.length; i++){
-            getValue(request, vl, point, names[i], sb);
+            getValue(vl, point, names[i], sb);
         }
         if (sb.isEmpty()) {
             return;
@@ -67,13 +62,13 @@ public class VariableLockAspect {
     /**
      * 需要保证每个参数都有值(值可以是null)
      *
-     * @param request
      * @param vl
      * @param point
      * @param name
      * @param sb
      */
-    private void getValue(HttpServletRequest request, VariableLock vl, JoinPoint point, String name, List<String> sb) {
+    private void getValue(VariableLock vl, JoinPoint point, String name, List<String> sb) {
+        HttpServletRequest request = WebUtil.getRequest();
         // 全部范围
         if (BoolUtil.isEmpty(vl.origin())) {
             // HEAD + URL + FORM + COOKIE
@@ -98,7 +93,7 @@ public class VariableLockAspect {
             }
         }
         if (BoolUtil.containOne(vl.origin(), VariableLock.Origin.QUERY, VariableLock.Origin.FORM)) {
-            String parameter = request.getParameter(name);
+            String parameter = request!=null ? request.getParameter(name) : null;
             if (!BoolUtil.isEmpty(parameter)) {
                 sb.add(parameter);
                 return;

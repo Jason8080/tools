@@ -1,10 +1,10 @@
-package cn.gmlee.tools.api.config;
+package cn.gmlee.tools.redis.config;
 
 
-import cn.gmlee.tools.api.aop.VariableLockAspect;
-import cn.gmlee.tools.api.lock.MemoryVariableLockServer;
-import cn.gmlee.tools.api.lock.RedisVariableLockServer;
-import cn.gmlee.tools.api.lock.VariableLockServer;
+import cn.gmlee.tools.redis.aop.VariableLockAspect;
+import cn.gmlee.tools.redis.lock.MemoryVariableLockServer;
+import cn.gmlee.tools.redis.lock.RedisVariableLockServer;
+import cn.gmlee.tools.redis.lock.VariableLockServer;
 import cn.gmlee.tools.redis.util.RedisClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

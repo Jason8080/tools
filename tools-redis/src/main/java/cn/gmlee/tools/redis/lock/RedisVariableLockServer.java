@@ -1,6 +1,7 @@
-package cn.gmlee.tools.api.lock;
+package cn.gmlee.tools.redis.lock;
 
-import cn.gmlee.tools.api.anno.VariableLock;
+import cn.gmlee.tools.redis.anno.VariableLock;
+import cn.gmlee.tools.redis.lock.VariableLockServer;
 import cn.gmlee.tools.base.util.AssertUtil;
 import cn.gmlee.tools.redis.util.RedisClient;
 import lombok.Getter;
@@ -31,7 +32,7 @@ public class RedisVariableLockServer implements VariableLockServer {
                 redisClient.setNx(key, getVal(values), vl.timeout()) :
                 redisClient.setNx(key, getVal(values));
         log.info("【变量锁】加锁完成: {} {} {}", success, key, getVal(values));
-        AssertUtil.isTrue(success, String.format("Please wait while other operations are underway.."));
+        AssertUtil.isTrue(success, "处理中");
     }
 
     public void unlock(VariableLock vl, String... values) {

@@ -760,10 +760,11 @@ public class WebUtil {
      * @param cookies  the cookies
      */
     public static void addCookie(HttpServletResponse response, Cookie... cookies) {
-        if (BoolUtil.notEmpty(cookies)) {
-            for (Cookie cookie : cookies) {
-                response.addCookie(cookie);
-            }
+        if (BoolUtil.isEmpty(cookies)) {
+            return;
+        }
+        for (Cookie cookie : cookies) {
+            response.addCookie(cookie);
         }
     }
 
@@ -778,18 +779,20 @@ public class WebUtil {
      * @param names    the names
      */
     public static void delCookie(HttpServletRequest request, HttpServletResponse response, String... names) {
-        if (BoolUtil.notEmpty(names)) {
-            for (String name : names) {
-                Cookie cookie = WebUtil.getCookieObj(name, request);
-                if (BoolUtil.notNull(cookie)) {
-                    String domain = WebUtil.getDomainTop(request);
-                    cookie.setDomain(domain);
-                    cookie.setPath("/");
-                    // 0: 立刻删除, -1: 关闭会话后删除
-                    cookie.setMaxAge(XState.NO.code);
-                    response.addCookie(cookie);
-                }
+        if (BoolUtil.isEmpty(names)) {
+            return;
+        }
+        for (String name : names) {
+            Cookie cookie = WebUtil.getCookieObj(name, request);
+            if (BoolUtil.isNull(cookie)) {
+                continue;
             }
+            String domain = WebUtil.getDomainTop(request);
+            cookie.setDomain(domain);
+            cookie.setPath("/");
+            // 0: 立刻删除, -1: 关闭会话后删除
+            cookie.setMaxAge(XState.NO.code);
+            response.addCookie(cookie);
         }
     }
 
@@ -813,6 +816,9 @@ public class WebUtil {
      * @return cookie值 cookie
      */
     public static Cookie getCookieObj(String name, HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
             return null;
@@ -833,6 +839,9 @@ public class WebUtil {
      * @return 参数值 param
      */
     public static String getParam(String param, HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
         String value = request.getHeader(param);
         if (StringUtils.isEmpty(value)) {
             value = request.getParameter(param);
@@ -863,7 +872,7 @@ public class WebUtil {
      * @return url parameter map
      */
     public static Map<String, Object> getUrlParameterMap(HttpServletRequest req) {
-        return getQueryString(req.getQueryString());
+        return getQueryString(req!=null ? req.getQueryString() : null);
     }
 
     /**
@@ -885,13 +894,8 @@ public class WebUtil {
      *
      * @return the boolean
      */
-    public static boolean asJsonRequest() {
-        HttpServletRequest req = WebUtil.getRequest();
-        if (req != null) {
-            String contentType = req.getContentType();
-            return contentType.startsWith(HttpUtil.JSON_HEADER);
-        }
-        return false;
+    public static boolean currentRequestAsJson() {
+        return asJson(WebUtil.getRequest());
     }
 
     /**
@@ -901,6 +905,9 @@ public class WebUtil {
      * @return the boolean
      */
     public static boolean asJson(HttpServletRequest req) {
+        if (req == null) {
+            return false;
+        }
         String contentType = req.getContentType();
         return contentType.startsWith(HttpUtil.JSON_HEADER);
     }
@@ -914,6 +921,9 @@ public class WebUtil {
      */
     public static Map<String, String> getHeaderMap(HttpServletRequest req) {
         Map<String, String> reqHeaders = new HashMap(0);
+        if(req == null){
+            return reqHeaders;
+        }
         Enumeration<String> names = req.getHeaderNames();
         while (names.hasMoreElements()) {
             String name = names.nextElement();

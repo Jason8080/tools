@@ -1,7 +1,7 @@
-package cn.gmlee.tools.api.lock;
+package cn.gmlee.tools.redis.lock;
 
-import cn.gmlee.tools.api.anno.VariableLock;
 import cn.gmlee.tools.base.util.AssertUtil;
+import cn.gmlee.tools.redis.anno.VariableLock;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

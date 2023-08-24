@@ -1,6 +1,6 @@
-package cn.gmlee.tools.api.lock;
+package cn.gmlee.tools.redis.lock;
 
-import cn.gmlee.tools.api.anno.VariableLock;
+import cn.gmlee.tools.redis.anno.VariableLock;
 import cn.gmlee.tools.base.util.AssertUtil;
 
 /**

@@ -1,4 +1,4 @@
-package cn.gmlee.tools.api.anno;
+package cn.gmlee.tools.redis.anno;
 
 import java.lang.annotation.*;
 
