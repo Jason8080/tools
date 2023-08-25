@@ -32,7 +32,7 @@ public class VariableLockAspect {
 
     private static final ThreadLocal<List<String>> VALUE_LOCAL = new InheritableThreadLocal();
 
-    @Pointcut("@annotation(cn.gmlee.tools.api.anno.VariableLock)")
+    @Pointcut("@annotation(cn.gmlee.tools.redis.anno.VariableLock)")
     public void pointcut() {
     }
 
