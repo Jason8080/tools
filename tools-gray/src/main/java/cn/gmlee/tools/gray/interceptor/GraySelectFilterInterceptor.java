@@ -78,7 +78,7 @@ public class GraySelectFilterInterceptor implements Interceptor {
         PlainSelect plainSelect = (PlainSelect) statement.getSelectBody();
         List<SelectItem> selectItems = plainSelect.getSelectItems();
         if (selectItems.size() == 1) {
-            List<String> all = RegexUtil.find(selectItems.get(0).toString(), "COUNT\\((\\*|\\d)\\)");
+            List<String> all = RegexUtil.find(selectItems.get(0).toString(), "COUNT\\([\\s]?(\\*|\\d)[\\s]?\\)");
             if (BoolUtil.notEmpty(all)) {
                 addWheres(plainSelect, column);
                 return statement.toString();
