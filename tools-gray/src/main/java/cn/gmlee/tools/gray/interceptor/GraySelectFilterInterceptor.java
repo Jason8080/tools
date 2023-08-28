@@ -75,23 +75,23 @@ public class GraySelectFilterInterceptor implements Interceptor {
     private String sqlHandler(Select statement) {
         // 获取条件列
         Column column = new Column("\"" + properties.getEvn() + "\"");
-        PlainSelect plainSelect = (PlainSelect) statement.getSelectBody();
-        List<SelectItem> selectItems = plainSelect.getSelectItems();
-        if (selectItems.size() == 1) {
-            List<String> all = RegexUtil.find(selectItems.get(0).toString(), "COUNT\\([\\s]?(\\*|\\d)[\\s]?\\)");
-            if (BoolUtil.notEmpty(all)) {
-                addWheres(plainSelect, column);
-                return statement.toString();
-            }
-        }
-        foreach(plainSelect, column);
+        foreach((PlainSelect) statement.getSelectBody(), column);
         return statement.toString();
     }
 
     private void foreach(PlainSelect plainSelect, Column column) {
-        FromItem fromItem = plainSelect.getFromItem();
-        if (fromItem instanceof SubSelect) {
-            foreach((PlainSelect) ((SubSelect) fromItem).getSelectBody(), column);
+        if (plainSelect.getSelectItems().size() == 1) {
+            String countRegex = "COUNT\\([\\s]?(\\*|\\d)[\\s]?\\)";
+            SelectItem selectItem = plainSelect.getSelectItems().get(0);
+            List<String> all = RegexUtil.find(selectItem.toString(), countRegex);
+            if (BoolUtil.notEmpty(all)) {
+                addWheres(plainSelect, column);
+                return;
+            }
+        }
+        FromItem subItem = plainSelect.getFromItem();
+        if (subItem instanceof SubSelect) {
+            foreach((PlainSelect) ((SubSelect) subItem).getSelectBody(), column);
         }
         addColumns(plainSelect, column);
         addWheres(plainSelect, column);
