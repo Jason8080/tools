@@ -7,6 +7,7 @@ import cn.gmlee.tools.gray.assist.SqlAssist;
 import cn.gmlee.tools.gray.conf.GrayProperties;
 import cn.gmlee.tools.gray.helper.GrayHelper;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
@@ -63,13 +64,17 @@ public class GraySelectFilterInterceptor implements Interceptor {
         StatementHandler statementHandler = (StatementHandler) invocation.getTarget();
         BoundSql boundSql = statementHandler.getBoundSql();
         String originSql = boundSql.getSql();
+        String newSql = getNewSql(originSql);
+        SqlAssist.reset(boundSql, newSql);
+    }
+
+    private String getNewSql(String originSql) throws JSQLParserException {
         Statement statement = CCJSqlParserUtil.parse(originSql);
         // 非插入句柄不处理
         if (!(statement instanceof Select)) {
-            return;
+            return originSql;
         }
-        String newSql = sqlHandler((Select) statement);
-        SqlAssist.reset(boundSql, newSql);
+        return sqlHandler((Select) statement);
     }
 
     private String sqlHandler(Select statement) {
