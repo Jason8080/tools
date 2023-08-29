@@ -3,7 +3,6 @@ package cn.gmlee.tools.gray.conf;
 import com.alibaba.cloud.nacos.NacosDiscoveryProperties;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +10,6 @@ import java.util.Map;
 /**
  * 灰度节点自动装配.
  */
-@Configuration
 @ConditionalOnClass(name = {"com.alibaba.cloud.nacos.discovery.NacosDiscoveryClientConfiguration"})
 @AutoConfigureBefore(name = {"com.alibaba.cloud.nacos.discovery.NacosDiscoveryClientConfiguration"})
 public class GrayNodeAutoConfiguration {
