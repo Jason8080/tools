@@ -1,7 +1,7 @@
 package cn.gmlee.tools.gray.helper;
 
 /**
- * The type Gray helper.
+ * 灰度帮助类.
  */
 public class GrayHelper {
 
@@ -10,7 +10,7 @@ public class GrayHelper {
     /**
      * Enable.
      *
-     * @param enable the enable
+     * @param enable enable
      */
     public static void enable(Boolean enable){
         GrayHelper.enable.set(enable);
@@ -23,7 +23,7 @@ public class GrayHelper {
      */
     public static boolean enable(){
         Boolean enable = GrayHelper.enable.get();
-        return Boolean.TRUE.equals(enable);
+        return !Boolean.FALSE.equals(enable);
     }
 
     /**
