@@ -2,7 +2,7 @@ package cn.gmlee.tools.gray.conf;
 
 import cn.gmlee.tools.gray.filter.GrayFilter;
 import cn.gmlee.tools.gray.initializer.GrayDataInitializer;
-import cn.gmlee.tools.gray.initializer.GrayDataInitializerTemplate;
+import cn.gmlee.tools.gray.initializer.GrayDataTemplate;
 import cn.gmlee.tools.gray.initializer.MysqlGrayDataInitializer;
 import cn.gmlee.tools.gray.initializer.OracleGrayDataInitializer;
 import cn.gmlee.tools.gray.interceptor.GrayInsertMarkInterceptor;
@@ -67,8 +67,8 @@ public class GrayDataAutoConfiguration {
      */
     @Bean
     @ConditionalOnBean(GrayDataInitializer.class)
-    public GrayDataInitializerTemplate grayDataInitializerTemplate(List<GrayDataInitializer> initializers, GrayProperties properties) throws SQLException {
-        GrayDataInitializerTemplate template = new GrayDataInitializerTemplate(dataSource, properties);
+    public GrayDataTemplate grayDataInitializerTemplate(List<GrayDataInitializer> initializers, GrayProperties properties) throws SQLException {
+        GrayDataTemplate template = new GrayDataTemplate(dataSource, properties);
         template.init(initializers.toArray(new GrayDataInitializer[0]));
         return template;
     }

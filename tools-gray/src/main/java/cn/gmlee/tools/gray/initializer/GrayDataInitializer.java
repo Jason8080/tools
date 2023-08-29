@@ -28,6 +28,14 @@ public interface GrayDataInitializer {
      */
     Map<String, Map<String, Object>> getColumn(Connection conn, GrayProperties properties);
 
+
+    /**
+     * Gets column symbol.
+     *
+     * @return the column symbol
+     */
+    String getColumnSymbol();
+
     /**
      * Add column.
      *
@@ -35,6 +43,7 @@ public interface GrayDataInitializer {
      * @param conn       the conn
      * @param table      the table
      * @param map        the map
+     * @throws SQLException the sql exception
      */
     void addColumn(GrayProperties properties, Connection conn, String table, Map<String, Object> map) throws SQLException;
 

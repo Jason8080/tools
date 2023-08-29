@@ -4,23 +4,30 @@ import cn.gmlee.tools.base.util.AssertUtil;
 import cn.gmlee.tools.base.util.CollectionUtil;
 import cn.gmlee.tools.gray.conf.GrayProperties;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.expression.Alias;
+import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.statement.select.FromItem;
+import net.sf.jsqlparser.statement.select.PlainSelect;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 /**
  * 灰度数据初始化模版.
  */
 @Slf4j
-public class GrayDataInitializerTemplate {
+public class GrayDataTemplate {
 
     /**
      * The Data source.
      */
     private final DataSource dataSource;
     private final GrayProperties properties;
+    private List<GrayDataInitializer> initializers;
 
     /**
      * Instantiates a new Gray data initializer template.
@@ -28,7 +35,7 @@ public class GrayDataInitializerTemplate {
      * @param dataSource the data source
      * @param properties the gray properties
      */
-    public GrayDataInitializerTemplate(DataSource dataSource, GrayProperties properties) {
+    public GrayDataTemplate(DataSource dataSource, GrayProperties properties) {
         this.dataSource = dataSource;
         this.properties = properties;
     }
@@ -41,6 +48,7 @@ public class GrayDataInitializerTemplate {
      */
     public void init(GrayDataInitializer... initializers) throws SQLException {
         AssertUtil.notEmpty(initializers, "灰度初始化器丢失");
+        this.initializers = Arrays.asList(initializers);
         // 获取数据库型号
         String database = dataSource.getConnection().getMetaData().getDatabaseProductName();
         // 适配数据库操作
@@ -71,5 +79,17 @@ public class GrayDataInitializerTemplate {
                 conn.close();
             }
         }
+    }
+
+    public String getColumnSymbol() throws SQLException {
+        // 获取数据库型号
+        String database = dataSource.getConnection().getMetaData().getDatabaseProductName();
+        for (GrayDataInitializer initializer : initializers) {
+            if (!initializer.support(database)) {
+                continue;
+            }
+            return initializer.getColumnSymbol();
+        }
+        throw new SQLException(String.format("不支持的数据库型号: %s", database));
     }
 }
