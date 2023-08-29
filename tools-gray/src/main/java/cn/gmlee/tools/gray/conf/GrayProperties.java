@@ -13,8 +13,8 @@ import java.util.List;
 @ConfigurationProperties(prefix = "tools.gray")
 public class GrayProperties {
     private String evn = "env";
-    private String head = "TOOLS-GRAY";
-    private String version = "1.0.0";
+    private String head = "version";
+    private String version = "1.0.0.GRAY";
     /**
      * 节点灰度的开关.
      */
