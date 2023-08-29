@@ -151,8 +151,11 @@ public class GraySelectFilterInterceptor implements Interceptor {
         in.setRightItemsList(expressionList);
         QuickUtil.isTrue(GrayHelper.enable(), () -> expressionList.addExpressions(new LongValue(0)));
         expressionList.addExpressions(new LongValue(1));
-        List<Expression> es = join.getOnExpressions().stream().map(x -> new AndExpression(x, in)).collect(Collectors.toList());
-        join.setOnExpressions(es);
+        // 高版本升级
+//        List<Expression> es = join.getOnExpressions().stream().map(x -> new AndExpression(x, in)).collect(Collectors.toList());
+//        join.setOnExpressions(es);
+        AndExpression and = new AndExpression(join.getOnExpression(), in);
+        join.setOnExpression(and);
     }
 
     private Column getColumn(FromItem item) throws SQLException {
