@@ -65,6 +65,9 @@ public class GraySelectFilterInterceptor implements Interceptor {
         BoundSql boundSql = statementHandler.getBoundSql();
         String originSql = boundSql.getSql();
         String newSql = getNewSql(originSql);
+        if(originSql.equalsIgnoreCase(newSql)){
+            return;
+        }
         SqlAssist.reset(boundSql, newSql);
     }
 
