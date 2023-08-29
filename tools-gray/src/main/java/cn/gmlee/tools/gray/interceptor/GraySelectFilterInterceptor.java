@@ -159,11 +159,11 @@ public class GraySelectFilterInterceptor implements Interceptor {
         Alias alias = item.getAlias();
         String name = String.format("%s.%s%s%s",
                 alias.getName(),
-                    "\"",
-//                grayDataTemplate.getColumnSymbol(),
+//                    "\"",
+                grayDataTemplate.getColumnSymbol(),
                 properties.getEvn(),
-//                grayDataTemplate.getColumnSymbol()
-                "\""
+                grayDataTemplate.getColumnSymbol()
+//                "\""
 
         );
         return new Column(name);
