@@ -7,15 +7,16 @@ import cn.gmlee.tools.gray.assist.SqlAssist;
 import cn.gmlee.tools.gray.conf.GrayProperties;
 import cn.gmlee.tools.gray.helper.GrayHelper;
 import cn.gmlee.tools.gray.initializer.GrayDataTemplate;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Alias;
+import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.expression.operators.relational.InExpression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
 import org.apache.ibatis.executor.statement.StatementHandler;
@@ -26,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 灰度环境数据标记拦截器.
@@ -84,36 +86,48 @@ public class GraySelectFilterInterceptor implements Interceptor {
         if (!(statement instanceof Select)) {
             return originSql;
         }
-        return sqlHandler((Select) statement);
-    }
-
-    private String sqlHandler(Select statement) throws Exception {
-        // 获取条件列
-        foreach((PlainSelect) statement.getSelectBody());
+        SelectBody selectBody = ((Select) statement).getSelectBody();
+        // 非普通句柄不处理
+        if (!(selectBody instanceof PlainSelect)){
+            return originSql;
+        }
+        // 句柄处理器
+        sqlHandler((PlainSelect) selectBody);
         return statement.toString();
     }
 
-    private void foreach(PlainSelect plainSelect) throws Exception {
-        if (plainSelect.getSelectItems().size() == 1) {
-            String countRegex = "COUNT\\([\\s]?(\\*|\\d)[\\s]?\\)";
-            SelectItem selectItem = plainSelect.getSelectItems().get(0);
-            List<String> all = RegexUtil.find(selectItem.toString(), countRegex);
-            if (BoolUtil.notEmpty(all)) {
-                addWheres(plainSelect);
-                return;
+    private void sqlHandler(PlainSelect plainSelect) throws Exception {
+        // 关联句柄处理
+        join(plainSelect.getJoins());
+        // 子句递归处理
+        subSelect(plainSelect.getFromItem());
+        // 列值句柄处理
+        addColumns(plainSelect);
+        // 条件句柄处理
+        addWheres(plainSelect);
+    }
+
+    private void subSelect(FromItem item) throws Exception {
+        if (item instanceof SubSelect) {
+            sqlHandler((PlainSelect) ((SubSelect) item).getSelectBody());
+        }
+    }
+
+    private void join(List<Join> joins) throws Exception {
+        if(BoolUtil.isEmpty(joins)){
+            return;
+        }
+        for (Join join : joins){
+            FromItem item = join.getRightItem();
+            if(item instanceof Table){
+                addWheres(join);
             }
         }
-        FromItem item = plainSelect.getFromItem();
-        if (item instanceof SubSelect) {
-            foreach((PlainSelect) ((SubSelect) item).getSelectBody());
-        }
-        addColumns(plainSelect);
-        addWheres(plainSelect);
     }
 
     private void addWheres(PlainSelect plainSelect) throws SQLException {
         // 获取别名值
-        Column column = getColumn(plainSelect);
+        Column column = getColumn(plainSelect.getFromItem());
         // 添加条件值
         InExpression in = new InExpression();
         in.setLeftExpression(column);
@@ -126,16 +140,30 @@ public class GraySelectFilterInterceptor implements Interceptor {
         plainSelect.setWhere(and);
     }
 
-    private Column getColumn(PlainSelect plainSelect) throws SQLException {
-        FromItem item = plainSelect.getFromItem();
+    private void addWheres(Join join) throws SQLException {
+        // 获取别名值
+        Column column = getColumn(join.getRightItem());
+        // 添加In条件
+        InExpression in = new InExpression();
+        in.setLeftExpression(column);
+        // 添加In值集
+        ExpressionList expressionList = new ExpressionList();
+        in.setRightItemsList(expressionList);
+        QuickUtil.isTrue(GrayHelper.enable(), () -> expressionList.addExpressions(new LongValue(0)));
+        expressionList.addExpressions(new LongValue(1));
+        List<Expression> es = join.getOnExpressions().stream().map(x -> new AndExpression(x, in)).collect(Collectors.toList());
+        join.setOnExpressions(es);
+    }
+
+    private Column getColumn(FromItem item) throws SQLException {
         Alias alias = item.getAlias();
         String name = String.format("%s.%s%s%s",
                 alias.getName(),
-//                    "\"",
-                grayDataTemplate.getColumnSymbol(),
+                    "\"",
+//                grayDataTemplate.getColumnSymbol(),
                 properties.getEvn(),
-                grayDataTemplate.getColumnSymbol()
-//                "\""
+//                grayDataTemplate.getColumnSymbol()
+                "\""
 
         );
         return new Column(name);
@@ -150,7 +178,7 @@ public class GraySelectFilterInterceptor implements Interceptor {
             }
         }
         // 添加返回列
-        Column column = getColumn(plainSelect);
+        Column column = getColumn(plainSelect.getFromItem());
         selectItems.add(new SelectExpressionItem(column));
     }
 }

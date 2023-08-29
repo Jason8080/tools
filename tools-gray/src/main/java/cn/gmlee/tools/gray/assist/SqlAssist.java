@@ -47,10 +47,12 @@ public class SqlAssist {
         if(BoolUtil.isEmpty(newSql)){
             return;
         }
+        log.info("数据灰度处理前: {}", boundSql.getSql());
         Field field = boundSql.getClass().getDeclaredField("sql");
         boolean ok = field.isAccessible();
         QuickUtil.isFalse(ok, () -> field.setAccessible(true));
         ExceptionUtil.suppress(() -> field.set(boundSql, newSql));
         QuickUtil.isFalse(ok, () -> field.setAccessible(false));
+        log.info("数据灰度处理后: {}", boundSql.getSql());
     }
 }
