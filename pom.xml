@@ -79,7 +79,7 @@
         <module>tools-webapp</module>
         <module>tools-often</module>
         <!--<module>tools-prevent</module>-->
-        <module>tools-gray</module>
+        <module>tools-profile</module>
     </modules>
 
     <properties>
