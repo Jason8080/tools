@@ -1,17 +1,14 @@
 package cn.gmlee.tools.profile.conf;
 
-import cn.gmlee.tools.profile.filter.GrayFilter;
 import cn.gmlee.tools.profile.initializer.GrayDataInitializer;
 import cn.gmlee.tools.profile.initializer.GrayDataTemplate;
 import cn.gmlee.tools.profile.initializer.MysqlGrayDataInitializer;
 import cn.gmlee.tools.profile.initializer.OracleGrayDataInitializer;
-import cn.gmlee.tools.profile.interceptor.GrayInsertMarkInterceptor;
-import cn.gmlee.tools.profile.interceptor.GraySelectFilterInterceptor;
-import cn.gmlee.tools.profile.server.GrayServer;
+import cn.gmlee.tools.profile.interceptor.ProfileInsertMarkInterceptor;
+import cn.gmlee.tools.profile.interceptor.ProfileSelectFilterInterceptor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 
 import javax.sql.DataSource;
@@ -19,10 +16,10 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * 数据灰度自动装配类.
+ * 数据环境自动装配类.
  */
-@EnableConfigurationProperties(GrayProperties.class)
-public class GrayDataAutoConfiguration {
+@EnableConfigurationProperties(ProfileProperties.class)
+public class ProfileDataAutoConfiguration {
 
     private final DataSource dataSource;
 
@@ -31,7 +28,7 @@ public class GrayDataAutoConfiguration {
      *
      * @param dataSource the data source
      */
-    public GrayDataAutoConfiguration(DataSource dataSource) {
+    public ProfileDataAutoConfiguration(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
@@ -67,7 +64,7 @@ public class GrayDataAutoConfiguration {
      */
     @Bean
     @ConditionalOnBean(GrayDataInitializer.class)
-    public GrayDataTemplate grayDataInitializerTemplate(List<GrayDataInitializer> initializers, GrayProperties properties) throws SQLException {
+    public GrayDataTemplate grayDataInitializerTemplate(List<GrayDataInitializer> initializers, ProfileProperties properties) throws SQLException {
         GrayDataTemplate template = new GrayDataTemplate(dataSource, properties);
         template.init(initializers.toArray(new GrayDataInitializer[0]));
         return template;
@@ -81,9 +78,9 @@ public class GrayDataAutoConfiguration {
      * @throws SQLException the sql exception
      */
     @Bean
-    @ConditionalOnMissingBean(GrayInsertMarkInterceptor.class)
-    public GrayInsertMarkInterceptor grayDataInterceptor(GrayProperties properties) throws SQLException {
-        return new GrayInsertMarkInterceptor(properties);
+    @ConditionalOnMissingBean(ProfileInsertMarkInterceptor.class)
+    public ProfileInsertMarkInterceptor grayDataInterceptor(ProfileProperties properties) throws SQLException {
+        return new ProfileInsertMarkInterceptor(properties);
     }
 
     /**
@@ -94,36 +91,8 @@ public class GrayDataAutoConfiguration {
      * @throws SQLException the sql exception
      */
     @Bean
-    @ConditionalOnMissingBean(GraySelectFilterInterceptor.class)
-    public GraySelectFilterInterceptor graySelectFilterInterceptor(GrayProperties properties) throws SQLException {
-        return new GraySelectFilterInterceptor(properties);
-    }
-
-    /**
-     * Gray server gray server.
-     *
-     * @param properties the properties
-     * @return the gray server
-     */
-    @Bean
-    @ConditionalOnMissingBean(GrayServer.class)
-    public GrayServer grayServer(GrayProperties properties){
-        return new GrayServer(properties);
-    }
-
-    /**
-     * Gray filter registration bean filter registration bean.
-     *
-     * @param grayServer the gray server
-     * @return the filter registration bean
-     */
-    @Bean("FilterRegistrationBean-GrayFilter")
-    @ConditionalOnMissingBean(name = "FilterRegistrationBean-GrayFilter")
-    public FilterRegistrationBean<GrayFilter> grayFilterFilterRegistrationBean(GrayServer grayServer) {
-        FilterRegistrationBean<GrayFilter> reg = new FilterRegistrationBean<>();
-        reg.setFilter(new GrayFilter(grayServer));
-        reg.addUrlPatterns("/*");
-        reg.setName("grayFilter");
-        return reg;
+    @ConditionalOnMissingBean(ProfileSelectFilterInterceptor.class)
+    public ProfileSelectFilterInterceptor graySelectFilterInterceptor(ProfileProperties properties) throws SQLException {
+        return new ProfileSelectFilterInterceptor(properties);
     }
 }

@@ -1,8 +1,8 @@
 package cn.gmlee.tools.profile.interceptor;
 
 import cn.gmlee.tools.profile.assist.SqlAssist;
-import cn.gmlee.tools.profile.conf.GrayProperties;
-import cn.gmlee.tools.profile.helper.GrayHelper;
+import cn.gmlee.tools.profile.conf.ProfileProperties;
+import cn.gmlee.tools.profile.helper.ProfileHelper;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
@@ -17,17 +17,17 @@ import org.apache.ibatis.plugin.*;
 import java.sql.Connection;
 
 /**
- * 灰度环境数据标记拦截器.
+ * 环境数据标记拦截器.
  */
 @Slf4j
 @Intercepts({
         @Signature(type = StatementHandler.class, method = "prepare", args = {Connection.class, Integer.class}),
 })
-public class GrayInsertMarkInterceptor implements Interceptor {
+public class ProfileInsertMarkInterceptor implements Interceptor {
 
-    private final GrayProperties properties;
+    private final ProfileProperties properties;
 
-    public GrayInsertMarkInterceptor(GrayProperties properties) {
+    public ProfileInsertMarkInterceptor(ProfileProperties properties) {
         this.properties = properties;
     }
 
@@ -47,14 +47,14 @@ public class GrayInsertMarkInterceptor implements Interceptor {
         try {
             mark(invocation);
         } catch (Throwable throwable) {
-            log.error("灰度环境标记失败", throwable);
+            log.error("数据环境标记失败", throwable);
         }
         return invocation.proceed();
     }
 
     private void mark(Invocation invocation) throws Exception {
         // 非灰度环境不处理
-        if (!GrayHelper.enable()) {
+        if (!ProfileHelper.enable()) {
             return;
         }
         StatementHandler statementHandler = (StatementHandler) invocation.getTarget();

@@ -80,6 +80,7 @@
         <module>tools-often</module>
         <!--<module>tools-prevent</module>-->
         <module>tools-profile</module>
+        <module>tools-gray</module>
     </modules>
 
     <properties>

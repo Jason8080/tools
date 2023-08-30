@@ -2,7 +2,7 @@ package cn.gmlee.tools.profile.initializer;
 
 import cn.gmlee.tools.base.util.AssertUtil;
 import cn.gmlee.tools.base.util.CollectionUtil;
-import cn.gmlee.tools.profile.conf.GrayProperties;
+import cn.gmlee.tools.profile.conf.ProfileProperties;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.sql.DataSource;
@@ -22,7 +22,7 @@ public class GrayDataTemplate {
      * The Data source.
      */
     private final DataSource dataSource;
-    private final GrayProperties properties;
+    private final ProfileProperties properties;
     private List<GrayDataInitializer> initializers;
 
     /**
@@ -31,7 +31,7 @@ public class GrayDataTemplate {
      * @param dataSource the data source
      * @param properties the gray properties
      */
-    public GrayDataTemplate(DataSource dataSource, GrayProperties properties) {
+    public GrayDataTemplate(DataSource dataSource, ProfileProperties properties) {
         this.dataSource = dataSource;
         this.properties = properties;
     }

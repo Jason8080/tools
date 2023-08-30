@@ -1,7 +1,7 @@
 package cn.gmlee.tools.profile.initializer;
 
 import cn.gmlee.tools.base.util.AssertUtil;
-import cn.gmlee.tools.profile.conf.GrayProperties;
+import cn.gmlee.tools.profile.conf.ProfileProperties;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -26,7 +26,7 @@ public interface GrayDataInitializer {
      * @param properties the properties
      * @return the columns
      */
-    Map<String, Map<String, Object>> getColumn(Connection conn, GrayProperties properties);
+    Map<String, Map<String, Object>> getColumn(Connection conn, ProfileProperties properties);
 
 
     /**
@@ -45,7 +45,7 @@ public interface GrayDataInitializer {
      * @param map        the map
      * @throws SQLException the sql exception
      */
-    void addColumn(GrayProperties properties, Connection conn, String table, Map<String, Object> map) throws SQLException;
+    void addColumn(ProfileProperties properties, Connection conn, String table, Map<String, Object> map) throws SQLException;
 
     /**
      * Gets table.

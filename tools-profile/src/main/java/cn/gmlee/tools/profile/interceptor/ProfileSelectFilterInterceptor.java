@@ -4,8 +4,8 @@ import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.QuickUtil;
 import cn.gmlee.tools.base.util.RegexUtil;
 import cn.gmlee.tools.profile.assist.SqlAssist;
-import cn.gmlee.tools.profile.conf.GrayProperties;
-import cn.gmlee.tools.profile.helper.GrayHelper;
+import cn.gmlee.tools.profile.conf.ProfileProperties;
+import cn.gmlee.tools.profile.helper.ProfileHelper;
 import cn.gmlee.tools.profile.initializer.GrayDataTemplate;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Alias;
@@ -28,20 +28,20 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * 灰度环境数据标记拦截器.
+ * 数据环境选择拦截器.
  */
 @Slf4j
 @Intercepts({
         @Signature(type = StatementHandler.class, method = "prepare", args = {Connection.class, Integer.class}),
 })
-public class GraySelectFilterInterceptor implements Interceptor {
+public class ProfileSelectFilterInterceptor implements Interceptor {
 
-    private final GrayProperties properties;
+    private final ProfileProperties properties;
 
     @Autowired
     private GrayDataTemplate grayDataTemplate;
 
-    public GraySelectFilterInterceptor(GrayProperties properties) {
+    public ProfileSelectFilterInterceptor(ProfileProperties properties) {
         this.properties = properties;
     }
 
@@ -61,7 +61,7 @@ public class GraySelectFilterInterceptor implements Interceptor {
         try {
             filter(invocation);
         } catch (Throwable throwable) {
-            log.error("灰度环境过滤失败", throwable);
+            log.error("数据环境过滤失败", throwable);
         }
         return invocation.proceed();
     }
@@ -133,7 +133,7 @@ public class GraySelectFilterInterceptor implements Interceptor {
         in.setRightItemsList(expressionList);
         AndExpression and = new AndExpression(plainSelect.getWhere(), in);
         // 添加条件列
-        QuickUtil.isTrue(GrayHelper.enable(), () -> expressionList.addExpressions(new LongValue(0)));
+        QuickUtil.isTrue(ProfileHelper.enable(), () -> expressionList.addExpressions(new LongValue(0)));
         expressionList.addExpressions(new LongValue(1));
         plainSelect.setWhere(and);
     }
@@ -147,7 +147,7 @@ public class GraySelectFilterInterceptor implements Interceptor {
         // 添加In值集
         ExpressionList expressionList = new ExpressionList();
         in.setRightItemsList(expressionList);
-        QuickUtil.isTrue(GrayHelper.enable(), () -> expressionList.addExpressions(new LongValue(0)));
+        QuickUtil.isTrue(ProfileHelper.enable(), () -> expressionList.addExpressions(new LongValue(0)));
         expressionList.addExpressions(new LongValue(1));
         // 高版本升级
 //        List<Expression> es = join.getOnExpressions().stream().map(x -> new AndExpression(x, in)).collect(Collectors.toList());

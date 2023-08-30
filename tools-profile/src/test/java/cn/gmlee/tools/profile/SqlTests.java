@@ -1,7 +1,7 @@
 package cn.gmlee.tools.profile;
 
-import cn.gmlee.tools.profile.conf.GrayProperties;
-import cn.gmlee.tools.profile.interceptor.GraySelectFilterInterceptor;
+import cn.gmlee.tools.profile.conf.ProfileProperties;
+import cn.gmlee.tools.profile.interceptor.ProfileSelectFilterInterceptor;
 
 public class SqlTests {
     public static void main(String[] args) throws Exception {
@@ -16,7 +16,7 @@ public class SqlTests {
                 "\tmoi.buy_merchant_id = '1691020167383453698'\n" +
                 "\tAND ( moi.order_status != '99' OR ( moi.order_status = '99' AND moi.deleted_by != 'buy' ) ) ";
 
-        GraySelectFilterInterceptor interceptor = new GraySelectFilterInterceptor(new GrayProperties());
+        ProfileSelectFilterInterceptor interceptor = new ProfileSelectFilterInterceptor(new ProfileProperties());
         String newSql = interceptor.getNewSql(sql);
         System.out.println();
         System.out.println(newSql);
