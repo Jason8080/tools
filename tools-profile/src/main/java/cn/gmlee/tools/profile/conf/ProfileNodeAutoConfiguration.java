@@ -28,7 +28,7 @@ public class ProfileNodeAutoConfiguration {
             ProfileHelper.enable(false);
         }
         String version = metadata.get(profileProperties.getHead());
-        if(!profileProperties.getVersion().contains(version)){
+        if(!profileProperties.getVersions().contains(version)){
             // 关闭数据环境
             ProfileHelper.enable(false);
         }

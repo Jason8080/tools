@@ -14,5 +14,5 @@ import java.util.List;
 public class ProfileProperties {
     private String evn = "env";
     private String head = "version";
-    private List<String> version = Collections.singletonList("1.0.0.GRAY");
+    private List<String> versions = Collections.singletonList("1.0.0.GRAY");
 }

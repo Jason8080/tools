@@ -67,6 +67,10 @@ public class ProfileSelectFilterInterceptor implements Interceptor {
     }
 
     private void filter(Invocation invocation) throws Exception {
+        // 关闭的不处理
+        if (ProfileHelper.closed()) {
+            return;
+        }
         // 非灰度环境不处理
         StatementHandler statementHandler = (StatementHandler) invocation.getTarget();
         BoundSql boundSql = statementHandler.getBoundSql();

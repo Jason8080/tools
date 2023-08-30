@@ -53,8 +53,8 @@ public class ProfileInsertMarkInterceptor implements Interceptor {
     }
 
     private void mark(Invocation invocation) throws Exception {
-        // 非灰度环境不处理
-        if (!ProfileHelper.enable()) {
+        // 关闭的不处理
+        if (ProfileHelper.closed()) {
             return;
         }
         StatementHandler statementHandler = (StatementHandler) invocation.getTarget();

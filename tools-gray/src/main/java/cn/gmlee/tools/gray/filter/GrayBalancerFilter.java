@@ -1,0 +1,97 @@
+package cn.gmlee.tools.gray.filter;
+
+import cn.gmlee.tools.gray.balancer.GrayReactorServiceInstanceLoadBalancer;
+import cn.gmlee.tools.gray.conf.GrayProperties;
+import cn.gmlee.tools.gray.server.GrayServer;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerUriTools;
+import org.springframework.cloud.client.loadbalancer.reactive.DefaultRequest;
+import org.springframework.cloud.client.loadbalancer.reactive.Request;
+import org.springframework.cloud.client.loadbalancer.reactive.Response;
+import org.springframework.cloud.gateway.filter.GatewayFilterChain;
+import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.support.DelegatingServiceInstance;
+import org.springframework.cloud.gateway.support.NotFoundException;
+import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
+import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
+import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
+import org.springframework.core.Ordered;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+
+import java.net.URI;
+
+/**
+ * 灰度发布过滤器.
+ */
+@Slf4j
+@SuppressWarnings("all")
+public class GrayBalancerFilter implements GlobalFilter, Ordered {
+
+    private static final int LOAD_BALANCER_CLIENT_FILTER_ORDER = 10150;
+    private final LoadBalancerClientFactory clientFactory;
+    private final GrayProperties properties;
+    private final GrayServer grayServer;
+
+    /**
+     * Instantiates a new Gray load balancer client filter.
+     *
+     * @param clientFactory the client factory
+     * @param properties    the properties
+     */
+    public GrayBalancerFilter(LoadBalancerClientFactory clientFactory, GrayServer grayServer, GrayProperties properties) {
+        this.clientFactory = clientFactory;
+        this.properties = properties;
+        this.grayServer = grayServer;
+    }
+
+    @Override
+    public int getOrder() {
+        return LOAD_BALANCER_CLIENT_FILTER_ORDER;
+    }
+
+    @Override
+    public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        return doFilter(exchange, chain);
+    }
+
+    private Mono<Void> doFilter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        return this.choose(exchange).doOnNext((response) -> {
+            if (!response.hasServer()) {
+                String msg = String.format("实例丢失", exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR));
+                throw NotFoundException.create(true, msg);
+            }
+            URI uri = exchange.getRequest().getURI();
+            // overrideScheme为空时 转发的路由是http请求
+            DelegatingServiceInstance serviceInstance = new DelegatingServiceInstance(response.getServer(), null);
+            URI requestUrl = this.reconstructURI(serviceInstance, uri);
+            exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, requestUrl);
+        }).then(chain.filter(exchange));
+    }
+
+    /**
+     * Reconstruct uri uri.
+     *
+     * @param serviceInstance the service instance
+     * @param original        the original
+     * @return the uri
+     */
+    protected URI reconstructURI(ServiceInstance serviceInstance, URI original) {
+        return LoadBalancerUriTools.reconstructURI(serviceInstance, original);
+    }
+
+    private Mono<Response<ServiceInstance>> choose(ServerWebExchange exchange) {
+        URI uri = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
+        GrayReactorServiceInstanceLoadBalancer loadBalancer = new GrayReactorServiceInstanceLoadBalancer(
+                uri.getHost(), clientFactory.getLazyProvider(uri.getHost(), ServiceInstanceListSupplier.class), grayServer
+        );
+        return loadBalancer.choose(this.createRequest(exchange));
+    }
+
+    private Request createRequest(ServerWebExchange exchange) {
+        HttpHeaders headers = exchange.getRequest().getHeaders();
+        return new DefaultRequest(headers);
+    }
+}

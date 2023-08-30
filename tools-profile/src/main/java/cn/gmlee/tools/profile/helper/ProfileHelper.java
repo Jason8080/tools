@@ -1,21 +1,20 @@
 package cn.gmlee.tools.profile.helper;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * 环境帮助类.
  */
 public class ProfileHelper {
+    private static volatile Boolean enable;
 
-    private static final AtomicBoolean enable = new AtomicBoolean(true);
 
     /**
-     * Enable.
+     * Enable boolean.
      *
      * @param enable enable
+     * @return the boolean
      */
-    public static void enable(Boolean enable){
-        ProfileHelper.enable.set(enable);
+    public static boolean enable(Boolean enable) {
+        ProfileHelper.enable = enable;
     }
 
     /**
@@ -23,8 +22,16 @@ public class ProfileHelper {
      *
      * @return the boolean
      */
-    public static boolean enable(){
-        Boolean enable = ProfileHelper.enable.get();
-        return !Boolean.FALSE.equals(enable);
+    public static boolean enable() {
+        return Boolean.TRUE.equals(enable);
+    }
+
+    /**
+     * Closed boolean.
+     *
+     * @return the boolean
+     */
+    public static boolean closed() {
+        return Boolean.FALSE.equals(enable);
     }
 }

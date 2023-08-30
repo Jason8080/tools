@@ -14,8 +14,9 @@ public class CollectionUtil {
     /**
      * 添加元素.
      *
-     * @param <T> the type parameter
-     * @param ts  the ts
+     * @param <T>      the type parameter
+     * @param ts       the ts
+     * @param elements the elements
      * @return the collection
      */
     public static <T> Collection<T> addAll(Collection<T> ts, T... elements) {
@@ -58,7 +59,7 @@ public class CollectionUtil {
      * @return the t [ ]
      */
     public static <T> List<T> replace(T[] ts, T oldVal, T newVal) {
-        List<T> newTs = new ArrayList();
+        List<T> newTs = new ArrayList<>();
         if (BoolUtil.notEmpty(ts)) {
             for (int i = 0; i < ts.length; i++) {
                 if (BoolUtil.eq(ts[i], oldVal)) {
@@ -127,7 +128,7 @@ public class CollectionUtil {
      * @return the t [ ]
      */
     public static <T> List<T> remove(T[] ts, T value) {
-        List<T> newTs = new ArrayList();
+        List<T> newTs = new ArrayList<>();
         if (BoolUtil.notEmpty(ts)) {
             for (int i = 0; i < ts.length; i++) {
                 if (!BoolUtil.eq(ts[i], value)) {
@@ -178,12 +179,29 @@ public class CollectionUtil {
     /**
      * 将Map按照Key升序排序.
      *
-     * @param <T> the type parameter
+     * @param <K> the type parameter
+     * @param <V> the type parameter
      * @param map the map
      * @return the tree map
      */
-    public static <T> TreeMap<String, T> keySort(Map<String, T> map) {
-        TreeMap<String, T> treeMap = new TreeMap<>((o1, o2) -> o1.compareTo(o2));
+    public static <K extends Comparable, V> TreeMap<K, V> keySort(Map<K, V> map) {
+        TreeMap<K, V> treeMap = new TreeMap<>();
+        if (BoolUtil.notEmpty(map)) {
+            treeMap.putAll(map);
+        }
+        return treeMap;
+    }
+
+    /**
+     * Key reverse sort tree map.
+     *
+     * @param <K> the type parameter
+     * @param <V> the type parameter
+     * @param map the map
+     * @return the tree map
+     */
+    public static <K extends Comparable, V> TreeMap<K, V> keyReverseSort(Map<K, V> map) {
+        TreeMap<K, V> treeMap = new TreeMap<>(Comparator.comparing((K k) -> k).reversed());
         if (BoolUtil.notEmpty(map)) {
             treeMap.putAll(map);
         }
@@ -199,7 +217,7 @@ public class CollectionUtil {
      * @return map map
      */
     public static <T> Map<String, String> valueToString(Map<String, T> map, boolean excludeNull) {
-        Map<String, String> all = new HashMap(map.size());
+        Map<String, String> all = new HashMap<>(map.size());
         map.forEach((k, v) -> {
             if (v != null) {
                 all.put(k, v.toString());
@@ -246,7 +264,7 @@ public class CollectionUtil {
         if (BoolUtil.isEmpty(ts)) {
             return t;
         }
-        List<T> newTs = new ArrayList(t.size() + ts.length);
+        List<T> newTs = new ArrayList<>(t.size() + ts.length);
         newTs.addAll(t);
         newTs.addAll(Arrays.asList(ts));
         return newTs;
