@@ -125,7 +125,8 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
         }
         int pos = Math.abs(incrementAndGet());
         ServiceInstance instance = instances.get(pos % instances.size());
-        log.info("灰度服务:{} 最终采用:{} 实例列表: \r\n{}", instance.getServiceId(), instance.getInstanceId(), JsonUtil.format(instances));
+        String serverPort = String.format("%s:%s", instance.getHost(), instance.getPort());
+        log.info("灰度服务:{} 命中实例:{} 实例列表: \r\n{}", instance.getServiceId(), serverPort, JsonUtil.format(instances));
         return new DefaultResponse(instance);
     }
 
