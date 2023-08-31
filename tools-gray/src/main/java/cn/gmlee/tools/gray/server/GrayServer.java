@@ -34,9 +34,8 @@ public class GrayServer {
      * @return the boolean
      */
     public boolean check(ServerWebExchange exchange) {
-        HttpHeaders headers = ExchangeAssist.getHeaders(exchange);
         // 获取请求令牌
-        List<String> tokens = getTokens(headers);
+        List<String> tokens = getTokens(exchange);
         if (BoolUtil.isEmpty(tokens)) {
             // 没有令牌默认不进入灰度
             return false;
@@ -46,7 +45,8 @@ public class GrayServer {
         return check(token);
     }
 
-    private List<String> getTokens(HttpHeaders headers) {
+    private List<String> getTokens(ServerWebExchange exchange) {
+        HttpHeaders headers = ExchangeAssist.getHeaders(exchange);
         List<String> tokens = headers.get(properties.getToken());
         if (BoolUtil.notEmpty(tokens)) {
             return tokens;
