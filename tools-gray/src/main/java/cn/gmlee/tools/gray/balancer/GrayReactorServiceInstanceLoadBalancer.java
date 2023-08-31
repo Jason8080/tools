@@ -60,18 +60,19 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
             return roundRobin(all);
         }
         // 获取灰度实例
-        List<ServiceInstance> grayInstances = getGrayInstances(all, exchange);
+        List<ServiceInstance> gray = getGrayInstances(all, exchange);
         // 返回可用实例
-        return roundRobin(getInstances(all, exchange, grayInstances));
+        return roundRobin(getInstances(exchange, all, gray));
     }
 
-    private List<ServiceInstance> getInstances(List<ServiceInstance> all, ServerWebExchange exchange, List<ServiceInstance> gray) {
+    private List<ServiceInstance> getInstances(ServerWebExchange exchange, List<ServiceInstance> all, List<ServiceInstance> gray) {
         String serviceId = ExchangeAssist.getServiceId(exchange);
         boolean checked = grayServer.check(exchange);
-        log.info("灰度服务:{} 检测结果:{} 灰度实例: \r\n{}", serviceId, checked, JsonUtil.format(gray));
+        log.info("灰度服务:{} 检测结果:{} 全部实例: \r\n{}", serviceId, checked, JsonUtil.format(all));
         List<ServiceInstance> normal = exclude(all, gray);
         List<ServiceInstance> instances = checked ? gray : normal;
-        if(instances.isEmpty()){
+        log.info("灰度服务:{} 检测结果:{} 预选实例: \r\n{}", serviceId, checked, JsonUtil.format(instances));
+        if (instances.isEmpty()) {
             log.info("灰度服务:{} 检测结果:{} 恢复轮询: \r\n{}", serviceId, checked, JsonUtil.format(all));
         }
         return instances.isEmpty() ? all : instances;
@@ -95,7 +96,7 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
                 .filter(x -> InstanceAssist.matching(x, grayServer.properties))
                 .collect(Collectors.groupingBy(x -> InstanceAssist.version(x, grayServer.properties)));
         // 开发指定版本
-        if(BoolUtil.notEmpty(grayServer.properties.getVersions())){
+        if (BoolUtil.notEmpty(grayServer.properties.getVersions())) {
             log.info("灰度服务:{} 开发指定:{} 实例列表: \r\n{}", serviceId, grayServer.properties.getVersions(), JsonUtil.format(candidateMap));
         }
         // 外部指定版本
