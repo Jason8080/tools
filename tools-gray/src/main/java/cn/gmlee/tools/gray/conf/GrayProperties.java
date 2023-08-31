@@ -15,6 +15,6 @@ public class GrayProperties {
     private Boolean enable = Boolean.TRUE;
     private String head = "version";
     private String token = "token";
-    private String version = "1.0.0.GRAY";
+    private String version = "1.0.0";
     private List<String> versions = Collections.emptyList();
 }

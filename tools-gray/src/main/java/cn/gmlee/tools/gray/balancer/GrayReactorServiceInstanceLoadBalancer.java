@@ -55,7 +55,7 @@ public class GrayReactorServiceInstanceLoadBalancer extends RoundRobinLoadBalanc
     @Override
     public Mono<Response<ServiceInstance>> choose(Request request) {
         if (!grayServer.properties.getEnable()) {
-            return choose(request);
+            return super.choose(request);
         }
         ServiceInstanceListSupplier supplier = this.supplier.getIfAvailable(NoopServiceInstanceListSupplier::new);
         return supplier.get().next().map(item -> getInstanceResponse(item, (HttpHeaders) request.getContext()));
