@@ -68,9 +68,10 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
     private List<ServiceInstance> getInstances(List<ServiceInstance> all, ServerWebExchange exchange, List<ServiceInstance> gray) {
         String serviceId = ExchangeAssist.getServiceId(exchange);
         boolean checked = grayServer.check(exchange);
-        List<ServiceInstance> instances = checked ? gray : exclude(all, gray);
+        List<ServiceInstance> normal = exclude(all, gray);
+        List<ServiceInstance> instances = checked ? gray : normal;
         if(instances.isEmpty()){
-            log.info("灰度服务:{} 检测结果:{} 但节点均不在线", serviceId, checked);
+            log.info("灰度服务:{} 检测结果:{} 灰度实例: {} 常规实例: {}", serviceId, checked, JsonUtil.toJson(gray), JsonUtil.toJson(normal));
         }
         return instances.isEmpty() ? all : instances;
     }
