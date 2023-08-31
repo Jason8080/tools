@@ -36,9 +36,7 @@ public class GrayServer {
     public boolean check(ServerWebExchange exchange) {
         HttpHeaders headers = ExchangeAssist.getHeaders(exchange);
         // 获取请求令牌
-        String name = headers.containsKey(properties.getToken().toLowerCase()) ?
-                properties.getToken() : properties.getToken().toUpperCase();
-        List<String> tokens = headers.get(name);
+        List<String> tokens = getTokens(headers);
         if (BoolUtil.isEmpty(tokens)) {
             // 没有令牌默认不进入灰度
             return false;
@@ -46,6 +44,16 @@ public class GrayServer {
         // 获取请求令牌
         String token = tokens.get(0);
         return check(token);
+    }
+
+    private List<String> getTokens(HttpHeaders headers) {
+        List<String> tokens = headers.get(properties.getToken());
+        if (BoolUtil.notEmpty(tokens)) {
+            return tokens;
+        }
+        String name = headers.containsKey(properties.getToken().toLowerCase()) ?
+                properties.getToken() : properties.getToken().toUpperCase();
+        return headers.get(name);
     }
 
     private boolean check(String token) {
