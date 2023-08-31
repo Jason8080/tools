@@ -17,7 +17,7 @@ public class GrayBalancerAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean({GrayServer.class})
-    public GrayServer grayBalancerFilter(GrayProperties properties) {
+    public GrayServer grayServer(GrayProperties properties) {
         return new GrayServer(properties);
     }
 
@@ -25,12 +25,11 @@ public class GrayBalancerAutoConfiguration {
      * Gray balancer filter gray balancer filter.
      *
      * @param clientFactory the client factory
-     * @param properties    the properties
      * @return the gray load balancer client filter
      */
     @Bean
     @ConditionalOnMissingBean({GrayBalancerFilter.class})
-    public GrayBalancerFilter grayBalancerFilter(LoadBalancerClientFactory clientFactory, GrayServer grayServer, GrayProperties properties) {
-        return new GrayBalancerFilter(clientFactory, grayServer, properties);
+    public GrayBalancerFilter grayBalancerFilter(LoadBalancerClientFactory clientFactory, GrayServer grayServer) {
+        return new GrayBalancerFilter(clientFactory, grayServer);
     }
 }

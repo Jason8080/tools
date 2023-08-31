@@ -13,6 +13,10 @@
     <artifactId>tools-gray</artifactId>
     <version>5.2.8</version>
 
+    <properties>
+        <spring.cloud>3.0.2</spring.cloud>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
@@ -21,6 +25,7 @@
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
+        <!-- =============================== -->
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
@@ -39,12 +44,22 @@
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
+        <!-- =============================== -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-loadbalancer</artifactId>
+            <artifactId>spring-cloud-commons</artifactId>
+            <version>${spring.cloud}</version>
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-loadbalancer</artifactId>
+            <version>${spring.cloud}</version>
+            <optional>true</optional>
+            <scope>provided</scope>
+        </dependency>
+        <!-- =============================== -->
     </dependencies>
 
 </project>

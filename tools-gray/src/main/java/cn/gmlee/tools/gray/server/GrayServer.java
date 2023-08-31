@@ -1,8 +1,10 @@
 package cn.gmlee.tools.gray.server;
 
 import cn.gmlee.tools.base.util.BoolUtil;
+import cn.gmlee.tools.gray.assist.ExchangeAssist;
 import cn.gmlee.tools.gray.conf.GrayProperties;
 import org.springframework.http.HttpHeaders;
+import org.springframework.web.server.ServerWebExchange;
 
 import java.util.List;
 
@@ -28,10 +30,11 @@ public class GrayServer {
     /**
      * 灰度检查.
      *
-     * @param headers the headers
+     * @param exchange the exchange
      * @return the boolean
      */
-    public boolean check(HttpHeaders headers) {
+    public boolean check(ServerWebExchange exchange) {
+        HttpHeaders headers = ExchangeAssist.getHeaders(exchange);
         // 获取请求令牌
         List<String> tokens = headers.get(properties.getToken());
         if(BoolUtil.isEmpty(tokens)){
