@@ -36,8 +36,10 @@ public class GrayServer {
     public boolean check(ServerWebExchange exchange) {
         HttpHeaders headers = ExchangeAssist.getHeaders(exchange);
         // 获取请求令牌
-        List<String> tokens = headers.get(properties.getToken());
-        if(BoolUtil.isEmpty(tokens)){
+        String name = headers.containsKey(properties.getToken().toLowerCase()) ?
+                properties.getToken() : properties.getToken().toUpperCase();
+        List<String> tokens = headers.get(name);
+        if (BoolUtil.isEmpty(tokens)) {
             // 没有令牌默认不进入灰度
             return false;
         }
@@ -48,7 +50,7 @@ public class GrayServer {
 
     private boolean check(String token) {
         // 没有令牌默认不进入灰度
-        if(BoolUtil.isEmpty(token)){
+        if (BoolUtil.isEmpty(token)) {
             return false;
         }
         // TODO: 继续Redis..
