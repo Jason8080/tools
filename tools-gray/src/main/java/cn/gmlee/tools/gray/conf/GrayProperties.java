@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 @ConfigurationProperties(prefix = "tools.gray")
 public class GrayProperties {
-    private Boolean enable = Boolean.FALSE;
+    private Boolean enable = true;
     private String head = "version";
     private String token = "token";
     private String version = "1.0.0";
