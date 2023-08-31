@@ -13,7 +13,7 @@ public class ProfileHelper {
      * @param enable enable
      * @return the boolean
      */
-    public static boolean enable(Boolean enable) {
+    public static void enable(Boolean enable) {
         ProfileHelper.enable = enable;
     }
 
