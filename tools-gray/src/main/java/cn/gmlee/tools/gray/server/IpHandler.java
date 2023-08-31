@@ -5,16 +5,20 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * 地址处理器.
  */
-public class IpHandler implements GrayHandler {
+public class IpHandler extends AbstractGrayHandler {
+
+    /**
+     * Instantiates a new Abstract gray handler.
+     *
+     * @param grayServer the gray server
+     */
+    protected IpHandler(GrayServer grayServer) {
+        super(grayServer);
+    }
 
     @Override
     public String name() {
         return "ip";
-    }
-
-    @Override
-    public boolean support(ServerWebExchange exchange) {
-        return false;
     }
 
     @Override

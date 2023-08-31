@@ -5,16 +5,20 @@ import org.springframework.web.server.ServerWebExchange;
 /**
  * 权重处理器.
  */
-public class WeightHandler implements GrayHandler {
+public class WeightHandler extends AbstractGrayHandler {
+
+    /**
+     * Instantiates a new Abstract gray handler.
+     *
+     * @param grayServer the gray server
+     */
+    protected WeightHandler(GrayServer grayServer) {
+        super(grayServer);
+    }
 
     @Override
     public String name() {
         return "weight";
-    }
-
-    @Override
-    public boolean support(ServerWebExchange exchange) {
-        return false;
     }
 
     @Override
