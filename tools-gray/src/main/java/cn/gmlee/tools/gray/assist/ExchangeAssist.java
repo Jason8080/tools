@@ -18,6 +18,18 @@ import java.util.Map;
 public class ExchangeAssist {
 
     /**
+     * Filter boolean.
+     *
+     * @param exchange the exchange
+     * @return the boolean
+     */
+    public static boolean filter(ServerWebExchange exchange) {
+        URI uri = exchange.getRequest().getURI();
+        String scheme = uri.getScheme();
+        return scheme.equalsIgnoreCase("lb");
+    }
+
+    /**
      * Gets headers.
      *
      * @param exchange the exchange
