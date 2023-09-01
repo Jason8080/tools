@@ -53,7 +53,11 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
     @Override
     public Mono<Response<ServiceInstance>> choose(Request request) {
         ServiceInstanceListSupplier supplier = this.supplier.getIfAvailable(NoopServiceInstanceListSupplier::new);
-        return supplier.get().next().map(item -> getResponse(item, (ServerWebExchange) request.getContext()));
+        Object context = request.getContext();
+        if (!(context instanceof ServerWebExchange)){
+            return supplier.get().next().map(this::roundRobin);
+        }
+        return supplier.get().next().map(item -> getResponse(item, (ServerWebExchange) context));
     }
 
     private Response<ServiceInstance> getResponse(List<ServiceInstance> all, ServerWebExchange exchange) {

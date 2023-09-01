@@ -21,6 +21,12 @@ public class PropAssist {
      * @return the boolean
      */
     public static boolean enable(ServerWebExchange exchange, GrayProperties properties) {
+        // 网关开关
+        Boolean global = properties.getEnable();
+        if (Boolean.FALSE.equals(global)) {
+            return false;
+        }
+        // APP开关
         String serviceId = ExchangeAssist.getServiceId(exchange);
         App app = properties.getApps().get(serviceId);
         return app != null ? app.getEnable() : false;
@@ -35,7 +41,7 @@ public class PropAssist {
      */
     public static List<String> getVersions(GrayProperties properties, String serviceId) {
         App app = properties.getApps().get(serviceId);
-        return app!=null ? app.getVersions() : Collections.emptyList();
+        return app != null ? app.getVersions() : Collections.emptyList();
     }
 
     /**
@@ -47,6 +53,6 @@ public class PropAssist {
      */
     public static Map<String, Rule> getRules(GrayProperties properties, String serviceId) {
         App app = properties.getApps().get(serviceId);
-        return app!=null ? app.getRules() : Collections.emptyMap();
+        return app != null ? app.getRules() : Collections.emptyMap();
     }
 }
