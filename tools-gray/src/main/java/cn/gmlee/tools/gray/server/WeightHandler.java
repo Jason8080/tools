@@ -9,7 +9,7 @@ public class WeightHandler extends AbstractGrayHandler {
      *
      * @param grayServer the gray server
      */
-    protected WeightHandler(GrayServer grayServer) {
+    public WeightHandler(GrayServer grayServer) {
         super(grayServer);
     }
 

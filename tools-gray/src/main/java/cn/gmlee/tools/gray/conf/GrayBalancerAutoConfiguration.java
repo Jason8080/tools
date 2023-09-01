@@ -3,6 +3,7 @@ package cn.gmlee.tools.gray.conf;
 import cn.gmlee.tools.gray.filter.GrayBalancerFilter;
 import cn.gmlee.tools.gray.filter.GrayClientIpFilter;
 import cn.gmlee.tools.gray.server.GrayServer;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -15,19 +16,6 @@ import org.springframework.context.annotation.Bean;
 @EnableConfigurationProperties(GrayProperties.class)
 @ConditionalOnClass(name = {"org.springframework.cloud.gateway.filter.GlobalFilter"})
 public class GrayBalancerAutoConfiguration {
-
-    /**
-     * Gray server gray server.
-     *
-     * @param properties the properties
-     * @return the gray server
-     */
-    @Bean
-    @ConditionalOnMissingBean({GrayServer.class})
-    public GrayServer grayServer(GrayProperties properties) {
-        return new GrayServer(properties);
-    }
-
     /**
      * Gray balancer filter gray client ip filter.
      *
@@ -47,6 +35,7 @@ public class GrayBalancerAutoConfiguration {
      * @return the gray load balancer client filter
      */
     @Bean
+    @ConditionalOnBean(GrayServer.class)
     @ConditionalOnMissingBean({GrayBalancerFilter.class})
     public GrayBalancerFilter grayBalancerFilter(LoadBalancerClientFactory clientFactory, GrayServer grayServer) {
         return new GrayBalancerFilter(clientFactory, grayServer);

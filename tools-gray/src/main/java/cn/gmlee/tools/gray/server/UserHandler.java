@@ -9,7 +9,7 @@ public class UserHandler extends AbstractGrayHandler {
      *
      * @param grayServer the gray server
      */
-    protected UserHandler(GrayServer grayServer) {
+    public UserHandler(GrayServer grayServer) {
         super(grayServer);
     }
 

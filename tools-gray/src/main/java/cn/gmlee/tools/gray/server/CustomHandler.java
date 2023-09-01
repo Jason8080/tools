@@ -9,7 +9,7 @@ public class CustomHandler extends AbstractGrayHandler {
      *
      * @param grayServer the gray server
      */
-    protected CustomHandler(GrayServer grayServer) {
+    public CustomHandler(GrayServer grayServer) {
         super(grayServer);
     }
 

@@ -9,7 +9,7 @@ public class IpHandler extends AbstractGrayHandler {
      *
      * @param grayServer the gray server
      */
-    protected IpHandler(GrayServer grayServer) {
+    public IpHandler(GrayServer grayServer) {
         super(grayServer);
     }
 

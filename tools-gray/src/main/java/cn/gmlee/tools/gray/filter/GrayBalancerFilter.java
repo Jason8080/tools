@@ -4,11 +4,9 @@ import cn.gmlee.tools.gray.balancer.GrayReactorServiceInstanceLoadBalancer;
 import cn.gmlee.tools.gray.server.GrayServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.client.ServiceInstance;
-import org.springframework.cloud.client.loadbalancer.LoadBalancerUriTools;
 import org.springframework.cloud.client.loadbalancer.DefaultRequest;
-import org.springframework.cloud.client.loadbalancer.Request;
+import org.springframework.cloud.client.loadbalancer.LoadBalancerUriTools;
 import org.springframework.cloud.client.loadbalancer.Response;
-import org.springframework.cloud.client.loadbalancer.reactive.ReactiveLoadBalancer;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.support.DelegatingServiceInstance;
@@ -17,7 +15,6 @@ import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.core.Ordered;
-import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -56,6 +53,9 @@ public class GrayBalancerFilter implements GlobalFilter, Ordered {
     }
 
     private Mono<Void> doFilter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        if (!grayServer.properties.getEnable()) {
+            return chain.filter(exchange);
+        }
         return this.choose(exchange).doOnNext((response) -> {
             if (!response.hasServer()) {
                 String msg = String.format("实例丢失: %s", exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR));
