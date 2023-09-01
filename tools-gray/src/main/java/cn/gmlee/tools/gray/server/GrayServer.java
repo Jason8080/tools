@@ -1,15 +1,13 @@
 package cn.gmlee.tools.gray.server;
 
 import cn.gmlee.tools.base.util.BoolUtil;
-import cn.gmlee.tools.gray.assist.ExchangeAssist;
 import cn.gmlee.tools.gray.conf.GrayProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.web.server.ServerWebExchange;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 灰度服务.
@@ -17,7 +15,7 @@ import java.util.List;
 @Slf4j
 public class GrayServer {
 
-    @Autowired
+    @Autowired(required = false)
     private List<GrayHandler> handlers = Collections.emptyList();
 
     /**
@@ -37,51 +35,27 @@ public class GrayServer {
     /**
      * 灰度检查.
      *
-     * @param exchange the exchange
+     * @param tokens the tokens
      * @return the boolean
      */
-    public boolean check(ServerWebExchange exchange) {
-        for (GrayHandler handler : handlers){
+    public boolean check(Map<String, String> tokens) {
+        for (GrayHandler handler : handlers) {
+            // 获取专属令牌
+            String token = tokens.get(handler.name());
+            if (BoolUtil.isEmpty(token)) {
+                log.info("--------- 处理器 {} 令牌丢失 提示 ---------", handler.name());
+            }
             // 不支持不处理
-            if(!handler.support(exchange)){
+            if (!handler.support(token)) {
+                log.info("--------- 处理器 {} 配置关闭 切换 ---------", handler.name());
                 continue;
             }
             // 是否拒绝灰度
-            if(!handler.allow(exchange)){
-                log.info("--------- 处理器 {} 拒绝灰度 ---------", handler.name());
+            if (!handler.allow(token)) {
+                log.info("--------- 处理器 {} 灰度检测 拒绝 ---------", handler.name());
                 return false;
             }
         }
-        return true;
-//
-//        // 获取请求令牌
-//        List<String> tokens = getTokens(exchange);
-//        if (BoolUtil.isEmpty(tokens)) {
-//            // 没有令牌默认不进入灰度
-//            return false;
-//        }
-//        // 获取请求令牌
-//        String token = tokens.get(0);
-//        return check(token);
-    }
-
-    private List<String> getTokens(ServerWebExchange exchange) {
-        HttpHeaders headers = ExchangeAssist.getHeaders(exchange);
-        List<String> tokens = headers.get(properties.getToken());
-        if (BoolUtil.notEmpty(tokens)) {
-            return tokens;
-        }
-        String name = headers.containsKey(properties.getToken().toLowerCase()) ?
-                properties.getToken() : properties.getToken().toUpperCase();
-        return headers.get(name);
-    }
-
-    private boolean check(String token) {
-        // 没有令牌默认不进入灰度
-        if (BoolUtil.isEmpty(token)) {
-            return false;
-        }
-        // TODO: 继续Redis..
         return true;
     }
 }

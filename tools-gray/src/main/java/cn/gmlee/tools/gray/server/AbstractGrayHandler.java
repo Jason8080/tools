@@ -2,7 +2,6 @@ package cn.gmlee.tools.gray.server;
 
 import cn.gmlee.tools.gray.conf.GrayProperties;
 import cn.gmlee.tools.gray.mod.Rule;
-import org.springframework.web.server.ServerWebExchange;
 
 /**
  * 处理器.
@@ -23,7 +22,7 @@ public abstract class AbstractGrayHandler implements GrayHandler {
     }
 
     @Override
-    public boolean support(ServerWebExchange exchange) {
+    public boolean support(String token) {
         String name = name();
         GrayProperties properties = grayServer.properties;
         Rule rule = properties.getRules().get(name);

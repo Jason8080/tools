@@ -1,12 +1,9 @@
 package cn.gmlee.tools.gray.server;
 
-import org.springframework.web.server.ServerWebExchange;
-
 /**
  * 权重处理器.
  */
 public class WeightHandler extends AbstractGrayHandler {
-
     /**
      * Instantiates a new Abstract gray handler.
      *
@@ -18,11 +15,11 @@ public class WeightHandler extends AbstractGrayHandler {
 
     @Override
     public String name() {
-        return "weight";
+        return weight;
     }
 
     @Override
-    public boolean allow(ServerWebExchange exchange) {
+    public boolean allow(String num) {
         return false;
     }
 }

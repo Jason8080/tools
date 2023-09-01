@@ -1,6 +1,5 @@
 package cn.gmlee.tools.gray.conf;
 
-import cn.gmlee.tools.gray.mod.Ip;
 import cn.gmlee.tools.gray.mod.Rule;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

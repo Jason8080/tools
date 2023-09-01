@@ -1,14 +1,14 @@
 package cn.gmlee.tools.gray.mod;
 
+import lombok.Data;
+
+import java.util.List;
+
 /**
  * 规则定义.
  */
-public abstract class Rule implements Enable {
-
+@Data
+public class Rule {
     private Boolean enable;
-
-    @Override
-    public boolean getEnable() {
-        return enable;
-    }
+    private List<String> content;
 }

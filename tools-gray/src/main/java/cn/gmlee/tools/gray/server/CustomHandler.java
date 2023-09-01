@@ -1,12 +1,9 @@
 package cn.gmlee.tools.gray.server;
 
-import org.springframework.web.server.ServerWebExchange;
-
 /**
  * 定制处理器.
  */
 public class CustomHandler extends AbstractGrayHandler {
-
     /**
      * Instantiates a new Abstract gray handler.
      *
@@ -18,11 +15,11 @@ public class CustomHandler extends AbstractGrayHandler {
 
     @Override
     public String name() {
-        return "custom";
+        return custom;
     }
 
     @Override
-    public boolean allow(ServerWebExchange exchange) {
+    public boolean allow(String token) {
         return false;
     }
 }

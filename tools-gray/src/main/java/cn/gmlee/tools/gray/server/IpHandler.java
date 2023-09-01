@@ -1,12 +1,9 @@
 package cn.gmlee.tools.gray.server;
 
-import org.springframework.web.server.ServerWebExchange;
-
 /**
  * 地址处理器.
  */
 public class IpHandler extends AbstractGrayHandler {
-
     /**
      * Instantiates a new Abstract gray handler.
      *
@@ -18,11 +15,11 @@ public class IpHandler extends AbstractGrayHandler {
 
     @Override
     public String name() {
-        return "ip";
+        return ip;
     }
 
     @Override
-    public boolean allow(ServerWebExchange exchange) {
+    public boolean allow(String ip) {
         return false;
     }
 }

@@ -37,7 +37,10 @@ public class WebUtil {
     private static final String PACIFIC_API = "https://whois.pconline.com.cn/ipJson.jsp?ip=%s&json=true";
     // 精度高
     private static final String IP_API = "http://ip-api.com/json/%s?lang=zh-CN";
-
+    /**
+     * Remote address host: 客户端IP地址
+     */
+    public static final String REMOTE_ADDRESS_HOST = "REMOTE_ADDRESS_HOST";
     /**
      * GET url 传参标识符
      */
@@ -102,7 +105,7 @@ public class WebUtil {
 
     private static final String unknown = "unknown";
 
-    private static final String[] IP_HEAD_NAMES = {"x-forwarded-for", "HTTP_X_FORWARDED_FOR", "Proxy-Client-IP", "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "X-Real-IP"};
+    private static final String[] IP_HEAD_NAMES = {"x-forwarded-for", "HTTP_X_FORWARDED_FOR", "Proxy-Client-IP", "WL-Proxy-Client-IP", "HTTP_CLIENT_IP", "X-Real-IP", REMOTE_ADDRESS_HOST};
 
     /**
      * 获取用户真实IP地址，不使用request.getRemoteAddr();的原因是有可能用户使用了代理软件方式避免真实IP地址,
