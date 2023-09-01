@@ -1,5 +1,6 @@
 package cn.gmlee.tools.gray.filter;
 
+import cn.gmlee.tools.gray.assist.PropAssist;
 import cn.gmlee.tools.gray.balancer.GrayReactorServiceInstanceLoadBalancer;
 import cn.gmlee.tools.gray.server.GrayServer;
 import lombok.extern.slf4j.Slf4j;
@@ -49,13 +50,14 @@ public class GrayBalancerFilter implements GlobalFilter, Ordered {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        // 此开关控制灰度负载均衡是否生效
+        if (!PropAssist.enable(exchange, grayServer.properties)) {
+            return chain.filter(exchange);
+        }
         return doFilter(exchange, chain);
     }
 
     private Mono<Void> doFilter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        if (!grayServer.properties.getEnable()) {
-            return chain.filter(exchange);
-        }
         return this.choose(exchange).doOnNext((response) -> {
             if (!response.hasServer()) {
                 String msg = String.format("实例丢失: %s", exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR));

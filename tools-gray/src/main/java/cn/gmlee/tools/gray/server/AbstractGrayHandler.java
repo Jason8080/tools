@@ -1,6 +1,6 @@
 package cn.gmlee.tools.gray.server;
 
-import cn.gmlee.tools.gray.conf.GrayProperties;
+import cn.gmlee.tools.gray.assist.PropAssist;
 import cn.gmlee.tools.gray.mod.Rule;
 
 /**
@@ -22,10 +22,9 @@ public abstract class AbstractGrayHandler implements GrayHandler {
     }
 
     @Override
-    public boolean support(String token) {
+    public boolean support(String app, String token) {
         String name = name();
-        GrayProperties properties = grayServer.properties;
-        Rule rule = properties.getRules().get(name);
+        Rule rule = PropAssist.getRules(grayServer.properties, app).get(name);
         return rule != null ? enable(rule) : false;
     }
 

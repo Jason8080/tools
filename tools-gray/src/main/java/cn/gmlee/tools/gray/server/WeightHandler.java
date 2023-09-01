@@ -19,7 +19,7 @@ public class WeightHandler extends AbstractGrayHandler {
     }
 
     @Override
-    public boolean allow(String num) {
+    public boolean allow(String app, String num) {
         return false;
     }
 }

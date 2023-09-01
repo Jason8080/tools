@@ -5,6 +5,7 @@ import cn.gmlee.tools.base.util.CollectionUtil;
 import cn.gmlee.tools.base.util.JsonUtil;
 import cn.gmlee.tools.gray.assist.ExchangeAssist;
 import cn.gmlee.tools.gray.assist.InstanceAssist;
+import cn.gmlee.tools.gray.assist.PropAssist;
 import cn.gmlee.tools.gray.server.GrayServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
@@ -65,7 +66,7 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
     private List<ServiceInstance> getInstances(ServerWebExchange exchange, List<ServiceInstance> all, List<ServiceInstance> gray) {
         String serviceId = ExchangeAssist.getServiceId(exchange);
         Map<String, String> tokens = ExchangeAssist.getTokens(exchange, grayServer.properties.getToken());
-        boolean checked = grayServer.check(tokens);
+        boolean checked = grayServer.check(serviceId, tokens);
         log.info("灰度服务:{} 检测结果:{} 全部实例: \r\n{}", serviceId, checked, JsonUtil.format(all));
         List<ServiceInstance> normal = exclude(all, gray);
         List<ServiceInstance> instances = checked ? gray : normal;
@@ -94,8 +95,8 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
                 .filter(x -> InstanceAssist.matching(x, grayServer.properties))
                 .collect(Collectors.groupingBy(x -> InstanceAssist.version(x, grayServer.properties)));
         // 开发指定版本
-        if (BoolUtil.notEmpty(grayServer.properties.getVersions())) {
-            log.info("灰度服务:{} 开发指定:{} 实例列表: \r\n{}", serviceId, grayServer.properties.getVersions(), JsonUtil.format(candidateMap));
+        if (BoolUtil.notEmpty(PropAssist.getVersions(grayServer.properties, serviceId))) {
+            log.info("灰度服务:{} 开发指定:{} 实例列表: \r\n{}", serviceId, PropAssist.getVersions(grayServer.properties, serviceId), JsonUtil.format(candidateMap));
         }
         // 外部指定版本
         List<String> heads = headers.get(grayServer.properties.getHead());

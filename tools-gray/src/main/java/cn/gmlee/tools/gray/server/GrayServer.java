@@ -35,24 +35,25 @@ public class GrayServer {
     /**
      * 灰度检查.
      *
+     * @param app    the app
      * @param tokens the tokens
      * @return the boolean
      */
-    public boolean check(Map<String, String> tokens) {
+    public boolean check(String app, Map<String, String> tokens) {
         for (GrayHandler handler : handlers) {
             // 获取专属令牌
             String token = tokens.get(handler.name());
             if (BoolUtil.isEmpty(token)) {
-                log.info("--------- 处理器 {} 令牌丢失 提示 ---------", handler.name());
+                log.info("--------- 应用 {} 处理器 {} 令牌丢失 提示 ---------", app, handler.name());
             }
             // 不支持不处理
-            if (!handler.support(token)) {
-                log.info("--------- 处理器 {} 配置关闭 切换 ---------", handler.name());
+            if (!handler.support(app, token)) {
+                log.info("--------- 应用 {} 处理器 {} 配置关闭 切换 ---------", app, handler.name());
                 continue;
             }
             // 是否拒绝灰度
-            if (!handler.allow(token)) {
-                log.info("--------- 处理器 {} 灰度检测 拒绝 ---------", handler.name());
+            if (!handler.allow(app, token)) {
+                log.info("--------- 应用 {} 处理器 {} 灰度检测 拒绝 ---------", app, handler.name());
                 return false;
             }
         }

@@ -18,17 +18,19 @@ public interface GrayHandler {
     /**
      * 是否支持并处理.
      *
+     * @param app
      * @param token the token
      * @return the boolean
      */
-    boolean support(String token);
+    boolean support(String app, String token);
 
 
     /**
      * 是否允许并进入灰度节点.
      *
+     * @param app
      * @param token the token
      * @return the boolean
      */
-    boolean allow(String token);
+    boolean allow(String app, String token);
 }

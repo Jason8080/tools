@@ -4,6 +4,7 @@ import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.gray.conf.GrayProperties;
 import org.springframework.cloud.client.ServiceInstance;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,11 +35,12 @@ public class InstanceAssist {
      * @return the boolean
      */
     public static boolean matching(ServiceInstance instance, GrayProperties properties) {
-        if (BoolUtil.isEmpty(properties.getVersions())){
+        List<String> versions = PropAssist.getVersions(properties, instance.getServiceId());
+        if (BoolUtil.isEmpty(versions)){
             // 没有指定灰度版本的; 只要有版本号都可以作为灰度 (ps: 以最新版本号的实例作为灰度)
             return true;
         }
         String version = version(instance, properties);
-        return properties.getVersions().contains(version);
+        return versions.contains(version);
     }
 }

@@ -19,7 +19,7 @@ public class IpHandler extends AbstractGrayHandler {
     }
 
     @Override
-    public boolean allow(String ip) {
+    public boolean allow(String app, String ip) {
         return false;
     }
 }
