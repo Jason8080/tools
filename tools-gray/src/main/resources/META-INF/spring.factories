@@ -1,4 +1,5 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
   cn.gmlee.tools.gray.conf.GrayClientAutoConfiguration,\
   cn.gmlee.tools.gray.conf.GrayCommonAutoConfiguration,\
-  cn.gmlee.tools.gray.conf.GrayServerAutoConfiguration
+  cn.gmlee.tools.gray.conf.GrayServerAutoConfiguration,\
+  cn.gmlee.tools.gray.conf.GrayFeignAutoConfiguration
