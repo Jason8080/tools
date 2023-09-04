@@ -54,11 +54,11 @@ public class GrayServer {
                 continue;
             }
             // 是否拒绝灰度
-            if (!handler.allow(app, token)) {
-                log.info("灰度服务:{} 处理器:{} 拒绝灰度", app, handler.name());
-                return false;
+            if (handler.allow(app, token)) {
+                log.info("灰度服务:{} 处理器:{} 允许灰度", app, handler.name());
+                return true;
             }
         }
-        return true;
+        return false;
     }
 }
