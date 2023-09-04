@@ -59,6 +59,17 @@ public class ExchangeAssist {
      */
     public static Map<String, String> getTokens(ServerWebExchange exchange, String token) {
         HttpHeaders headers = getHeaders(exchange);
+        return getTokens(headers, token);
+    }
+
+    /**
+     * Gets tokens.
+     *
+     * @param headers the headers
+     * @param token   the token
+     * @return the tokens
+     */
+    public static Map<String, String> getTokens(HttpHeaders headers, String token) {
         Map<String, String> tokens = new HashMap<>(4);
         tokens.put(GrayHandler.ip, getToken(headers, WebUtil.REMOTE_ADDRESS_HOST));
         tokens.put(GrayHandler.user, getToken(headers, token));

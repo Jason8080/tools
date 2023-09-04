@@ -1,73 +1,43 @@
 package cn.gmlee.tools.gray.conf;
 
-import cn.gmlee.tools.gray.server.*;
+import cn.gmlee.tools.gray.filter.GrayBalancerFilter;
+import cn.gmlee.tools.gray.filter.GrayClientIpFilter;
+import cn.gmlee.tools.gray.server.GrayServer;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.context.annotation.Bean;
 
 /**
- * 灰度服务自动装配
+ * 灰度服务端自动装配
  */
 @EnableConfigurationProperties(GrayProperties.class)
+@AutoConfigureAfter(GrayCommonAutoConfiguration.class)
+@ConditionalOnClass(name = {"org.springframework.cloud.gateway.filter.GlobalFilter"})
 public class GrayServerAutoConfiguration {
-
     /**
-     * Gray server gray server.
+     * Gray balancer filter gray client ip filter.
      *
-     * @param properties the properties
-     * @return the gray server
+     * @return the gray client ip filter
      */
     @Bean
-    @ConditionalOnMissingBean({GrayServer.class})
-    public GrayServer grayServer(GrayProperties properties) {
-        return new GrayServer(properties);
+    @ConditionalOnMissingBean({GrayClientIpFilter.class})
+    public GrayClientIpFilter grayClientIpFilter() {
+        return new GrayClientIpFilter();
     }
 
     /**
-     * Ip handler ip handler.
+     * Gray balancer filter gray balancer filter.
      *
-     * @param grayServer the gray server
-     * @return the ip handler
+     * @param clientFactory the client factory
+     * @param grayServer    the gray server
+     * @return the gray load balancer client filter
      */
     @Bean
-    @ConditionalOnMissingBean({IpHandler.class})
-    public IpHandler ipHandler(GrayServer grayServer) {
-        return new IpHandler(grayServer);
-    }
-
-    /**
-     * User handler user handler.
-     *
-     * @param grayServer the gray server
-     * @return the user handler
-     */
-    @Bean
-    @ConditionalOnMissingBean({UserHandler.class})
-    public UserHandler userHandler(GrayServer grayServer) {
-        return new UserHandler(grayServer);
-    }
-
-    /**
-     * Weight handler weight handler.
-     *
-     * @param grayServer the gray server
-     * @return the weight handler
-     */
-    @Bean
-    @ConditionalOnMissingBean({WeightHandler.class})
-    public WeightHandler weightHandler(GrayServer grayServer) {
-        return new WeightHandler(grayServer);
-    }
-
-    /**
-     * Custom handler custom handler.
-     *
-     * @param grayServer the gray server
-     * @return the custom handler
-     */
-    @Bean
-    @ConditionalOnMissingBean({CustomHandler.class})
-    public CustomHandler customHandler(GrayServer grayServer) {
-        return new CustomHandler(grayServer);
+    @ConditionalOnMissingBean({GrayBalancerFilter.class})
+    public GrayBalancerFilter grayBalancerFilter(LoadBalancerClientFactory clientFactory, GrayServer grayServer) {
+        return new GrayBalancerFilter(clientFactory, grayServer);
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.DefaultResponse;
 import org.springframework.cloud.client.loadbalancer.Request;
+import org.springframework.cloud.client.loadbalancer.RequestDataContext;
 import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.cloud.loadbalancer.core.NoopServiceInstanceListSupplier;
@@ -54,17 +55,38 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
     public Mono<Response<ServiceInstance>> choose(Request request) {
         ServiceInstanceListSupplier supplier = this.supplier.getIfAvailable(NoopServiceInstanceListSupplier::new);
         Object context = request.getContext();
-        if (!(context instanceof ServerWebExchange)){
-            return supplier.get().next().map(this::roundRobin);
+        if (context instanceof ServerWebExchange) {
+            return supplier.get().next().map(item -> getResponse(item, (ServerWebExchange) context));
         }
-        return supplier.get().next().map(item -> getResponse(item, (ServerWebExchange) context));
+        if (context instanceof RequestDataContext) {
+            return supplier.get().next().map(item -> getResponse(item, (RequestDataContext) context));
+        }
+        return supplier.get().next().map(this::roundRobin);
+    }
+
+    private Response<ServiceInstance> getResponse(List<ServiceInstance> all, RequestDataContext exchange) {
+        // 获取请求头部
+        String serviceId = exchange.getClientRequest().getUrl().getHost();
+        HttpHeaders headers = exchange.getClientRequest().getHeaders();
+        // 获取灰度实例
+        List<ServiceInstance> gray = getGrayInstances(all, headers, serviceId);
+        // 返回可用实例
+        Response<ServiceInstance> response = roundRobin(getInstances(all, gray, headers, serviceId));
+        // 添加版本透传
+        ServiceInstance instance = response.getServer();
+        String head = grayServer.properties.getHead();
+        exchange.getClientRequest().getHeaders().add(head, instance.getMetadata().get(head));
+        return response;
     }
 
     private Response<ServiceInstance> getResponse(List<ServiceInstance> all, ServerWebExchange exchange) {
+        // 获取请求头部
+        HttpHeaders headers = ExchangeAssist.getHeaders(exchange);
+        String serviceId = ExchangeAssist.getServiceId(exchange);
         // 获取灰度实例
-        List<ServiceInstance> gray = getGrayInstances(all, exchange);
+        List<ServiceInstance> gray = getGrayInstances(all, headers, serviceId);
         // 返回可用实例
-        Response<ServiceInstance> response = roundRobin(getInstances(exchange, all, gray));
+        Response<ServiceInstance> response = roundRobin(getInstances(all, gray, headers, serviceId));
         // 添加版本透传
         ServiceInstance instance = response.getServer();
         String head = grayServer.properties.getHead();
@@ -72,9 +94,8 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
         return response;
     }
 
-    private List<ServiceInstance> getInstances(ServerWebExchange exchange, List<ServiceInstance> all, List<ServiceInstance> gray) {
-        String serviceId = ExchangeAssist.getServiceId(exchange);
-        Map<String, String> tokens = ExchangeAssist.getTokens(exchange, grayServer.properties.getToken());
+    private List<ServiceInstance> getInstances(List<ServiceInstance> all, List<ServiceInstance> gray, HttpHeaders headers, String serviceId) {
+        Map<String, String> tokens = ExchangeAssist.getTokens(headers, grayServer.properties.getToken());
         boolean checked = grayServer.check(serviceId, tokens);
         log.info("灰度服务:{} 检测结果:{} 全部实例: \r\n{}", serviceId, checked, JsonUtil.format(all));
         List<ServiceInstance> normal = exclude(all, gray);
@@ -92,10 +113,7 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
     }
 
     @SuppressWarnings("all")
-    private List<ServiceInstance> getGrayInstances(List<ServiceInstance> instances, ServerWebExchange exchange) {
-        // 获取请求头部
-        HttpHeaders headers = ExchangeAssist.getHeaders(exchange);
-        String serviceId = ExchangeAssist.getServiceId(exchange);
+    private List<ServiceInstance> getGrayInstances(List<ServiceInstance> instances, HttpHeaders headers, String serviceId) {
         // 归类候选版本
         Map<String, List<ServiceInstance>> candidateMap = instances.stream()
                 // 顺序1: 版本号不可为空
