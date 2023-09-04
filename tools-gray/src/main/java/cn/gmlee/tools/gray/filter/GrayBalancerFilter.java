@@ -11,7 +11,6 @@ import org.springframework.cloud.client.loadbalancer.LoadBalancerUriTools;
 import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.support.DelegatingServiceInstance;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
@@ -29,7 +28,7 @@ import java.net.URI;
 @Slf4j
 public class GrayBalancerFilter implements GlobalFilter, Ordered {
 
-    private static final int ORDER = RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;
+    private static final int ORDER = 10150 -1;
     private final LoadBalancerClientFactory clientFactory;
     private final GrayServer grayServer;
 
