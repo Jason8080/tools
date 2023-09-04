@@ -67,8 +67,8 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
         Response<ServiceInstance> response = roundRobin(getInstances(exchange, all, gray));
         // 添加版本透传
         ServiceInstance instance = response.getServer();
-        String head = grayServer.properties.getVersion();
-        exchange.getRequest().getHeaders().add(head, instance.getMetadata().get(head));
+        String head = grayServer.properties.getHead();
+        exchange.getRequest().mutate().header(head, instance.getMetadata().get(head)).build();
         return response;
     }
 
