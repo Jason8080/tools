@@ -23,7 +23,7 @@ public class GrayBalancerAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean({GrayClientIpFilter.class})
-    public GrayClientIpFilter grayBalancerFilter() {
+    public GrayClientIpFilter grayClientIpFilter() {
         return new GrayClientIpFilter();
     }
 
