@@ -21,9 +21,6 @@ public class CustomHandler extends AbstractGrayHandler {
     @Autowired
     private RedisClient<String, String> redisClient;
 
-    @Value("${tools.gray.custom.ids:")
-    private String key;
-
     /**
      * Instantiates a new Abstract gray handler.
      *
@@ -46,7 +43,8 @@ public class CustomHandler extends AbstractGrayHandler {
     }
 
     private boolean matchingRedis(String app, String token) {
-        String json = redisClient.get(key);
+        String key = grayServer.properties.getKey();
+        String json = redisClient.get(String.format(key, app));
         List<String> list = JsonUtil.toBean(json, List.class);
         if (list == null) {
             log.info("灰度服务: {} 处理器: {} 远程尚未登记灰度名单", app, name());
