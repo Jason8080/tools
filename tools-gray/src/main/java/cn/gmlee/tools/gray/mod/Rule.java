@@ -2,6 +2,7 @@ package cn.gmlee.tools.gray.mod;
 
 import lombok.Data;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -10,5 +11,5 @@ import java.util.List;
 @Data
 public class Rule {
     private Boolean enable;
-    private List<String> content;
+    private List<String> content = Collections.emptyList();
 }

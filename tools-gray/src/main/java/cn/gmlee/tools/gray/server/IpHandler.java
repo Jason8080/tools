@@ -26,6 +26,7 @@ public class IpHandler extends AbstractGrayHandler {
     }
 
     @Override
+    @SuppressWarnings("all")
     public boolean allow(String app, String ip) {
         App application = grayServer.properties.getApps().get(app);
         Map<String, Rule> rules = application.getRules();

@@ -1,8 +1,6 @@
 package cn.gmlee.tools.gray.server;
 
 import cn.gmlee.tools.base.util.BoolUtil;
-import cn.gmlee.tools.base.util.JsonUtil;
-import cn.gmlee.tools.gray.assist.PropAssist;
 import cn.gmlee.tools.gray.conf.GrayProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,5 +58,25 @@ public class GrayServer {
             }
         }
         return false;
+    }
+
+    /**
+     * Jwt解析用户号.
+     *
+     * @param token the token
+     * @return the string
+     */
+    public String jwtUserId(String token) {
+        return token;
+    }
+
+    /**
+     * Jwt解析用户名.
+     *
+     * @param token the token
+     * @return the string
+     */
+    public String jwtUserName(String token) {
+        return token;
     }
 }
