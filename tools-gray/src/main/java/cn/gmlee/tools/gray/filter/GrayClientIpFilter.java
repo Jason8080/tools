@@ -3,6 +3,8 @@ package cn.gmlee.tools.gray.filter;
 import cn.gmlee.tools.base.util.WebUtil;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
+import org.springframework.core.Ordered;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -10,7 +12,14 @@ import reactor.core.publisher.Mono;
 /**
  * 客户端IP.
  */
-public class GrayClientIpFilter implements GlobalFilter {
+public class GrayClientIpFilter implements GlobalFilter, Ordered {
+
+    protected static final int ORDER = RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;
+
+    @Override
+    public int getOrder() {
+        return ORDER;
+    }
  
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
@@ -20,5 +29,4 @@ public class GrayClientIpFilter implements GlobalFilter {
                 .build();
         return chain.filter(exchange.mutate().request(request).build());
     }
- 
 }

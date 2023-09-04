@@ -11,6 +11,7 @@ import org.springframework.cloud.client.loadbalancer.LoadBalancerUriTools;
 import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.support.DelegatingServiceInstance;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
@@ -28,7 +29,8 @@ import java.net.URI;
 @Slf4j
 public class GrayBalancerFilter implements GlobalFilter, Ordered {
 
-    private static final int ORDER = 10150 -1;
+    protected static final int ORDER = GrayClientIpFilter.ORDER + 1;
+
     private final LoadBalancerClientFactory clientFactory;
     private final GrayServer grayServer;
 
@@ -51,12 +53,13 @@ public class GrayBalancerFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         // 判断拦截器执行顺序是否符合要求
-        if(!ExchangeAssist.filter(exchange)){
+        if(ExchangeAssist.filter(exchange)){
             log.warn("灰度负载拦截器不符合顺序要求");
             return chain.filter(exchange);
         }
         // 此开关控制灰度负载均衡是否生效
         if (!PropAssist.enable(exchange, grayServer.properties)) {
+            log.info("灰度负载拦截器尚未开启总开关: {}", grayServer.properties.getEnable());
             return chain.filter(exchange);
         }
         return doFilter(exchange, chain);

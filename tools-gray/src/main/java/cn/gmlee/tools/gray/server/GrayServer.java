@@ -1,6 +1,8 @@
 package cn.gmlee.tools.gray.server;
 
 import cn.gmlee.tools.base.util.BoolUtil;
+import cn.gmlee.tools.base.util.JsonUtil;
+import cn.gmlee.tools.gray.assist.PropAssist;
 import cn.gmlee.tools.gray.conf.GrayProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,16 +46,16 @@ public class GrayServer {
             // 获取专属令牌
             String token = tokens.get(handler.name());
             if (BoolUtil.isEmpty(token)) {
-                log.info("--------- 应用 {} 处理器 {} 令牌丢失 提示 ---------", app, handler.name());
+                log.info("灰度服务:{} 处理器:{} 令牌是空", app, handler.name());
             }
             // 不支持不处理
             if (!handler.support(app, token)) {
-                log.info("--------- 应用 {} 处理器 {} 配置关闭 切换 ---------", app, handler.name());
+                log.info("灰度服务:{} 处理器:{} 当前关闭", app, handler.name());
                 continue;
             }
             // 是否拒绝灰度
             if (!handler.allow(app, token)) {
-                log.info("--------- 应用 {} 处理器 {} 灰度检测 拒绝 ---------", app, handler.name());
+                log.info("灰度服务:{} 处理器:{} 拒绝灰度", app, handler.name());
                 return false;
             }
         }
