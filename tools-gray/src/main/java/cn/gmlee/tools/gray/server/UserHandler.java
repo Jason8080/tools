@@ -20,6 +20,6 @@ public class UserHandler extends AbstractGrayHandler {
 
     @Override
     public boolean allow(String app, String token) {
-        return false;
+        return true;
     }
 }
