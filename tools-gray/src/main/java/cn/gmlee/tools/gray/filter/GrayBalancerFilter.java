@@ -1,7 +1,7 @@
 package cn.gmlee.tools.gray.filter;
 
-import cn.gmlee.tools.gray.assist.PropAssist;
 import cn.gmlee.tools.gray.assist.ExchangeAssist;
+import cn.gmlee.tools.gray.assist.PropAssist;
 import cn.gmlee.tools.gray.balancer.GrayReactorServiceInstanceLoadBalancer;
 import cn.gmlee.tools.gray.server.GrayServer;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +11,7 @@ import org.springframework.cloud.client.loadbalancer.LoadBalancerUriTools;
 import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.cloud.gateway.filter.RouteToRequestUrlFilter;
 import org.springframework.cloud.gateway.support.DelegatingServiceInstance;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
@@ -26,10 +27,9 @@ import java.net.URI;
  * 灰度发布过滤器.
  */
 @Slf4j
-@SuppressWarnings("all")
 public class GrayBalancerFilter implements GlobalFilter, Ordered {
 
-    private static final int LOAD_BALANCER_CLIENT_FILTER_ORDER = 10149;
+    private static final int ORDER = RouteToRequestUrlFilter.ROUTE_TO_URL_FILTER_ORDER + 1;
     private final LoadBalancerClientFactory clientFactory;
     private final GrayServer grayServer;
 
@@ -37,7 +37,7 @@ public class GrayBalancerFilter implements GlobalFilter, Ordered {
      * Instantiates a new Gray load balancer client filter.
      *
      * @param clientFactory the client factory
-     * @param properties    the properties
+     * @param grayServer    the gray server
      */
     public GrayBalancerFilter(LoadBalancerClientFactory clientFactory, GrayServer grayServer) {
         this.clientFactory = clientFactory;
@@ -46,7 +46,7 @@ public class GrayBalancerFilter implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        return LOAD_BALANCER_CLIENT_FILTER_ORDER;
+        return ORDER;
     }
 
     @Override
