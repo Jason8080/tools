@@ -21,7 +21,7 @@ public class GrayServer {
     private List<GrayHandler> handlers = Collections.emptyList();
 
     @Autowired
-    private RedisTemplate redisTemplate;
+    protected RedisTemplate redisTemplate;
 
     /**
      * 灰度配置.
