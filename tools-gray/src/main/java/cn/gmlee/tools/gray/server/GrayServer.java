@@ -92,7 +92,7 @@ public class GrayServer {
      * @param key the key
      * @return the custom content
      */
-    public List<String> getCustomContent(String app, String key) {
+    public List<String> getRemoteUserIds(String app, String key) {
         ListOperations<String, String> ops = redisTemplate.opsForList();
         return ops.range(key, 0, -1);
     }

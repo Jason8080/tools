@@ -29,15 +29,18 @@ public class CustomHandler extends AbstractGrayHandler {
 
     @Override
     public boolean allow(String app, String token) {
-        boolean idsRet = matchingCof(app, token);
-        boolean redisRet = matchingRedis(app, token);
-        return idsRet || redisRet;
+        // 本地匹配
+        boolean cofRet = matchingCof(app, token);
+        // 远程匹配
+        boolean remoteRet = matchingRemote(app, token);
+        // 二选一
+        return cofRet || remoteRet;
     }
 
-    private boolean matchingRedis(String app, String token) {
+    private boolean matchingRemote(String app, String token) {
         String key = grayServer.properties.getKey();
-        List<String> list = grayServer.getCustomContent(app, key);
-        if (list == null) {
+        List<String> list = grayServer.getRemoteUserIds(app, key);
+        if (BoolUtil.isEmpty(list)) {
             log.info("灰度服务: {} 处理器: {} 远程尚未登记灰度名单", app, name());
             return false;
         }
