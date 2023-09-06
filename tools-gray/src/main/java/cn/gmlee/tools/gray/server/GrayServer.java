@@ -4,6 +4,8 @@ import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.gray.conf.GrayProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.ListOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.Collections;
 import java.util.List;
@@ -17,6 +19,9 @@ public class GrayServer {
 
     @Autowired(required = false)
     private List<GrayHandler> handlers = Collections.emptyList();
+
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 灰度配置.
@@ -39,7 +44,7 @@ public class GrayServer {
      * @param tokens the tokens
      * @return the boolean
      */
-    public boolean check(String app, Map<String, String> tokens) {
+    public final boolean check(String app, Map<String, String> tokens) {
         for (GrayHandler handler : handlers) {
             // 获取专属令牌
             String token = tokens.get(handler.name());
@@ -66,7 +71,7 @@ public class GrayServer {
      * @param token the token
      * @return the string
      */
-    public String jwtUserId(String token) {
+    public String getUserId(String token) {
         return token;
     }
 
@@ -76,7 +81,19 @@ public class GrayServer {
      * @param token the token
      * @return the string
      */
-    public String jwtUserName(String token) {
+    public String getUserName(String token) {
         return token;
+    }
+
+    /**
+     * Gets custom content.
+     *
+     * @param app the app
+     * @param key the key
+     * @return the custom content
+     */
+    public List<String> getCustomContent(String app, String key) {
+        ListOperations<String, String> ops = redisTemplate.opsForList();
+        return ops.range(key, 0, -1);
     }
 }

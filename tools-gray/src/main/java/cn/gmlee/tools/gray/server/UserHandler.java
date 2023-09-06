@@ -36,7 +36,7 @@ public class UserHandler extends AbstractGrayHandler {
         if (BoolUtil.isNull(rule)) {
             return false;
         }
-        String name = grayServer.jwtUserName(token);
+        String name = grayServer.getUserName(token);
         return rule.getContent().contains(name);
     }
 }
