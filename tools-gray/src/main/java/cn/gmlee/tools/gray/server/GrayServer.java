@@ -49,16 +49,16 @@ public abstract class GrayServer {
             // 获取专属令牌
             String token = tokens.get(handler.name());
             if (BoolUtil.isEmpty(token)) {
-                log.info("灰度服务:{} 处理器:{} 令牌是空", app, handler.name());
+                log.info("灰度服务: {} 处理器: {} 令牌是空", app, handler.name());
             }
             // 不支持不处理
             if (!handler.support(app, token)) {
-                log.info("灰度服务:{} 处理器:{} 当前关闭", app, handler.name());
+                log.info("灰度服务: {} 处理器: {} 当前关闭", app, handler.name());
                 continue;
             }
             // 是否拒绝灰度
             if (handler.allow(app, token)) {
-                log.info("灰度服务:{} 处理器:{} 允许灰度", app, handler.name());
+                log.info("灰度服务: {} 处理器: {} 允许灰度", app, handler.name());
                 return true;
             }
         }
