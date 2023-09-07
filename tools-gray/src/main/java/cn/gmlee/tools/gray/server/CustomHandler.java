@@ -30,7 +30,7 @@ public class CustomHandler extends AbstractGrayHandler {
     public boolean allow(String app, String token) {
         // 本地匹配
         boolean cofRet = matchingCof(app, token);
-        // 远程匹配
+        // 扩展匹配
         boolean remoteRet = matchingRemote(app, token);
         // 二选一
         return cofRet || remoteRet;
@@ -39,7 +39,7 @@ public class CustomHandler extends AbstractGrayHandler {
     private boolean matchingRemote(String app, String token) {
         Boolean extend = grayServer.extend(app, token);
         if (!Boolean.TRUE.equals(extend)) {
-            log.info("灰度服务: {} 处理器: {} 远程尚未登记灰度名单", app, name());
+            log.info("灰度服务: {} 处理器: {} 尚未扩展灰度名单", app, name());
             return false;
         }
         return true;
