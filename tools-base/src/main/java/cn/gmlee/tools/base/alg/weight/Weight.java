@@ -11,9 +11,6 @@ import java.util.Set;
  * 灰度算法.
  */
 public class Weight {
-    /**
-     * 临时占用位
-     */
     private static final Set<Integer> temporary = new HashSet<>(100);
     private static final Random random = new Random();
     private static final int[][] empty = new int[0][0];
