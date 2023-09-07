@@ -40,11 +40,16 @@ public abstract class GrayServer {
     /**
      * 灰度检查.
      *
-     * @param app    the app
-     * @param tokens the tokens
+     * @param app     the app
+     * @param tokens  the tokens
+     * @param version the version
      * @return the boolean
      */
-    public final boolean check(String app, Map<String, String> tokens) {
+    public final boolean check(String app, Map<String, String> tokens, String version) {
+        // 外部指定优先
+        if (BoolUtil.notEmpty(version)) {
+            return true;
+        }
         for (GrayHandler handler : handlers) {
             // 获取专属令牌
             String token = tokens.get(handler.name());

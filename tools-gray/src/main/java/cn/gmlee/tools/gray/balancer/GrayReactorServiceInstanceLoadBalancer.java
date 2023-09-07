@@ -4,6 +4,7 @@ import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.CollectionUtil;
 import cn.gmlee.tools.base.util.JsonUtil;
 import cn.gmlee.tools.gray.assist.ExchangeAssist;
+import cn.gmlee.tools.gray.assist.HeaderAssist;
 import cn.gmlee.tools.gray.assist.InstanceAssist;
 import cn.gmlee.tools.gray.assist.PropAssist;
 import cn.gmlee.tools.gray.server.GrayServer;
@@ -101,7 +102,8 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
 
     private List<ServiceInstance> getInstances(List<ServiceInstance> all, List<ServiceInstance> gray, HttpHeaders headers, String serviceId) {
         Map<String, String> tokens = ExchangeAssist.getTokens(headers, grayServer.properties.getToken());
-        boolean checked = grayServer.check(serviceId, tokens);
+        String version = HeaderAssist.getVersion(headers, grayServer.properties);
+        boolean checked = grayServer.check(serviceId, tokens, version);
         log.debug("灰度服务: {} 检测结果: {} 全部实例: \r\n{}", serviceId, checked, JsonUtil.format(all));
         List<ServiceInstance> normal = exclude(all, gray);
         List<ServiceInstance> instances = checked ? gray : normal;
@@ -128,9 +130,8 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
             log.debug("灰度服务: {} 开发指定: {} 实例列表: \r\n{}", serviceId, PropAssist.getVersions(grayServer.properties, serviceId), JsonUtil.format(candidateMap));
         }
         // 外部指定版本
-        List<String> heads = headers.get(grayServer.properties.getHead());
-        if (BoolUtil.notEmpty(heads)) {
-            String version = heads.get(0);
+        String version = HeaderAssist.getVersion(headers, grayServer.properties);
+        if (BoolUtil.notEmpty(version)) {
             List<ServiceInstance> list = candidateMap.get(version);
             log.info("灰度服务: {} 外部指定: {} 实例列表: \r\n{}", serviceId, version, JsonUtil.format(list));
             if (BoolUtil.notEmpty(list)) {
