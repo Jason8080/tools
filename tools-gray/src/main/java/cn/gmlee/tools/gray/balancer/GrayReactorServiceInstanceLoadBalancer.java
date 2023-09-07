@@ -102,10 +102,10 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
     private List<ServiceInstance> getInstances(List<ServiceInstance> all, List<ServiceInstance> gray, HttpHeaders headers, String serviceId) {
         Map<String, String> tokens = ExchangeAssist.getTokens(headers, grayServer.properties.getToken());
         boolean checked = grayServer.check(serviceId, tokens);
-        log.debug("灰度服务:{} 检测结果:{} 全部实例: \r\n{}", serviceId, checked, JsonUtil.format(all));
+        log.debug("灰度服务: {} 检测结果: {} 全部实例: \r\n{}", serviceId, checked, JsonUtil.format(all));
         List<ServiceInstance> normal = exclude(all, gray);
         List<ServiceInstance> instances = checked ? gray : normal;
-        log.info("灰度服务:{} 进入灰度:{} 预选实例: \r\n{}", serviceId, BoolUtil.eq(instances, gray), JsonUtil.format(instances));
+        log.info("灰度服务: {} 进入灰度: {} 预选实例: \r\n{}", serviceId, BoolUtil.eq(instances, gray), JsonUtil.format(instances));
         return instances.isEmpty() ? all : instances;
     }
 
@@ -125,14 +125,14 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
                 .collect(Collectors.groupingBy(x -> InstanceAssist.version(x, grayServer.properties)));
         // 开发指定版本
         if (BoolUtil.notEmpty(PropAssist.getVersions(grayServer.properties, serviceId))) {
-            log.debug("灰度服务:{} 开发指定:{} 实例列表: \r\n{}", serviceId, PropAssist.getVersions(grayServer.properties, serviceId), JsonUtil.format(candidateMap));
+            log.debug("灰度服务: {} 开发指定: {} 实例列表: \r\n{}", serviceId, PropAssist.getVersions(grayServer.properties, serviceId), JsonUtil.format(candidateMap));
         }
         // 外部指定版本
         List<String> heads = headers.get(grayServer.properties.getHead());
         if (BoolUtil.notEmpty(heads)) {
             String version = heads.get(0);
             List<ServiceInstance> list = candidateMap.get(version);
-            log.info("灰度服务:{} 外部指定:{} 实例列表: \r\n{}", serviceId, version, JsonUtil.format(list));
+            log.info("灰度服务: {} 外部指定: {} 实例列表: \r\n{}", serviceId, version, JsonUtil.format(list));
             if (BoolUtil.notEmpty(list)) {
                 return list;
             }
@@ -144,7 +144,7 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
         if (newest == null) {
             return Collections.emptyList();
         }
-        log.info("灰度服务:{} 最新版本:{} 实例列表: \r\n{}", serviceId, newest.getKey(), JsonUtil.format(newest.getValue()));
+        log.info("灰度服务: {} 最新版本: {} 实例列表: \r\n{}", serviceId, newest.getKey(), JsonUtil.format(newest.getValue()));
         return newest.getValue();
     }
 
@@ -160,7 +160,7 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
         int pos = Math.abs(incrementAndGet());
         ServiceInstance instance = instances.get(pos % instances.size());
         String serverPort = String.format("%s:%s", instance.getHost(), instance.getPort());
-        log.info("灰度服务:{} 命中实例:{} ", instance.getServiceId(), serverPort);
+        log.info("灰度服务: {} 命中实例: {} ", instance.getServiceId(), serverPort);
         return new DefaultResponse(instance);
     }
 
