@@ -6,16 +6,11 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 灰度算法.
  */
 public class Weight {
-    /**
-     * 当前请求数
-     */
-    private static final AtomicInteger current = new AtomicInteger(0);
     /**
      * 临时占用位
      */
@@ -53,8 +48,8 @@ public class Weight {
     /**
      * 是否允许请求.
      *
-     * @param current the current
-     * @param group   the group
+     * @param current 当前请求数
+     * @param group   灰度位
      * @return the boolean
      */
     public static boolean request(long current, int... group) {
