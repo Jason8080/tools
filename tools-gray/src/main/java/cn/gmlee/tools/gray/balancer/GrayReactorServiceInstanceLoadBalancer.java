@@ -53,10 +53,19 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
         ServiceInstanceListSupplier supplier = this.supplier.getIfAvailable(NoopServiceInstanceListSupplier::new);
         Object context = request.getContext();
         if (context instanceof ServerWebExchange) {
-            return supplier.get().next().map(item -> getResponse(item, (ServerWebExchange) context));
+            // 此开关控制灰度负载均衡是否生效
+            String serviceId = ExchangeAssist.getServiceId((ServerWebExchange) context);
+            if (PropAssist.enable(serviceId, grayServer.properties)) {
+                return supplier.get().next().map(item -> getResponse(item, (ServerWebExchange) context));
+            }
+            log.info("灰度负载尚未开启; 总开关状态: {}", grayServer.properties.getEnable());
         }
         if (context instanceof RequestDataContext) {
-            return supplier.get().next().map(item -> getResponse(item, (RequestDataContext) context));
+            String serviceId = ExchangeAssist.getServiceId((RequestDataContext) context);
+            if (PropAssist.enable(serviceId, grayServer.properties)) {
+                return supplier.get().next().map(item -> getResponse(item, (RequestDataContext) context));
+            }
+            log.info("灰度负载尚未开启; 总开关状态: {}", grayServer.properties.getEnable());
         }
         return supplier.get().next().map(this::roundRobin);
     }

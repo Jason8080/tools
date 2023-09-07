@@ -3,6 +3,7 @@ package cn.gmlee.tools.gray.assist;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.WebUtil;
 import cn.gmlee.tools.gray.server.GrayHandler;
+import org.springframework.cloud.client.loadbalancer.RequestDataContext;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
@@ -48,6 +49,16 @@ public class ExchangeAssist {
     public static String getServiceId(ServerWebExchange exchange) {
         URI requestUri = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
         return requestUri.getHost();
+    }
+
+    /**
+     * Gets service id.
+     *
+     * @param exchange the exchange
+     * @return the service id
+     */
+    public static String getServiceId(RequestDataContext exchange) {
+        return exchange.getClientRequest().getUrl().getHost();
     }
 
     /**

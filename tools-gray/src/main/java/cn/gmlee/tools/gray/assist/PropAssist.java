@@ -16,18 +16,17 @@ public class PropAssist {
     /**
      * Enable boolean.
      *
-     * @param exchange   the exchange
+     * @param serviceId  the service id
      * @param properties the properties
      * @return the boolean
      */
-    public static boolean enable(ServerWebExchange exchange, GrayProperties properties) {
+    public static boolean enable(String serviceId, GrayProperties properties) {
         // 网关开关
         Boolean global = properties.getEnable();
         if (Boolean.FALSE.equals(global)) {
             return false;
         }
         // APP开关
-        String serviceId = ExchangeAssist.getServiceId(exchange);
         App app = properties.getApps().get(serviceId);
         return app != null ? app.getEnable() : false;
     }
