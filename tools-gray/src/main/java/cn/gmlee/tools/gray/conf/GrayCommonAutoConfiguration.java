@@ -5,9 +5,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
-import java.util.Collections;
-import java.util.List;
-
 /**
  * 灰度通用服务自动装配
  */
@@ -37,7 +34,7 @@ public class GrayCommonAutoConfiguration {
             }
 
             @Override
-            public Boolean extend(String token) {
+            public Boolean extend(String app, String token) {
                 log.warn("灰度令牌定制扩展规则未实现: {}", token);
                 return false;
             }

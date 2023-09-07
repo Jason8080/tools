@@ -84,8 +84,9 @@ public abstract class GrayServer {
     /**
      * 检查是否存在扩展内容中.
      *
+     * @param app   the app
      * @param token the token
      * @return the custom content
      */
-    public abstract Boolean extend(String token);
+    public abstract Boolean extend(String app, String token);
 }
