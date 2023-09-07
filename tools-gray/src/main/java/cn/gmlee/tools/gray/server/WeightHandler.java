@@ -37,11 +37,19 @@ public class WeightHandler extends AbstractGrayHandler {
     @SuppressWarnings("all")
     public boolean allow(String app, String num) {
         int[] group = apps.get(app);
-        if (group == null) {
+        if (group == null || change(app, group)) {
             group = generateGroup(app);
             apps.put(app, group);
         }
         return Weight.request(getIncrementAndGet(), group);
+    }
+
+    private boolean change(String app, int[] group) {
+        Integer ratio = getRatio(app);
+        if (ratio == null) {
+            return false;
+        }
+        return group.length != ratio;
     }
 
     private long getIncrementAndGet() {
@@ -52,6 +60,15 @@ public class WeightHandler extends AbstractGrayHandler {
     }
 
     private int[] generateGroup(String app) {
+        Integer ratio = getRatio(app);
+        if (ratio == null) {
+            return null;
+        }
+        int[][] groups = Weight.groups(ratio);
+        return groups[0];
+    }
+
+    private Integer getRatio(String app) {
         App application = grayServer.properties.getApps().get(app);
         Map<String, Rule> rules = application.getRules();
         if (BoolUtil.isEmpty(rules)) {
@@ -69,8 +86,6 @@ public class WeightHandler extends AbstractGrayHandler {
         if (!BoolUtil.isDigit(number)) {
             return null;
         }
-        int ratio = Integer.parseInt(number);
-        int[][] groups = Weight.groups(ratio);
-        return groups[0];
+        return Integer.parseInt(number);
     }
 }
