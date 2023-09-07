@@ -15,7 +15,7 @@
     <packaging>jar</packaging>
 
     <properties>
-        <shardingSphere.version>5.3.1</shardingSphere.version>
+        <shardingSphere.version>5.3.0</shardingSphere.version>
     </properties>
 
     <dependencies>
