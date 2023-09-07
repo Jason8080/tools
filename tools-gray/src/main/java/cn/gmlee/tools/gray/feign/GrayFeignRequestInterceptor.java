@@ -24,6 +24,12 @@ public class GrayFeignRequestInterceptor implements RequestInterceptor {
 
     @Override
     public void apply(RequestTemplate template) {
+        // 令牌透传
+        String token = WebUtil.getCurrentHeader(properties.getToken());
+        if (BoolUtil.isEmpty(token)) {
+            return;
+        }
+        template.header(properties.getToken(), token);
         // 版本号透传
         String version = WebUtil.getCurrentHeader(properties.getHead());
         if (BoolUtil.isEmpty(version)) {
