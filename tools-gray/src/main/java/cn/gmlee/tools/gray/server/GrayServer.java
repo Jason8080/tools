@@ -71,6 +71,16 @@ public abstract class GrayServer {
     }
 
     /**
+     * Gets scheme.
+     *
+     * @param scheme the scheme
+     * @return the scheme
+     */
+    public String getScheme(String scheme) {
+        return null;
+    }
+
+    /**
      * 解析用户号.
      *
      * @param token the token
@@ -94,14 +104,4 @@ public abstract class GrayServer {
      * @return the custom content
      */
     public abstract Boolean extend(String app, String token);
-
-    /**
-     * Gets scheme.
-     *
-     * @param scheme the scheme
-     * @return the scheme
-     */
-    public String getScheme(String scheme) {
-        return null;
-    }
 }
