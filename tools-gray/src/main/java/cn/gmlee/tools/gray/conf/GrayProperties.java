@@ -18,6 +18,6 @@ public class GrayProperties implements Serializable {
     private String token = "token";
     private String version = "1.0.0";
     private Boolean enable = true;
-    private String key = "tools.gray.apps.%s.rules.custom.content";
+    private String key = "tools:gray:apps:%s:rules:custom:content";
     private Map<String, App> apps = Collections.emptyMap();
 }

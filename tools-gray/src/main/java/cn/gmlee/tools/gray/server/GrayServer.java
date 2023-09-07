@@ -2,10 +2,9 @@ package cn.gmlee.tools.gray.server;
 
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.gray.conf.GrayProperties;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.ListOperations;
-import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.Collections;
 import java.util.List;
@@ -14,14 +13,15 @@ import java.util.Map;
 /**
  * 灰度服务.
  */
-@Slf4j
-public class GrayServer {
+public abstract class GrayServer {
+
+    /**
+     * The constant log.
+     */
+    protected static final Logger log = LoggerFactory.getLogger(GrayServer.class);
 
     @Autowired(required = false)
     private List<GrayHandler> handlers = Collections.emptyList();
-
-    @Autowired
-    protected RedisTemplate redisTemplate;
 
     /**
      * 灰度配置.
@@ -71,9 +71,7 @@ public class GrayServer {
      * @param token the token
      * @return the string
      */
-    public String getUserId(String token) {
-        return token;
-    }
+    public abstract String getUserId(String token);
 
     /**
      * Jwt解析用户名.
@@ -81,19 +79,13 @@ public class GrayServer {
      * @param token the token
      * @return the string
      */
-    public String getUserName(String token) {
-        return token;
-    }
+    public abstract String getUserName(String token);
 
     /**
      * Gets custom content.
      *
-     * @param app the app
-     * @param key the key
+     * @param token the token
      * @return the custom content
      */
-    public List<String> getRemoteUserIds(String app, String key) {
-        ListOperations<String, String> ops = redisTemplate.opsForList();
-        return ops.range(key, 0, -1);
-    }
+    public abstract Boolean extend(String token);
 }

@@ -5,6 +5,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * 灰度通用服务自动装配
  */
@@ -20,7 +23,25 @@ public class GrayCommonAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean({GrayServer.class})
     public GrayServer grayServer(GrayProperties properties) {
-        return new GrayServer(properties);
+        return new GrayServer(properties) {
+            @Override
+            public String getUserId(String token) {
+                log.warn("灰度令牌用户编号未实现: {}", token);
+                return token;
+            }
+
+            @Override
+            public String getUserName(String token) {
+                log.warn("灰度令牌用户名称规则未实现: {}", token);
+                return token;
+            }
+
+            @Override
+            public Boolean extend(String token) {
+                log.warn("灰度令牌定制扩展规则未实现: {}", token);
+                return false;
+            }
+        };
     }
 
     /**

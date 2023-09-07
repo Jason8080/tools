@@ -5,7 +5,6 @@ import cn.gmlee.tools.gray.mod.App;
 import cn.gmlee.tools.gray.mod.Rule;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,14 +37,12 @@ public class CustomHandler extends AbstractGrayHandler {
     }
 
     private boolean matchingRemote(String app, String token) {
-        String key = grayServer.properties.getKey();
-        List<String> list = grayServer.getRemoteUserIds(app, key);
-        if (BoolUtil.isEmpty(list)) {
+        Boolean extend = grayServer.extend(token);
+        if (!Boolean.TRUE.equals(extend)) {
             log.info("灰度服务: {} 处理器: {} 远程尚未登记灰度名单", app, name());
             return false;
         }
-        String userId = grayServer.getUserId(token);
-        return list.contains(userId);
+        return true;
     }
 
     @SuppressWarnings("all")
@@ -59,6 +56,7 @@ public class CustomHandler extends AbstractGrayHandler {
         if (BoolUtil.isNull(rule)) {
             return false;
         }
-        return rule.getContent().contains(token);
+        String id = grayServer.getUserId(token);
+        return rule.getContent().contains(id);
     }
 }

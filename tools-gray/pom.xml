@@ -26,12 +26,14 @@
             <scope>provided</scope>
         </dependency>
         <!-- =============================== -->
-        <dependency>
+        <!-- 不再默认支持远程自定义规则 -->
+        <!-- 但实现方可重写支持任意规则 -->
+        <!--<dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-redis</artifactId>
             <optional>true</optional>
             <scope>provided</scope>
-        </dependency>
+        </dependency>-->
         <!-- =============================== -->
         <dependency>
             <groupId>org.springframework</groupId>
