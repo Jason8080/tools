@@ -24,10 +24,17 @@ public class GrayFeignRequestInterceptor implements RequestInterceptor {
 
     @Override
     public void apply(RequestTemplate template) {
-        String head = WebUtil.getCurrentHeader(properties.getHead());
-        if (BoolUtil.isEmpty(head)) {
+        // 版本号透传
+        String version = WebUtil.getCurrentHeader(properties.getHead());
+        if (BoolUtil.isEmpty(version)) {
             return;
         }
-        template.header(properties.getHead(), head);
+        template.header(properties.getHead(), version);
+        // 客户地址透传
+        String host = WebUtil.getCurrentHeader(WebUtil.REMOTE_ADDRESS_HOST);
+        if(BoolUtil.isEmpty(version)){
+            return;
+        }
+        template.header(WebUtil.REMOTE_ADDRESS_HOST, host);
     }
 }
