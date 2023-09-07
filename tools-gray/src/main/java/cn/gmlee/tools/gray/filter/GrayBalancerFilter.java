@@ -1,6 +1,7 @@
 package cn.gmlee.tools.gray.filter;
 
 import cn.gmlee.tools.gray.assist.ExchangeAssist;
+import cn.gmlee.tools.gray.assist.PropAssist;
 import cn.gmlee.tools.gray.balancer.GrayReactorServiceInstanceLoadBalancer;
 import cn.gmlee.tools.gray.server.GrayServer;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +56,11 @@ public class GrayBalancerFilter implements GlobalFilter, Ordered {
             log.warn("灰度负载拦截器不符合顺序要求");
             return chain.filter(exchange);
         }
+        String serviceId = ExchangeAssist.getServiceId(exchange);
+        if (!PropAssist.enable(serviceId, grayServer.properties)) {
+            log.warn("灰度负载拦截器总开关尚未开启");
+            return chain.filter(exchange);
+        }
         return doFilter(exchange, chain);
     }
 
@@ -65,7 +71,8 @@ public class GrayBalancerFilter implements GlobalFilter, Ordered {
                 throw NotFoundException.create(true, msg);
             }
             URI uri = exchange.getRequest().getURI();
-            DelegatingServiceInstance serviceInstance = new DelegatingServiceInstance(response.getServer(), uri.getScheme());
+            String scheme = grayServer.getScheme(uri.getScheme());
+            DelegatingServiceInstance serviceInstance = new DelegatingServiceInstance(response.getServer(), scheme);
             URI requestUrl = this.reconstructURI(serviceInstance, uri);
             exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, requestUrl);
         }).then(chain.filter(exchange));

@@ -94,4 +94,14 @@ public abstract class GrayServer {
      * @return the custom content
      */
     public abstract Boolean extend(String app, String token);
+
+    /**
+     * Gets scheme.
+     *
+     * @param scheme the scheme
+     * @return the scheme
+     */
+    public String getScheme(String scheme) {
+        return null;
+    }
 }
