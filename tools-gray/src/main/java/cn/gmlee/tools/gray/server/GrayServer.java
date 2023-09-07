@@ -66,7 +66,7 @@ public abstract class GrayServer {
     }
 
     /**
-     * Jwt解析用户号.
+     * 解析用户号.
      *
      * @param token the token
      * @return the string
@@ -74,7 +74,7 @@ public abstract class GrayServer {
     public abstract String getUserId(String token);
 
     /**
-     * Jwt解析用户名.
+     * 解析用户名.
      *
      * @param token the token
      * @return the string
@@ -82,7 +82,7 @@ public abstract class GrayServer {
     public abstract String getUserName(String token);
 
     /**
-     * Gets custom content.
+     * 检查是否存在扩展内容中.
      *
      * @param token the token
      * @return the custom content

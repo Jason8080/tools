@@ -1,9 +1,24 @@
 package cn.gmlee.tools.gray.server;
 
+import cn.gmlee.tools.base.alg.weight.Weight;
+import cn.gmlee.tools.base.util.BoolUtil;
+import cn.gmlee.tools.gray.mod.App;
+import cn.gmlee.tools.gray.mod.Rule;
+
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  * 权重处理器.
  */
 public class WeightHandler extends AbstractGrayHandler {
+
+    private final AtomicLong current = new AtomicLong(0);
+
+    private final Map<String, int[]> apps = new ConcurrentHashMap<>();
+
     /**
      * Instantiates a new Abstract gray handler.
      *
@@ -19,7 +34,43 @@ public class WeightHandler extends AbstractGrayHandler {
     }
 
     @Override
+    @SuppressWarnings("all")
     public boolean allow(String app, String num) {
-        return true;
+        int[] group = apps.get(app);
+        if (group == null) {
+            group = generateGroup(app);
+            apps.put(app, group);
+        }
+        return Weight.request(getIncrementAndGet(), group);
+    }
+
+    private long getIncrementAndGet() {
+        if (current.get() > Long.MAX_VALUE - 1) {
+            current.set(0);
+        }
+        return current.incrementAndGet();
+    }
+
+    private int[] generateGroup(String app) {
+        App application = grayServer.properties.getApps().get(app);
+        Map<String, Rule> rules = application.getRules();
+        if (BoolUtil.isEmpty(rules)) {
+            return null;
+        }
+        Rule rule = rules.get(name());
+        if (BoolUtil.isNull(rule)) {
+            return null;
+        }
+        List<String> content = rule.getContent();
+        if (BoolUtil.isEmpty(content)) {
+            return null;
+        }
+        String number = content.get(0);
+        if (!BoolUtil.isDigit(number)) {
+            return null;
+        }
+        int ratio = Integer.parseInt(number);
+        int[][] groups = Weight.groups(ratio);
+        return groups[0];
     }
 }
