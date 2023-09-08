@@ -15,11 +15,12 @@ import org.springframework.cloud.client.loadbalancer.DefaultResponse;
 import org.springframework.cloud.client.loadbalancer.Request;
 import org.springframework.cloud.client.loadbalancer.RequestDataContext;
 import org.springframework.cloud.client.loadbalancer.Response;
-import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.cloud.loadbalancer.core.NoopServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.core.ReactorServiceInstanceLoadBalancer;
 import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -157,7 +158,7 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
      */
     private Response<ServiceInstance> roundRobin(List<ServiceInstance> instances) {
         if (instances.isEmpty()) {
-            throw NotFoundException.create(true, null);
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, null);
         }
         int pos = Math.abs(incrementAndGet());
         ServiceInstance instance = instances.get(pos % instances.size());
