@@ -59,14 +59,15 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
             if (PropAssist.enable(serviceId, grayServer.properties)) {
                 return supplier.get().next().map(item -> getResponse(item, (ServerWebExchange) context));
             }
+            log.debug("灰度服务: {} 开关检测: {} 全局开关: {}", serviceId, false, grayServer.properties.getEnable());
         }
         if (context instanceof RequestDataContext) {
             String serviceId = ExchangeAssist.getServiceId((RequestDataContext) context);
             if (PropAssist.enable(serviceId, grayServer.properties)) {
                 return supplier.get().next().map(item -> getResponse(item, (RequestDataContext) context));
             }
+            log.debug("灰度服务: {} 开关检测: {} 全局开关: {}", serviceId, false, grayServer.properties.getEnable());
         }
-        log.info("灰度负载拦截器有开关尚未开启; 总开关: {}", grayServer.properties.getEnable());
         return supplier.get().next().map(this::roundRobin);
     }
 

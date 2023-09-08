@@ -61,7 +61,7 @@ public class GrayBalancerFilter implements GlobalFilter, Ordered {
         }
         String serviceId = ExchangeAssist.getServiceId(exchange);
         if (!PropAssist.enable(serviceId, grayServer.properties)) {
-            log.info("灰度负载拦截器有开关尚未开启; 总开关: {}", grayServer.properties.getEnable());
+            log.debug("灰度服务: {} 开关检测: {} 全局开关: {}", serviceId, false, grayServer.properties.getEnable());
             return chain.filter(exchange);
         }
         return doFilter(exchange, chain);
