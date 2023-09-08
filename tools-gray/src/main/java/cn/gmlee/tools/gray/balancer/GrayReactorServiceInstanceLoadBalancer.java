@@ -69,6 +69,7 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
             }
             log.debug("灰度服务: {} 开关检测: {} 全局开关: {}", serviceId, false, grayServer.properties.getEnable());
         }
+        log.warn("灰度负载均衡器收到不符合要求的请求: {}", context);
         return supplier.get().next().map(this::roundRobin);
     }
 
@@ -129,7 +130,7 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
                 .collect(Collectors.groupingBy(x -> InstanceAssist.version(x, grayServer.properties)));
         // 开发指定版本
         if (BoolUtil.notEmpty(PropAssist.getVersions(grayServer.properties, serviceId))) {
-            log.debug("灰度服务: {} 开发指定: {} 实例列表: \r\n{}", serviceId, PropAssist.getVersions(grayServer.properties, serviceId), JsonUtil.format(candidateMap));
+            log.info("灰度服务: {} 开发指定: {} 实例列表: \r\n{}", serviceId, PropAssist.getVersions(grayServer.properties, serviceId), JsonUtil.format(candidateMap));
         }
         // 外部指定版本
         String version = HeaderAssist.getVersion(headers, grayServer.properties);
