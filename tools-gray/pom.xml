@@ -7,11 +7,11 @@
     <parent>
         <groupId>cn.gmlee.tools</groupId>
         <artifactId>tools</artifactId>
-        <version>5.3.5</version>
+        <version>5.3.6</version>
     </parent>
 
     <artifactId>tools-gray</artifactId>
-    <version>5.3.5</version>
+    <version>5.3.6</version>
 
     <properties>
         <spring.cloud>3.0.2</spring.cloud>
@@ -21,7 +21,7 @@
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-base</artifactId>
-            <version>5.3.5</version>
+            <version>5.3.6</version>
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>

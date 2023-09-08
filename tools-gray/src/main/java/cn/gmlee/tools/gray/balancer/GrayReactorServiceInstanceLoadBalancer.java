@@ -107,7 +107,7 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
         log.debug("灰度服务: {} 检测结果: {} 全部实例: \r\n{}", serviceId, checked, JsonUtil.format(all));
         List<ServiceInstance> normal = exclude(all, gray);
         List<ServiceInstance> instances = checked ? gray : normal;
-        log.info("灰度服务: {} 进入灰度: {} 预选实例: \r\n{}", serviceId, BoolUtil.eq(instances, gray), JsonUtil.format(instances));
+        log.info("灰度服务: {} 进入灰度: {} 预选实例: \r\n{}", serviceId, BoolUtil.notEmpty(gray) && BoolUtil.eq(instances, gray), JsonUtil.format(instances));
         return instances.isEmpty() ? all : instances;
     }
 

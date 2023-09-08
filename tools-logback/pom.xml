@@ -5,12 +5,12 @@
     <parent>
         <artifactId>tools</artifactId>
         <groupId>cn.gmlee.tools</groupId>
-        <version>5.3.5</version>
+        <version>5.3.6</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>tools-logback</artifactId>
-    <version>5.3.5</version>
+    <version>5.3.6</version>
 
     <packaging>jar</packaging>
 
@@ -18,7 +18,7 @@
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-base</artifactId>
-            <version>5.3.5</version>
+            <version>5.3.6</version>
             <exclusions>
                 <exclusion>
                     <artifactId>xml-apis</artifactId>
@@ -29,7 +29,7 @@
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-mybatis</artifactId>
-            <version>5.3.5</version>
+            <version>5.3.6</version>
             <optional>true</optional>
         </dependency>
         <!-- ============================================================ -->

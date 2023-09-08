@@ -22,6 +22,9 @@ import reactor.core.publisher.Mono;
 
 import java.net.URI;
 
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR;
+import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.GATEWAY_SCHEME_PREFIX_ATTR;
+
 /**
  * 灰度发布过滤器.
  */
@@ -64,17 +67,24 @@ public class GrayBalancerFilter implements GlobalFilter, Ordered {
         return doFilter(exchange, chain);
     }
 
+    @SuppressWarnings("all")
     private Mono<Void> doFilter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        URI url = exchange.getAttribute(GATEWAY_REQUEST_URL_ATTR);
+        String scheme = exchange.getAttribute(GATEWAY_SCHEME_PREFIX_ATTR);
         return this.choose(exchange).doOnNext((response) -> {
             if (!response.hasServer()) {
                 String msg = String.format("实例丢失: %s", exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR));
                 throw NotFoundException.create(true, msg);
             }
+            ServiceInstance server = response.getServer();
             URI uri = exchange.getRequest().getURI();
-            String scheme = grayServer.getScheme(uri.getScheme());
-            DelegatingServiceInstance serviceInstance = new DelegatingServiceInstance(response.getServer(), scheme);
-            URI requestUrl = this.reconstructURI(serviceInstance, uri);
-            exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR, requestUrl);
+            String overrideScheme = server.isSecure() ? "https" : "http";
+            if (scheme != null) {
+                overrideScheme = url.getScheme();
+            }
+            DelegatingServiceInstance serviceInstance = new DelegatingServiceInstance(server, overrideScheme);
+            URI requestUrl = reconstructURI(serviceInstance, uri);
+            exchange.getAttributes().put(GATEWAY_REQUEST_URL_ATTR, requestUrl);
         }).then(chain.filter(exchange));
     }
 
