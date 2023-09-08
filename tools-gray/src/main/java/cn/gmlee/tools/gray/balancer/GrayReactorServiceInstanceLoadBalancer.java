@@ -66,7 +66,7 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
                 return supplier.get().next().map(item -> getResponse(item, (RequestDataContext) context));
             }
         }
-        log.info("灰度负载应用开关尚未开启; 总开关: {}", grayServer.properties.getEnable());
+        log.info("灰度负载拦截器有开关尚未开启; 总开关: {}", grayServer.properties.getEnable());
         return supplier.get().next().map(this::roundRobin);
     }
 
