@@ -58,19 +58,19 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
             // 此开关控制灰度负载均衡是否生效
             String serviceId = ExchangeAssist.getServiceId((ServerWebExchange) context);
             if (PropAssist.enable(serviceId, grayServer.properties)) {
-                return supplier.get().next().map(item -> getResponse(item, (ServerWebExchange) context));
+                return supplier.get(request).next().map(item -> getResponse(item, (ServerWebExchange) context));
             }
-            log.debug("灰度服务: {} 开关检测: {} 全局开关: {}", serviceId, false, grayServer.properties.getEnable());
+            log.info("灰度服务: {} 开关检测: {} 全局开关: {}", serviceId, false, grayServer.properties.getEnable());
         }
         if (context instanceof RequestDataContext) {
             String serviceId = ExchangeAssist.getServiceId((RequestDataContext) context);
             if (PropAssist.enable(serviceId, grayServer.properties)) {
-                return supplier.get().next().map(item -> getResponse(item, (RequestDataContext) context));
+                return supplier.get(request).next().map(item -> getResponse(item, (RequestDataContext) context));
             }
-            log.debug("灰度服务: {} 开关检测: {} 全局开关: {}", serviceId, false, grayServer.properties.getEnable());
+            log.info("灰度服务: {} 开关检测: {} 全局开关: {}", serviceId, false, grayServer.properties.getEnable());
         }
-        log.warn("灰度负载均衡器收到不符合要求的请求: {}", context);
-        return supplier.get().next().map(this::roundRobin);
+        log.warn("灰度负载均衡器恢复轮询机制: {}", context.getClass());
+        return supplier.get(request).next().map(this::roundRobin);
     }
 
     private Response<ServiceInstance> getResponse(List<ServiceInstance> all, RequestDataContext exchange) {
