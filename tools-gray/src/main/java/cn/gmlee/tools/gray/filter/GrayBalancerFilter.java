@@ -14,7 +14,6 @@ import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.cloud.gateway.support.DelegatingServiceInstance;
 import org.springframework.cloud.gateway.support.NotFoundException;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
-import org.springframework.cloud.loadbalancer.core.ServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.core.Ordered;
 import org.springframework.web.server.ServerWebExchange;
@@ -100,10 +99,7 @@ public class GrayBalancerFilter implements GlobalFilter, Ordered {
     }
 
     private Mono<Response<ServiceInstance>> choose(ServerWebExchange exchange) {
-        URI uri = exchange.getAttribute(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR);
-        GrayReactorServiceInstanceLoadBalancer loadBalancer = new GrayReactorServiceInstanceLoadBalancer(
-                clientFactory.getLazyProvider(uri.getHost(), ServiceInstanceListSupplier.class), grayServer
-        );
+        GrayReactorServiceInstanceLoadBalancer loadBalancer = new GrayReactorServiceInstanceLoadBalancer(clientFactory, grayServer);
         return loadBalancer.choose(new DefaultRequest(exchange));
     }
 }
