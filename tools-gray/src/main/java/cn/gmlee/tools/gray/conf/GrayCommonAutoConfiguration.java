@@ -23,7 +23,7 @@ public class GrayCommonAutoConfiguration {
         return new GrayServer(properties) {
             @Override
             public String getUserId(String token) {
-                log.warn("灰度令牌用户编号未实现: {}", token);
+                log.warn("灰度令牌用户编号规则未实现: {}", token);
                 return token;
             }
 
