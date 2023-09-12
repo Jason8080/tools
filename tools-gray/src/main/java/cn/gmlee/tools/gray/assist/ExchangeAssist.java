@@ -41,6 +41,16 @@ public class ExchangeAssist {
     }
 
     /**
+     * Gets headers.
+     *
+     * @param exchange the exchange
+     * @return the headers
+     */
+    public static HttpHeaders getHeaders(RequestDataContext exchange) {
+        return exchange.getClientRequest().getHeaders();
+    }
+
+    /**
      * Gets service id.
      *
      * @param exchange the exchange
@@ -96,5 +106,27 @@ public class ExchangeAssist {
             return null;
         }
         return heads.get(0);
+    }
+
+    /**
+     * Add header.
+     *
+     * @param exchange the exchange
+     * @param name     the name
+     * @param value    the value
+     */
+    public static void addHeader(ServerWebExchange exchange, String name, String value) {
+        exchange.getRequest().mutate().header(name, value).build();
+    }
+
+    /**
+     * Add header.
+     *
+     * @param exchange the exchange
+     * @param name     the name
+     * @param value    the value
+     */
+    public static void addHeader(RequestDataContext exchange, String name, String value) {
+        exchange.getClientRequest().getHeaders().add(name, value);
     }
 }

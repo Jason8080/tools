@@ -39,7 +39,7 @@ public class CustomHandler extends AbstractGrayHandler {
     private boolean matchingRemote(String app, String token) {
         Boolean extend = grayServer.extend(app, token);
         if (!Boolean.TRUE.equals(extend)) {
-            log.info("灰度服务: {} 处理器: {} 没有扩展", app, name());
+            log.debug("灰度服务: {} 处理器: {} 没有扩展", app, name());
             return false;
         }
         return true;
