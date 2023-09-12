@@ -13,7 +13,6 @@ import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.loadbalancer.DefaultResponse;
 import org.springframework.cloud.client.loadbalancer.Request;
-import org.springframework.cloud.client.loadbalancer.RequestDataContext;
 import org.springframework.cloud.client.loadbalancer.Response;
 import org.springframework.cloud.loadbalancer.core.NoopServiceInstanceListSupplier;
 import org.springframework.cloud.loadbalancer.core.ReactorServiceInstanceLoadBalancer;
@@ -22,7 +21,6 @@ import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.*;
@@ -54,29 +52,14 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
     @Override
     public Mono<Response<ServiceInstance>> choose(Request request) {
         Object context = request.getContext();
-        if (context instanceof ServerWebExchange) {
-            // 此开关控制灰度负载均衡是否生效
-            String serviceId = ExchangeAssist.getServiceId((ServerWebExchange) context);
-            if (PropAssist.enable(serviceId, grayServer.properties)) {
-                ServiceInstanceListSupplier supplier = getServiceInstanceListSupplier(serviceId);
-                return supplier.get(request).next().map(item -> getResponse(item, (ServerWebExchange) context));
-            }
-            log.debug("灰度服务: {} 开关检测: {} 全局开关: {}", serviceId, false, grayServer.properties.getEnable());
+        String serviceId = ExchangeAssist.getServiceId(context);
+        if (PropAssist.enable(serviceId, grayServer.properties)) {
             ServiceInstanceListSupplier supplier = getServiceInstanceListSupplier(serviceId);
-            return supplier.get(request).next().map(this::roll);
+            return supplier.get(request).next().map(item -> filter(item, context));
         }
-        if (context instanceof RequestDataContext) {
-            String serviceId = ExchangeAssist.getServiceId((RequestDataContext) context);
-            if (PropAssist.enable(serviceId, grayServer.properties)) {
-                ServiceInstanceListSupplier supplier = getServiceInstanceListSupplier(serviceId);
-                return supplier.get(request).next().map(item -> getResponse(item, (RequestDataContext) context));
-            }
-            log.debug("灰度服务: {} 开关检测: {} 全局开关: {}", serviceId, false, grayServer.properties.getEnable());
-            ServiceInstanceListSupplier supplier = getServiceInstanceListSupplier(serviceId);
-            return supplier.get(request).next().map(this::roll);
-        }
-        log.error("灰度负载均衡器无法解析: serviceId:: {}", context.getClass());
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+        log.debug("灰度服务: {} 开关检测: {} 全局开关: {}", serviceId, false, grayServer.properties.getEnable());
+        ServiceInstanceListSupplier supplier = getServiceInstanceListSupplier(serviceId);
+        return supplier.get(request).next().map(this::roll);
     }
 
     private ServiceInstanceListSupplier getServiceInstanceListSupplier(String serviceId) {
@@ -84,16 +67,11 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
         return suppliers.getIfAvailable(NoopServiceInstanceListSupplier::new);
     }
 
-    private Response<ServiceInstance> getResponse(List<ServiceInstance> all, RequestDataContext exchange) {
+    private Response<ServiceInstance> filter(List<ServiceInstance> all, Object exchange) {
         // 获取请求头部
         String serviceId = ExchangeAssist.getServiceId(exchange);
         HttpHeaders headers = ExchangeAssist.getHeaders(exchange);
-        // 获取灰度实例
-        List<ServiceInstance> gray = getGrayInstances(all, headers, serviceId);
-        // 获取常规实例
-        List<ServiceInstance> normal = getInstances(all, gray, headers, serviceId);
-        // 返回可用实例
-        Response<ServiceInstance> response = roll(normal, gray);
+        Response<ServiceInstance> response = getResponse(serviceId, headers, all);
         // 添加版本透传
         ServiceInstance instance = response.getServer();
         String head = grayServer.properties.getHead();
@@ -101,21 +79,13 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
         return response;
     }
 
-    private Response<ServiceInstance> getResponse(List<ServiceInstance> all, ServerWebExchange exchange) {
-        // 获取请求头部
-        String serviceId = ExchangeAssist.getServiceId(exchange);
-        HttpHeaders headers = ExchangeAssist.getHeaders(exchange);
+    private Response<ServiceInstance> getResponse(String serviceId, HttpHeaders headers, List<ServiceInstance> all) {
         // 获取灰度实例
         List<ServiceInstance> gray = getGrayInstances(all, headers, serviceId);
         // 获取常规实例
         List<ServiceInstance> normal = getInstances(all, gray, headers, serviceId);
         // 返回可用实例
-        Response<ServiceInstance> response = roll(normal, gray);
-        // 添加版本透传
-        ServiceInstance instance = response.getServer();
-        String head = grayServer.properties.getHead();
-        ExchangeAssist.addHeader(exchange, head, instance.getMetadata().get(head));
-        return response;
+        return roll(normal, gray);
     }
 
     private List<ServiceInstance> getInstances(List<ServiceInstance> all, List<ServiceInstance> gray, HttpHeaders headers, String serviceId) {

@@ -3,9 +3,12 @@ package cn.gmlee.tools.gray.assist;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.WebUtil;
 import cn.gmlee.tools.gray.server.GrayHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.client.loadbalancer.RequestDataContext;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.net.URI;
@@ -16,6 +19,7 @@ import java.util.Map;
 /**
  * The type Exchange assist.
  */
+@Slf4j
 public class ExchangeAssist {
 
     /**
@@ -36,6 +40,23 @@ public class ExchangeAssist {
      * @param exchange the exchange
      * @return the headers
      */
+    public static HttpHeaders getHeaders(Object exchange) {
+        if (exchange instanceof ServerWebExchange) {
+            return getHeaders((ServerWebExchange) exchange);
+        }
+        if (exchange instanceof RequestDataContext) {
+            return getHeaders((RequestDataContext) exchange);
+        }
+        log.error("灰度负载均衡器无法解析请求: exchange:: {}", exchange.getClass());
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * Gets headers.
+     *
+     * @param exchange the exchange
+     * @return the headers
+     */
     public static HttpHeaders getHeaders(ServerWebExchange exchange) {
         return exchange.getRequest().getHeaders();
     }
@@ -48,6 +69,23 @@ public class ExchangeAssist {
      */
     public static HttpHeaders getHeaders(RequestDataContext exchange) {
         return exchange.getClientRequest().getHeaders();
+    }
+
+    /**
+     * Gets service id.
+     *
+     * @param exchange the exchange
+     * @return the service id
+     */
+    public static String getServiceId(Object exchange) {
+        if (exchange instanceof ServerWebExchange) {
+            return getServiceId((ServerWebExchange) exchange);
+        }
+        if (exchange instanceof RequestDataContext) {
+            return getServiceId((RequestDataContext) exchange);
+        }
+        log.error("灰度负载均衡器无法解析请求: exchange:: {}", exchange.getClass());
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 
     /**
@@ -102,10 +140,30 @@ public class ExchangeAssist {
 
     private static String getToken(HttpHeaders headers, String head) {
         List<String> heads = headers.get(head);
-        if(BoolUtil.isEmpty(heads)){
+        if (BoolUtil.isEmpty(heads)) {
             return null;
         }
         return heads.get(0);
+    }
+
+    /**
+     * Add header.
+     *
+     * @param exchange the exchange
+     * @param name     the name
+     * @param value    the value
+     */
+    public static void addHeader(Object exchange, String name, String value) {
+        if (exchange instanceof ServerWebExchange) {
+            addHeader((ServerWebExchange) exchange, name, value);
+            return;
+        }
+        if (exchange instanceof RequestDataContext) {
+            addHeader((RequestDataContext) exchange, name, value);
+            return;
+        }
+        log.error("灰度负载均衡器无法解析请求: exchange:: {}", exchange.getClass());
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     }
 
     /**
