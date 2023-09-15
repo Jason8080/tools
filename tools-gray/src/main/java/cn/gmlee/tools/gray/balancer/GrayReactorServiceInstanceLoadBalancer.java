@@ -114,20 +114,32 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
                 .filter(x -> InstanceAssist.matching(x, grayServer.properties))
                 .collect(Collectors.groupingBy(x -> InstanceAssist.version(x, grayServer.properties)));
         // 开发指定版本
-        if (BoolUtil.notEmpty(PropAssist.getVersions(grayServer.properties, serviceId))) {
+        List<String> developVs = PropAssist.getVersions(grayServer.properties, serviceId);
+        if (BoolUtil.notEmpty(developVs)) {
+            // 开发指定了灰度版本但没有这个版本实例; 则不属于灰度
+            if(!BoolUtil.containKey(candidateMap, developVs.toArray(new String[0]))){
+                return Collections.emptyList();
+            }
+            // 有开发指定的版本就进入灰度
             log.debug("灰度服务: {} 开发指定: {} 实例列表: \r\n{}", serviceId, PropAssist.getVersions(grayServer.properties, serviceId), JsonUtil.format(candidateMap));
+            CollectionUtil.filter(candidateMap, (k, v) -> developVs.contains(k));
+            return getNewest(candidateMap, serviceId);
         }
         // 外部指定版本
-        String version = HeaderAssist.getVersion(headers, grayServer.properties);
-        if (BoolUtil.notEmpty(version)) {
-            List<ServiceInstance> list = candidateMap.get(version);
-            log.debug("灰度服务: {} 外部指定: {} 实例列表: \r\n{}", serviceId, version, JsonUtil.format(list));
+        String externalVersion = HeaderAssist.getVersion(headers, grayServer.properties);
+        if (BoolUtil.notEmpty(externalVersion)) {
+            List<ServiceInstance> list = candidateMap.get(externalVersion);
+            log.debug("灰度服务: {} 外部指定: {} 实例列表: \r\n{}", serviceId, externalVersion, JsonUtil.format(list));
             if (BoolUtil.notEmpty(list)) {
                 return list;
             }
             return Collections.emptyList();
         }
         // 使用最新版本
+        return getNewest(candidateMap, serviceId);
+    }
+
+    private static List<ServiceInstance> getNewest(Map<String, List<ServiceInstance>> candidateMap, String serviceId) {
         TreeMap<String, List<ServiceInstance>> treeMap = CollectionUtil.keyReverseSort(candidateMap);
         Map.Entry<String, List<ServiceInstance>> newest = treeMap.firstEntry();
         if (newest == null) {

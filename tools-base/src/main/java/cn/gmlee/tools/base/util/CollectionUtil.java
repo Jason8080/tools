@@ -166,12 +166,10 @@ public class CollectionUtil {
         if (BoolUtil.isEmpty(map)) {
             return;
         }
-        Iterator<Map.Entry<K, V>> it = map.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<K, V> next = it.next();
-            Boolean ok = ExceptionUtil.sandbox(() -> run.run(next.getKey(), next.getValue()), false);
+        for (K key : map.keySet()) {
+            Boolean ok = ExceptionUtil.sandbox(() -> run.run(key, map.get(key)));
             if (!ok) {
-                it.remove();
+                map.remove(key);
             }
         }
     }
