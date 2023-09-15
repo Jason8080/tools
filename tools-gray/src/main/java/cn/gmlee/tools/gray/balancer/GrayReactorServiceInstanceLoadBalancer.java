@@ -108,10 +108,7 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
     private List<ServiceInstance> getGrayInstances(List<ServiceInstance> instances, HttpHeaders headers, String serviceId) {
         // 归类候选版本
         Map<String, List<ServiceInstance>> candidateMap = instances.stream()
-                // 顺序1: 版本号不可为空
                 .filter(x -> BoolUtil.notEmpty(InstanceAssist.version(x, grayServer.properties)))
-                // 顺序2: 开发指定的版本 √√√√√√√√√√√√√√√√√√√√√√√√√√√√√√√√√√√√√√√√√√√
-                .filter(x -> InstanceAssist.matching(x, grayServer.properties))
                 .collect(Collectors.groupingBy(x -> InstanceAssist.version(x, grayServer.properties)));
         // 开发指定版本
         List<String> developVs = PropAssist.getVersions(grayServer.properties, serviceId);
