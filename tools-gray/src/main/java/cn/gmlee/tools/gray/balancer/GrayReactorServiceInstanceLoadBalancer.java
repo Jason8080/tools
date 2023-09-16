@@ -104,6 +104,21 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
         return instances.stream().filter(x -> !gray.contains(x)).collect(Collectors.toList());
     }
 
+    /**
+     * 获取灰度实例列表
+     *
+     * <p>
+     *     优先使用开发指定；
+     *     再优先外部指定；
+     *     最后采用最新版本；
+     *     原则上一定会选取一个版本作为灰度；
+     *     除非版本号均为空。
+     * </p>
+     * @param instances
+     * @param headers
+     * @param serviceId
+     * @return
+     */
     @SuppressWarnings("all")
     private List<ServiceInstance> getGrayInstances(List<ServiceInstance> instances, HttpHeaders headers, String serviceId) {
         // 归类候选版本
@@ -113,14 +128,13 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
         // 开发指定版本
         List<String> developVs = PropAssist.getVersions(grayServer.properties, serviceId);
         if (BoolUtil.notEmpty(developVs)) {
-            // 开发指定了灰度版本但没有这个版本实例; 则不属于灰度
-            if(!BoolUtil.containKey(candidateMap, developVs.toArray(new String[0]))){
-                return Collections.emptyList();
-            }
-            // 有开发指定的版本就进入灰度
             log.debug("灰度服务: {} 开发指定: {} 实例列表: \r\n{}", serviceId, PropAssist.getVersions(grayServer.properties, serviceId), JsonUtil.format(candidateMap));
-            CollectionUtil.filter(candidateMap, (k, v) -> developVs.contains(k));
-            return getNewest(candidateMap, serviceId);
+            if(BoolUtil.containKey(candidateMap, developVs.toArray(new String[0]))){
+                // 优先使用开发指定版本
+                CollectionUtil.filter(candidateMap, (k, v) -> developVs.contains(k));
+                return getNewest(candidateMap, serviceId);
+            }
+            log.warn("灰度服务: {} 开发指定: {} 实例离线: \r\n{}", serviceId, PropAssist.getVersions(grayServer.properties, serviceId), JsonUtil.format(candidateMap));
         }
         // 外部指定版本
         String externalVersion = HeaderAssist.getVersion(headers, grayServer.properties);
@@ -128,9 +142,10 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
             List<ServiceInstance> list = candidateMap.get(externalVersion);
             log.debug("灰度服务: {} 外部指定: {} 实例列表: \r\n{}", serviceId, externalVersion, JsonUtil.format(list));
             if (BoolUtil.notEmpty(list)) {
+                // 优先外部指定版本
                 return list;
             }
-            return Collections.emptyList();
+            log.warn("灰度服务: {} 外部指定: {} 实例离线: \r\n{}", serviceId, externalVersion, JsonUtil.format(list));
         }
         // 使用最新版本
         return getNewest(candidateMap, serviceId);
