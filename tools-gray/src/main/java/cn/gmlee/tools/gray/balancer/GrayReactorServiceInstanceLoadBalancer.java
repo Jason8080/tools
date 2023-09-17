@@ -134,7 +134,7 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
                 CollectionUtil.filter(candidateMap, (k, v) -> developVs.contains(k));
                 return getNewest(candidateMap, serviceId);
             }
-            log.warn("灰度服务: {} 开发指定: {} 实例离线: {}", serviceId, PropAssist.getVersions(grayServer.properties, serviceId), candidateMap.keySet());
+            log.warn("灰度服务: {} 开发指定: {} 版本离线: {}", serviceId, PropAssist.getVersions(grayServer.properties, serviceId), candidateMap.keySet());
         }
         // 外部指定版本
         String externalVersion = HeaderAssist.getVersion(headers, grayServer.properties);
@@ -145,7 +145,7 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
                 // 优先外部指定版本
                 return list;
             }
-            log.warn("灰度服务: {} 外部指定: {} 实例离线: {}", serviceId, externalVersion, candidateMap.keySet());
+            log.warn("灰度服务: {} 外部指定: {} 版本离线: {}", serviceId, externalVersion, candidateMap.keySet());
         }
         // 使用最新版本
         return getNewest(candidateMap, serviceId);
