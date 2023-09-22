@@ -53,12 +53,15 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
     public Mono<Response<ServiceInstance>> choose(Request request) {
         Object context = request.getContext();
         String serviceId = ExchangeAssist.getServiceId(context);
-        if (PropAssist.enable(serviceId, grayServer.properties)) {
-            ServiceInstanceListSupplier supplier = getServiceInstanceListSupplier(serviceId);
-            return supplier.get(request).next().map(item -> filter(item, context));
-        }
-        log.debug("灰度服务: {} 开关检测: {} 全局开关: {}", serviceId, false, grayServer.properties.getEnable());
         ServiceInstanceListSupplier supplier = getServiceInstanceListSupplier(serviceId);
+        try {
+            if (PropAssist.enable(serviceId, grayServer.properties)) {
+                return supplier.get(request).next().map(item -> filter(item, context));
+            }
+            log.debug("灰度服务: {} 开关检测: {} 全局开关: {}", serviceId, false, grayServer.properties.getEnable());
+        } catch (Exception e) {
+            log.debug("灰度负载均衡器异常", e);
+        }
         return supplier.get(request).next().map(this::roll);
     }
 
