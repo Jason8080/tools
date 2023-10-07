@@ -50,6 +50,7 @@ public class VariableLockAspect {
         }
         // 请求加锁
         VALUE_LOCAL.set(sb);
+        // 变量加锁
         variableLockServer.lock(vl, sb.toArray(new String[0]));
     }
 
@@ -168,14 +169,14 @@ public class VariableLockAspect {
 
     @After("pointcut()")
     public void after(JoinPoint point) {
-        // 解锁数据
-        VariableLock vl = getVariableLock(point);
         List<String> sb = VALUE_LOCAL.get();
         if (BoolUtil.isEmpty(sb)) {
             return;
         }
         // 请求解锁
         VALUE_LOCAL.remove();
+        // 变量解锁
+        VariableLock vl = getVariableLock(point);
         variableLockServer.unlock(vl, sb.toArray(new String[0]));
     }
 
