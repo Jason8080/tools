@@ -85,8 +85,8 @@ public class RedisLock {
         if(!spin){
             return locking(key, val, expire);
         }
-        // 最多自旋99次
-        AtomicInteger count = new AtomicInteger(99);
+        // 最多自旋10000次 ≈ 30s
+        AtomicInteger count = new AtomicInteger(10000);
         while (spin && count.decrementAndGet() > 0) {
             if (locking(key, val, expire)) {
                 return true;
