@@ -1,7 +1,6 @@
 package cn.gmlee.tools.redis.util;
 
 import cn.gmlee.tools.base.enums.Int;
-import cn.gmlee.tools.base.ex.agreed.WantRetryException;
 import cn.gmlee.tools.base.util.AssertUtil;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
@@ -88,18 +87,14 @@ public class RedisLock {
         }
         // 最多自旋99次
         AtomicInteger count = new AtomicInteger(99);
-        try {
-            while (spin && count.decrementAndGet() > 0) {
-                if (locking(key, val, expire)) {
-                    return true;
-                }
-                logger.info("分布式锁自旋中...");
-                sleep(Int.THREE);
+        while (spin && count.decrementAndGet() > 0) {
+            if (locking(key, val, expire)) {
+                return true;
             }
-        } catch (InterruptedException e) {
-            logger.error("分布式锁自旋睡眠出错", e);
+            logger.info("分布式锁自旋中...");
+            ExceptionUtil.sandbox(() -> sleep(Int.THREE));
         }
-        throw new RuntimeException("分布式锁自旋n次仍然加锁失败");
+        return false;
     }
 
     private boolean locking(String key, Object val, long expire) {
@@ -171,7 +166,7 @@ public class RedisLock {
      * @param ot     自动续期次数
      */
     public synchronized void lock(String key, long expire, Runnable run, int ot) {
-        if (expire < Int.TEN) {
+        if (expire < Int.ONE) {
             throw new RuntimeException(String.format("分布式锁使用异常: 代码运行时间过于短暂%s", expire));
         }
         FutureTask task = new FutureTask(run, null);
@@ -237,7 +232,7 @@ public class RedisLock {
      * @return 函数返回结果. v
      */
     public synchronized <V> V lock(String key, long expire, Callable<V> call, int ot) {
-        if (expire < Int.TEN) {
+        if (expire < Int.ONE) {
             throw new RuntimeException(String.format("分布式锁使用异常: 代码运行时间过于短暂%s", expire));
         }
         FutureTask<V> task = new FutureTask(call);
