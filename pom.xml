@@ -4,7 +4,7 @@
 
     <groupId>cn.gmlee.tools</groupId>
     <artifactId>tools</artifactId>
-    <version>5.3.12</version>
+    <version>5.3.13</version>
     <!--
         版本号说明: 主版本号.次版本号.修订号[-(日期|英文)]
         1） 主版本号：产品方向改变，或者大规模API不兼容，或者架构不兼容升级。
