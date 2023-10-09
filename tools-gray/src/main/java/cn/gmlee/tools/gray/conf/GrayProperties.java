@@ -14,6 +14,7 @@ import java.util.Map;
 @Data
 @ConfigurationProperties(prefix = "tools.gray")
 public class GrayProperties implements Serializable {
+    private Boolean log = false;
     private String head = "version";
     private String token = "token";
     private String version = "1.0.0";

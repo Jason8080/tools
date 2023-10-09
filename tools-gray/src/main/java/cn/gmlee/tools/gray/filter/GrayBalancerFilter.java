@@ -1,5 +1,6 @@
 package cn.gmlee.tools.gray.filter;
 
+import cn.gmlee.tools.base.util.QuickUtil;
 import cn.gmlee.tools.gray.assist.ExchangeAssist;
 import cn.gmlee.tools.gray.assist.PropAssist;
 import cn.gmlee.tools.gray.balancer.GrayReactorServiceInstanceLoadBalancer;
@@ -30,6 +31,9 @@ import static org.springframework.cloud.gateway.support.ServerWebExchangeUtils.G
 @Slf4j
 public class GrayBalancerFilter implements GlobalFilter, Ordered {
 
+    /**
+     * The constant ORDER.
+     */
     protected static final int ORDER = GrayClientIpFilter.ORDER + 1;
 
     private final LoadBalancerClientFactory clientFactory;
@@ -55,12 +59,12 @@ public class GrayBalancerFilter implements GlobalFilter, Ordered {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         // 判断拦截器执行顺序是否符合要求
         if (ExchangeAssist.filter(exchange)) {
-            log.warn("灰度负载拦截器不符合顺序要求");
+            QuickUtil.isTrue(grayServer.properties.getLog(), () -> log.warn("灰度负载拦截器不符合顺序要求"));
             return chain.filter(exchange);
         }
         String serviceId = ExchangeAssist.getServiceId(exchange);
         if (!PropAssist.enable(serviceId, grayServer.properties)) {
-            log.debug("灰度服务: {} 开关检测: {} 全局开关: {}", serviceId, false, grayServer.properties.getEnable());
+            QuickUtil.isTrue(grayServer.properties.getLog(), () -> log.debug("灰度服务: {} 开关检测: {} 全局开关: {}", serviceId, false, grayServer.properties.getEnable()));
             return chain.filter(exchange);
         }
         return doFilter(exchange, chain);

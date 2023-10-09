@@ -3,6 +3,7 @@ package cn.gmlee.tools.gray.balancer;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.CollectionUtil;
 import cn.gmlee.tools.base.util.JsonUtil;
+import cn.gmlee.tools.base.util.QuickUtil;
 import cn.gmlee.tools.gray.assist.ExchangeAssist;
 import cn.gmlee.tools.gray.assist.HeaderAssist;
 import cn.gmlee.tools.gray.assist.InstanceAssist;
@@ -58,9 +59,9 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
             if (PropAssist.enable(serviceId, grayServer.properties)) {
                 return supplier.get(request).next().map(item -> filter(item, context));
             }
-            log.debug("灰度服务: {} 开关检测: {} 全局开关: {}", serviceId, false, grayServer.properties.getEnable());
+            QuickUtil.isTrue(grayServer.properties.getLog(), () -> log.debug("灰度服务: {} 开关检测: {} 全局开关: {}", serviceId, false, grayServer.properties.getEnable()));
         } catch (Exception e) {
-            log.debug("灰度负载均衡器异常", e);
+            QuickUtil.isTrue(grayServer.properties.getLog(), () -> log.debug("灰度负载均衡器异常", e));
         }
         return supplier.get(request).next().map(this::roll);
     }
@@ -95,10 +96,10 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
         Map<String, String> tokens = ExchangeAssist.getTokens(headers, grayServer.properties.getToken());
         String version = HeaderAssist.getVersion(headers, grayServer.properties);
         boolean checked = grayServer.check(serviceId, tokens, version);
-        log.debug("灰度服务: {} 检测结果: {} 全部实例: \r\n{}", serviceId, checked, JsonUtil.format(all));
+        QuickUtil.isTrue(grayServer.properties.getLog(), () -> log.debug("灰度服务: {} 检测结果: {} 全部实例: \r\n{}", serviceId, checked, JsonUtil.format(all)));
         List<ServiceInstance> normal = exclude(all, gray);
         List<ServiceInstance> instances = checked ? gray : normal;
-        log.debug("灰度服务: {} 进入灰度: {} 预选实例: \r\n{}", serviceId, BoolUtil.notEmpty(gray) && BoolUtil.eq(instances, gray), JsonUtil.format(instances));
+        QuickUtil.isTrue(grayServer.properties.getLog(), () -> log.debug("灰度服务: {} 进入灰度: {} 预选实例: \r\n{}", serviceId, BoolUtil.notEmpty(gray) && BoolUtil.eq(instances, gray), JsonUtil.format(instances)));
         return instances.isEmpty() ? all : instances;
     }
 
@@ -131,36 +132,36 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
         // 开发指定版本
         List<String> developVs = PropAssist.getVersions(grayServer.properties, serviceId);
         if (BoolUtil.notEmpty(developVs)) {
-            log.debug("灰度服务: {} 开发指定: {} 实例列表: \r\n{}", serviceId, PropAssist.getVersions(grayServer.properties, serviceId), JsonUtil.format(candidateMap));
+            QuickUtil.isTrue(grayServer.properties.getLog(), () -> log.debug("灰度服务: {} 开发指定: {} 实例列表: \r\n{}", serviceId, PropAssist.getVersions(grayServer.properties, serviceId), JsonUtil.format(candidateMap)));
             if(BoolUtil.containKey(candidateMap, developVs.toArray(new String[0]))){
                 // 优先使用开发指定版本
                 CollectionUtil.filter(candidateMap, (k, v) -> developVs.contains(k));
-                return getNewest(candidateMap, serviceId);
+                return getNewest(grayServer, candidateMap, serviceId);
             }
-            log.warn("灰度服务: {} 开发指定: {} 版本离线: {}", serviceId, PropAssist.getVersions(grayServer.properties, serviceId), candidateMap.keySet());
+            QuickUtil.isTrue(grayServer.properties.getLog(), () -> log.warn("灰度服务: {} 开发指定: {} 版本离线: {}", serviceId, PropAssist.getVersions(grayServer.properties, serviceId), candidateMap.keySet()));
         }
         // 外部指定版本
         String externalVersion = HeaderAssist.getVersion(headers, grayServer.properties);
         if (BoolUtil.notEmpty(externalVersion)) {
             List<ServiceInstance> list = candidateMap.get(externalVersion);
-            log.debug("灰度服务: {} 外部指定: {} 实例列表: \r\n{}", serviceId, externalVersion, JsonUtil.format(list));
+            QuickUtil.isTrue(grayServer.properties.getLog(), () -> log.debug("灰度服务: {} 外部指定: {} 实例列表: \r\n{}", serviceId, externalVersion, JsonUtil.format(list)));
             if (BoolUtil.notEmpty(list)) {
                 // 优先外部指定版本
                 return list;
             }
-            log.warn("灰度服务: {} 外部指定: {} 版本离线: {}", serviceId, externalVersion, candidateMap.keySet());
+            QuickUtil.isTrue(grayServer.properties.getLog(), () -> log.warn("灰度服务: {} 外部指定: {} 版本离线: {}", serviceId, externalVersion, candidateMap.keySet()));
         }
         // 使用最新版本
-        return getNewest(candidateMap, serviceId);
+        return getNewest(grayServer, candidateMap, serviceId);
     }
 
-    private static List<ServiceInstance> getNewest(Map<String, List<ServiceInstance>> candidateMap, String serviceId) {
+    private static List<ServiceInstance> getNewest(GrayServer grayServer, Map<String, List<ServiceInstance>> candidateMap, String serviceId) {
         TreeMap<String, List<ServiceInstance>> treeMap = CollectionUtil.keyReverseSort(candidateMap);
         Map.Entry<String, List<ServiceInstance>> newest = treeMap.firstEntry();
         if (newest == null) {
             return Collections.emptyList();
         }
-        log.debug("灰度服务: {} 最新版本: {} 实例列表: \r\n{}", serviceId, newest.getKey(), JsonUtil.format(newest.getValue()));
+        QuickUtil.isTrue(grayServer.properties.getLog(), () -> log.debug("灰度服务: {} 最新版本: {} 实例列表: \r\n{}", serviceId, newest.getKey(), JsonUtil.format(newest.getValue())));
         return newest.getValue();
     }
 
@@ -178,7 +179,7 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
         }
         int pos = Math.abs(incrementAndGet());
         ServiceInstance instance = instances.get(pos % instances.size());
-        log.info("灰度服务: {} 进入灰度: {} 命中实例: {}", instance.getServiceId(), BoolUtil.containOne(gray, instance), JsonUtil.format(instance));
+        QuickUtil.isTrue(grayServer.properties.getLog(), () -> log.info("灰度服务: {} 进入灰度: {} 命中实例: {}", instance.getServiceId(), BoolUtil.containOne(gray, instance), JsonUtil.format(instance)));
         return new DefaultResponse(instance);
     }
 
