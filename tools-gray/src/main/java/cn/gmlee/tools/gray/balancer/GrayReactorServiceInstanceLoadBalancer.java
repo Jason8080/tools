@@ -1,5 +1,6 @@
 package cn.gmlee.tools.gray.balancer;
 
+import cn.gmlee.tools.base.enums.Int;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.CollectionUtil;
 import cn.gmlee.tools.base.util.JsonUtil;
@@ -87,9 +88,9 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
         // 获取灰度实例
         List<ServiceInstance> gray = getGrayInstances(all, headers, serviceId);
         // 获取常规实例
-        List<ServiceInstance> normal = getInstances(all, gray, headers, serviceId);
+        List<ServiceInstance> instances = getInstances(all, gray, headers, serviceId);
         // 返回可用实例
-        return roll(normal, gray);
+        return roll(instances, gray);
     }
 
     private List<ServiceInstance> getInstances(List<ServiceInstance> all, List<ServiceInstance> gray, HttpHeaders headers, String serviceId) {
@@ -125,6 +126,10 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
      */
     @SuppressWarnings("all")
     private List<ServiceInstance> getGrayInstances(List<ServiceInstance> instances, HttpHeaders headers, String serviceId) {
+        // 只有1个节点
+        if(instances.size() < Int.TWO){
+            return instances;
+        }
         // 归类候选版本
         Map<String, List<ServiceInstance>> candidateMap = instances.stream()
                 .filter(x -> BoolUtil.notEmpty(InstanceAssist.version(x, grayServer.properties)))
