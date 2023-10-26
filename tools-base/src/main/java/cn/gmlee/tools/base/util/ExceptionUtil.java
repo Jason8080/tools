@@ -168,6 +168,21 @@ public class ExceptionUtil {
     }
 
     /**
+     * Sandbox.
+     *
+     * @param fun the fun
+     * @param def the def
+     */
+    public static void sandbox(Function.Zero fun, Function.Zero def) {
+        try {
+            fun.run();
+        } catch (Throwable e) {
+            logger.info("沙箱异常提示: ", e);
+            suppress(def);
+        }
+    }
+
+    /**
      * 沙箱执行 (不会有异常抛出).
      *
      * @param fun the fun
@@ -248,6 +263,24 @@ public class ExceptionUtil {
         } catch (Throwable e) {
             logger.info("沙箱异常已返回默认值: {}", def, e);
             return def;
+        }
+    }
+
+    /**
+     * 沙箱执行 (默认函数可能抛出异常).
+     *
+     * @param <R> the type parameter
+     * @param fun the fun
+     * @param def the def
+     * @return the r
+     */
+    public static <R> R sandbox(Function.Zero2r<R> fun, Function.Zero2r<R> def) {
+        try {
+            return fun.run();
+        } catch (Throwable e) {
+            R ret = suppress(def);
+            logger.info("沙箱异常已返回默认值: {}", ret, e);
+            return ret;
         }
     }
 
