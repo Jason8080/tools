@@ -16,6 +16,13 @@ import java.util.function.Supplier;
  */
 public class AssertUtil {
 
+    public static void isDigit(CharSequence cs, String msg) {
+        boolean ok = BoolUtil.isDigit(cs);
+        if (!ok) {
+            throw new AssertException(msg);
+        }
+    }
+
     public static <X extends Throwable> void isDigit(CharSequence cs, Supplier<? extends X> supplier) throws X {
         boolean ok = BoolUtil.isDigit(cs);
         if (!ok) {
