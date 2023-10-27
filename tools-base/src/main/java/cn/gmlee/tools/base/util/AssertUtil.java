@@ -16,10 +16,10 @@ import java.util.function.Supplier;
  */
 public class AssertUtil {
 
-    public static void isDigit(CharSequence cs, String msg) {
+    public static <X extends Throwable> void isDigit(CharSequence cs, Supplier<? extends X> supplier) throws X {
         boolean ok = BoolUtil.isDigit(cs);
         if (!ok) {
-            throw new AssertException(msg);
+            throw supplier.get();
         }
     }
 
@@ -27,6 +27,13 @@ public class AssertUtil {
         boolean ok = BoolUtil.isOk(o);
         if (!ok) {
             throw new AssertException(msg, new RemoteInvokeException(o));
+        }
+    }
+
+    public static <X extends Throwable> void isOk(JsonResult o, Supplier<? extends X> supplier) throws X {
+        boolean ok = BoolUtil.isOk(o);
+        if (!ok) {
+            throw supplier.get();
         }
     }
 
