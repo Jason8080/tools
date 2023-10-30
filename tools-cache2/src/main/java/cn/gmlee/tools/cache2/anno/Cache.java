@@ -9,15 +9,22 @@ import java.lang.annotation.*;
 @Documented
 public @interface Cache {
     /**
-     * 源数据表.
+     * 源数据.
+     * <p>
+     *     也可能是API(GET)
+     * </p>
      *
-     * @return
+     * @return 数据源
      */
     String table();
 
     /**
      * 外键.
-     * @return
+     * <p>
+     *     也可能是AIP的筛选字段
+     * </p>
+     *
+     * @return 外键
      */
     String key();
 
@@ -29,7 +36,7 @@ public @interface Cache {
      * 注意: 如果修饰的是实体类则表示需要填充整条记录; 如果修饰的是集合则表示需要填充所有匹配的列表 (适用二次查询场景).
      * </p>
      *
-     * @return
+     * @return 下载字段
      */
     String get() default "";
 
@@ -40,16 +47,16 @@ public @interface Cache {
      * 提供什么字段进行匹配缓存
      * </p>
      *
-     * @return
+     * @return 上传字段
      */
     String put();
 
     /**
-     * 缓存类型
+     * 数据类型
      *
-     * @return
+     * @return 数据类型
      */
-    DataType dataType() default DataType.MYSQL;
+    DataType dataType() default DataType.SQL;
 
     /**
      * 筛选条件.
