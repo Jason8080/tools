@@ -16,7 +16,7 @@ import java.util.Map;
  * 字典缓存.
  */
 @Data
-public class MysqlService extends AbstractDsServer {
+public class SqlService extends AbstractDsServer {
 
     private MysqlMapper mysqlMapper;
 
