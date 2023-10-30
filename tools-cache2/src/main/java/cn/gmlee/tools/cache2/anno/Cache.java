@@ -21,7 +21,7 @@ public @interface Cache {
     /**
      * 外键.
      * <p>
-     *     也可能是AIP的筛选字段
+     *     也可能是AIP的关联值
      * </p>
      *
      * @return 外键

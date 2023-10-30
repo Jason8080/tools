@@ -166,8 +166,10 @@ public class CollectionUtil {
         if (BoolUtil.isEmpty(map)) {
             return;
         }
-        for (K key : map.keySet()) {
-            Boolean ok = ExceptionUtil.sandbox(() -> run.run(key, map.get(key)));
+        for (Map.Entry<K, V> next : new HashMap<>(map).entrySet()) {
+            K key = next.getKey();
+            V val = next.getValue();
+            Boolean ok = ExceptionUtil.sandbox(() -> run.run(key, val));
             if (!ok) {
                 map.remove(key);
             }

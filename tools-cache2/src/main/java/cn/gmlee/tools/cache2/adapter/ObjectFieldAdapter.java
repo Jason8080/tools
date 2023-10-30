@@ -3,7 +3,6 @@ package cn.gmlee.tools.cache2.adapter;
 import cn.gmlee.tools.base.util.BeanUtil;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.cache2.anno.Cache;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
@@ -13,7 +12,6 @@ import java.util.Map;
 /**
  * 字段类型适配器.
  */
-@Component
 public class ObjectFieldAdapter implements FieldAdapter {
 
     @Override

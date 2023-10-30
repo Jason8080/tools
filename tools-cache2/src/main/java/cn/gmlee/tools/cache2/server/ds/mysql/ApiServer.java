@@ -1,13 +1,18 @@
 package cn.gmlee.tools.cache2.server.ds.mysql;
 
+import cn.gmlee.tools.base.builder.KvBuilder;
+import cn.gmlee.tools.base.mod.HttpResult;
+import cn.gmlee.tools.base.mod.JsonResult;
+import cn.gmlee.tools.base.mod.Kv;
 import cn.gmlee.tools.base.util.ClassUtil;
+import cn.gmlee.tools.base.util.HttpUtil;
 import cn.gmlee.tools.base.util.WebUtil;
 import cn.gmlee.tools.cache2.anno.Cache;
 import cn.gmlee.tools.cache2.enums.DataType;
 import cn.gmlee.tools.cache2.kit.ElKit;
 import cn.gmlee.tools.cache2.server.ds.AbstractDsServer;
+import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Data;
-import org.springframework.web.client.RestTemplate;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -17,9 +22,7 @@ import java.util.Map;
  * 字典缓存.
  */
 @Data
-public class ApiService extends AbstractDsServer {
-
-    private RestTemplate restTemplate;
+public class ApiServer extends AbstractDsServer {
 
     @Override
     public boolean support(Cache cache) {
@@ -32,6 +35,12 @@ public class ApiService extends AbstractDsServer {
         Map<String, Object> map = ClassUtil.generateMapUseCache(result);
         String where = ElKit.parse(cache.where(), map);
         Map<String, Object> params = WebUtil.getParams(where);
-        return restTemplate.getForObject(cache.table(), List.class, params);
+        String url = WebUtil.addParam(cache.table(), params);
+        // 设置请求头部
+        Map<String, String> headers = WebUtil.getCurrentHeaderMap();
+        Kv<String, String>[] kvs = KvBuilder.array(headers);
+        HttpResult httpResult = HttpUtil.get(url, kvs);
+        JsonResult jsonResult = httpResult.jsonResponseBody2bean(JsonResult.class);
+        return (List<Map<String, Object>>) jsonResult.getData();
     }
 }

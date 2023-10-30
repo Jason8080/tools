@@ -5,16 +5,18 @@ import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.QuickUtil;
 import cn.gmlee.tools.cache2.adapter.FieldAdapter;
-import cn.gmlee.tools.cache2.kit.StatKit;
 import cn.gmlee.tools.cache2.anno.Cache;
+import cn.gmlee.tools.cache2.kit.StatKit;
 import cn.gmlee.tools.cache2.server.cache.CacheServer;
 import cn.gmlee.tools.cache2.server.ds.DsServer;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Resource;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +24,6 @@ import java.util.Map;
 /**
  * 缓存处理器.
  */
-@Component
 public class CacheHandler {
 
     private static final Logger log = LoggerFactory.getLogger(CacheHandler.class);
@@ -33,10 +34,10 @@ public class CacheHandler {
     private CacheServer cacheServer;
 
     @Resource
-    private List<DsServer> dsServers;
+    private List<DsServer> dsServers = new ArrayList<>();
 
     @Resource
-    private List<FieldAdapter> fieldAdapters;
+    private List<FieldAdapter> fsAdapters = new ArrayList<>();
 
     /**
      * 缓存字段处理器.
@@ -138,7 +139,7 @@ public class CacheHandler {
         if (BoolUtil.isEmpty(list)) {
             return null;
         }
-        for (FieldAdapter adapter : fieldAdapters) {
+        for (FieldAdapter adapter : fsAdapters) {
             if (adapter.support(cache, result, field)) {
                 return adapter.get(cache, result, field, list);
             }

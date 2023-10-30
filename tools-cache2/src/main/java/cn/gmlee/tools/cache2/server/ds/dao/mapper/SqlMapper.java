@@ -7,9 +7,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The interface Mysql dict mapper.
+ * 数据库脚本.
  */
-public interface MysqlMapper {
+public interface SqlMapper {
     /**
      * Mysql源.
      *

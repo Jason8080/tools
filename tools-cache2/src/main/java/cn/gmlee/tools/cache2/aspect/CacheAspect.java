@@ -41,6 +41,7 @@ public class CacheAspect {
     @Pointcut("execution (* *..controller..*Controller..*(..)) || execution (* *..api..*Api..*(..))")
     public void pointcut() {
     }
+
     /**
      * 接口后置处理器
      *

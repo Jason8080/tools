@@ -27,18 +27,18 @@ public abstract class AbstractDs implements Ds {
         Iterator<Map<String, Object>> it = list.iterator();
         while (it.hasNext()) {
             Map<String, Object> dsMap = it.next();
-            if (!matching(retMap, dsMap, cache.put(), cache.key())) {
+            if (!matching(retMap, dsMap, cache.put(), cache.get())) {
                 it.remove();
             }
         }
         return list;
     }
 
-    public boolean matching(Map<String, Object> retMap, Map<String, Object> dsMap, String ret, String ds) {
-        if(!BoolUtil.allNotEmpty(ret, ds)){
+    public boolean matching(Map<String, Object> retMap, Map<String, Object> dsMap, String put, String get) {
+        if(!BoolUtil.allNotEmpty(put, get)){
             return false;
         }
-        if(!Objects.equals(retMap.get(ret), dsMap.get(ds))){
+        if(!Objects.equals(retMap.get(put), dsMap.get(get))){
             return false;
         }
         return true;
