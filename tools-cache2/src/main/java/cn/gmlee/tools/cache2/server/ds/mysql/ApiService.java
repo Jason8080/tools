@@ -1,7 +1,7 @@
 package cn.gmlee.tools.cache2.server.ds.mysql;
 
 import cn.gmlee.tools.base.util.ClassUtil;
-import cn.gmlee.tools.base.util.JsonUtil;
+import cn.gmlee.tools.base.util.WebUtil;
 import cn.gmlee.tools.cache2.anno.Cache;
 import cn.gmlee.tools.cache2.enums.DataType;
 import cn.gmlee.tools.cache2.kit.ElKit;
@@ -31,7 +31,7 @@ public class ApiService extends AbstractDsServer {
         // 解析查询条件
         Map<String, Object> map = ClassUtil.generateMapUseCache(result);
         String where = ElKit.parse(cache.where(), map);
-        Map<String, Object> params = JsonUtil.toBean(where, Map.class);
+        Map<String, Object> params = WebUtil.getParams(where);
         return restTemplate.getForObject(cache.table(), List.class, params);
     }
 }
