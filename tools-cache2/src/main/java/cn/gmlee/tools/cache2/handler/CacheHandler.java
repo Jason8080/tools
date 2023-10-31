@@ -57,7 +57,7 @@ public class CacheHandler {
             Cache2 cache2 = field.getAnnotation(Cache2.class);
             // 启用配置: 两者都用以cache为准
             if (cache == null && cache2 != null && conf != null) {
-                cache = newCache(conf, cache2);
+                cache = newCache(conf, cache2, field);
             }
             if (!cache.enable()) {
                 continue;
@@ -153,7 +153,7 @@ public class CacheHandler {
         return null;
     }
 
-    private static Cache newCache(Cache2Conf conf, Cache2 cache2) {
+    private static Cache newCache(Cache2Conf conf, Cache2 cache2, Field field) {
         return new Cache() {
             @Override
             public String table() {
@@ -169,12 +169,23 @@ public class CacheHandler {
             @Override
             public String where() {
                 // 自定义数据源
-                if (BoolUtil.notEmpty(cache2.value())) {
-                    return cache2.value();
+                if (BoolUtil.notEmpty(cache2.where())) {
+                    return cache2.where();
                 }
                 // 默认采用配置
                 AssertUtil.notEmpty(conf.getWhere(), "tools.cache2.where is empty !");
                 return conf.getWhere();
+            }
+
+            @Override
+            public String put() {
+                // 自定义数据源
+                if (BoolUtil.notEmpty(cache2.value())) {
+                    return cache2.value();
+                }
+                // 默认采用配置
+                AssertUtil.notEmpty(conf.getPut(), "tools.cache2.put is empty !");
+                return conf.getPut();
             }
 
             @Override
@@ -187,12 +198,6 @@ public class CacheHandler {
             public String get() {
                 AssertUtil.notEmpty(conf.getGet(), "tools.cache2.get is empty !");
                 return conf.getGet();
-            }
-
-            @Override
-            public String put() {
-                AssertUtil.notEmpty(conf.getPut(), "tools.cache2.put is empty !");
-                return conf.getPut();
             }
 
             @Override

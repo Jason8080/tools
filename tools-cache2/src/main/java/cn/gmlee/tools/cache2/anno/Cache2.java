@@ -9,6 +9,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Cache2 {
+    String value() default "";
     /**
      * 筛选条件.
      * <p>
@@ -17,7 +18,7 @@ public @interface Cache2 {
      *
      * @return string
      */
-    String value() default "";
+    String where() default "";
 
     /**
      * 源数据.
