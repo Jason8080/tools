@@ -169,8 +169,8 @@ public class CacheHandler {
             @Override
             public String where() {
                 // 自定义数据源
-                if (BoolUtil.notEmpty(cache2.where())) {
-                    return cache2.where();
+                if (BoolUtil.notEmpty(cache2.value())) {
+                    return cache2.value();
                 }
                 // 默认采用配置
                 AssertUtil.notEmpty(conf.getWhere(), "tools.cache2.where is empty !");
@@ -180,12 +180,15 @@ public class CacheHandler {
             @Override
             public String put() {
                 // 自定义数据源
-                if (BoolUtil.notEmpty(cache2.value())) {
-                    return cache2.value();
+                if (BoolUtil.notEmpty(cache2.put())) {
+                    return cache2.put();
                 }
-                // 默认采用配置
-                AssertUtil.notEmpty(conf.getPut(), "tools.cache2.put is empty !");
-                return conf.getPut();
+                String cn = "Cn";
+                String name = field.getName();
+                if (name.endsWith(cn)) {
+                    return name.substring(0, name.length() - cn.length());
+                }
+                return name;
             }
 
             @Override
