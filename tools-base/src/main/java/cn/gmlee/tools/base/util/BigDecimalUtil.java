@@ -11,21 +11,12 @@ import java.math.RoundingMode;
  * @date 2021 /7/6 (周二)
  */
 public class BigDecimalUtil {
-    /**
-     * 按精度进位
-     */
-    private static final int ROUND_UP = BigDecimal.ROUND_UP;
-    /**
-     * 按精度截断
-     */
-    private static final int ROUND_MODE = BigDecimal.ROUND_DOWN;
-
-    /**
-     * 精度: 2位小数
-     */
-    private static final int PRECISION = 2;
-
-    private static final BigDecimal ONE_HUNDRED = BigDecimal.valueOf(100);
+    public static final int SCALE_2 = 2; // 金额
+    public static final int SCALE_3 = 3; // 吨数
+    public static final int SCALE_4 = 4; // 比例
+    public static final int ROUND_UP = BigDecimal.ROUND_UP; // 向上进位
+    public static final int ROUND_MODE = BigDecimal.ROUND_DOWN; // 向下取舍
+    public static final BigDecimal ONE_HUNDRED = BigDecimal.valueOf(100); // 100
 
     /**
      * Get big decimal.
@@ -118,7 +109,7 @@ public class BigDecimalUtil {
                 if (BoolUtil.eq(divisor, BigDecimal.ZERO)) {
                     return BigDecimal.ZERO;
                 }
-                num = num.divide(divisor, PRECISION, ROUND_MODE);
+                num = num.divide(divisor, SCALE_2, ROUND_MODE);
             }
         }
         return NullUtil.get(num, BigDecimal.ZERO);
@@ -146,7 +137,7 @@ public class BigDecimalUtil {
      */
     public static BigDecimal fen2yuan(BigDecimal fen, RoundingMode rm) {
         if (BoolUtil.notNull(fen)) {
-            return fen.divide(ONE_HUNDRED, PRECISION, rm);
+            return fen.divide(ONE_HUNDRED, SCALE_2, rm);
         }
         return BigDecimal.ZERO;
     }
@@ -159,7 +150,7 @@ public class BigDecimalUtil {
      */
     public static BigDecimal fen2yuan(BigDecimal fen) {
         if (BoolUtil.notNull(fen)) {
-            return fen.divide(ONE_HUNDRED, PRECISION, RoundingMode.DOWN);
+            return fen.divide(ONE_HUNDRED, SCALE_2, RoundingMode.DOWN);
         }
         return BigDecimal.ZERO;
     }

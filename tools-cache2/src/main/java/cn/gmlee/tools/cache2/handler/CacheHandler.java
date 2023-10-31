@@ -1,10 +1,14 @@
 package cn.gmlee.tools.cache2.handler;
 
 import cn.gmlee.tools.base.mod.Kv;
+import cn.gmlee.tools.base.util.AssertUtil;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ClassUtil;
 import cn.gmlee.tools.cache2.adapter.FieldAdapter;
 import cn.gmlee.tools.cache2.anno.Cache;
+import cn.gmlee.tools.cache2.anno.Cache2;
+import cn.gmlee.tools.cache2.config.Cache2Conf;
+import cn.gmlee.tools.cache2.enums.DataType;
 import cn.gmlee.tools.cache2.kit.StatKit;
 import cn.gmlee.tools.cache2.server.cache.CacheServer;
 import cn.gmlee.tools.cache2.server.ds.DsServer;
@@ -12,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Resource;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -39,22 +44,28 @@ public class CacheHandler {
     /**
      * 缓存字段处理器.
      *
-     * @param kvs the fields map
+     * @param conf the conf
+     * @param kvs  the fields map
      */
-    public void handler(List<Kv<Field, Object>> kvs) {
+    public void handler(Cache2Conf conf, List<Kv<Field, Object>> kvs) {
         Iterator<Kv<Field, Object>> it = kvs.iterator();
         while (it.hasNext()) {
             Kv<Field, Object> next = it.next();
             Field field = next.getKey();
             Object result = next.getVal();
             Cache cache = field.getAnnotation(Cache.class);
+            Cache2 cache2 = field.getAnnotation(Cache2.class);
+            // 启用配置: 两者都用以cache为准
+            if (cache == null && cache2 != null && conf != null) {
+                cache = newCache(conf, cache2);
+            }
             if (!cache.enable()) {
                 continue;
             }
             long start = System.currentTimeMillis();
             Kv<Boolean, Object> kv = loading(result, field, cache);
             long end = System.currentTimeMillis();
-            StatKit.hitRate(cache, result, field, kv, end - start);
+            StatKit.hitRate(conf, cache, result, field, kv, end - start);
         }
     }
 
@@ -64,7 +75,7 @@ public class CacheHandler {
      * @param result the result
      * @param field  the field
      * @param cache  the cache
-     * @return object
+     * @return object kv
      */
     public Kv<Boolean, Object> loading(Object result, Field field, Cache cache) {
         Kv<Boolean, Object> kv = getValue(result, field, cache);
@@ -140,5 +151,69 @@ public class CacheHandler {
             }
         }
         return null;
+    }
+
+    private static Cache newCache(Cache2Conf conf, Cache2 cache2) {
+        return new Cache() {
+            @Override
+            public String table() {
+                // 自定义数据源
+                if (BoolUtil.notEmpty(cache2.table())) {
+                    return cache2.table();
+                }
+                // 默认采用配置
+                AssertUtil.notEmpty(conf.getTable(), "tools.cache2.table is empty !");
+                return conf.getTable();
+            }
+
+            @Override
+            public String where() {
+                // 自定义数据源
+                if (BoolUtil.notEmpty(cache2.value())) {
+                    return cache2.value();
+                }
+                // 默认采用配置
+                AssertUtil.notEmpty(conf.getWhere(), "tools.cache2.where is empty !");
+                return conf.getWhere();
+            }
+
+            @Override
+            public String key() {
+                AssertUtil.notEmpty(conf.getKey(), "tools.cache2.key is empty !");
+                return conf.getKey();
+            }
+
+            @Override
+            public String get() {
+                AssertUtil.notEmpty(conf.getGet(), "tools.cache2.get is empty !");
+                return conf.getGet();
+            }
+
+            @Override
+            public String put() {
+                AssertUtil.notEmpty(conf.getPut(), "tools.cache2.put is empty !");
+                return conf.getPut();
+            }
+
+            @Override
+            public DataType dataType() {
+                return conf.getDataType();
+            }
+
+            @Override
+            public boolean enable() {
+                return conf.getEnable();
+            }
+
+            @Override
+            public long expire() {
+                return conf.getExpire();
+            }
+
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return Cache.class;
+            }
+        };
     }
 }

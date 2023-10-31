@@ -1,13 +1,15 @@
 package cn.gmlee.tools.cache2.kit;
 
 import cn.gmlee.tools.base.mod.Kv;
+import cn.gmlee.tools.base.util.BigDecimalUtil;
 import cn.gmlee.tools.cache2.anno.Cache;
-import cn.gmlee.tools.cache2.enums.DataType;
+import cn.gmlee.tools.cache2.config.Cache2Conf;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -39,7 +41,7 @@ public class StatKit {
         /**
          * 命中率.
          */
-        public double rate;
+        public BigDecimal rate;
         /**
          * 平均耗时.
          */
@@ -49,24 +51,28 @@ public class StatKit {
     /**
      * 命中率统计.
      *
+     * @param conf
      * @param cache       the cache
      * @param result      the result
      * @param field       the field
-     * @param kv         the kv
+     * @param kv          the kv
      * @param elapsedTime the elapsed time
      */
-    public static void hitRate(Cache cache, Object result, Field field, Kv<Boolean, Object> kv, long elapsedTime) {
-        log.info("----------------------------------------------------------------------------------------------------");
+    public static void hitRate(Cache2Conf conf, Cache cache, Object result, Field field, Kv<Boolean, Object> kv, long elapsedTime) {
         String key = CacheKit.generateKey(cache, result, field);
         Hit hit = count(key, kv.getKey(), elapsedTime);
-        log.info("缓存表名：{}", cache.table());
-        log.info("填充属性：{}", field.getName());
-        log.info("填充内容：{}", kv.getVal());
-        log.info("当前耗时：{}(ms)", elapsedTime);
-        log.info("平均耗时：{}(ms)", hit.elapsedTime);
-        log.info("总访问次：{}", hit.total);
-        log.info("命中次数：{}", hit.hit);
-        log.info("命中概率：{}%", hit.rate * 100);
+        if ((conf == null) || Boolean.TRUE.equals(conf.isLog())) {
+            log.info("--------------------------------------------------------------------------------------------------");
+            log.info("缓存表名：{}", cache.table());
+            log.info("填充属性：{}", field.getName());
+            log.info("填充内容：{}", kv.getVal());
+            log.info("当前命中：{}", kv.getKey());
+            log.info("当前耗时：{}(ms)", elapsedTime);
+            log.info("平均耗时：{}(ms)", hit.elapsedTime);
+            log.info("总访问次：{}", hit.total);
+            log.info("命中次数：{}", hit.hit);
+            log.info("命中概率：{}%", BigDecimalUtil.multiply(hit.rate, BigDecimalUtil.ONE_HUNDRED).setScale(BigDecimalUtil.SCALE_2));
+        }
     }
 
     private static Hit count(String key, Boolean val, long elapsedTime) {
@@ -85,8 +91,14 @@ public class StatKit {
             hit.miss++;
         }
         hit.elapsedTime = (hit.elapsedTime + elapsedTime) / 2;
-        hit.rate = hit.hit / (double) hit.total;
+        hit.rate = rate(hit);
         return hit;
+    }
+
+    private static BigDecimal rate(Hit hit) {
+        BigDecimal current = new BigDecimal(hit.hit);
+        BigDecimal total = new BigDecimal(hit.total);
+        return current.divide(total, BigDecimalUtil.SCALE_4, RoundingMode.DOWN);
     }
 
 }
