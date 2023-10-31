@@ -2,17 +2,14 @@ package cn.gmlee.tools.cache2.handler;
 
 import cn.gmlee.tools.base.mod.Kv;
 import cn.gmlee.tools.base.util.BoolUtil;
-import cn.gmlee.tools.base.util.ExceptionUtil;
-import cn.gmlee.tools.base.util.QuickUtil;
+import cn.gmlee.tools.base.util.ClassUtil;
 import cn.gmlee.tools.cache2.adapter.FieldAdapter;
 import cn.gmlee.tools.cache2.anno.Cache;
 import cn.gmlee.tools.cache2.kit.StatKit;
 import cn.gmlee.tools.cache2.server.cache.CacheServer;
 import cn.gmlee.tools.cache2.server.ds.DsServer;
-import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.Resource;
 import java.lang.reflect.Field;
@@ -55,33 +52,26 @@ public class CacheHandler {
                 continue;
             }
             long start = System.currentTimeMillis();
-            Object val = loading(result, field, cache);
+            Kv<Boolean, Object> kv = loading(result, field, cache);
             long end = System.currentTimeMillis();
-            StatKit.hitRate(cache, result, field, val, end - start);
+            StatKit.hitRate(cache, result, field, kv, end - start);
         }
     }
 
     /**
      * 缓存字段填充逻辑.
      *
-     * @param result
-     * @param field
-     * @param cache
-     * @return
+     * @param result the result
+     * @param field  the field
+     * @param cache  the cache
+     * @return object
      */
-    public Object loading(Object result, Field field, Cache cache) {
-        Object value = getValue(result, field, cache);
-        if (value == null) {
-            return null;
+    public Kv<Boolean, Object> loading(Object result, Field field, Cache cache) {
+        Kv<Boolean, Object> kv = getValue(result, field, cache);
+        if (kv.getVal() != null) {
+            ClassUtil.setValue(result, field, kv.getVal());
         }
-        boolean old = field.isAccessible();
-        QuickUtil.isFalse(old, () -> field.setAccessible(true));
-        try {
-            ExceptionUtil.suppress(() -> field.set(result, value));
-            return value;
-        } finally {
-            QuickUtil.isFalse(old, () -> field.setAccessible(old));
-        }
+        return kv;
     }
 
     /**
@@ -92,18 +82,23 @@ public class CacheHandler {
      * @param cache
      * @return
      */
-    private Object getValue(Object result, Field field, Cache cache) {
+    private Kv<Boolean, Object> getValue(Object result, Field field, Cache cache) {
+        Kv<Boolean, Object> hit = new Kv<>(true, null);
         // 从缓存获取
         List<Map<String, Object>> list = cacheServer.get(cache, result, field);
-        if (list == null) {
+        if (BoolUtil.isEmpty(list)) {
+            // 记录命中率
+            hit.setKey(false);
             // 缓存为空，则从数据源获取
             list = get(result, field, cache);
             // 缓存开启条件
-            if (list != null && cache.enable() && cache.expire() != 0L) {
+            if (BoolUtil.notEmpty(list) && cache.enable() && cache.expire() != 0L) {
                 cacheServer.save(cache, result, field, list);
             }
         }
-        return adapter(cache, result, field, list);
+        Object val = adapter(cache, result, field, list);
+        hit.setVal(val);
+        return hit;
     }
 
     /**

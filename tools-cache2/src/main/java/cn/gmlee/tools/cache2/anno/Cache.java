@@ -11,7 +11,7 @@ public @interface Cache {
     /**
      * 源数据.
      * <p>
-     *     也可能是API(GET)
+     * 也可能是API(GET)
      * </p>
      *
      * @return 数据源
@@ -20,8 +20,9 @@ public @interface Cache {
 
     /**
      * 外键.
+     *
      * <p>
-     *     也可能是AIP的关联值
+     * key值与put值相等时, 匹配成功 (使用get值填充修饰字段)
      * </p>
      *
      * @return 外键
@@ -44,7 +45,7 @@ public @interface Cache {
      * 上传字段.
      *
      * <p>
-     * 提供什么字段进行匹配缓存
+     * key值与put值相等时, 匹配成功 (使用get值填充修饰字段)
      * </p>
      *
      * @return 上传字段

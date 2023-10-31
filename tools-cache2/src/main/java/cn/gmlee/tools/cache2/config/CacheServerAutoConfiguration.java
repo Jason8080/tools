@@ -18,6 +18,14 @@ public class CacheServerAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(CacheServer.class)
+    public CacheServer memoryCacheServer() {
+        MemoryCacheServer memoryCacheServer = new MemoryCacheServer();
+        memoryCacheServer.setMemory(new HashMap());
+        return memoryCacheServer;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(CacheServer.class)
     @ConditionalOnClass(name = "org.springframework.data.redis.core.RedisTemplate")
     public CacheServer redisCacheServer(RedisTemplate redisTemplate) {
         RedisCacheServer redisCacheServer = new RedisCacheServer();
@@ -26,11 +34,4 @@ public class CacheServerAutoConfiguration {
         return redisCacheServer;
     }
 
-    @Bean
-    @ConditionalOnMissingBean(CacheServer.class)
-    public CacheServer memoryCacheServer() {
-        MemoryCacheServer memoryCacheServer = new MemoryCacheServer();
-        memoryCacheServer.setMemory(new HashMap());
-        return memoryCacheServer;
-    }
 }

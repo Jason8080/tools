@@ -8,6 +8,7 @@ import cn.gmlee.tools.cache2.enums.DataType;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
 
 /**
  * The type Cache kit.
@@ -23,12 +24,15 @@ public class CacheKit {
      * @return the string
      */
     public static String generateKey(Cache cache, Object result, Field field) {
+        Map<String, Object> obj = ClassUtil.generateMapUseCache(result);
         String table = cache.table();
         String key = cache.key();
+        String put = cache.put();
+        String val = String.format("%s", obj.get(put));
         DataType dataType = cache.dataType();
-        String where = ElKit.parse(cache.where(), ClassUtil.generateMapUseCache(result));
+        String where = ElKit.parse(cache.where(), obj);
         long expire = cache.expire();
-        return Md5Util.encode(table, key, dataType.name(), where, String.valueOf(expire));
+        return Md5Util.encode(table, key, put, val, where, dataType.name(), String.valueOf(expire));
     }
 
     /**

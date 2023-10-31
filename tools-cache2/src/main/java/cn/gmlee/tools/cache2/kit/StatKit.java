@@ -1,9 +1,12 @@
 package cn.gmlee.tools.cache2.kit;
 
+import cn.gmlee.tools.base.mod.Kv;
 import cn.gmlee.tools.cache2.anno.Cache;
+import cn.gmlee.tools.cache2.enums.DataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
@@ -49,16 +52,16 @@ public class StatKit {
      * @param cache       the cache
      * @param result      the result
      * @param field       the field
-     * @param val         the val
+     * @param kv         the kv
      * @param elapsedTime the elapsed time
      */
-    public static void hitRate(Cache cache, Object result, Field field, Object val, long elapsedTime) {
+    public static void hitRate(Cache cache, Object result, Field field, Kv<Boolean, Object> kv, long elapsedTime) {
         log.info("----------------------------------------------------------------------------------------------------");
         String key = CacheKit.generateKey(cache, result, field);
-        Hit hit = count(key, val, elapsedTime);
+        Hit hit = count(key, kv.getKey(), elapsedTime);
         log.info("缓存表名：{}", cache.table());
         log.info("填充属性：{}", field.getName());
-        log.info("填充内容：{}", val);
+        log.info("填充内容：{}", kv.getVal());
         log.info("当前耗时：{}(ms)", elapsedTime);
         log.info("平均耗时：{}(ms)", hit.elapsedTime);
         log.info("总访问次：{}", hit.total);
@@ -66,7 +69,7 @@ public class StatKit {
         log.info("命中概率：{}%", hit.rate * 100);
     }
 
-    private static Hit count(String key, Object val, long elapsedTime) {
+    private static Hit count(String key, Boolean val, long elapsedTime) {
         Hit hit = map.get(key);
         if (hit == null) {
             hit = new Hit();
@@ -74,7 +77,7 @@ public class StatKit {
             map.put(key, hit);
         }
         hit.total++;
-        if (val != null) {
+        if (Boolean.TRUE.equals(val)) {
             // 命中次数+1
             hit.hit++;
         } else {
