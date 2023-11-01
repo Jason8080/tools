@@ -3,6 +3,8 @@ package cn.gmlee.tools.cache2.server.cache;
 import cn.gmlee.tools.cache2.kit.CacheKit;
 import cn.gmlee.tools.cache2.anno.Cache;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 
 import java.lang.reflect.Field;
@@ -13,8 +15,10 @@ import java.util.concurrent.TimeUnit;
 @Data
 public class RedisCacheServer extends AbstractCacheServer {
 
+    @Value("${tools.cache2.key:TOOLS:CACHE2:KEY_}")
     private String cacheKey;
 
+    @Autowired
     private RedisTemplate<String, List> redis;
 
     @Override
