@@ -61,12 +61,14 @@ public class CacheAspect {
             long start = System.currentTimeMillis();
             List<Kv<Field, Object>> fields = getFields(conf, result, conf != null ? conf.getDepth() : Int.THREE);
             long end = System.currentTimeMillis();
-            log.debug("收集对象字段耗时：{}(ms)", end - start);
+            long elapsedTime1 = end - start;
+            QuickUtil.isTrue(conf.isLog(), () -> log.info("收集对象字段耗时：{}(ms)", elapsedTime1));
             // -------------------------------------------------------------------------------------------------------------
             start = System.currentTimeMillis();
             cacheHandler.handler(conf, fields);
             end = System.currentTimeMillis();
-            log.debug("缓存字段填充耗时：{}(ms)", end - start);
+            long elapsedTime2 = end - start;
+            QuickUtil.isTrue(conf.isLog(), () -> log.info("缓存字段填充耗时：{}(ms)", elapsedTime2));
             // -------------------------------------------------------------------------------------------------------------
 
         } catch (Throwable e) {
