@@ -21,7 +21,7 @@ public @interface Cache2 {
      *
      * @return 数据源 string
      */
-    String table() default "";
+    String target() default "";
 
     /**
      * 上传字段.

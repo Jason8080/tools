@@ -66,7 +66,7 @@ public class OrderVo extends Order {
     /**
      * 案例: 字段提取
      * ----------------------------------
-     * table*: 缓存主题（表名/索引名/主题等）
+     * target*: 缓存主题（表名/索引名/主题等）
      * key*: 外键名称
      * put*: 上传已知字段
      * ----------------------------------
@@ -77,7 +77,7 @@ public class OrderVo extends Order {
      * enable: 是否启用(默认true)
      */
     @Cache(
-            table = "t_dict",
+            target = "t_dict",
             key = "dict_code",
             dataType = DataType.MYSQL,
             put = "status",
@@ -91,13 +91,13 @@ public class OrderVo extends Order {
     /**
      * 案例: 一对一
      */
-    @Cache(table = "t_dict", key = "dict_code", put = "status", where = "dict_type_code = 'OD_STATUS' and delete_tag = false")
+    @Cache(target = "t_dict", key = "dict_code", put = "status", where = "dict_type_code = 'OD_STATUS' and delete_tag = false")
     private Dict dict;
 
     /**
      * 案例: 一对多
      */
-    @Cache(table = "t_dict", key = "dict_code", put = "status", where = "dict_type_code = 'OD_STATUS' and delete_tag = false", expire = 0)
+    @Cache(target = "t_dict", key = "dict_code", put = "status", where = "dict_type_code = 'OD_STATUS' and delete_tag = false", expire = 0)
     private List<Dict> dictList;
 
 }

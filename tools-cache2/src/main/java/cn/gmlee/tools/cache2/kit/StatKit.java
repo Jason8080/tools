@@ -63,7 +63,7 @@ public class StatKit {
         Hit hit = count(key, kv.getKey(), elapsedTime);
         if ((conf == null) || Boolean.TRUE.equals(conf.isLog())) {
             log.info("--------------------------------------------------------------------------------------------------");
-            log.info("缓存表名：{}", cache.table());
+            log.info("缓存主题：{}", cache.target());
             log.info("填充属性：{}", field.getName());
             log.info("填充内容：{}", kv.getVal());
             log.info("当前命中：{}", kv.getKey());

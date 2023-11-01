@@ -25,14 +25,14 @@ public class CacheKit {
      */
     public static String generateKey(Cache cache, Object result, Field field) {
         Map<String, Object> obj = ClassUtil.generateMapUseCache(result);
-        String table = cache.table();
+        String target = cache.target();
         String key = cache.key();
         String put = cache.put();
         String val = String.format("%s", obj.get(put));
         DataType dataType = cache.dataType();
         String where = ElKit.parse(cache.where(), obj);
         long expire = cache.expire();
-        return Md5Util.encode(table, key, put, val, where, dataType.name(), String.valueOf(expire));
+        return Md5Util.encode(target, key, put, val, where, dataType.name(), String.valueOf(expire));
     }
 
     /**
@@ -45,7 +45,7 @@ public class CacheKit {
      * @return the string
      */
     public static String toString(Cache cache, Object result, Field field, List list) {
-        String table = cache.table();
+        String target = cache.target();
         String key = cache.key();
         String get = cache.get();
         DataType dataType = cache.dataType();
@@ -53,7 +53,7 @@ public class CacheKit {
         String where = cache.where();
         StringBuilder sb = new StringBuilder();
         sb.append("缓存来源: ").append(dataType.name()).append("\r\n");
-        sb.append("缓存主体: ").append(table).append("\r\n");
+        sb.append("缓存主体: ").append(target).append("\r\n");
         sb.append("缓存外键: ").append(key).append("\r\n");
         sb.append("上传字段: ").append(put).append("\r\n");
         sb.append("下载字段: ").append(get).append("\r\n");

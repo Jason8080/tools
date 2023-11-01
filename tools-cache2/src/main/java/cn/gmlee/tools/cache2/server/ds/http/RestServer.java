@@ -34,7 +34,7 @@ public class RestServer extends AbstractDsServer implements HttpServer {
         Map<String, Object> map = ClassUtil.generateMapUseCache(result);
         String where = ElKit.parse(cache.where(), map);
         Map<String, Object> params = WebUtil.getParams(where);
-        String url = WebUtil.addParam(cache.table(), params);
+        String url = WebUtil.addParam(cache.target(), params);
         // 设置请求头部
         Map<String, String> headers = WebUtil.getCurrentHeaderMap();
         Kv<String, String>[] kvs = KvBuilder.array(headers);

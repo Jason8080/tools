@@ -19,7 +19,7 @@ public @interface Cache {
      *
      * @return 数据源 string
      */
-    String table();
+    String target();
 
     /**
      * 外键.

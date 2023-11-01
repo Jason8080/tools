@@ -34,6 +34,6 @@ public class SqlServer extends AbstractDsServer implements DbServer {
         // 解析查询条件
         Map<String, Object> map = ClassUtil.generateMapUseCache(result);
         String where = ElKit.parse(cache.where(), map);
-        return sqlMapper.list(cache.table(), where);
+        return sqlMapper.list(cache.target(), where);
     }
 }

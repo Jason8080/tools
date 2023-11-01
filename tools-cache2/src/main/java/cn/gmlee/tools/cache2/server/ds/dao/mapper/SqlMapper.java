@@ -17,7 +17,7 @@ public interface SqlMapper {
      */
     @Select(
             "<script>" +
-                    " SELECT * FROM ${table} " +
+                    " SELECT * FROM ${target} " +
                     " <where> " +
                         " <if test=\"where!=null\"> " +
                             "${where}" +
@@ -25,5 +25,5 @@ public interface SqlMapper {
                     " </where> " +
             "</script>"
     )
-    List<Map<String, Object>> list(@Param("table") String table, @Param("where") String where);
+    List<Map<String, Object>> list(@Param("target") String target, @Param("where") String where);
 }

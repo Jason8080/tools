@@ -19,7 +19,7 @@ public class Cache2Properties implements Cache2Conf {
     public Boolean enable = true;
     public Long expire = 24 * 3600L;
     // ------------------------------------
-    public String table;
+    public String target;
     public String key;
     public String get;
     public String put;

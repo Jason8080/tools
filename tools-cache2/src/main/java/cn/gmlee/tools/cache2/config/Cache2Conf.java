@@ -16,7 +16,7 @@ public interface Cache2Conf extends Serializable {
     Boolean getEnable();
     Long getExpire();
     // ------------------------------------
-    String getTable();
+    String getTarget();
     String getKey();
     String getGet();
     String getWhere();

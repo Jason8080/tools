@@ -11,7 +11,6 @@ import cn.gmlee.tools.cache2.anno.Cache;
 import cn.gmlee.tools.cache2.enums.DataType;
 import cn.gmlee.tools.cache2.kit.ElKit;
 import cn.gmlee.tools.cache2.server.ds.AbstractDsServer;
-import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Data;
 
 import java.lang.reflect.Field;
@@ -35,7 +34,7 @@ public class ApiServer extends AbstractDsServer implements HttpServer {
         Map<String, Object> map = ClassUtil.generateMapUseCache(result);
         String where = ElKit.parse(cache.where(), map);
         Map<String, Object> params = WebUtil.getParams(where);
-        String url = WebUtil.addParam(cache.table(), params);
+        String url = WebUtil.addParam(cache.target(), params);
         // 设置请求头部
         Map<String, String> headers = WebUtil.getCurrentHeaderMap();
         Kv<String, String>[] kvs = KvBuilder.array(headers);

@@ -155,15 +155,14 @@ public class CacheHandler {
 
     private static Cache newCache(Cache2Conf conf, Cache2 cache2, Field field) {
         return new Cache() {
-            @Override
-            public String table() {
+            public String target() {
                 // 自定义数据源
-                if (BoolUtil.notEmpty(cache2.table())) {
-                    return cache2.table();
+                if (BoolUtil.notEmpty(cache2.target())) {
+                    return cache2.target();
                 }
                 // 默认采用配置
-                AssertUtil.notEmpty(conf.getTable(), "tools.cache2.table is empty !");
-                return conf.getTable();
+                AssertUtil.notEmpty(conf.getTarget(), "tools.cache2.target is empty !");
+                return conf.getTarget();
             }
 
             @Override
