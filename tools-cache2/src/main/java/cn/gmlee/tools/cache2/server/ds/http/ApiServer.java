@@ -1,4 +1,4 @@
-package cn.gmlee.tools.cache2.server.ds.mysql;
+package cn.gmlee.tools.cache2.server.ds.http;
 
 import cn.gmlee.tools.base.builder.KvBuilder;
 import cn.gmlee.tools.base.mod.HttpResult;
@@ -22,7 +22,7 @@ import java.util.Map;
  * 字典缓存.
  */
 @Data
-public class ApiServer extends AbstractDsServer {
+public class ApiServer extends AbstractDsServer implements HttpServer {
 
     @Override
     public boolean support(Cache cache) {

@@ -18,7 +18,7 @@ import java.util.Map;
  * 字典缓存.
  */
 @Data
-public class SqlServer extends AbstractDsServer {
+public class SqlServer extends AbstractDsServer implements DbServer {
 
     @Lazy
     @Autowired
