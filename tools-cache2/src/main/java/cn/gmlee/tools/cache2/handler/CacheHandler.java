@@ -97,13 +97,13 @@ public class CacheHandler {
         Kv<Boolean, Object> hit = new Kv<>(true, null);
         // 从缓存获取
         List<Map<String, Object>> list = cacheServer.get(cache, result, field);
-        if (BoolUtil.isEmpty(list)) {
+        if (list == null) {
             // 记录命中率
             hit.setKey(false);
             // 缓存为空，则从数据源获取
             list = get(result, field, cache);
             // 缓存开启条件
-            if (BoolUtil.notEmpty(list) && cache.enable() && cache.expire() != 0L) {
+            if (list != null && cache.enable() && cache.expire() != 0L) {
                 cacheServer.save(cache, result, field, list);
             }
         }
