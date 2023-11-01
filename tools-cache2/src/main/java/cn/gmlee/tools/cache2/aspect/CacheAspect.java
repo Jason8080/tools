@@ -55,6 +55,12 @@ public class CacheAspect {
      */
     @AfterReturning(value = "pointcut()", returning = "result")
     public void processor(JoinPoint point, Object result) {
+
+        // 全局关闭
+        if(Boolean.FALSE.equals(conf.getEnable())){
+            return;
+        }
+
         try {
 
             // -------------------------------------------------------------------------------------------------------------

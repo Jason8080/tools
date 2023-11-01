@@ -209,7 +209,10 @@ public class CacheHandler {
 
             @Override
             public boolean enable() {
-                return conf.getEnable();
+                if (Boolean.FALSE.equals(conf.getEnable())){
+                    return false;
+                }
+                return cache2.enable();
             }
 
             @Override

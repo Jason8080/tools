@@ -43,4 +43,11 @@ public @interface Cache2 {
      * @return string
      */
     String value() default "";
+
+    /**
+     * 是否开启缓存
+     *
+     * @return boolean
+     */
+    boolean enable() default true;
 }
