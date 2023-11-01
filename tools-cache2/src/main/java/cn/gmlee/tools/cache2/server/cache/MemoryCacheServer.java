@@ -1,18 +1,19 @@
 package cn.gmlee.tools.cache2.server.cache;
 
 import cn.gmlee.tools.base.util.TimeUtil;
-import cn.gmlee.tools.cache2.kit.CacheKit;
 import cn.gmlee.tools.cache2.anno.Cache;
+import cn.gmlee.tools.cache2.kit.CacheKit;
 import lombok.Data;
 
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Data
 public class MemoryCacheServer extends AbstractCacheServer {
 
-    private Map<String, Expire<List>> memory;
+    private Map<String, Expire<List>> memory = new ConcurrentHashMap<>();
 
     @Override
     public List<Map<String, Object>> get(Cache cache, Object result, Field field) {

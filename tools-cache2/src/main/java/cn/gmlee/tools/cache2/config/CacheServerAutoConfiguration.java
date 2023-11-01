@@ -7,16 +7,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 
-import java.util.HashMap;
-
 public class CacheServerAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(CacheServer.class)
     public CacheServer memoryCacheServer() {
-        MemoryCacheServer memoryCacheServer = new MemoryCacheServer();
-        memoryCacheServer.setMemory(new HashMap());
-        return memoryCacheServer;
+        return new MemoryCacheServer();
     }
 
     @Bean
