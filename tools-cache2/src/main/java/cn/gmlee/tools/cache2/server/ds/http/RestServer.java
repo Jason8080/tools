@@ -12,6 +12,8 @@ import cn.gmlee.tools.cache2.enums.DataType;
 import cn.gmlee.tools.cache2.kit.ElKit;
 import cn.gmlee.tools.cache2.server.ds.AbstractDsServer;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.client.RestTemplate;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -22,6 +24,9 @@ import java.util.Map;
  */
 @Data
 public class RestServer extends AbstractDsServer implements HttpServer {
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     @Override
     public boolean support(Cache cache) {
@@ -37,9 +42,8 @@ public class RestServer extends AbstractDsServer implements HttpServer {
         String url = WebUtil.addParam(cache.target(), params);
         // 设置请求头部
         Map<String, String> headers = WebUtil.getCurrentHeaderMap();
-        Kv<String, String>[] kvs = KvBuilder.array(headers);
-        HttpResult httpResult = HttpUtil.get(url, kvs);
-        JsonResult jsonResult = httpResult.jsonResponseBody2bean(JsonResult.class);
+        restTemplate.headForHeaders(url, headers);
+        JsonResult jsonResult = restTemplate.getForObject(url, JsonResult.class);
         return (List<Map<String, Object>>) jsonResult.getData();
     }
 }
