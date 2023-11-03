@@ -40,7 +40,7 @@ public interface VariableLockServer {
      * @return the key
      */
     default String getKey(VariableLock vl, String... values) {
-        AssertUtil.eq(vl.value().length, values.length, String.format("参数量不符合预期"));
+        AssertUtil.eq(vl.value().length, values.length, "参数量不符合预期");
         StringBuilder sb = new StringBuilder(getKeyPrefix());
         for (int i = 0; i < vl.value().length; i++) {
             sb.append(vl.value()[i]);

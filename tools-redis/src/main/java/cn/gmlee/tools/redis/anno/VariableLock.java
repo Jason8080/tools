@@ -60,6 +60,13 @@ public @interface VariableLock {
     boolean spin() default false;
 
     /**
+     * 是否自动解锁.
+     *
+     * @return the boolean
+     */
+    boolean unlock() default true;
+
+    /**
      * 超时时间.
      * <p>
      * 实际上每次接口完成后会自动释放锁, 必须大于0否则无法上锁

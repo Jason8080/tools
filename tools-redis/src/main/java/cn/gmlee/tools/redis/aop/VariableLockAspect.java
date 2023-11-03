@@ -42,14 +42,16 @@ public class VariableLockAspect {
         VariableLock vl = getVariableLock(point);
         String[] names = vl.value();
         List<String> sb = new ArrayList<>(names.length);
-        for (int i = 0; i< names.length; i++){
+        for (int i = 0; i < names.length; i++) {
             getValue(vl, point, names[i], sb);
         }
         if (sb.isEmpty()) {
             return;
         }
-        // 请求加锁
-        VALUE_LOCAL.set(sb);
+        if (vl.unlock()) {
+            // 请求加锁
+            VALUE_LOCAL.set(sb);
+        }
         // 变量加锁
         variableLockServer.lock(vl, sb.toArray(new String[0]));
     }
@@ -94,7 +96,7 @@ public class VariableLockAspect {
             }
         }
         if (BoolUtil.containOne(vl.origin(), VariableLock.Origin.QUERY, VariableLock.Origin.FORM)) {
-            String parameter = request!=null ? request.getParameter(name) : null;
+            String parameter = request != null ? request.getParameter(name) : null;
             if (!BoolUtil.isEmpty(parameter)) {
                 sb.add(parameter);
                 return;
@@ -170,13 +172,13 @@ public class VariableLockAspect {
     @After("pointcut()")
     public void after(JoinPoint point) {
         List<String> sb = VALUE_LOCAL.get();
-        if (BoolUtil.isEmpty(sb)) {
-            return;
-        }
         // 请求解锁
         VALUE_LOCAL.remove();
-        // 变量解锁
         VariableLock vl = getVariableLock(point);
+        if (!vl.unlock() || BoolUtil.isEmpty(sb)) {
+            return;
+        }
+        // 变量解锁
         variableLockServer.unlock(vl, sb.toArray(new String[0]));
     }
 
