@@ -20,4 +20,12 @@ public interface CacheServer extends Ds {
      * @param list   the list
      */
     void save(Cache cache, Object result, Field field, List<Map<String, Object>> list);
+
+    /**
+     * 清除.
+     *
+     * @param keys the keys
+     */
+    void clear(String... keys);
+
 }

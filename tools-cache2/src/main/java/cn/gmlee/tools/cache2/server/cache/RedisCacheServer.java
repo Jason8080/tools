@@ -1,7 +1,8 @@
 package cn.gmlee.tools.cache2.server.cache;
 
-import cn.gmlee.tools.cache2.kit.CacheKit;
+import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.cache2.anno.Cache;
+import cn.gmlee.tools.cache2.kit.CacheKit;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,10 +31,20 @@ public class RedisCacheServer extends AbstractCacheServer {
     @Override
     public void save(Cache cache, Object result, Field field, List<Map<String, Object>> list) {
         String key = CacheKit.generateKey(cache, result, field);
-        if(cache.expire() > 0) {
+        if (cache.expire() > 0) {
             redis.opsForValue().set(getKey(key), list, cache.expire(), TimeUnit.SECONDS);
-        }else {
+        } else {
             redis.opsForValue().set(getKey(key), list);
+        }
+    }
+
+    @Override
+    public void clear(String... keys) {
+        if (BoolUtil.isEmpty(keys)) {
+            return;
+        }
+        for (String key : keys) {
+            redis.delete(getKey(key));
         }
     }
 

@@ -1,5 +1,6 @@
 package cn.gmlee.tools.cache2.server.cache;
 
+import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.TimeUtil;
 import cn.gmlee.tools.cache2.anno.Cache;
 import cn.gmlee.tools.cache2.kit.CacheKit;
@@ -22,7 +23,7 @@ public class MemoryCacheServer extends AbstractCacheServer {
         if (expire == null) {
             return null;
         }
-        if(cache.expire() > 0 && TimeUtil.getCurrentTimestampSecond() > expire.getExpire()) {
+        if (cache.expire() > 0 && TimeUtil.getCurrentTimestampSecond() > expire.getExpire()) {
             memory.remove(key);
             return null;
         }
@@ -33,6 +34,16 @@ public class MemoryCacheServer extends AbstractCacheServer {
     public void save(Cache cache, Object result, Field field, List<Map<String, Object>> list) {
         String key = CacheKit.generateKey(cache, result, field);
         memory.put(key, new Expire(list, cache.expire() + TimeUtil.getCurrentTimestampSecond()));
+    }
+
+    @Override
+    public void clear(String... keys) {
+        if (BoolUtil.isEmpty(keys)) {
+            return;
+        }
+        for (String key : keys) {
+            memory.remove(key);
+        }
     }
 
 
