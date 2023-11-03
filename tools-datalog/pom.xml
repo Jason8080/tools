@@ -5,7 +5,7 @@
     <parent>
         <artifactId>tools</artifactId>
         <groupId>cn.gmlee.tools</groupId>
-        <version>5.4.5</version>
+        <version>5.4.6</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -18,7 +18,7 @@
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-mybatis</artifactId>
-            <version>5.4.5</version>
+            <version>5.4.6</version>
             <optional>true</optional>
         </dependency>
         <!-- ============================================================ -->

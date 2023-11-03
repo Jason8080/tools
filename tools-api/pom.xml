@@ -5,12 +5,12 @@
     <parent>
         <artifactId>tools</artifactId>
         <groupId>cn.gmlee.tools</groupId>
-        <version>5.4.5</version>
+        <version>5.4.6</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>tools-api</artifactId>
-    <version>5.4.5</version>
+    <version>5.4.6</version>
 
     <packaging>jar</packaging>
 
@@ -18,12 +18,12 @@
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-base</artifactId>
-            <version>5.4.5</version>
+            <version>5.4.6</version>
         </dependency>
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-redis</artifactId>
-            <version>5.4.5</version>
+            <version>5.4.6</version>
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
