@@ -175,7 +175,16 @@ public class VariableLockAspect {
         // 请求解锁
         VALUE_LOCAL.remove();
         VariableLock vl = getVariableLock(point);
-        if (!vl.unlock() || BoolUtil.isEmpty(sb)) {
+        if(!vl.lock()){
+            // 未加锁不解锁
+            return;
+        }
+        if(!vl.unlock()){
+            // 不需要解锁
+            return;
+        }
+        if (BoolUtil.isEmpty(sb)) {
+            // 没办法解锁
             return;
         }
         // 变量解锁

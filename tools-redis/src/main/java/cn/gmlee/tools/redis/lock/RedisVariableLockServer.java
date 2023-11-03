@@ -2,6 +2,7 @@ package cn.gmlee.tools.redis.lock;
 
 import cn.gmlee.tools.base.util.AssertUtil;
 import cn.gmlee.tools.redis.anno.VariableLock;
+import cn.gmlee.tools.redis.util.RedisClient;
 import cn.gmlee.tools.redis.util.RedisLock;
 import lombok.Getter;
 import org.slf4j.Logger;
@@ -23,9 +24,18 @@ public class RedisVariableLockServer implements VariableLockServer {
     @Autowired
     private RedisLock redisLock;
 
+    @Autowired
+    private RedisClient<String, String> redisClient;
+
 
     public void lock(VariableLock vl, String... values) {
         String key = getKey(vl, values);
+        if(!vl.lock()){
+            // 只需要检查锁
+            boolean check = redisClient.contain(key, getVal(values));
+            AssertUtil.isFalse(check, vl.message());
+            return;
+        }
         // 加锁是否成功
         boolean success = redisLock.lock(key, getVal(values), vl.timeout(), vl.spin());
         log.info("【变量锁】加锁完成: {} {} {}", success, key, getVal(values));

@@ -31,6 +31,12 @@ public class MemoryVariableLockServer implements VariableLockServer {
 
     public void lock(VariableLock vl, String... values) {
         String key = getKey(vl, values);
+        if(!vl.lock()){
+            // 只需要检查锁
+            boolean check = memoryMap.containsKey(key) && memoryMap.containsValue(getVal(values));
+            AssertUtil.isFalse(check, vl.message());
+            return;
+        }
         // 最多自旋10000次 ≈ 30s
         AtomicInteger count = new AtomicInteger(10000);
         while (vl.spin() && count.decrementAndGet() > 0){

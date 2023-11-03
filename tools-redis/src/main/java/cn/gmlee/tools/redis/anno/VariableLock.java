@@ -60,6 +60,13 @@ public @interface VariableLock {
     boolean spin() default false;
 
     /**
+     * 是否加锁.
+     *
+     * @return the boolean
+     */
+    boolean lock() default true;
+
+    /**
      * 是否自动解锁.
      *
      * @return the boolean
