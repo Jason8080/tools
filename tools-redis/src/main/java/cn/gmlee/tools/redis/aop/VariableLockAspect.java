@@ -180,6 +180,10 @@ public class VariableLockAspect {
     /**
      * 请求发生异常必解锁.
      *
+     * <p>
+     *     即不加锁也不检锁: 则异常也不解锁
+     * </p>
+     *
      * @param point the point
      */
     @AfterThrowing("pointcut()")
