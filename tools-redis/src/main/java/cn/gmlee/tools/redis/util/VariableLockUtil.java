@@ -124,6 +124,11 @@ public class VariableLockUtil {
             }
 
             @Override
+            public boolean check() {
+                return true;
+            }
+
+            @Override
             public boolean unlock() {
                 return true;
             }
