@@ -194,6 +194,7 @@ public class VariableLockAspect {
             return;
         }
         VariableLock vl = getVariableLock(point);
+        // 不加锁 || 不检锁 : 异常也不解锁
         if (!vl.lock() || !vl.check()) {
             // 未加锁不解锁
             return;

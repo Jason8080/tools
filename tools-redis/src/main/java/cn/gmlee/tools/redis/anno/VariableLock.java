@@ -67,14 +67,14 @@ public @interface VariableLock {
     boolean lock() default true;
 
     /**
-     * check boolean.
+     * 是否检锁.
      *
      * @return the boolean
      */
     boolean check() default true;
 
     /**
-     * 是否自动解锁.
+     * 是否解锁.
      *
      * @return the boolean
      */
