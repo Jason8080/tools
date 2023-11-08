@@ -7,10 +7,7 @@ import cn.gmlee.tools.redis.anno.VariableLock;
 import cn.gmlee.tools.redis.lock.VariableLockServer;
 import lombok.RequiredArgsConstructor;
 import org.aspectj.lang.JoinPoint;
-import org.aspectj.lang.annotation.After;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
-import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +19,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
+/**
+ * The type Variable lock aspect.
+ */
 @Aspect
 @RequiredArgsConstructor
 public class VariableLockAspect {
@@ -32,10 +32,18 @@ public class VariableLockAspect {
 
     private static final ThreadLocal<List<String>> VALUE_LOCAL = new InheritableThreadLocal();
 
+    /**
+     * Pointcut.
+     */
     @Pointcut("@annotation(cn.gmlee.tools.redis.anno.VariableLock)")
     public void pointcut() {
     }
 
+    /**
+     * 请求开始根据注解配置加锁.
+     *
+     * @param point the point
+     */
     @Before("pointcut()")
     public void before(JoinPoint point) {
         // 加锁数据
@@ -169,22 +177,49 @@ public class VariableLockAspect {
     }
 
 
+    /**
+     * 请求发生异常必解锁.
+     *
+     * @param point the point
+     */
+    @AfterThrowing("pointcut()")
+    public void afterThrowing(JoinPoint point) {
+        List<String> sb = VALUE_LOCAL.get();
+        if (BoolUtil.isEmpty(sb)) {
+            // 没办法解锁
+            return;
+        }
+        VariableLock vl = getVariableLock(point);
+        if (!vl.lock()) {
+            // 未加锁不解锁
+            return;
+        }
+        // 变量解锁
+        variableLockServer.unlock(vl, sb.toArray(new String[0]));
+    }
+
+
+    /**
+     * 请求完成根据注解配置解锁.
+     *
+     * @param point the point
+     */
     @After("pointcut()")
     public void after(JoinPoint point) {
         List<String> sb = VALUE_LOCAL.get();
         // 请求解锁
         VALUE_LOCAL.remove();
+        if (BoolUtil.isEmpty(sb)) {
+            // 没办法解锁
+            return;
+        }
         VariableLock vl = getVariableLock(point);
-        if(!vl.lock()){
+        if (!vl.lock()) {
             // 未加锁不解锁
             return;
         }
-        if(!vl.unlock()){
+        if (!vl.unlock()) {
             // 不需要解锁
-            return;
-        }
-        if (BoolUtil.isEmpty(sb)) {
-            // 没办法解锁
             return;
         }
         // 变量解锁
