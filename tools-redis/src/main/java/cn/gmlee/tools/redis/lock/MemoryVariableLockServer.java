@@ -33,7 +33,7 @@ public class MemoryVariableLockServer implements VariableLockServer {
         String key = getKey(vl, values);
         if(!vl.lock()){
             // 只需要检查锁
-            boolean check = memoryMap.containsKey(key) && memoryMap.containsValue(getVal(values));
+            boolean check = vl.check() && memoryMap.containsKey(key) && memoryMap.containsValue(getVal(values));
             AssertUtil.isFalse(check, vl.message());
             return;
         }
