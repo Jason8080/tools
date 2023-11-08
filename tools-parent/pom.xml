@@ -5,12 +5,12 @@
     <parent>
         <artifactId>tools</artifactId>
         <groupId>cn.gmlee.tools</groupId>
-        <version>5.4.8</version>
+        <version>5.4.9</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>tools-parent</artifactId>
-    <version>5.4.8</version>
+    <version>5.4.9</version>
 
     <packaging>pom</packaging>
 
@@ -20,143 +20,143 @@
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-parent</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-base</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-often</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-jackson</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-overstep</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-logback</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-cloud</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-mail</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-code</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
                 <scope>runtime</scope>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-es</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-redis</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-kv</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-request</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-ds</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-mybatis</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-cache2</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-mate</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-datalog</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-api</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-gray</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-webapp</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-swagger</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-tencent</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-alibaba</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-spring</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-seata</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-sharding</artifactId>
-                <version>5.4.8</version>
+                <version>5.4.9</version>
             </dependency>
             <!-- 航空母舰集装箱 >>> Framework -->
             <dependency>
