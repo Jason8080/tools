@@ -5,12 +5,12 @@
     <parent>
         <artifactId>tools-framework</artifactId>
         <groupId>cn.gmlee.tools</groupId>
-        <version>5.5.0</version>
+        <version>5.5.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>tools-spring</artifactId>
-    <version>5.5.0</version>
+    <version>5.5.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
@@ -18,7 +18,7 @@
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-base</artifactId>
-            <version>5.5.0</version>
+            <version>5.5.0-SNAPSHOT</version>
         </dependency>
         <!-- ============================================================ -->
         <dependency>
