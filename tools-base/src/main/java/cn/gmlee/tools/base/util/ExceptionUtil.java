@@ -95,9 +95,8 @@ public class ExceptionUtil {
      * @return the t
      */
     public static <T> T cast(Throwable e) {
-        if (e instanceof SkillException) {
-            SkillException ex = (SkillException) e;
-            throw ex;
+        if (e instanceof RuntimeException) {
+            throw (RuntimeException) e;
         }
         throw new SkillException(XCode.FAIL.code, e);
     }
