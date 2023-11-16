@@ -310,6 +310,9 @@
 
         <profile>
             <id>sonatype</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
             <distributionManagement>
                 <snapshotRepository>
                     <id>release</id>
