@@ -194,7 +194,7 @@
     <profiles>
         <profile>
             <!--注意,此id必须与setting.xml中指定的一致,不要自作聪明改它名字-->
-            <id>release</id>
+            <id>deploy</id>
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
@@ -287,7 +287,29 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
 
+        <profile>
+            <id>nexus</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <distributionManagement>
+                <repository>
+                    <id>releases</id>
+                    <name>Nexus Release Repository</name>
+                    <url>http://10.37.20.201:8081/nexus/content/repositories/releases/</url>
+                </repository>
+                <snapshotRepository>
+                    <id>snapshots</id>
+                    <name>Nexus Snapshot Repository</name>
+                    <url>http://10.37.20.201:8081/nexus/content/repositories/snapshots/</url>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
+
+        <profile>
+            <id>sonatype</id>
             <distributionManagement>
                 <snapshotRepository>
                     <id>release</id>
