@@ -85,15 +85,14 @@ public class RedisClient<K, V> {
         return ops.range(key, 0, -1);
     }
 
-
     /**
-     * 是否包含目标值.
+     * 是否在列表中.
      *
      * @param key the key
      * @param val the val
      * @return the boolean
      */
-    public boolean contain(K key, V val) {
+    public boolean inList(K key, V val) {
         List<V> list = list(key);
         return BoolUtil.containOne(list, val);
     }
@@ -231,6 +230,19 @@ public class RedisClient<K, V> {
      */
     public Boolean exists(K key) {
         return redisTemplate.hasKey(key);
+    }
+
+
+    /**
+     * 判断是否存在.
+     *
+     * @param key the key
+     * @param val the val
+     * @return the boolean
+     */
+    public boolean exists(K key, V val) {
+        V value = get(key);
+        return BoolUtil.eq(value, val);
     }
 
     /**
