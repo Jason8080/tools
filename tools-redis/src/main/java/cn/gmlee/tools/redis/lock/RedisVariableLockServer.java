@@ -34,6 +34,7 @@ public class RedisVariableLockServer implements VariableLockServer {
             // 只需要检查锁
             boolean check = vl.check() && redisClient.exists(key, getVal(values));
             AssertUtil.isFalse(check, vl.message());
+            log.info("【变量锁】检锁完成: {} {} {}", check, key, getVal(values));
             return;
         }
         // 加锁是否成功

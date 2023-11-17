@@ -56,10 +56,7 @@ public class VariableLockAspect {
         if (sb.isEmpty()) {
             return;
         }
-        if (vl.unlock()) {
-            // 请求加锁
-            VALUE_LOCAL.set(sb);
-        }
+        VALUE_LOCAL.set(sb);
         // 变量加锁
         variableLockServer.lock(vl, sb.toArray(new String[0]));
     }
