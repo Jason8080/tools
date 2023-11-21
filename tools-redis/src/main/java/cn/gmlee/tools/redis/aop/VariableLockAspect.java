@@ -194,6 +194,7 @@ public class VariableLockAspect {
         // 不加锁 || 不检锁 : 异常也不解锁
         if (!vl.lock() || !vl.check()) {
             // 未加锁不解锁
+            VALUE_LOCAL.remove();
             return;
         }
         // 变量解锁
