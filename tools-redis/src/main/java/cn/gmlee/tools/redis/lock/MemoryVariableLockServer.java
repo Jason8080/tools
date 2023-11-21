@@ -33,9 +33,9 @@ public class MemoryVariableLockServer implements VariableLockServer {
         String key = getKey(vl, values);
         if(!vl.lock()){
             // 只需要检查锁
-            boolean check = vl.check() && memoryMap.containsKey(key) && memoryMap.containsValue(getVal(values));
+            boolean check = vl.check() && memoryMap.containsKey(key);
+            log.info("【变量锁】检锁完成: {} {}", check, key);
             AssertUtil.isFalse(check, vl.message());
-            log.info("【变量锁】检锁完成: {} {} {}", check, key, getVal(values));
             return;
         }
         // 最多自旋10000次 ≈ 30s
@@ -46,14 +46,14 @@ public class MemoryVariableLockServer implements VariableLockServer {
                 ExceptionUtil.sandbox(() -> sleep(Int.THREE));
                 continue;
             }
-            log.info("【变量锁】加锁完成: {} {} {}", true, key, getVal(values));
             // 成功记录新锁
             memoryMap.put(key, getVal(values));
+            log.info("【变量锁】加锁完成: {} {}", true, key);
             return;
         }
         // 加锁是否成功
         boolean success = !memoryMap.containsKey(key);
-        log.info("【变量锁】加锁完成: {} {} {}", success, key, getVal(values));
+        log.info("【变量锁】加锁完成: {} {}", success, key);
         AssertUtil.isTrue(success, vl.message());
         memoryMap.put(key, getVal(values));
     }
@@ -62,6 +62,6 @@ public class MemoryVariableLockServer implements VariableLockServer {
         String key = getKey(vl, values);
         // 是否解锁成功
         memoryMap.remove(key);
-        log.info("【变量锁】解锁完成: {} {} {}", true, key, getVal(values));
+        log.info("【变量锁】解锁完成: {} {}", true, key);
     }
 }
