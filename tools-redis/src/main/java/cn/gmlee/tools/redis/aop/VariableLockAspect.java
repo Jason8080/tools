@@ -175,10 +175,10 @@ public class VariableLockAspect {
 
 
     /**
-     * 请求发生异常必解锁.
+     * 请求发生异常单独解锁.
      *
      * <p>
-     *     即不加锁也不检锁: 则异常也不解锁
+     *     不加锁 或 不检锁: 则异常也不解锁
      * </p>
      *
      * @param point the point
