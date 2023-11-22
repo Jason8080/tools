@@ -151,7 +151,7 @@ public class VariableLockAspect {
             return true;
         }
         // 如果是对象
-        if (BoolUtil.isBean(argVal, String.class, BigDecimal.class, Date.class, LocalDateTime.class)) {
+        if (BoolUtil.isBean(argVal, String.class, BigDecimal.class, Date.class, LocalDateTime.class, Collection.class)) {
             Map<String, Field> fieldMap = ClassUtil.getFieldsMapUseCache(argVal);
             Iterator<Map.Entry<String, Field>> it = fieldMap.entrySet().iterator();
             while (it.hasNext()) {

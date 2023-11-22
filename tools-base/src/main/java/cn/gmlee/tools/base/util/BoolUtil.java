@@ -32,7 +32,7 @@ public class BoolUtil {
         if (isNull(clazz)) {
             return false;
         }
-        return !containOne(excludeClasses, clazz)
+        return !isSuperclass(clazz, excludeClasses)
                 && !ClassUtils.isPrimitiveOrWrapper(clazz)
                 && !ClassUtils.isPrimitiveArray(clazz)
                 && !ClassUtils.isPrimitiveWrapperArray(clazz);
@@ -110,7 +110,7 @@ public class BoolUtil {
         if (isNull(clazz)) {
             return false;
         }
-        return containOne(includeClasses, clazz)
+        return isSuperclass(clazz, includeClasses)
                 || ClassUtils.isPrimitiveOrWrapper(clazz);
     }
 
