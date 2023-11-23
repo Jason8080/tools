@@ -32,7 +32,7 @@ public class BoolUtil {
         if (isNull(clazz)) {
             return false;
         }
-        return !isSuperclass(clazz, excludeClasses)
+        return !existSuperclass(clazz, excludeClasses)
                 && !ClassUtils.isPrimitiveOrWrapper(clazz)
                 && !ClassUtils.isPrimitiveArray(clazz)
                 && !ClassUtils.isPrimitiveWrapperArray(clazz);
@@ -52,7 +52,7 @@ public class BoolUtil {
         }
         if (obj instanceof Class) {
             Class clazz = (Class) obj;
-            if (isSuperclass(clazz, excludeClasses)) {
+            if (allSuperclass(clazz, excludeClasses)) {
                 return false;
             }
             return clazz.getName().startsWith("java");
@@ -65,9 +65,9 @@ public class BoolUtil {
      *
      * @param superclass 父类
      * @param subclasses 子类
-     * @return the boolean
+     * @return boolean 全部是子类
      */
-    public static boolean isSubclass(Class superclass, Class... subclasses) {
+    public static boolean allSubclass(Class superclass, Class... subclasses) {
         if (isNull(superclass) || isEmpty(subclasses)) {
             return false;
         }
@@ -79,15 +79,34 @@ public class BoolUtil {
         return true;
     }
 
+    /**
+     * 存在子类.
+     *
+     * @param superclass the superclass
+     * @param subclasses the subclasses
+     * @return the boolean
+     */
+    public static boolean existSubclass(Class superclass, Class... subclasses) {
+        if (isNull(superclass) || isEmpty(subclasses)) {
+            return false;
+        }
+        for (Class subclass : subclasses) {
+            if (subclass != null && superclass.isAssignableFrom(subclass)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     /**
      * 是父类类型.
      *
-     * @param subclass     the subclass
-     * @param superclasses the superclasses
-     * @return boolean boolean
+     * @param subclass     子类
+     * @param superclasses 父类
+     * @return boolean 全部是父类
      */
-    public static boolean isSuperclass(Class subclass, Class... superclasses) {
+    public static boolean allSuperclass(Class subclass, Class... superclasses) {
         if (isNull(subclass) || isEmpty(superclasses)) {
             return false;
         }
@@ -97,6 +116,25 @@ public class BoolUtil {
             }
         }
         return true;
+    }
+
+    /**
+     * 存在父类.
+     *
+     * @param subclass     the subclass
+     * @param superclasses the superclasses
+     * @return the boolean
+     */
+    public static boolean existSuperclass(Class subclass, Class... superclasses) {
+        if (isNull(subclass) || isEmpty(superclasses)) {
+            return false;
+        }
+        for (Class superclass : superclasses) {
+            if (superclass != null && superclass.isAssignableFrom(subclass)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -110,7 +148,7 @@ public class BoolUtil {
         if (isNull(clazz)) {
             return false;
         }
-        return isSuperclass(clazz, includeClasses)
+        return existSuperclass(clazz, includeClasses)
                 || ClassUtils.isPrimitiveOrWrapper(clazz);
     }
 

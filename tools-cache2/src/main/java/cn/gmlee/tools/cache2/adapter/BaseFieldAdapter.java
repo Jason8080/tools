@@ -24,11 +24,11 @@ public class BaseFieldAdapter implements FieldAdapter {
         Class<?> target = field.getType();
         // 值类型
         Class<?> source = value != null ? value.getClass() : null;
-        if (BoolUtil.isSubclass(target, source)) {
+        if (BoolUtil.allSubclass(target, source)) {
             return value;
         }
         // 如果是金额类型
-        if(target.equals(BigDecimal.class) && BoolUtil.isSubclass(Number.class, source)) {
+        if(target.equals(BigDecimal.class) && BoolUtil.allSubclass(Number.class, source)) {
             return value instanceof BigDecimal ? value : new BigDecimal(value.toString());
         }
         return null;
