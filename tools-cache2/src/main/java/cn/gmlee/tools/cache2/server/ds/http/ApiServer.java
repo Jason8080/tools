@@ -2,7 +2,7 @@ package cn.gmlee.tools.cache2.server.ds.http;
 
 import cn.gmlee.tools.base.builder.KvBuilder;
 import cn.gmlee.tools.base.mod.HttpResult;
-import cn.gmlee.tools.base.mod.JsonResult;
+import cn.gmlee.tools.base.mod.R;
 import cn.gmlee.tools.base.mod.Kv;
 import cn.gmlee.tools.base.util.ClassUtil;
 import cn.gmlee.tools.base.util.HttpUtil;
@@ -39,7 +39,7 @@ public class ApiServer extends AbstractDsServer implements HttpServer {
         Map<String, String> headers = WebUtil.getCurrentHeaderMap();
         Kv<String, String>[] kvs = KvBuilder.array(headers);
         HttpResult httpResult = HttpUtil.get(url, kvs);
-        JsonResult jsonResult = httpResult.jsonResponseBody2bean(JsonResult.class);
-        return (List<Map<String, Object>>) jsonResult.getData();
+        R r = httpResult.jsonResponseBody2bean(R.class);
+        return (List<Map<String, Object>>) r.getData();
     }
 }

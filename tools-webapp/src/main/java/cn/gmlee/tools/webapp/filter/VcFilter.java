@@ -2,7 +2,7 @@ package cn.gmlee.tools.webapp.filter;
 
 import cn.gmlee.tools.base.enums.XCode;
 import cn.gmlee.tools.base.ex.SkillException;
-import cn.gmlee.tools.base.mod.JsonResult;
+import cn.gmlee.tools.base.mod.R;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.JsonUtil;
 import cn.gmlee.tools.base.util.VcUtil;
@@ -54,7 +54,7 @@ public class VcFilter extends OncePerRequestFilter {
         } catch (SkillException e) {
             response.setCharacterEncoding(Charset.defaultCharset().name());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-            JsonResult result = new JsonResult(XCode.FAIL.code, e.getMessage());
+            R result = new R(XCode.FAIL.code, e.getMessage());
             response.getWriter().println(JsonUtil.toJson(result));
             return;
         }

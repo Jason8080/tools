@@ -74,7 +74,7 @@ public class HttpResult implements Serializable {
      * @return the boolean
      */
     public boolean isOk() {
-        return XCode.HTTP_OK.code == status;
+        return Objects.equals(XCode.HTTP_OK.code, status);
     }
 
     /**
@@ -83,7 +83,7 @@ public class HttpResult implements Serializable {
      * @return boolean boolean
      */
     public boolean isMissingEx() {
-        return XCode.HTTP_MISSING.code == status;
+        return Objects.equals(XCode.HTTP_MISSING.code, status);
     }
 
     /**
@@ -95,7 +95,7 @@ public class HttpResult implements Serializable {
      * @return boolean boolean
      */
     public boolean isOfflineEx() {
-        return XCode.HTTP_OFFLINE.code == status;
+        return Objects.equals(XCode.HTTP_OFFLINE.code, status);
     }
 
     /**

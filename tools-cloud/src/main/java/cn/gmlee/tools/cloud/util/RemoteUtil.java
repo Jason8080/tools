@@ -1,7 +1,7 @@
 package cn.gmlee.tools.cloud.util;
 
 import cn.gmlee.tools.base.ex.RemoteInvokeException;
-import cn.gmlee.tools.base.mod.JsonResult;
+import cn.gmlee.tools.base.mod.R;
 import cn.gmlee.tools.base.util.BoolUtil;
 
 /**
@@ -19,7 +19,7 @@ public class RemoteUtil {
      * @param result the result
      * @return the t
      */
-    public static <T> T get(JsonResult<T> result) {
+    public static <T> T get(R<T> result) {
         if (BoolUtil.isOk(result)) {
             return result.getData();
         }

@@ -1,7 +1,7 @@
 package cn.gmlee.tools.request.filter;
 
 import cn.gmlee.tools.base.enums.XCode;
-import cn.gmlee.tools.base.mod.JsonResult;
+import cn.gmlee.tools.base.mod.R;
 import cn.gmlee.tools.base.util.*;
 import cn.gmlee.tools.request.config.EdProperties;
 import cn.gmlee.tools.request.mod.ChangeableContentCachingRequestWrapper;
@@ -50,7 +50,7 @@ public class EdFilter extends OncePerRequestFilter {
             if (edProperties.getMust()) {
                 response.setCharacterEncoding(Charset.defaultCharset().name());
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                JsonResult result = new JsonResult(XCode.ASSERT_FAIL.code, e.getMessage());
+                R result = new R(XCode.ASSERT_FAIL.code, e.getMessage());
                 response.getWriter().println(JsonUtil.toJson(result));
                 return;
             }

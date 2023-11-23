@@ -2,7 +2,7 @@ package cn.gmlee.tools.webapp.service;
 
 import cn.gmlee.tools.base.enums.XCode;
 import cn.gmlee.tools.base.ex.VcException;
-import cn.gmlee.tools.base.mod.JsonResult;
+import cn.gmlee.tools.base.mod.R;
 import cn.gmlee.tools.base.mod.Kv;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.IdUtil;
@@ -121,7 +121,7 @@ public class VcService {
      * @param e the e
      * @return the json result
      */
-    public JsonResult generateJsonResult(VcException e) {
+    public R generateJsonResult(VcException e) {
         return generateJsonResult(e.getKey());
     }
 
@@ -131,9 +131,9 @@ public class VcService {
      * @param key the key
      * @return the json result
      */
-    public JsonResult generateJsonResult(String key) {
+    public R generateJsonResult(String key) {
         if (!ask(key)) {
-            return new JsonResult(XCode.LOGIN_AUTH_INCORRECT);
+            return new R(XCode.LOGIN_AUTH_INCORRECT);
         }
         return generateVcJsonResult(XCode.RETYPE_VC.code, XCode.RETYPE_VC.msg);
     }
@@ -146,9 +146,9 @@ public class VcService {
      * @param msg  the msg
      * @return the json result
      */
-    public JsonResult generateJsonResult(String key, Integer code, String msg) {
+    public R generateJsonResult(String key, Integer code, String msg) {
         if (!ask(key)) {
-            return new JsonResult(XCode.LOGIN_AUTH_INCORRECT);
+            return new R(XCode.LOGIN_AUTH_INCORRECT);
         }
         return generateVcJsonResult(code, msg);
     }
@@ -160,7 +160,7 @@ public class VcService {
      * @param msg  the msg
      * @return the json result
      */
-    public JsonResult generateVcJsonResult(Integer code, String msg) {
+    public R generateVcJsonResult(Integer code, String msg) {
         // key 存的是 vc (真实验证码)
         // val 存的是 图片 (base64)
         Kv<String, String> vc = VcUtil.generateBase64(vcProperties.getLength(), vcProperties.getWidth(), vcProperties.getHeight());
@@ -168,7 +168,7 @@ public class VcService {
         String id = setVc(IdUtil.uuidReplaceUpperCase(), vc);
         // 需要返回ID, 而不是返回真实的验证码
         vc.setKey(id);
-        return new JsonResult(code, msg, vc);
+        return new R(code, msg, vc);
     }
 
     /**

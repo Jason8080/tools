@@ -2,7 +2,7 @@ package cn.gmlee.tools.base.util;
 
 import cn.gmlee.tools.base.enums.Int;
 import cn.gmlee.tools.base.enums.XCode;
-import cn.gmlee.tools.base.mod.JsonResult;
+import cn.gmlee.tools.base.mod.R;
 import org.springframework.util.ClassUtils;
 
 import java.util.Arrays;
@@ -224,7 +224,7 @@ public class BoolUtil {
      * @param result the result
      * @return the boolean
      */
-    public static boolean isOk(JsonResult result) {
+    public static boolean isOk(R result) {
         if (result == null) {
             return false;
         }

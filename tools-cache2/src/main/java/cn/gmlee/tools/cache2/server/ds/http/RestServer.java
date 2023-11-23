@@ -1,11 +1,7 @@
 package cn.gmlee.tools.cache2.server.ds.http;
 
-import cn.gmlee.tools.base.builder.KvBuilder;
-import cn.gmlee.tools.base.mod.HttpResult;
-import cn.gmlee.tools.base.mod.JsonResult;
-import cn.gmlee.tools.base.mod.Kv;
+import cn.gmlee.tools.base.mod.R;
 import cn.gmlee.tools.base.util.ClassUtil;
-import cn.gmlee.tools.base.util.HttpUtil;
 import cn.gmlee.tools.base.util.WebUtil;
 import cn.gmlee.tools.cache2.anno.Cache;
 import cn.gmlee.tools.cache2.enums.DataType;
@@ -43,7 +39,7 @@ public class RestServer extends AbstractDsServer implements HttpServer {
         // 设置请求头部
         Map<String, String> headers = WebUtil.getCurrentHeaderMap();
         restTemplate.headForHeaders(url, headers);
-        JsonResult jsonResult = restTemplate.getForObject(url, JsonResult.class);
-        return (List<Map<String, Object>>) jsonResult.getData();
+        R r = restTemplate.getForObject(url, R.class);
+        return (List<Map<String, Object>>) r.getData();
     }
 }

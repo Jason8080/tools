@@ -1,6 +1,6 @@
 package cn.gmlee.tools.base.assist;
 
-import cn.gmlee.tools.base.mod.JsonResult;
+import cn.gmlee.tools.base.mod.R;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 
 import java.io.Serializable;
@@ -38,7 +38,7 @@ public class ApiAssist {
     public static Object getResponseParams(Class<?> returnType, Object result) {
         if (result == null || returnType == null) {
             return "null";
-        } else if (result instanceof JsonResult) {
+        } else if (result instanceof R) {
             return result;
         } else if (result instanceof Serializable) {
             return result;

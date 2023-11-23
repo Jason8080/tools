@@ -2,7 +2,7 @@ package cn.gmlee.tools.cloud.fallback;
 
 
 import cn.gmlee.tools.base.enums.XCode;
-import cn.gmlee.tools.base.mod.JsonResult;
+import cn.gmlee.tools.base.mod.R;
 
 /**
  * Hystrix 降级/熔断说明:
@@ -19,7 +19,7 @@ public class ApiFallback {
      *
      * @return 响应实体
      */
-    public JsonResult defaultFallback() {
-        return new JsonResult(XCode.IM_CONNECT.code, "不好意思, 熔断咯..");
+    public R defaultFallback() {
+        return new R(XCode.IM_CONNECT.code, "不好意思, 熔断咯..");
     }
 }

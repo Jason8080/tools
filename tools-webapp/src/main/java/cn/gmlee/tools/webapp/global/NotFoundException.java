@@ -1,7 +1,7 @@
 package cn.gmlee.tools.webapp.global;
 
 import cn.gmlee.tools.base.enums.XCode;
-import cn.gmlee.tools.base.mod.JsonResult;
+import cn.gmlee.tools.base.mod.R;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.http.HttpStatus;
@@ -32,6 +32,6 @@ public class NotFoundException implements ErrorController {
     @ResponseStatus(HttpStatus.OK)
     @RequestMapping(value = "error", produces = MediaType.APPLICATION_JSON_VALUE)
     public Object error(){
-        return new JsonResult(XCode.RESOURCE_NOT_FOUND.code, "哇! 页面走丢了呢");
+        return new R(XCode.RESOURCE_NOT_FOUND.code, "哇! 页面走丢了呢");
     }
 }

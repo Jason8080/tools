@@ -8,7 +8,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
- * Json响应对象
+ * 响应对象
  * <p>
  * Http状态码
  *
@@ -16,15 +16,15 @@ import java.io.Serializable;
  * @author Jas °
  */
 @Data
-public class JsonResult<T> implements Serializable {
+public class R<T> implements Serializable {
     /**
      * 操作失败.
      */
-    public static final JsonResult FAIL = new JsonResult(XCode.FAIL);
+    public static final R FAIL = new R(XCode.FAIL);
     /**
      * 操作成功.
      */
-    public static final JsonResult OK = new JsonResult(XCode.OK);
+    public static final R OK = new R(XCode.OK);
 
 
     /**
@@ -51,7 +51,7 @@ public class JsonResult<T> implements Serializable {
     /**
      * Instantiates a new Json result.
      */
-    public JsonResult() {
+    public R() {
         this.code = OK.code;
         this.msg = OK.msg;
         this.desc = null;
@@ -63,7 +63,7 @@ public class JsonResult<T> implements Serializable {
      *
      * @param throwable the throwable
      */
-    public JsonResult(Throwable throwable) {
+    public R(Throwable throwable) {
         this.code = FAIL.code;
         this.msg = FAIL.msg;
         this.desc = ExceptionUtil.getOriginMsg(throwable);
@@ -75,7 +75,7 @@ public class JsonResult<T> implements Serializable {
      *
      * @param se the se
      */
-    public JsonResult(SkillException se) {
+    public R(SkillException se) {
         this.code = se.getCode();
         this.msg = se.getMessage();
         this.desc = ExceptionUtil.getOriginMsg(se);
@@ -89,7 +89,7 @@ public class JsonResult<T> implements Serializable {
      * @param msg  the msg
      * @param data the data
      */
-    public JsonResult(Integer code, String msg, T data) {
+    public R(Integer code, String msg, T data) {
         this.code = code;
         this.msg = msg;
         this.desc = null;
@@ -102,7 +102,7 @@ public class JsonResult<T> implements Serializable {
      * @param code the code
      * @param msg  the msg
      */
-    public JsonResult(Integer code, String msg) {
+    public R(Integer code, String msg) {
         this.code = code;
         this.msg = msg;
         this.desc = null;
@@ -114,7 +114,7 @@ public class JsonResult<T> implements Serializable {
      *
      * @param xCode the x code
      */
-    public JsonResult(XCode xCode) {
+    public R(XCode xCode) {
         this.code = xCode.code;
         this.msg = xCode.msg;
         this.desc = null;
@@ -127,7 +127,7 @@ public class JsonResult<T> implements Serializable {
      * @param xCode the x code
      * @param desc  the desc
      */
-    public JsonResult(XCode xCode, String desc) {
+    public R(XCode xCode, String desc) {
         this.code = xCode.code;
         this.msg = xCode.msg;
         this.desc = desc;
@@ -140,7 +140,7 @@ public class JsonResult<T> implements Serializable {
      * @param xCode the x code
      * @param data  the data
      */
-    public JsonResult(XCode xCode, T data) {
+    public R(XCode xCode, T data) {
         this(xCode.code, xCode.msg, data);
     }
 
@@ -150,7 +150,7 @@ public class JsonResult<T> implements Serializable {
      * @param xCode     the x code
      * @param throwable the throwable
      */
-    public JsonResult(XCode xCode, Throwable throwable) {
+    public R(XCode xCode, Throwable throwable) {
         this.code = xCode.code;
         this.msg = xCode.msg;
         this.desc = ExceptionUtil.getOriginMsg(throwable);
@@ -163,8 +163,8 @@ public class JsonResult<T> implements Serializable {
      * @param throwable the throwable
      * @return the json result
      */
-    public JsonResult newly(Throwable throwable) {
-        return new JsonResult(throwable);
+    public R newly(Throwable throwable) {
+        return new R(throwable);
     }
 
     /**
@@ -174,8 +174,8 @@ public class JsonResult<T> implements Serializable {
      * @param throwable the throwable
      * @return the json result
      */
-    public JsonResult newly(XCode xCode, Throwable throwable) {
-        return new JsonResult(xCode, throwable);
+    public R newly(XCode xCode, Throwable throwable) {
+        return new R(xCode, throwable);
     }
 
     /**
@@ -184,8 +184,8 @@ public class JsonResult<T> implements Serializable {
      * @param se the se
      * @return the json result
      */
-    public JsonResult newly(SkillException se) {
-        return new JsonResult(se);
+    public R newly(SkillException se) {
+        return new R(se);
     }
 
     /**
@@ -194,8 +194,8 @@ public class JsonResult<T> implements Serializable {
      * @param msg the msg
      * @return the json result
      */
-    public JsonResult newly(String msg) {
-        return new JsonResult(this.code, msg, this.data);
+    public R newly(String msg) {
+        return new R(this.code, msg, this.data);
     }
 
     /**
@@ -205,8 +205,8 @@ public class JsonResult<T> implements Serializable {
      * @param desc  the desc
      * @return the json result
      */
-    public JsonResult newly(XCode xCode, String desc) {
-        return new JsonResult(xCode, desc);
+    public R newly(XCode xCode, String desc) {
+        return new R(xCode, desc);
     }
 
     /**
@@ -215,8 +215,8 @@ public class JsonResult<T> implements Serializable {
      * @param data the data
      * @return the json result
      */
-    public JsonResult newly(T data) {
-        return new JsonResult(this.code, this.msg, data);
+    public R newly(T data) {
+        return new R(this.code, this.msg, data);
     }
 
     /**
@@ -226,8 +226,8 @@ public class JsonResult<T> implements Serializable {
      * @param msg  the msg
      * @return the json result
      */
-    public JsonResult newly(Integer code, String msg) {
-        return new JsonResult(code, msg, data);
+    public R newly(Integer code, String msg) {
+        return new R(code, msg, data);
     }
 
     /**
@@ -237,7 +237,7 @@ public class JsonResult<T> implements Serializable {
      * @param msg  the msg
      * @return the json result
      */
-    public JsonResult newly(T data, String msg) {
-        return new JsonResult(code, msg, data);
+    public R newly(T data, String msg) {
+        return new R(code, msg, data);
     }
 }

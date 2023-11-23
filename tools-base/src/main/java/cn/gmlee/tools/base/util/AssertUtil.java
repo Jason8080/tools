@@ -2,7 +2,7 @@ package cn.gmlee.tools.base.util;
 
 import cn.gmlee.tools.base.ex.AssertException;
 import cn.gmlee.tools.base.ex.RemoteInvokeException;
-import cn.gmlee.tools.base.mod.JsonResult;
+import cn.gmlee.tools.base.mod.R;
 
 import java.util.Collection;
 import java.util.Map;
@@ -30,14 +30,14 @@ public class AssertUtil {
         }
     }
 
-    public static void isOk(JsonResult o, String msg) {
+    public static void isOk(R o, String msg) {
         boolean ok = BoolUtil.isOk(o);
         if (!ok) {
             throw new AssertException(msg, new RemoteInvokeException(o));
         }
     }
 
-    public static <X extends Throwable> void isOk(JsonResult o, Supplier<? extends X> supplier) throws X {
+    public static <X extends Throwable> void isOk(R o, Supplier<? extends X> supplier) throws X {
         boolean ok = BoolUtil.isOk(o);
         if (!ok) {
             throw supplier.get();
