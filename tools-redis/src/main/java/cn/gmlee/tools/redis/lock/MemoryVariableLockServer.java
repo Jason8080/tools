@@ -33,9 +33,9 @@ public class MemoryVariableLockServer implements VariableLockServer {
         String key = getKey(vl, values);
         if(!vl.lock()){
             // 只需要检查锁
-            boolean check = vl.check() && memoryMap.containsKey(key);
+            boolean check = !vl.check() || !memoryMap.containsKey(key);
             log.info("【变量锁】检锁完成: {} {}", check, key);
-            AssertUtil.isFalse(check, vl.message());
+            AssertUtil.isTrue(check, vl.message());
             return;
         }
         // 最多自旋10000次 ≈ 30s
