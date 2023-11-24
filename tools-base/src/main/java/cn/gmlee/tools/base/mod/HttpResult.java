@@ -262,7 +262,7 @@ public class HttpResult implements Serializable {
         Integer status = this.getStatus();
         String responseBody = this.byteResponseBody2String();
         AssertUtil.eq(XCode.HTTP_OK.code, status, String.format("%s: %s: ", url, status, responseBody));
-        return JsonUtil.toBean(responseBody, clazz);
+        return JsonUtil.toBean(responseBody, clazz, true);
     }
 
     /**
@@ -275,8 +275,8 @@ public class HttpResult implements Serializable {
     public <T> T jsonResponseBody2bean(JavaType javaType) {
         Integer status = this.getStatus();
         String responseBody = this.byteResponseBody2String();
-        AssertUtil.eq(XCode.HTTP_OK.code, status, String.format("%s: %s: ", url, status, responseBody));
-        return JsonUtil.toBean(responseBody, javaType);
+        AssertUtil.eq(XCode.HTTP_OK.code, status, String.format("%s: %s:: %s", url, status, responseBody));
+        return JsonUtil.toBean(responseBody, javaType, true);
     }
 
     /**
@@ -289,7 +289,7 @@ public class HttpResult implements Serializable {
     public <T> T jsonResponseBody2bean(TypeReference<T> reference) {
         Integer status = this.getStatus();
         String responseBody = this.byteResponseBody2String();
-        AssertUtil.eq(XCode.HTTP_OK.code, status, String.format("%s: %s: %s", url, status, responseBody));
+        AssertUtil.eq(XCode.HTTP_OK.code, status, String.format("%s: %s:: %s", url, status, responseBody));
         return JsonUtil.toBean(responseBody, reference);
     }
 }
