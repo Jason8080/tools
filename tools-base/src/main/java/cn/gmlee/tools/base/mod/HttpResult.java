@@ -37,7 +37,7 @@ public class HttpResult implements Serializable {
     private static final Logger logger = LoggerFactory.getLogger(HttpResult.class);
 
     /**
-     * The constant CHARSET.
+     * 字符集常亮.
      */
     public static final String CHARSET = "charset";
 
@@ -49,7 +49,7 @@ public class HttpResult implements Serializable {
     private Header[] resHeaders;
     private Integer status;
     private byte[] result = {};
-    private String err;
+    private String err; // 堆栈简讯
     private long innerMillis; // 内部耗时
     private long outerMillis; // 外部耗时
     private long millis; // 总耗时
