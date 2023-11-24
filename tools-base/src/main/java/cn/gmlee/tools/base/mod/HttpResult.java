@@ -261,7 +261,7 @@ public class HttpResult implements Serializable {
     public <T> T jsonResponseBody2bean(Class<T> clazz) {
         Integer status = this.getStatus();
         String responseBody = this.byteResponseBody2String();
-        AssertUtil.eq(XCode.HTTP_OK.code, status, String.format("%s: %s: ", url, status, responseBody));
+        AssertUtil.eq(XCode.HTTP_OK.code, status, String.format("%s: %s:: %s", url, status, responseBody));
         return JsonUtil.toBean(responseBody, clazz, true);
     }
 
@@ -290,6 +290,6 @@ public class HttpResult implements Serializable {
         Integer status = this.getStatus();
         String responseBody = this.byteResponseBody2String();
         AssertUtil.eq(XCode.HTTP_OK.code, status, String.format("%s: %s:: %s", url, status, responseBody));
-        return JsonUtil.toBean(responseBody, reference);
+        return JsonUtil.toBean(responseBody, reference, true);
     }
 }
