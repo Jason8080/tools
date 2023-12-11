@@ -1,6 +1,8 @@
 package cn.gmlee.tools.base.alg.timing.wheel;
 
 import cn.gmlee.tools.base.kit.task.TimerTaskManager;
+import cn.gmlee.tools.base.util.TimeUtil;
+import org.springframework.scheduling.support.CronSequenceGenerator;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -21,6 +23,7 @@ public class TimingWheel {
      * 定时任务
      */
     private static final Serializable key = TimerTaskManager.submit(() -> {
+        System.out.println(TimeUtil.getCurrentDatetime());
         for (Map.Entry<Tw, ConcurrentLinkedQueue<Task>> next : TASKS.entrySet()) {
             Tw tw = next.getKey();
             ConcurrentLinkedQueue<Task> queue = next.getValue();
@@ -58,7 +61,10 @@ public class TimingWheel {
      * @return the tw
      */
     public static Tw initializeTw(int max) {
-        Tw tw = new Tw(0, 0, max);
+        long timestamp = TimeUtil.getCurrentTimestampSecond();
+        long age = timestamp / max;
+        int current = (int) (timestamp % max);
+        Tw tw = new Tw(age, current, max);
         TimingWheel.TASKS.put(tw, new ConcurrentLinkedQueue<>());
         // 立即执行: 每秒1次
         TimerTaskManager.start(key, 0, 1000);
@@ -77,7 +83,7 @@ public class TimingWheel {
      * @param tasks   任务列表
      * @return tw 时间轮
      */
-    public static Tw initializeTw(int age, int current, int max, Collection<Task> tasks) {
+    public static Tw initializeTw(long age, int current, int max, Collection<Task> tasks) {
         Tw tw = new Tw(age, current, max);
         TimingWheel.TASKS.put(tw, new ConcurrentLinkedQueue<>(tasks));
         // 立即执行: 每秒1次
@@ -121,6 +127,29 @@ public class TimingWheel {
     public static void addTimedTask(Tw tw, int second, Runnable run) {
         // 创建任务
         Task task = new Task.TimedTask(tw.calculate(second), second) {
+            @Override
+            public void run() {
+                run.run();
+            }
+        };
+        // 加入任务
+        add(tw, task);
+    }
+
+    /**
+     * 创建定时任务.
+     * <p>
+     * 到点执行1次, 且自动创建下个执行点
+     * </p>
+     *
+     * @param tw   the tw
+     * @param cron the cron
+     * @param run  the run
+     */
+    public static void addScheduleTask(Tw tw, String cron, Runnable run) {
+        CronSequenceGenerator.isValidExpression(cron);
+        // 创建任务
+        Task task = new Task.ScheduleTask(tw.calculate(0), new CronSequenceGenerator(cron)) {
             @Override
             public void run() {
                 run.run();

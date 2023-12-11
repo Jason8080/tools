@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The type Time.
@@ -17,9 +18,9 @@ public class Time implements Serializable {
      */
     protected volatile AtomicInteger current = new AtomicInteger(0);
     /**
-     * 当前轮数 0 ~ 2^31-1
+     * 当前轮数 0 ~ 2^63-1
      */
-    protected volatile AtomicInteger age = new AtomicInteger(0);
+    protected volatile AtomicLong age = new AtomicLong(0);
 
     /**
      * Instantiates a new Time.
@@ -27,7 +28,7 @@ public class Time implements Serializable {
      * @param age     the age
      * @param current the current
      */
-    public Time(int age, int current){
+    public Time(long age, int current){
         this.age.set(age);
         this.current.set(current);
     }
