@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 异步任务管理器.
  */
 public class TimerTaskManager {
-    private static final Map<Serializable, Task> taskMap = new ConcurrentHashMap();
+    private static final Map<Serializable, Task> taskMap = new ConcurrentHashMap<>();
     private static final Timer timer = new Timer("TOOLS-TimerTaskManager");
 
 
