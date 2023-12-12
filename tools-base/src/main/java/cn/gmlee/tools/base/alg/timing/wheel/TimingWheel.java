@@ -1,6 +1,6 @@
 package cn.gmlee.tools.base.alg.timing.wheel;
 
-import cn.gmlee.tools.base.kit.task.TimerTaskManager;
+import cn.gmlee.tools.base.kit.task.ScheduledTaskManager;
 import cn.gmlee.tools.base.util.TimeUtil;
 import org.springframework.scheduling.support.CronSequenceGenerator;
 
@@ -22,7 +22,7 @@ public class TimingWheel {
     /**
      * 定时任务
      */
-    private static final Serializable key = TimerTaskManager.submit(() -> {
+    private static final Serializable key = ScheduledTaskManager.submit(() -> {
         System.out.println(TimeUtil.getCurrentDatetime());
         for (Map.Entry<Tw, ConcurrentLinkedQueue<Task>> next : TASKS.entrySet()) {
             Tw tw = next.getKey();
@@ -67,7 +67,7 @@ public class TimingWheel {
         Tw tw = new Tw(age, current, max);
         TimingWheel.TASKS.put(tw, new ConcurrentLinkedQueue<>());
         // 立即执行: 每秒1次
-        TimerTaskManager.start(key, 0, 1000);
+        ScheduledTaskManager.start(key, 0, 1000);
         return tw;
     }
 
@@ -87,7 +87,7 @@ public class TimingWheel {
         Tw tw = new Tw(age, current, max);
         TimingWheel.TASKS.put(tw, new ConcurrentLinkedQueue<>(tasks));
         // 立即执行: 每秒1次
-        TimerTaskManager.start(key, 0, 1000);
+        ScheduledTaskManager.start(key, 0, 1000);
         return tw;
     }
 
