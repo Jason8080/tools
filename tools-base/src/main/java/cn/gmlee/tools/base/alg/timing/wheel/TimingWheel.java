@@ -10,9 +10,14 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * 时间轮算法.
+ * <p>
+ * 时间轮的实际意义在: 实验和学习
+ * 如果仅仅是需要延时任务和定时任务, 建议直接使用本算法底层的API {@link ScheduledExecutorService}
+ * </p>
  */
 public class TimingWheel {
     /**
