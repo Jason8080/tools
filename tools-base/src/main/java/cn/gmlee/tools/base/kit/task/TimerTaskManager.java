@@ -10,7 +10,7 @@ import java.util.Timer;
  * 异步任务管理器.
  */
 public class TimerTaskManager implements TaskManager {
-    private static final Timer timer = new Timer("TOOLS-TimerTaskManager");
+    private static final Timer timer = new Timer("Tools-TimerTaskManager");
 
 
     /**

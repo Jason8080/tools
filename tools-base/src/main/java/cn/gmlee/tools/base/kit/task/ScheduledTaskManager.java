@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
  * 定时任务管理器.
  */
 public class ScheduledTaskManager implements TaskManager {
-    private static final ScheduledExecutorService scheduled = Executors.newSingleThreadScheduledExecutor((run) -> new Thread(run, String.format("Tools-ScheduledTask:%s", run.hashCode())));
+    private static final ScheduledExecutorService scheduled = Executors.newSingleThreadScheduledExecutor((run) -> new Thread(run, String.format("Tools-ScheduledTaskManager:%s", run.hashCode())));
 
     /**
      * Gets key.
