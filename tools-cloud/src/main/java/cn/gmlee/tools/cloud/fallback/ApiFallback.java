@@ -20,6 +20,6 @@ public class ApiFallback {
      * @return 响应实体
      */
     public R defaultFallback() {
-        return new R(XCode.IM_CONNECT.code, "不好意思, 熔断咯..");
+        return R.FAIL.newly(XCode.IM_CONNECT);
     }
 }
