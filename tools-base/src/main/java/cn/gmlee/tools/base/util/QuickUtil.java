@@ -165,6 +165,13 @@ public class QuickUtil {
     }
 
 
+    /**
+     * Not empty.
+     *
+     * @param <C> the type parameter
+     * @param o   the o
+     * @param run the run
+     */
     public static <C extends Collection> void notEmpty(C o, Function.Zero run) {
         try {
             if (BoolUtil.notEmpty(o)) {
@@ -303,6 +310,13 @@ public class QuickUtil {
     }
 
 
+    /**
+     * Is empty.
+     *
+     * @param <O> the type parameter
+     * @param o   the o
+     * @param run the run
+     */
     public static <O extends Collection> void isEmpty(O o, Function.One<O> run) {
         try {
             if (BoolUtil.isEmpty(o)) {
