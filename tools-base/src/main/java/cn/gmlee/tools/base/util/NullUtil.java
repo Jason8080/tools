@@ -1,9 +1,13 @@
 package cn.gmlee.tools.base.util;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+
 /**
  * 防止null异常工具
  *
- * @author Jas°
+ * @author Jas °
  * @date 2020 /9/28 (周一)
  */
 public class NullUtil {
@@ -16,6 +20,19 @@ public class NullUtil {
     public static String get(String source) {
         if (source == null) {
             return "";
+        }
+        return source;
+    }
+
+    /**
+     * Get collection.
+     *
+     * @param source the source
+     * @return the collection
+     */
+    public static <T> Collection<T> get(Collection<T> source) {
+        if (source == null) {
+            return Collections.emptyList();
         }
         return source;
     }
