@@ -1,8 +1,7 @@
 package cn.gmlee.tools.base.util;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 
 /**
  * 防止null异常工具
@@ -27,12 +26,27 @@ public class NullUtil {
     /**
      * Get collection.
      *
+     * @param <T>    the type parameter
      * @param source the source
      * @return the collection
      */
-    public static <T> Collection<T> get(Collection<T> source) {
+    public static <T extends Collection> T get(T source) {
         if (source == null) {
-            return Collections.emptyList();
+            return (T) new ArrayList(0);
+        }
+        return source;
+    }
+
+    /**
+     * Get t [ ].
+     *
+     * @param <T>    the type parameter
+     * @param source the source
+     * @return the t [ ]
+     */
+    public static <T extends Object> T[] get(T[] source) {
+        if (source == null) {
+            return (T[]) new Object[0];
         }
         return source;
     }
