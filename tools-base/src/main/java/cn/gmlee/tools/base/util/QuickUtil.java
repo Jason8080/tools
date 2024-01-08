@@ -164,17 +164,11 @@ public class QuickUtil {
         }
     }
 
-    /**
-     * Not empty.
-     *
-     * @param <C> the type parameter
-     * @param o   the o
-     * @param run the run
-     */
-    public static <C extends Collection> void notEmpty(C o, Function.One<C> run) {
+
+    public static <C extends Collection> void notEmpty(C o, Function.Zero run) {
         try {
             if (BoolUtil.notEmpty(o)) {
-                run.run(o);
+                run.run();
             }
         } catch (Throwable throwable) {
             logger.error("敏捷工具提示: ", throwable);
@@ -237,6 +231,24 @@ public class QuickUtil {
     }
 
     /**
+     * Not empty.
+     *
+     * @param <C> the type parameter
+     * @param o   the o
+     * @param run the run
+     */
+    public static <C extends Collection> void notEmpty(C o, Function.One<C> run) {
+        try {
+            if (BoolUtil.notEmpty(o)) {
+                run.run(o);
+            }
+        } catch (Throwable throwable) {
+            logger.error("敏捷工具提示: ", throwable);
+            ExceptionUtil.cast(throwable);
+        }
+    }
+
+    /**
      * Is empty.
      *
      * @param <O> the type parameter
@@ -282,6 +294,18 @@ public class QuickUtil {
     public static <O extends CharSequence> void notEmpty(O o, Function.One<O> run) {
         try {
             if (BoolUtil.notEmpty(o)) {
+                run.run(o);
+            }
+        } catch (Throwable throwable) {
+            logger.error("敏捷工具提示: ", throwable);
+            ExceptionUtil.cast(throwable);
+        }
+    }
+
+
+    public static <O extends Collection> void isEmpty(O o, Function.One<O> run) {
+        try {
+            if (BoolUtil.isEmpty(o)) {
                 run.run(o);
             }
         } catch (Throwable throwable) {
