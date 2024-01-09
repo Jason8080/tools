@@ -1,8 +1,6 @@
 package cn.gmlee.tools.cloud.feign;
 
-import cn.gmlee.tools.base.util.BoolUtil;
-import cn.gmlee.tools.base.util.CharUtil;
-import cn.gmlee.tools.base.util.NullUtil;
+import cn.gmlee.tools.base.util.*;
 import feign.Logger;
 import feign.Request;
 import feign.Response;
@@ -22,6 +20,12 @@ import static feign.form.util.CharsetUtil.UTF_8;
  */
 @Slf4j
 public class FeignLogger extends Logger {
+    private final FeignLoggerProperties properties;
+
+    public FeignLogger(FeignLoggerProperties properties) {
+        this.properties = properties;
+    }
+
     @Override
     protected void logRequest(String configKey, Level logLevel, Request request) {
     }
@@ -48,16 +52,24 @@ public class FeignLogger extends Logger {
         }
 
         String requestBody = new String(NullUtil.get(response.request().body(), new byte[0]));
-        log.info("[内网日志]\n{}\n=== 请求接口 ===: {}\n=== 请求地址 ===: {}\n=== 请求内容 ===: {}\n=== 响应代码 ===: {}\n=== 响应耗时 ===: {} (ms)\n=== 响应内容 ===: {}\n{}\n",
-                "------------------------------------------------------------------",
-                configKey,
-                String.format("%s %s", response.request().httpMethod(), response.request().url()),
-                BoolUtil.isEmpty(requestBody) ? "无" : requestBody,
-                status,
-                elapsedTime,
-                BoolUtil.isEmpty(responsBody) ? "无" : responsBody,
-                "------------------------------------------------------------------"
-        );
+
+        boolean print = UrlUtil.matchOne(properties.getFeignLog().excludeUrls, response.request().url());
+
+        // 匹配上则排除: 不打印日志
+        if(!print) {
+
+            log.info("[内网日志]\n{}\n=== 请求接口 ===: {}\n=== 请求地址 ===: {}\n=== 请求内容 ===: {}\n=== 响应代码 ===: {}\n=== 响应耗时 ===: {} (ms)\n=== 响应内容 ===: {}\n{}\n",
+                    "-----------------------------------------------",
+                    configKey,
+                    String.format("%s %s", response.request().httpMethod(), response.request().url()),
+                    BoolUtil.isEmpty(requestBody) ? "无" : requestBody,
+                    status,
+                    elapsedTime,
+                    BoolUtil.isEmpty(responsBody) ? "无" : responsBody,
+                    "-----------------------------------------------"
+            );
+
+        }
 
         return response;
     }
