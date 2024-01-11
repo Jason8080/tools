@@ -17,6 +17,96 @@ public class QuickUtil {
     private static final Logger logger = LoggerFactory.getLogger(QuickUtil.class);
 
     /**
+     * 根据条件执行函数.
+     *
+     * @param condition 返回值是true则执行
+     * @param run       the run
+     */
+    public static void exec(Function.Ok0 condition, Function.Zero run){
+        Boolean ret = ExceptionUtil.suppress(condition);
+        if(BoolUtil.isTrue(ret)){
+            ExceptionUtil.suppress(run);
+        }
+    }
+
+    /**
+     * 根据条件执行函数.
+     *
+     * @param <R>       返回值不为空则执行
+     * @param condition the condition
+     * @param run       the run
+     */
+    public static <R> void exec(Function.Zero2r<R> condition, Function.Zero run){
+        R ret = ExceptionUtil.suppress(condition);
+        if(BoolUtil.notNull(ret)){
+            ExceptionUtil.suppress(run);
+        }
+    }
+
+    /**
+     * 根据条件执行函数 (条件返回做入参).
+     *
+     * @param <P>       the type parameter
+     * @param condition the condition
+     * @param run       the run
+     */
+    public static <P> void exec(Function.Zero2r<P> condition, Function.One<P> run){
+        P ret = ExceptionUtil.suppress(condition);
+        if(BoolUtil.notNull(ret)){
+            ExceptionUtil.suppress(() -> run.run(ret));
+        }
+    }
+
+    /**
+     * 根据条件执行函数 (返回执行结果).
+     *
+     * @param <R>       条件返回
+     * @param condition 条件函数
+     * @param run       执行函数
+     * @return r 返回对象
+     */
+    public static <R> R exec(Function.Ok0 condition, Function.Zero2r<R> run){
+        Boolean ret = ExceptionUtil.suppress(condition);
+        if(BoolUtil.isTrue(ret)){
+            return ExceptionUtil.suppress(run);
+        }
+        return null;
+    }
+
+    /**
+     * 根据条件执行函数 (返回执行结果).
+     *
+     * @param <R>       条件返回
+     * @param condition 条件函数
+     * @param run       执行函数
+     * @return r 返回对象
+     */
+    public static <R> R exec(Function.Zero2r<R> condition, Function.Zero2r<R> run){
+        R ret = ExceptionUtil.suppress(condition);
+        if(BoolUtil.notNull(ret)){
+            return ExceptionUtil.suppress(run);
+        }
+        return null;
+    }
+
+    /**
+     * 根据条件执行函数 (返回执行结果).
+     *
+     * @param <P>       将条件返回作为函数入参
+     * @param <R>       函数返回类型
+     * @param condition 条件函数
+     * @param run       执行函数
+     * @return r 返回对象
+     */
+    public static <P, R> R exec(Function.Zero2r<P> condition, Function.P2r<P,R> run){
+        P ret = ExceptionUtil.suppress(condition);
+        if(BoolUtil.notNull(ret)){
+            return ExceptionUtil.suppress(() -> run.run(ret));
+        }
+        return null;
+    }
+
+    /**
      * Is true.
      *
      * @param o   the o
