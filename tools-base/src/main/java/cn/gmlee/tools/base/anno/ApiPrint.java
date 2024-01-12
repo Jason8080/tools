@@ -4,9 +4,9 @@ import java.lang.annotation.*;
 
 /**
  * 日志打印注解.
+ * <p>api方法描述.</p>
  *
- * @author: Jas °
- * @Description api方法描述
+ * @author Jas °
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

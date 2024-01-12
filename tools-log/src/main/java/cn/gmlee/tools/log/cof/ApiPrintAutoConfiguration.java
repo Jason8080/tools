@@ -1,10 +1,11 @@
-package cn.gmlee.tools.logback.config;
+package cn.gmlee.tools.log.cof;
 
+import cn.gmlee.tools.log.aop.ApiPrintAspect;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
-@Configuration
+@Import({ApiPrintAspect.class})
 public class ApiPrintAutoConfiguration {
 
     @Bean

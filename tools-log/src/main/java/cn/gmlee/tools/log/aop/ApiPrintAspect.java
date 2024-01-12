@@ -1,4 +1,4 @@
-package cn.gmlee.tools.logback.aop;
+package cn.gmlee.tools.log.aop;
 
 import cn.gmlee.tools.base.anno.ApiPrint;
 import cn.gmlee.tools.base.assist.ApiAssist;
@@ -6,45 +6,35 @@ import cn.gmlee.tools.base.mod.JsonLog;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.TimeUtil;
 import cn.gmlee.tools.base.util.WebUtil;
-import cn.gmlee.tools.logback.config.ApiPrintTrigger;
+import cn.gmlee.tools.log.cof.ApiPrintTrigger;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * The type Api print aspect.
+ * 日志打印.
+ * <p>ApiPrint切面方法 获取api描述信息.</p>
  *
  * @author - Jas°
- * @Description ApiPrint切面方法 获取api描述信息
  */
+@Slf4j
 @Aspect
-@Component
 public class ApiPrintAspect {
 
-    /**
-     * The Map.
-     */
-    ConcurrentHashMap<String, Long> map = new ConcurrentHashMap();
+    private final ConcurrentHashMap<String, Long> map = new ConcurrentHashMap<>();
 
-    private Logger log = LoggerFactory.getLogger(ApiPrintAspect.class);
-
-    @Value("${tools.logback.maxlength:-1}")
+    @Value("${tools.log.maxlength:-1}")
     private Integer maxlength;
 
     @Resource
     private ApiPrintTrigger apiPrintTrigger;
 
-    /**
-     * Pointcut.
-     */
     @Pointcut("@annotation(cn.gmlee.tools.base.anno.ApiPrint)")
     public void pointcut() {
     }
@@ -130,7 +120,7 @@ public class ApiPrintAspect {
         Long elapsedTime = System.currentTimeMillis() - startMs;
         ApiPrint ap = methodObj.getAnnotation(ApiPrint.class);
         JsonLog jsonLog = JsonLog.log()
-                .setUrl(WebUtil.getPath(WebUtil.getRequest()))
+                .setUrl(WebUtil.getCurrentPath())
                 .setPrint(ap.value())
                 .setType(ap.type())
                 .setRequestTime(String.valueOf(startMs))
@@ -149,6 +139,7 @@ public class ApiPrintAspect {
     /**
      * Get maxlength long.
      *
+     * @param apiPrint the api print
      * @return the long
      */
     public int getMaxlength(ApiPrint apiPrint) {

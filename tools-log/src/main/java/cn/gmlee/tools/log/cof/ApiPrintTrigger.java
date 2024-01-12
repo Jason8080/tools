@@ -1,4 +1,4 @@
-package cn.gmlee.tools.logback.config;
+package cn.gmlee.tools.log.cof;
 
 import cn.gmlee.tools.base.mod.JsonLog;
 
