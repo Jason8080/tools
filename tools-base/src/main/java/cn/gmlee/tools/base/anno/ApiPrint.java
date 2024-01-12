@@ -22,7 +22,7 @@ public @interface ApiPrint {
     /**
      * Api 功能类型.
      * <p>
-     *     -1常规, 0组织, 1用户, 2角色, 3菜单, 4可见性, 5数据权限, 6登录
+     * -1常规, 0组织, 1用户, 2角色, 3菜单, 4可见性, 5数据权限, 6登录
      * </p>
      *
      * @return the int
@@ -30,9 +30,16 @@ public @interface ApiPrint {
     int type() default -1;
 
     /**
-     * Length integer.
+     * 最大打印长度.
      *
      * @return the integer
      */
     int length() default -1;
+
+    /**
+     * 是否格式化输出.
+     *
+     * @return the boolean
+     */
+    boolean format() default false;
 }

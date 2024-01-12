@@ -93,7 +93,7 @@ public class ApiPrintAspect {
                 .setResponseTime(TimeUtil.getCurrentDatetime())
                 .setElapsedTime(elapsedTime)
                 .setSite(site);
-        log.info(jsonLog.builder(getMaxlength(ap)));
+        log.info(jsonLog.builder(ap.format(), getMaxlength(ap)));
         ExceptionUtil.sandbox(() -> apiPrintTrigger.log(jsonLog, result, null));
     }
 
@@ -132,7 +132,7 @@ public class ApiPrintAspect {
                 .setElapsedTime(elapsedTime)
                 .setEx(ExceptionUtil.getOriginMsg(e))
                 .setSite(site);
-        log.info(jsonLog.builder(getMaxlength(ap)));
+        log.info(jsonLog.builder(ap.format(), getMaxlength(ap)));
         ExceptionUtil.sandbox(() -> apiPrintTrigger.log(jsonLog, null, e));
     }
 

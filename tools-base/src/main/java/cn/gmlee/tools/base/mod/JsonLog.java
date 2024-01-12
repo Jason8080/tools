@@ -204,12 +204,23 @@ public class JsonLog implements Serializable {
     /**
      * Builder string.
      *
-     * @param length the length
+     * @param length   打印的最大长度
      * @return the string
      */
     public String builder(int length) {
+        return builder(false, length);
+    }
+
+    /**
+     * Builder string.
+     *
+     * @param isFormat 是否格式化打印
+     * @param length   打印的最大长度
+     * @return the string
+     */
+    public String builder(boolean isFormat, int length) {
         String json = JsonUtil.toJson(this);
-        String format = JsonUtil.format(json);
+        String format = isFormat ? JsonUtil.format(json) : json;
         if (length == -1 || format.length() < length) {
             return format;
         }

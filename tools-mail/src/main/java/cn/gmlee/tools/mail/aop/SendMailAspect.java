@@ -110,7 +110,7 @@ public class SendMailAspect {
                 .setResponseTime(responseTime)
                 .setElapsedTime(elapsedTime)
                 .setEx(ex)
-                .builder(-1);
+                .builder(true, -1);
     }
 
 
