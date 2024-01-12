@@ -4,6 +4,7 @@ import cn.gmlee.tools.base.anno.ApiPrint;
 import cn.gmlee.tools.base.assist.ApiAssist;
 import cn.gmlee.tools.base.mod.JsonLog;
 import cn.gmlee.tools.base.util.ExceptionUtil;
+import cn.gmlee.tools.base.util.NullUtil;
 import cn.gmlee.tools.base.util.TimeUtil;
 import cn.gmlee.tools.base.util.WebUtil;
 import cn.gmlee.tools.log.cof.ApiPrintTrigger;
@@ -82,7 +83,7 @@ public class ApiPrintAspect {
         ApiPrint ap = methodObj.getAnnotation(ApiPrint.class);
         JsonLog jsonLog = JsonLog.log()
                 .setUrl(WebUtil.getCurrentPath())
-                .setPrint(ap.value())
+                .setPrint(NullUtil.get(ap.value(), methodObj.getName()))
                 .setType(ap.type())
                 .setRequestTime(String.valueOf(startMs))
                 .setRequestIp(WebUtil.getCurrentIp())
@@ -121,7 +122,7 @@ public class ApiPrintAspect {
         ApiPrint ap = methodObj.getAnnotation(ApiPrint.class);
         JsonLog jsonLog = JsonLog.log()
                 .setUrl(WebUtil.getCurrentPath())
-                .setPrint(ap.value())
+                .setPrint(NullUtil.get(ap.value(), methodObj.getName()))
                 .setType(ap.type())
                 .setRequestTime(String.valueOf(startMs))
                 .setRequestIp(WebUtil.getCurrentIp())

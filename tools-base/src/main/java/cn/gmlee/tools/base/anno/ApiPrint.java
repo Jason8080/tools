@@ -17,7 +17,7 @@ public @interface ApiPrint {
      *
      * @return string string
      */
-    String value();
+    String value() default "";
 
     /**
      * Api 功能类型.

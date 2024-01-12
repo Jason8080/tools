@@ -3,6 +3,7 @@ package cn.gmlee.tools.datalog.aop;
 import cn.gmlee.tools.base.anno.ApiPrint;
 import cn.gmlee.tools.base.assist.ApiAssist;
 import cn.gmlee.tools.base.util.JsonUtil;
+import cn.gmlee.tools.base.util.NullUtil;
 import cn.gmlee.tools.base.util.TimeUtil;
 import cn.gmlee.tools.base.util.WebUtil;
 import cn.gmlee.tools.datalog.model.LogApi;
@@ -60,7 +61,7 @@ public class DatalogAspect {
         Method methodObj = methodSignature.getMethod();
         ApiPrint ap = methodObj.getAnnotation(ApiPrint.class);
         LogApi logApi = new LogApi();
-        logApi.setApi(ap.value());
+        logApi.setApi(NullUtil.get(ap.value(), methodObj.getName()));
         logApi.setSite(TimeUtil.getCurrentMs() + ApiAssist.getSite(className, methodObj));
         logApi.setParams(JsonUtil.toJson(args));
         logApi.setRequestIp(WebUtil.getCurrentIp());
