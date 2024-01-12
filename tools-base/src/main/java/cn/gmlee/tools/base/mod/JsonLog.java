@@ -214,7 +214,9 @@ public class JsonLog implements Serializable {
             return format;
         }
         int start = length / 2;
-        return format.substring(0, start) + format.substring(format.length() - start);
+        return format.substring(0, start) +
+                "\n...\n" +
+                format.substring(format.length() - start);
     }
 
     @Override
