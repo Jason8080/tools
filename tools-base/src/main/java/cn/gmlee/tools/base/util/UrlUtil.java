@@ -1,10 +1,13 @@
 package cn.gmlee.tools.base.util;
 
+import cn.gmlee.tools.base.ex.SkillException;
 import org.springframework.util.AntPathMatcher;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
+import java.net.*;
 import java.util.Collection;
 import java.util.Optional;
 
@@ -132,5 +135,28 @@ public class UrlUtil {
             }
         }
         return false;
+    }
+
+    /**
+     * URL文件下载.
+     *
+     * @param url the url
+     * @return the byte array output stream
+     */
+    public static ByteArrayOutputStream download(String url){
+        try {
+            // 将在线图片地址转换为URL对象
+            URL u = new URL(url);
+            // 打开链接
+            URLConnection connection = u.openConnection();
+            // 转换为连接
+            HttpURLConnection httpURLConnection = (HttpURLConnection) connection;
+            // 获取输入流
+            InputStream inputStream = httpURLConnection.getInputStream();
+            // 转换复用流
+            return StreamUtil.toStream(inputStream);
+        } catch (IOException e) {
+            throw new RuntimeException(String.format("文件下载错误: %s", url), e);
+        }
     }
 }
