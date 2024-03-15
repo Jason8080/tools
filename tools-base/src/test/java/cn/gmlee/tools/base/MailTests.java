@@ -29,8 +29,8 @@ public class MailTests {
     /**
      * The To.
      */
-    String username = "gmleemail@163.com";
-    String password = "QQ123456";
+    String username = "tools@gmlee.com";
+    String password = "********";
     String[] to = {"xiaoku13141@163.com", "569284276@qq.com"};
     /**
      * The Cc.
