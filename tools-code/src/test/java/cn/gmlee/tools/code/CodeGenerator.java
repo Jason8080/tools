@@ -61,8 +61,8 @@ public class CodeGenerator {
         init(
                 "", "tools-code", "",
                 "cn.gmlee", "",
-                "jdbc:mysql://127.0.0.1:3306/tools_sharding?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai",
-                "root", "root"
+                "jdbc:oracle:thin:@scan-ip.exgrain.org:1521:ygwdb",
+                "ldw_mall", "ldw_mall_"
         );
         execute();
     }
@@ -181,7 +181,7 @@ public class CodeGenerator {
             @Override
             public String outputFile(TableInfo tableInfo) {
                 // 自定义输出文件名 ， 如果你 Entity 设置了前后缀、此处注意 xml 的名称会跟着发生变化！！
-                return projectPath + getEmpty(system, "/") + getEmpty(model, "/") + getEmpty(project, "/") + "/src/main/java/" + parentPackage.replace(".", "/") + "/controller/vo"
+                return projectPath + getEmpty(system, "/") + getEmpty(model, "/") + getEmpty(project, "/") + "/src/test/java/" + parentPackage.replace(".", "/") + "/controller/vo"
                         + "/" + tableInfo.getEntityName() + "Vo" + StringPool.DOT_JAVA;
             }
         });
@@ -213,12 +213,12 @@ public class CodeGenerator {
     private final static GlobalConfig getGlobalConfig() {
         String projectPath = System.getProperty("user.dir");
         GlobalConfig gc = new GlobalConfig();
-        gc.setOutputDir(projectPath + getEmpty(system, "/") + getEmpty(model, "/") + getEmpty(project, "/") + "/src/main/java");
+        gc.setOutputDir(projectPath + getEmpty(system, "/") + getEmpty(model, "/") + getEmpty(project, "/") + "/src/test/java");
         gc.setAuthor("Jas°");
         gc.setOpen(false);
         gc.setServiceName("%sService");
         gc.setMapperName("%sMapper");
-        gc.setSwagger2(true);
+        gc.setSwagger2(false);
         gc.setFileOverride(true);
         // 时间类型都用Date, 不用LocalDateTime等
         gc.setDateType(DateType.ONLY_DATE);

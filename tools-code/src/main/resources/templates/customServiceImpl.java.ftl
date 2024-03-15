@@ -9,6 +9,7 @@ import cn.gmlee.tools.base.util.BeanUtil;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import ${superServiceImplClassPackage};
 import org.springframework.stereotype.Service;
@@ -66,10 +67,11 @@ public class ${table.serviceImplName} extends ${superServiceImplClass}<${table.m
 
     @Override
     public void logicDelById(Long id) {
-        ${entity} ${entity?uncap_first} = new ${entity}();
-        ${entity?uncap_first}.setId(id);
-        ${entity?uncap_first}.setDel(true);
-        ${table.mapperName?uncap_first}.updateById(${entity?uncap_first});
+        ${table.mapperName?uncap_first}.update(null,
+            Wrappers.<${entity}>lambdaUpdate()
+                .eq(${entity}::getId, id)
+                .set(${entity}::getDel, 1)
+        );
     }
 
     @Override
