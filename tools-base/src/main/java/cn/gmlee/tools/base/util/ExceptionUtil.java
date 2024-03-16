@@ -284,6 +284,23 @@ public class ExceptionUtil {
     }
 
     /**
+     * Sandbox r.
+     *
+     * @param <R> the type parameter
+     * @param fun the fun
+     * @param def the def
+     * @return the r
+     */
+    public static <R> R sandbox(Function.Zero2r<R> fun, Function.P2r<Throwable, R> def) {
+        try {
+            return fun.run();
+        } catch (Throwable e) {
+            // 已经返回异常则不打印日志
+            return suppress(() -> def.run(e));
+        }
+    }
+
+    /**
      * 压制异常 (有异常仍然抛出).
      *
      * @param fun the fun
