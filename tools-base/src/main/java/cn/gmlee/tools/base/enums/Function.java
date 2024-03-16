@@ -11,7 +11,7 @@ public interface Function {
      * The interface Ok 0.
      */
     @FunctionalInterface
-    interface Ok0 {
+    interface Ok0 extends Function {
         /**
          * Run boolean.
          *
@@ -27,7 +27,7 @@ public interface Function {
      * @param <P> the type parameter
      */
     @FunctionalInterface
-    interface Ok1<P> {
+    interface Ok1<P> extends Function {
         /**
          * Run boolean.
          *
@@ -44,7 +44,7 @@ public interface Function {
      * @param <P> the type parameter
      */
     @FunctionalInterface
-    interface Ok2<P> {
+    interface Ok2<P> extends Function {
         /**
          * Run boolean.
          *
@@ -63,7 +63,7 @@ public interface Function {
      * @param <P2> the type parameter
      */
     @FunctionalInterface
-    interface OkTwo<P1, P2> {
+    interface OkTwo<P1, P2> extends Function {
         /**
          * Run boolean.
          *
@@ -79,7 +79,7 @@ public interface Function {
      * The interface Ok os.
      */
     @FunctionalInterface
-    interface OkOs {
+    interface OkOs extends Function {
         /**
          * Run boolean.
          *
@@ -94,7 +94,7 @@ public interface Function {
      * The interface Zero.
      */
     @FunctionalInterface
-    interface Zero {
+    interface Zero extends Function {
         /**
          * Run.
          *
@@ -109,7 +109,7 @@ public interface Function {
      * @param <R> the type parameter
      */
     @FunctionalInterface
-    interface Zero2r<R> {
+    interface Zero2r<R> extends Function {
         /**
          * Run.
          *
@@ -125,7 +125,7 @@ public interface Function {
      * @param <P> the type parameter
      */
     @FunctionalInterface
-    interface One<P> {
+    interface One<P> extends Function {
         /**
          * Run.
          *
@@ -141,7 +141,7 @@ public interface Function {
      * @param <P> the type parameter
      */
     @FunctionalInterface
-    interface P2v<P> {
+    interface P2v<P> extends Function {
         /**
          * Run.
          *
@@ -158,7 +158,7 @@ public interface Function {
      * @param <R> the type parameter
      */
     @FunctionalInterface
-    interface V2r<R> {
+    interface V2r<R> extends Function {
         /**
          * Run r.
          *
@@ -174,7 +174,7 @@ public interface Function {
      * @param <P> the type parameter
      */
     @FunctionalInterface
-    interface P2p<P> {
+    interface P2p<P> extends Function {
         /**
          * Run p.
          *
@@ -192,7 +192,7 @@ public interface Function {
      * @param <R> the type parameter
      */
     @FunctionalInterface
-    interface P2r<P, R> {
+    interface P2r<P, R> extends Function {
         /**
          * Run r.
          *
@@ -209,7 +209,7 @@ public interface Function {
      * @param <P> the type parameter
      */
     @FunctionalInterface
-    interface TwoP2p<P> {
+    interface TwoP2p<P> extends Function {
         /**
          * Run p.
          *
@@ -228,7 +228,7 @@ public interface Function {
      * @param <R> the type parameter
      */
     @FunctionalInterface
-    interface TwoP2r<P, R> {
+    interface TwoP2r<P, R> extends Function {
         /**
          * Run r.
          *
@@ -247,7 +247,7 @@ public interface Function {
      * @param <Two> the type parameter
      */
     @FunctionalInterface
-    interface Two2v<One, Two> {
+    interface Two2v<One, Two> extends Function {
         /**
          * Run.
          *
@@ -266,7 +266,7 @@ public interface Function {
      * @param <R>   the type parameter
      */
     @FunctionalInterface
-    interface Two2r<One, Two, R> {
+    interface Two2r<One, Two, R> extends Function {
         /**
          * Run r.
          *
@@ -284,7 +284,7 @@ public interface Function {
      * @param <One> the type parameter
      */
     @FunctionalInterface
-    interface OneOsOne<One> {
+    interface OneOsOne<One> extends Function {
         /**
          * Run one.
          *
