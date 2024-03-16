@@ -323,7 +323,7 @@ public class ExceptionUtil {
             fun.run();
         } catch (Throwable e) {
             // 先执行异常处理
-            suppress(() -> run.run(e));
+            sandbox(() -> run.run(e));
             // 再抛出异常
             cast(e);
         }
