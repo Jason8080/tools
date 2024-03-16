@@ -316,6 +316,22 @@ public class ExceptionUtil {
     /**
      * 压制异常 (有异常仍然抛出).
      *
+     * @param fun the fun
+     */
+    public static void suppress(Function.Zero fun, Function.One<Throwable> run) {
+        try {
+            fun.run();
+        } catch (Throwable e) {
+            // 先执行异常处理
+            suppress(() -> run.run(e));
+            // 再抛出异常
+            cast(e);
+        }
+    }
+
+    /**
+     * 压制异常 (有异常仍然抛出).
+     *
      * @param <R> the type parameter
      * @param fun the fun
      * @return the def
