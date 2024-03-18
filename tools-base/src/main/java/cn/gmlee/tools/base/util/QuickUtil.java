@@ -179,6 +179,44 @@ public class QuickUtil {
     }
 
     /**
+     * In.
+     *
+     * @param <T>    the type parameter
+     * @param run    the run
+     * @param target the target
+     * @param source the source
+     */
+    public static <T> void in(Function.One<T> run, T target, T... source) {
+        try {
+            if (BoolUtil.in(target, source)) {
+                run.run(target);
+            }
+        } catch (Throwable throwable) {
+            logger.error("敏捷工具提示: ", throwable);
+            ExceptionUtil.cast(throwable);
+        }
+    }
+
+    /**
+     * In.
+     *
+     * @param <T>    the type parameter
+     * @param run    the run
+     * @param target the target
+     * @param source the source
+     */
+    public static <T> void in(Function.Zero run, T target, T... source) {
+        try {
+            if (BoolUtil.in(target, source)) {
+                run.run();
+            }
+        } catch (Throwable throwable) {
+            logger.error("敏捷工具提示: ", throwable);
+            ExceptionUtil.cast(throwable);
+        }
+    }
+
+    /**
      * 包含才执行.
      *
      * @param source the source
