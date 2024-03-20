@@ -104,27 +104,6 @@ public class TimeUtil {
     }
 
     /**
-     * 时间转 String
-     *
-     * @param time the time
-     * @return string string
-     */
-    public static String parseTime(LocalDateTime time) {
-        return XTime.SECOND_MINUS_BLANK_COLON.timeFormat.format(time);
-    }
-
-    /**
-     * 时间转 String
-     *
-     * @param time   the time
-     * @param format 时间格式
-     * @return string string
-     */
-    public static String parseTime(LocalDateTime time, XTime format) {
-        return format.timeFormat.format(time);
-    }
-
-    /**
      * 获取当前时间
      *
      * @return current datetime
@@ -232,5 +211,15 @@ public class TimeUtil {
      */
     public static String format(LocalDateTime localDateTime, XTime XTime) {
         return XTime.timeFormat.format(localDateTime);
+    }
+
+    /**
+     * 格式化时间.
+     *
+     * @param time the time
+     * @return string string
+     */
+    public static String format(LocalDateTime time) {
+        return XTime.SECOND_MINUS_BLANK_COLON.timeFormat.format(time);
     }
 }
