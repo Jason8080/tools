@@ -1,5 +1,6 @@
 package cn.gmlee.tools.cloud.feign;
 
+import cn.gmlee.tools.base.mod.JsonLog;
 import cn.gmlee.tools.base.util.*;
 import feign.Logger;
 import feign.Request;
@@ -62,10 +63,10 @@ public class FeignLogger extends Logger {
                     "-----------------------------------------------",
                     configKey,
                     String.format("%s %s", response.request().httpMethod(), response.request().url()),
-                    BoolUtil.isEmpty(requestBody) ? "无" : requestBody,
+                    BoolUtil.isEmpty(requestBody) ? "无" : JsonLog.maxlength(requestBody, properties.getFeignLog().maxlength),
                     status,
                     elapsedTime,
-                    BoolUtil.isEmpty(responsBody) ? "无" : responsBody,
+                    BoolUtil.isEmpty(responsBody) ? "无" : JsonLog.maxlength(requestBody, properties.getFeignLog().maxlength),
                     "-----------------------------------------------"
             );
 

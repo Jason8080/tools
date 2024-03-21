@@ -14,6 +14,7 @@ public class FeignLoggerProperties {
 
     @Data
     public static class FeignLog {
+        public Integer maxlength = 4096;
         public List<String> excludeUrls = Collections.emptyList();
     }
 }
