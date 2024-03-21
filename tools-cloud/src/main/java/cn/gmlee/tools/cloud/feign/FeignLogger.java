@@ -66,7 +66,7 @@ public class FeignLogger extends Logger {
                     BoolUtil.isEmpty(requestBody) ? "无" : JsonLog.maxlength(requestBody, properties.getFeignLog().maxlength),
                     status,
                     elapsedTime,
-                    BoolUtil.isEmpty(responsBody) ? "无" : JsonLog.maxlength(requestBody, properties.getFeignLog().maxlength),
+                    BoolUtil.isEmpty(responsBody) ? "无" : JsonLog.maxlength(responsBody, properties.getFeignLog().maxlength),
                     "-----------------------------------------------"
             );
 
