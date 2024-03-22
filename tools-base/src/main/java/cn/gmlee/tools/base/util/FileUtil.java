@@ -26,6 +26,27 @@ public class FileUtil {
      */
     public final static String PATH = "/upload";
 
+
+    /**
+     * 转换对象 (内存).
+     *
+     * @param base64 the base 64
+     * @return the multipart file
+     */
+    public static MultipartFile toMultipartFile(String base64){
+        return MultipartFileUtil.toFile(base64);
+    }
+
+    /**
+     * 转换对象 (内存).
+     *
+     * @param bytes the bytes
+     * @return the multipart file
+     */
+    public static MultipartFile toMultipartFile(byte... bytes){
+        return MultipartFileUtil.toFile(bytes);
+    }
+
     /**
      * 文件存储 (SpringMVC)
      *
