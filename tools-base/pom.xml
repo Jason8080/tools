@@ -124,6 +124,12 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>commons-fileupload</groupId>
+            <artifactId>commons-fileupload</artifactId>
+            <version>1.4</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
             <optional>true</optional>

@@ -53,7 +53,7 @@ public class HexUtil {
      * @return the string
      */
     public static String hex16(byte... bytes) {
-        char arr[] = new char[bytes.length * 2];
+        char[] arr = new char[bytes.length * 2];
         int i = 0;
         for (byte bt : bytes) {
             arr[i++] = HEX36[bt >>> 4 & 0xf];

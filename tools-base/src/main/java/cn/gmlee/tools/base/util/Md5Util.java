@@ -1,7 +1,6 @@
 package cn.gmlee.tools.base.util;
 
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 /**
@@ -24,13 +23,20 @@ public class Md5Util {
      * @return 密文 string
      */
     public static String encode(String content, String... salt) {
-        try {
-            MessageDigest md5 = MessageDigest.getInstance(MD5);
-            byte[] bytes = md5.digest(getBytes(content, salt));
-            return hex(bytes);
-        } catch (NoSuchAlgorithmException e) {
-            return ExceptionUtil.cast(e);
-        }
+        return encode(getBytes(content, salt));
+    }
+
+    /**
+     * 直接加密.
+     *
+     * @param bytes the bytes
+     * @return the string
+     */
+    public static String encode(byte... bytes) {
+        MessageDigest md5 = ExceptionUtil.suppress(
+                () -> MessageDigest.getInstance(MD5)
+        );
+        return hex(md5.digest(bytes));
     }
 
     private static String base64(byte[] bytes) {
@@ -40,7 +46,7 @@ public class Md5Util {
     }
 
     private static String hex(byte[] bytes) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
             int number = b & 0xff;
             String s = Integer.toHexString(number);
@@ -52,10 +58,14 @@ public class Md5Util {
         return sb.toString();
     }
 
+    public static void main(String[] args) {
+        System.out.println(Md5Util.encode());
+    }
+
     private static byte[] getBytes(String content, String... os) {
         StringBuilder sb = new StringBuilder(content);
-        for (int i = 0; i < os.length; i++) {
-            sb.append(os[i]);
+        for (String o : os) {
+            sb.append(o);
         }
         String toString = sb.toString();
         return toString.getBytes();
