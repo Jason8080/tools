@@ -25,6 +25,10 @@ public class EnumsValidator implements ConstraintValidator<Enums, Object> {
     @Override
     public boolean isValid(Object value, ConstraintValidatorContext context) {
         if (value != null) {
+            // 如果已经匹配: 仅检测类型即可
+            if (BoolUtil.containOne(enums.enums(), value.getClass())) {
+                return true;
+            }
             if (enums.value().startsWith(Regex.first) && enums.value().endsWith(Regex.last)) {
                 return RegexUtil.match(value.toString(), enums.value());
             }
