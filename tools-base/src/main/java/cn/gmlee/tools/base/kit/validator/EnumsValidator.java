@@ -32,8 +32,11 @@ public class EnumsValidator implements ConstraintValidator<Enums, Object> {
                 return true;
             }
             for (Class<? extends Enum> target : enums.enums()) {
-                Enum e = EnumUtil.value(value, target);
-                if (e != null) {
+                // 优先使用名称: 因为如果采用NAME交互, 必须与名称相同才能赋值
+                if (EnumUtil.name(value, target) != null ||
+                        // 其次使用内容: 在非枚举对象接收参数时, 仍然可以使用该校验
+                        EnumUtil.value(value, target) != null
+                ) {
                     return true;
                 }
             }

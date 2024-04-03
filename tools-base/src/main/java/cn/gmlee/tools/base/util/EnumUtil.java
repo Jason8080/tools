@@ -22,7 +22,7 @@ public class EnumUtil {
      * @param enumClass
      * @return
      */
-    public static <E extends Enum> E name(String name, Class<E> enumClass) {
+    public static <E extends Enum> E name(Object name, Class<E> enumClass) {
         try {
             Field[] fields = enumClass.getDeclaredFields();
             for (Field field : fields) {
