@@ -32,7 +32,7 @@ public class CheckValidator implements ConstraintValidator<Check, Object> {
         Field[] fields = value.getClass().getDeclaredFields();
         Map<String, Object> valuesMap = ClassUtil.generateMap(value);
         // 支持类修饰 && 字段修饰
-        return checkMethod(valuesMap) && checkFields(valuesMap, fields);
+        return checkClass(valuesMap) && checkFields(valuesMap, fields);
     }
 
     private boolean eval(Map<String, Object> valuesMap, El el) {
@@ -81,7 +81,7 @@ public class CheckValidator implements ConstraintValidator<Check, Object> {
         return true;
     }
 
-    private boolean checkMethod(Map<String, Object> valuesMap) {
+    private boolean checkClass(Map<String, Object> valuesMap) {
         El[] els = check.value();
         for (El el : els){
             if (!eval(valuesMap, el)) {
