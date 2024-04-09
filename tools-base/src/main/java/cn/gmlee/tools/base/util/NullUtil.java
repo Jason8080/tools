@@ -1,5 +1,7 @@
 package cn.gmlee.tools.base.util;
 
+import cn.gmlee.tools.base.enums.Function;
+
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -10,6 +12,40 @@ import java.util.Collection;
  * @date 2020 /9/28 (周一)
  */
 public class NullUtil {
+
+    /**
+     * 捕捉空异常.
+     *
+     * @param run the run
+     * @return the t
+     */
+    public static void get(Function.Zero run) {
+        try {
+            run.run();
+        } catch (NullPointerException e) {
+        } catch (Throwable e) {
+            ExceptionUtil.cast(e);
+        }
+    }
+
+    /**
+     * 捕捉空异常.
+     *
+     * @param <T> the type parameter
+     * @param run the run
+     * @param def the def
+     * @return the t
+     */
+    public static <T> T get(Function.Zero2r<T> run, T def) {
+        try {
+            return run.run();
+        } catch (NullPointerException e) {
+            return def;
+        } catch (Throwable e) {
+            return ExceptionUtil.cast(e);
+        }
+    }
+
     /**
      * 获取不为null的字符串.
      *

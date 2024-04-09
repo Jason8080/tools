@@ -128,13 +128,13 @@ public class MathUtil {
     public static final String NOT = "!";
 
     /**
-     * The constant IFSETOR_Q.
+     * The constant Q.
      */
-    public static final char IFSETOR_Q = '?';
+    public static final char TERNARY_Q = '?';
     /**
-     * The constant IFSETOR_T.
+     * The constant T.
      */
-    public static final char IFSETOR_T = ':';
+    public static final char TERNARY_T = ':';
 
     /**
      * The constant SPACE.
