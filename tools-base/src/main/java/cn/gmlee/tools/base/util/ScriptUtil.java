@@ -20,7 +20,7 @@ public class ScriptUtil {
      * @param script the script
      * @return the t
      */
-    public static <T> T execute(String script) {
+    public static <T> T eval(String script) {
         return ExceptionUtil.sandbox(() -> (T) scriptEngine.eval(script), false);
     }
 
@@ -32,7 +32,7 @@ public class ScriptUtil {
      * @param print  the print
      * @return the t
      */
-    public static <T> T execute(String script, boolean print) {
+    public static <T> T eval(String script, boolean print) {
         return ExceptionUtil.sandbox(() -> (T) scriptEngine.eval(script), print);
     }
 }

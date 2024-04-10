@@ -32,7 +32,7 @@ public class CheckValidator implements ConstraintValidator<Check, Object> {
         Field[] fields = value.getClass().getDeclaredFields();
         Map<String, Object> valuesMap = ClassUtil.generateMap(value);
         // 支持类修饰 && 字段修饰
-        return checkClass(valuesMap) && checkFields(valuesMap, fields);
+        return checkClass(context, valuesMap) && checkFields(context, valuesMap, fields);
     }
 
     private boolean eval(Map<String, Object> valuesMap, El el) {
@@ -40,29 +40,38 @@ public class CheckValidator implements ConstraintValidator<Check, Object> {
             return true; // 表达式是空不检查
         }
         String[] conditions = el.conditions();
-        boolean condition = execute(valuesMap, conditions);
+        boolean condition = eval(valuesMap, conditions);
         if (!condition) { // 条件不满足不检查表达式
             return true;
         }
         String[] expressions = el.value();
-        return execute(valuesMap, expressions);
+        return eval(valuesMap, expressions);
     }
 
-    private boolean execute(Map<String, Object> valuesMap, String... expressions) {
+    private boolean eval(Map<String, Object> valuesMap, String... expressions) {
         if (BoolUtil.isEmpty(expressions)) {
             return true;
         }
         for (String condition : expressions) {
             // 处理空符
-            CollectionUtil.valReplace(valuesMap, (k, v) ->
-                    // 因为script会忽略空白符; 所以需要将空内容替换成带引号的空内容
-                    v == null || "".equals(v)  || RegexUtil.match(v.toString(), String.format("[\\s]{%s,}", v.toString().length()))? "\"\"" : v.toString()
-            );
+            CollectionUtil.valReplace(valuesMap, (k, v) -> {
+                // 因为script会忽略空白符; 所以需要将空内容替换成带引号的空内容
+                if (v == null) {
+                    return "null";
+                }
+                if ("".equals(v)) {
+                    return "''";
+                }
+                if (RegexUtil.match(v.toString(), String.format("[\\s]{%s,}", v.toString().length()))) {
+                    return "\"\"";
+                }
+                return v.toString();
+            });
             // 参数替换
             condition = PlaceholderHelper.replace(condition, valuesMap);
             // 脚本执行
-            Object ok = ScriptUtil.execute(condition);
-            log.info("condition:{}:{}", ok, condition);
+            Object ok = ScriptUtil.eval(condition);
+            log.info("cn.gmlee.tools.base.kit.validator.CheckValidator#execute\r\n\tcondition:{}:{}", ok, condition);
             // 执行结果
             if (ok instanceof Boolean && !(Boolean) ok) {
                 return false;
@@ -71,20 +80,24 @@ public class CheckValidator implements ConstraintValidator<Check, Object> {
         return true;
     }
 
-    private boolean checkFields(Map<String, Object> valuesMap, Field... fields) {
+    private boolean checkFields(ConstraintValidatorContext context, Map<String, Object> valuesMap, Field... fields) {
         for (Field field : fields) {
             El el = field.getAnnotation(El.class);
             if (!eval(valuesMap, el)) {
+                context.disableDefaultConstraintViolation(); // 禁用默认的约束违规消息
+                context.buildConstraintViolationWithTemplate(el.message()).addConstraintViolation();
                 return false;
             }
         }
         return true;
     }
 
-    private boolean checkClass(Map<String, Object> valuesMap) {
+    private boolean checkClass(ConstraintValidatorContext context, Map<String, Object> valuesMap) {
         El[] els = check.value();
-        for (El el : els){
+        for (El el : els) {
             if (!eval(valuesMap, el)) {
+                context.disableDefaultConstraintViolation(); // 禁用默认的约束违规消息
+                context.buildConstraintViolationWithTemplate(el.message()).addConstraintViolation();
                 return false;
             }
         }
