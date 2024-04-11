@@ -3,6 +3,10 @@ package cn.gmlee.tools.base.anno;
 import javax.validation.Payload;
 import java.lang.annotation.*;
 
+/**
+ * El：表达式
+ * <p>起源于JSP未来也将支持这种的写法： this，对象引用，上下文读取； 但目前处于初期阶段咱无支持</p>
+ */
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
