@@ -24,7 +24,7 @@
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-code</artifactId>
             <version>5.5.0-SNAPSHOT</version>
-            <scope>provided</scope>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -45,6 +45,14 @@
             <version>5.5.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
+        <!-- ============================================================ -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <version>${mybatis-plus.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <!-- ============================================================ -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>

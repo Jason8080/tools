@@ -60,7 +60,7 @@ public class SendMailAspect {
         try {
             if (BoolUtil.containOne(advices, Advice.Before)) {
                 String log = build(jsonLog, methodObj, Advice.Before,
-                        TimeUtil.parseTime(beforeTime), null, null, null, ex.getMessage());
+                        TimeUtil.format(beforeTime), null, null, null, ex.getMessage());
                 mailServer.log(String.format(MAIL_TITLE, author), log, sm.recipients());
             }
             result = pjp.proceed(args);
@@ -68,7 +68,7 @@ public class SendMailAspect {
             if (BoolUtil.containOne(advices, Advice.Returning)) {
                 Duration duration = Duration.between(beforeTime, afterTime);
                 String log = build(jsonLog, methodObj, Advice.Returning,
-                        TimeUtil.parseTime(beforeTime), result, TimeUtil.parseTime(afterTime), duration.toMillis(), ex.getMessage());
+                        TimeUtil.format(beforeTime), result, TimeUtil.format(afterTime), duration.toMillis(), ex.getMessage());
                 mailServer.log(String.format(MAIL_TITLE, author), log, sm.recipients());
             }
             return result;
@@ -78,7 +78,7 @@ public class SendMailAspect {
             if (BoolUtil.containOne(advices, Advice.Throwing)) {
                 Duration duration = Duration.between(beforeTime, afterTime);
                 String log = build(jsonLog, methodObj, Advice.Throwing,
-                        TimeUtil.parseTime(beforeTime), result, TimeUtil.parseTime(afterTime), duration.toMillis(), ex.getMessage());
+                        TimeUtil.format(beforeTime), result, TimeUtil.format(afterTime), duration.toMillis(), ex.getMessage());
                 mailServer.log(String.format(MAIL_TITLE, author), log, sm.recipients());
             }
             throw throwable;
@@ -86,7 +86,7 @@ public class SendMailAspect {
             LocalDateTime afterTime = LocalDateTime.now();
             Duration duration = Duration.between(beforeTime, afterTime);
             String log = build(jsonLog, methodObj, Advice.After,
-                    TimeUtil.parseTime(beforeTime), result, TimeUtil.parseTime(afterTime), duration.toMillis(), ex.getMessage());
+                    TimeUtil.format(beforeTime), result, TimeUtil.format(afterTime), duration.toMillis(), ex.getMessage());
             logger.debug(log);
             if (BoolUtil.containOne(advices, Advice.After)) {
                 mailServer.log(String.format(MAIL_TITLE, author), log, sm.recipients());

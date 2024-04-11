@@ -65,15 +65,11 @@
                     <artifactId>mybatis-plus-extension</artifactId>
                 </exclusion>
             </exclusions>
-            <scope>test</scope>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-extension</artifactId>
             <version>${mybatis-plus.version}</version>
-            <scope>test</scope>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.apache.velocity</groupId>
@@ -85,15 +81,11 @@
                     <groupId>org.apache.commons</groupId>
                 </exclusion>
             </exclusions>
-            <scope>test</scope>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.freemarker</groupId>
             <artifactId>freemarker</artifactId>
             <version>2.3.30</version>
-            <scope>test</scope>
-            <optional>true</optional>
         </dependency>
         <!-- ============================================================ -->
     </dependencies>
