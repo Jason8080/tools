@@ -81,6 +81,10 @@ public class CacheAspect {
 
             log.warn("字典翻译异常", e);
 
+        } finally {
+
+            ClassUtil.clear();
+
         }
     }
 

@@ -38,6 +38,13 @@ public class ClassUtil extends TimerTask {
 
     @Override
     public void run() {
+        clear();
+    }
+
+    /**
+     * 缓存清理
+     */
+    public static void clear() {
         classMapCache.clear();
         fieldMapCache.clear();
     }
@@ -142,7 +149,7 @@ public class ClassUtil extends TimerTask {
     }
 
     /**
-     * Generate map use cache map.
+     * 生成Map并缓存 (请注意在 finally 中清理).
      *
      * @param <T>    the type parameter
      * @param <V>    the type parameter
@@ -195,7 +202,7 @@ public class ClassUtil extends TimerTask {
 
 
     /**
-     * Gets fields map use cache.
+     * 获取Map并缓存 (请注意在 finally 中清理).
      *
      * @param <T>    the type parameter
      * @param source the source
