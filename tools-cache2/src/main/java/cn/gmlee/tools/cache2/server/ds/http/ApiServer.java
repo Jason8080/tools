@@ -1,8 +1,6 @@
 package cn.gmlee.tools.cache2.server.ds.http;
 
-import cn.gmlee.tools.base.builder.KvBuilder;
 import cn.gmlee.tools.base.mod.HttpResult;
-import cn.gmlee.tools.base.mod.Kv;
 import cn.gmlee.tools.base.mod.R;
 import cn.gmlee.tools.base.util.ClassUtil;
 import cn.gmlee.tools.base.util.HttpUtil;

@@ -33,7 +33,7 @@ public class ClassUtil extends TimerTask {
 
     {
         // 定时清理缓存
-        new Timer().schedule(new ClassUtil(), 0, 60 * 1000);
+        new Timer().schedule(new ClassUtil(), 0, 3600 * 1000);
     }
 
     @Override
@@ -358,30 +358,16 @@ public class ClassUtil extends TimerTask {
         return map;
     }
 
-
-    /**
-     * 获取ID字段值
-     *
-     * @param <T>    the type parameter
-     * @param source the source
-     * @return id id
-     */
-    public static <T> Object getId(T source) {
-        Map<String, Object> generateMap = generateMapUseCache(source);
-        return generateMap.get("id");
-    }
-
     /**
      * 获取指定名称字段:Id的值.
      *
      * @param <T>    the type parameter
      * @param <V>    the type parameter
      * @param source the source
-     * @param clazz  the clazz
      * @return the id
      */
-    public static <T, V> V getId(T source, Class<V> clazz) {
-        Map<String, Object> generateMap = generateMapUseCache(source);
+    public static <T, V> V getId(T source) {
+        Map<String, Object> generateMap = generateMap(source);
         return (V) generateMap.get("id");
     }
 
@@ -394,7 +380,7 @@ public class ClassUtil extends TimerTask {
      * @return field value
      */
     public static <T> Object getFieldValue(T source, String fieldName) {
-        Map<String, Object> generateMap = generateMapUseCache(source);
+        Map<String, Object> generateMap = generateMap(source);
         return generateMap.get(fieldName);
     }
 
@@ -425,7 +411,7 @@ public class ClassUtil extends TimerTask {
      * @return the value
      */
     public static <T, V> V getValue(T source, String fieldName) {
-        Map<String, Object> generateMap = generateMapUseCache(source);
+        Map<String, Object> generateMap = generateMap(source);
         return (V) generateMap.get(fieldName);
     }
 
