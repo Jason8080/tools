@@ -33,7 +33,7 @@ public class ClassUtil extends TimerTask {
 
     {
         // 定时清理缓存
-        new Timer().schedule(new ClassUtil(), 0, 3600 * 1000);
+        new Timer().schedule(new ClassUtil(), 0, 3 * 3600 * 1000);
     }
 
     @Override
