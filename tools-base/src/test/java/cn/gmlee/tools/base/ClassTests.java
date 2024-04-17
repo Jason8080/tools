@@ -20,4 +20,8 @@ public class ClassTests {
         System.out.println(map);
     }
 
+    public static void main(String[] args) throws InterruptedException {
+        new ClassTests().test();
+        Thread.sleep(100000000);
+    }
 }

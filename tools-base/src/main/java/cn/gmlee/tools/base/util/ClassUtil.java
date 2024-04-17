@@ -2,6 +2,7 @@ package cn.gmlee.tools.base.util;
 
 import cn.gmlee.tools.base.anno.Column;
 import com.alibaba.fastjson.util.ParameterizedTypeImpl;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,14 +32,14 @@ public class ClassUtil extends TimerTask {
     private static final Map<Object, Map> classMapCache = new ConcurrentHashMap();
     private static final Map<Object, Map> fieldMapCache = new ConcurrentHashMap();
 
-    {
+    static {
         // 定时清理缓存
-        new Timer().schedule(new ClassUtil(), 0, 3 * 3600 * 1000);
+        new Timer().schedule(new ClassUtil(), 0, 60 * 1000);
     }
 
     @Override
     public void run() {
-        clear();
+        ExceptionUtil.sandbox(ClassUtil::clear);
     }
 
     /**
