@@ -2,7 +2,6 @@ package cn.gmlee.tools.base.util;
 
 import cn.gmlee.tools.base.anno.Column;
 import com.alibaba.fastjson.util.ParameterizedTypeImpl;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +14,6 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
@@ -25,30 +23,9 @@ import java.util.jar.JarFile;
  * @author Jas °
  * @date 2020 /9/21 (周一)
  */
-public class ClassUtil extends TimerTask {
+public class ClassUtil {
 
     private static final Logger log = LoggerFactory.getLogger(ClassUtil.class);
-
-    private static final Map<Object, Map> classMapCache = new ConcurrentHashMap();
-    private static final Map<Object, Map> fieldMapCache = new ConcurrentHashMap();
-
-    static {
-        // 定时清理缓存
-        new Timer().schedule(new ClassUtil(), 0, 60 * 1000);
-    }
-
-    @Override
-    public void run() {
-        ExceptionUtil.sandbox(ClassUtil::clear);
-    }
-
-    /**
-     * 缓存清理
-     */
-    public static void clear() {
-        classMapCache.clear();
-        fieldMapCache.clear();
-    }
 
     /**
      * 根据类路径空参构造方法创建对象.
@@ -150,25 +127,6 @@ public class ClassUtil extends TimerTask {
     }
 
     /**
-     * 生成Map并缓存 (请注意在 finally 中清理).
-     *
-     * @param <T>    the type parameter
-     * @param <V>    the type parameter
-     * @param source the source
-     * @return the map
-     */
-    public static <T, V> Map<String, V> generateMapUseCache(T source) {
-        Map<String, V> map = classMapCache.get(source);
-        if (BoolUtil.notEmpty(map)) {
-            return map;
-        }
-        map = generateMap(source);
-        classMapCache.put(source, map);
-        return map;
-    }
-
-
-    /**
      * 将当前对象转换成Map (不包含继承的属性).
      *
      * @param <T>    the type parameter
@@ -199,24 +157,6 @@ public class ClassUtil extends TimerTask {
             all.putAll(getCurrentFieldsMap(clazz));
         }
         return all;
-    }
-
-
-    /**
-     * 获取Map并缓存 (请注意在 finally 中清理).
-     *
-     * @param <T>    the type parameter
-     * @param source the source
-     * @return the fields map use cache
-     */
-    public static <T> Map<String, Field> getFieldsMapUseCache(T source) {
-        Map<String, Field> map = fieldMapCache.get(source);
-        if (BoolUtil.notEmpty(map)) {
-            return map;
-        }
-        map = getFieldsMap(source);
-        fieldMapCache.put(source, map);
-        return map;
     }
 
     private static <T, V> Map<String, V> recursionSuperclass(T source, Class<?> clazz) {

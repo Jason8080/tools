@@ -2,11 +2,11 @@ package cn.gmlee.tools.cache2.server.ds.http;
 
 import cn.gmlee.tools.base.mod.HttpResult;
 import cn.gmlee.tools.base.mod.R;
-import cn.gmlee.tools.base.util.ClassUtil;
 import cn.gmlee.tools.base.util.HttpUtil;
 import cn.gmlee.tools.base.util.WebUtil;
 import cn.gmlee.tools.cache2.anno.Cache;
 import cn.gmlee.tools.cache2.enums.DataType;
+import cn.gmlee.tools.cache2.kit.ClassKit;
 import cn.gmlee.tools.cache2.kit.ElKit;
 import cn.gmlee.tools.cache2.server.ds.AbstractDsServer;
 import lombok.Data;
@@ -29,7 +29,7 @@ public class ApiServer extends AbstractDsServer implements HttpServer {
     @Override
     protected List<Map<String, Object>> list(Cache cache, Object result, Field field) {
         // 解析查询条件
-        Map<String, Object> map = ClassUtil.generateMapUseCache(result);
+        Map<String, Object> map = ClassKit.generateMapUseCache(result);
         String where = ElKit.parse(cache.where(), map);
         Map<String, Object> params = WebUtil.getParams(where);
         String url = WebUtil.addParam(cache.target(), params);

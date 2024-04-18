@@ -1,8 +1,8 @@
 package cn.gmlee.tools.cache2.server;
 
 import cn.gmlee.tools.base.util.BoolUtil;
-import cn.gmlee.tools.base.util.ClassUtil;
 import cn.gmlee.tools.cache2.anno.Cache;
+import cn.gmlee.tools.cache2.kit.ClassKit;
 import lombok.Data;
 
 import java.lang.reflect.Field;
@@ -23,7 +23,7 @@ public abstract class AbstractDs implements Ds {
         if (BoolUtil.isEmpty(list)) {
             return list;
         }
-        Map<String, Object> retMap = ClassUtil.generateMapUseCache(result);
+        Map<String, Object> retMap = ClassKit.generateMapUseCache(result);
         Iterator<Map<String, Object>> it = list.iterator();
         while (it.hasNext()) {
             Map<String, Object> dsMap = it.next();

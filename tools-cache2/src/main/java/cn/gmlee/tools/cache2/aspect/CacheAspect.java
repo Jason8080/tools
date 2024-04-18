@@ -3,13 +3,13 @@ package cn.gmlee.tools.cache2.aspect;
 import cn.gmlee.tools.base.enums.Int;
 import cn.gmlee.tools.base.mod.Kv;
 import cn.gmlee.tools.base.util.BoolUtil;
-import cn.gmlee.tools.base.util.ClassUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.QuickUtil;
 import cn.gmlee.tools.cache2.anno.Cache;
 import cn.gmlee.tools.cache2.anno.Cache2;
 import cn.gmlee.tools.cache2.config.Cache2Conf;
 import cn.gmlee.tools.cache2.handler.CacheHandler;
+import cn.gmlee.tools.cache2.kit.ClassKit;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
@@ -83,7 +83,7 @@ public class CacheAspect {
 
         } finally {
 
-            ClassUtil.clear();
+            ClassKit.clear();
 
         }
     }
@@ -94,7 +94,7 @@ public class CacheAspect {
         if (!BoolUtil.isBean(result, String.class)) {
             return kvs;
         }
-        Map<String, Field> fieldsMap = ClassUtil.getFieldsMapUseCache(result);
+        Map<String, Field> fieldsMap = ClassKit.getFieldsMapUseCache(result);
         if (BoolUtil.isEmpty(fieldsMap)) {
             return kvs;
         }

@@ -1,7 +1,6 @@
 package cn.gmlee.tools.cache2.kit;
 
 import cn.gmlee.tools.base.util.BoolUtil;
-import cn.gmlee.tools.base.util.ClassUtil;
 import cn.gmlee.tools.base.util.Md5Util;
 import cn.gmlee.tools.cache2.anno.Cache;
 import cn.gmlee.tools.cache2.enums.DataType;
@@ -24,7 +23,7 @@ public class CacheKit {
      * @return the string
      */
     public static String generateKey(Cache cache, Object result, Field field) {
-        Map<String, Object> obj = ClassUtil.generateMapUseCache(result);
+        Map<String, Object> obj = ClassKit.generateMapUseCache(result);
         String target = cache.target();
         String key = cache.key();
         String put = cache.put();
