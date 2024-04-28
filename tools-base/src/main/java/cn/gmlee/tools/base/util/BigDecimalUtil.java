@@ -14,8 +14,6 @@ public class BigDecimalUtil {
     public static final int SCALE_2 = 2; // 金额
     public static final int SCALE_3 = 3; // 吨数
     public static final int SCALE_4 = 4; // 比例
-    public static final int ROUND_UP = BigDecimal.ROUND_UP; // 向上进位
-    public static final int ROUND_MODE = BigDecimal.ROUND_DOWN; // 向下取舍
     public static final BigDecimal ONE_HUNDRED = BigDecimal.valueOf(100); // 100
 
     /**
@@ -78,7 +76,7 @@ public class BigDecimalUtil {
     }
 
     /**
-     * 乘法.
+     * 乘法 .
      *
      * @param num         the num
      * @param multipliers the multipliers
@@ -90,14 +88,14 @@ public class BigDecimalUtil {
                 if (BoolUtil.eq(multiplier, BigDecimal.ZERO)) {
                     return BigDecimal.ZERO;
                 }
-                num = num.multiply(multiplier);
+                num = num.multiply(multiplier)/*.setScale(SCALE_2, BigDecimal.ROUND_HALF_UP)*/;
             }
         }
         return NullUtil.get(num, BigDecimal.ZERO);
     }
 
     /**
-     * 除法.
+     * 除法 .
      *
      * @param num      the num
      * @param divisors divisors
@@ -109,7 +107,7 @@ public class BigDecimalUtil {
                 if (BoolUtil.eq(divisor, BigDecimal.ZERO)) {
                     return BigDecimal.ZERO;
                 }
-                num = num.divide(divisor, SCALE_2, ROUND_MODE);
+                num = num.divide(divisor)/*.setScale(SCALE_2, BigDecimal.ROUND_HALF_UP)*/;
             }
         }
         return NullUtil.get(num, BigDecimal.ZERO);
