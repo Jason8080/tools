@@ -14,6 +14,10 @@
     <packaging>jar</packaging>
     <version>5.5.0-SNAPSHOT</version>
 
+    <properties>
+        <jsqlparser.version>4.0</jsqlparser.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
@@ -44,6 +48,14 @@
             <artifactId>tools-ds</artifactId>
             <version>5.5.0-SNAPSHOT</version>
             <scope>test</scope>
+        </dependency>
+        <!-- ============================================================ -->
+        <dependency>
+            <groupId>com.github.jsqlparser</groupId>
+            <artifactId>jsqlparser</artifactId>
+            <version>${jsqlparser.version}</version>
+            <optional>true</optional>
+            <scope>provided</scope>
         </dependency>
         <!-- ============================================================ -->
         <dependency>
