@@ -1,6 +1,5 @@
 package cn.gmlee.tools.base.util;
 
-import cn.gmlee.tools.base.anno.DataFilter;
 import cn.gmlee.tools.base.anno.DataScope;
 
 /**

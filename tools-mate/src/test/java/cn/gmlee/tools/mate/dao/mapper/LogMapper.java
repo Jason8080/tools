@@ -1,7 +1,6 @@
 package cn.gmlee.tools.mate.dao.mapper;
 
 import cn.gmlee.tools.base.anno.DataScope;
-import cn.gmlee.tools.base.anno.DataFilter;
 import cn.gmlee.tools.mate.dao.entity.Log;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
