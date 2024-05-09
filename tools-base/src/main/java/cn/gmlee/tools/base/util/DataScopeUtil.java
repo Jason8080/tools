@@ -30,12 +30,12 @@ public class DataScopeUtil {
      *
      * @return the data auth [ ]
      */
-    public static DataFilter[] getCol() {
+    public static String[] getCol() {
         DataScope dataScope = get();
         if (dataScope != null) {
             return dataScope.col();
         }
-        return new DataFilter[]{};
+        return new String[]{};
     }
 
     /**
@@ -43,14 +43,14 @@ public class DataScopeUtil {
      *
      * @return the data auth [ ]
      */
-    public static DataFilter[] getRow() {
+    public static String[] getRow() {
         DataScope dataScope = get();
         if (dataScope != null) {
-            DataFilter[] val1 = dataScope.value();
-            DataFilter[] val2 = dataScope.row();
+            String[] val1 = dataScope.value();
+            String[] val2 = dataScope.row();
             return CollectionUtil.merge(val1, val2);
         }
-        return new DataFilter[]{};
+        return new String[]{};
     }
 
     /**

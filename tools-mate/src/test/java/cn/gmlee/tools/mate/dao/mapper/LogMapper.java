@@ -17,10 +17,7 @@ import org.apache.ibatis.annotations.Select;
  * @since 2022-07-11
  */
 public interface LogMapper extends BaseMapper<Log> {
-    @DataScope(
-            row = {@DataFilter(flag = "row_sys_auth", sql = "right join sys s on s.id = toolsTt.sys_id")},
-            col = {@DataFilter(flag = "column-auth-user")}
-    )
+    @DataScope(row = "row_sys_auth", col = "column-auth-user")
     @Select("select log.* from log log left join user u on log.created_by = u.id where log.request_ip = #{requestIp}")
     Page<Log> list(Page page, @Param("requestIp") String host);
 }

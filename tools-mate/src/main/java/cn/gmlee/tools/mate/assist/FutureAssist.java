@@ -19,7 +19,7 @@ public class FutureAssist {
      */
     public static <V> V supplyAsync(Callable<V> callable) {
         FutureTask<V> task = new FutureTask(callable);
-        Thread thread = new Thread(task);
+        Thread thread = new Thread(task, FutureAssist.class.getSimpleName());
         thread.start();
         return ExceptionUtil.suppress(() -> task.get());
     }

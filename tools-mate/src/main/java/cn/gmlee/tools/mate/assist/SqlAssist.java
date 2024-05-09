@@ -9,47 +9,37 @@ import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.expression.operators.relational.InExpression;
+import net.sf.jsqlparser.expression.operators.relational.IsNullExpression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- *
+ * The type Sql assist.
  */
 @Slf4j
 public class SqlAssist {
 
-    public static void main(String[] args) throws Exception {
-        String sql = "SELECT id, sys_name, creator from (\n" +
-                "SELECT\n" +
-                "\tlog.id,\n" +
-                "\tsys.sys_name,\n" +
-                "\t( SELECT `user`.username FROM `user` WHERE `user`.id = log.created_by ) creator \n" +
-                "FROM\n" +
-                "\tlog\n" +
-                "\tLEFT JOIN sys ON sys.id = log.sys_id \n" +
-                "WHERE\n" +
-                "\tlog.del = 0\n" +
-                "\t) t";
-        Map<String, List<Expression>> wheres = new HashMap<>();
-        wheres.put("auth_id", ExpressionAssist.as("1", "2", "3"));
-        wheres.put("auth_type", ExpressionAssist.as(0, 1));
-        String newSql = getNewSql(sql, wheres);
-        System.out.println(newSql);
-    }
-
+    /**
+     * Gets new sql.
+     *
+     * @param originSql the origin sql
+     * @param wheres    the wheres
+     * @return the new sql
+     * @throws Exception the exception
+     */
     public static String getNewSql(String originSql, Map<String, List<Expression>> wheres) throws Exception {
         // 非空条件方才处理
         if (BoolUtil.isEmpty(wheres)) {
             return originSql;
         }
         Statement statement = CCJSqlParserUtil.parse(originSql);
+        String oldSql = statement.toString();
         // 非插入句柄不处理
         if (!(statement instanceof Select)) {
             return originSql;
@@ -61,7 +51,9 @@ public class SqlAssist {
         }
         // 句柄处理器
         sqlHandler((PlainSelect) selectBody, wheres, true);
-        return statement.toString();
+        // 获取新语句
+        String newSql = statement.toString();
+        return newSql.equals(oldSql) ? originSql : newSql;
     }
 
     private static void sqlHandler(PlainSelect plainSelect, Map<String, List<Expression>> wheres, boolean first) throws Exception {
@@ -94,43 +86,46 @@ public class SqlAssist {
     }
 
     private static void addWheres(PlainSelect plainSelect, Map<String, List<Expression>> wheres) {
-        wheres.forEach((k, v) -> addWhere(plainSelect, k, v));
+        wheres.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> addWhere(plainSelect, k, v)));
     }
 
     private static void addWhere(PlainSelect plainSelect, String key, List<Expression> values) {
         // 获取别名值
         Column column = getColumn(plainSelect.getFromItem(), key);
         // 添加条件值
-        InExpression in = new InExpression();
-        in.setLeftExpression(column);
-        ExpressionList expressionList = new ExpressionList();
-        in.setRightItemsList(expressionList);
+        Expression expression = getExpression(values, column);
         AndExpression and = new AndExpression()
                 .withLeftExpression(plainSelect.getWhere())
-                .withRightExpression(in);
-        // 添加条件列
+                .withRightExpression(expression);
+        // 设置条件
+        plainSelect.setWhere(plainSelect.getWhere() != null ? and : expression);
+    }
+
+    private static Expression getExpression(List<Expression> values, Column column) {
+        // 构建条件
+        Expression e = BoolUtil.notEmpty(values) ? new InExpression() : new IsNullExpression();
+        QuickUtil.isTrue(e instanceof InExpression, () -> ((InExpression) e).setLeftExpression(column));
+        QuickUtil.isTrue(e instanceof IsNullExpression, () -> ((IsNullExpression) e).setLeftExpression(column));
+        ExpressionList expressionList = new ExpressionList();
+        QuickUtil.isTrue(e instanceof InExpression, () -> ((InExpression) e).setRightItemsList(expressionList));
+        // 添加条件
         expressionList.withExpressions(values);
-        plainSelect.setWhere(plainSelect.getWhere() != null ? and : in);
+        return e;
     }
 
     private static void addWheres(Join join, Map<String, List<Expression>> wheres) {
-        wheres.forEach((k, v) -> addWhere(join, k, v));
+        wheres.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> addWhere(join, k, v)));
     }
 
     private static void addWhere(Join join, String key, List<Expression> values) {
         // 获取别名值
         Column column = getColumn(join.getRightItem(), key);
-        // 添加In条件
-        InExpression in = new InExpression();
-        in.setLeftExpression(column);
-        // 添加In值集
-        ExpressionList expressionList = new ExpressionList();
-        in.setRightItemsList(expressionList);
-        expressionList.addExpressions(values);
-        // 高版本升级
-//        List<Expression> es = join.getOnExpressions().stream().map(x -> new AndExpression(x, in)).collect(Collectors.toList());
-//        join.setOnExpressions(es);
-        AndExpression and = new AndExpression(join.getOnExpression(), in);
+        // 构建条件
+        Expression expression = getExpression(values, column);
+        // 设置条件
+        AndExpression and = new AndExpression()
+                .withLeftExpression(join.getOnExpression())
+                .withRightExpression(expression);
         join.setOnExpression(and);
     }
 
@@ -142,7 +137,7 @@ public class SqlAssist {
     }
 
     private static void addColumns(PlainSelect plainSelect, Map<String, List<Expression>> wheres) {
-        wheres.forEach((k, v) -> addColumn(plainSelect, k, v));
+        wheres.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> addColumn(plainSelect, k, v)));
     }
 
 

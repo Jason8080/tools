@@ -17,23 +17,23 @@ public @interface DataScope {
     /**
      * 行权限.
      *
-     * @return the data filter [ ]
+     * @return flag 标志位
      */
     @AliasFor("row")
-    DataFilter[] value() default {};
+    String[] value() default {};
 
     /**
      * 行鉴权.
      *
-     * @return the data auth
+     * @return flag 标志位
      */
     @AliasFor("value")
-    DataFilter[] row() default {};
+    String[] row() default {};
 
     /**
      * 列鉴权.
      *
-     * @return the data auth
+     * @return flag 标志位
      */
-    DataFilter[] col() default {};
+    String[] col() default {};
 }

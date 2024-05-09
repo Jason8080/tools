@@ -1,12 +1,14 @@
 package cn.gmlee.tools.mate.interceptor;
 
 
-import cn.gmlee.tools.base.anno.DataFilter;
 import cn.gmlee.tools.base.util.*;
+import cn.gmlee.tools.mate.assist.ExpressionAssist;
 import cn.gmlee.tools.mate.assist.FutureAssist;
+import cn.gmlee.tools.mate.assist.SqlAssist;
 import cn.gmlee.tools.mate.assist.SqlResetAssist;
 import com.baomidou.mybatisplus.core.toolkit.PluginUtils;
 import lombok.SneakyThrows;
+import net.sf.jsqlparser.expression.Expression;
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.executor.parameter.ParameterHandler;
@@ -36,13 +38,14 @@ import java.util.*;
 /**
  * 数据鉴权拦截器.
  * <p>
- *     功能包含: 数据(行、列)权限, 数据编解码
- *     @Signature method sequence: query > setParameters > handleResultSets
+ * 功能包含: 数据(行、列)权限, 数据编解码
+ *
+ * @Signature method sequence: query > setParameters > handleResultSets
  * </p>
  */
 @Intercepts({
         @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class}),
-        @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class, }),
+        @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class,}),
         @Signature(type = Executor.class, method = "update", args = {MappedStatement.class, Object.class}),
         @Signature(type = ParameterHandler.class, method = "setParameters", args = {PreparedStatement.class}),
         @Signature(type = ResultSetHandler.class, method = "handleResultSets", args = {Statement.class}),
@@ -122,6 +125,8 @@ public class DataAuthInterceptor implements Interceptor {
         }
         return null;
     }
+
+    // -----------------------------------------------------------------------------------------------------------------
 
     private Object encode(Invocation invocation) {
         // 编码开关
@@ -207,7 +212,7 @@ public class DataAuthInterceptor implements Interceptor {
             return codecServer.encode(null, key, val);
         }
         // 重复编码检查
-        if(set.contains(val) && !(val instanceof String)){
+        if (set.contains(val) && !(val instanceof String)) {
             return null;
         }
         if (val instanceof Map) {
@@ -319,28 +324,41 @@ public class DataAuthInterceptor implements Interceptor {
         set.add(o);
     }
 
+    // -----------------------------------------------------------------------------------------------------------------
+
     private Object rowDataAuth(Invocation invocation) throws Exception {
-        DataFilter[] row = DataScopeUtil.getRow();
+        String[] row = DataScopeUtil.getRow();
         if (BoolUtil.notEmpty(row)) {
             BoundSql boundSql = SqlResetAssist.getBoundSql(invocation);
             if (BoolUtil.isNull(boundSql)) {
                 return null;
             }
-            // 兜底句柄
-            StringBuilder newSql = new StringBuilder();
-            // 直拼句柄处理
-            StringBuilder directSql = new StringBuilder();
-            sqlHandler(directSql, boundSql.getSql(), row);
-            // 行权限处理(叠加直拼句柄)
-            fieldsHandler(directSql.toString(), newSql, row);
+            // 设行权限
+            String sql = rowDataAuthAll(boundSql.getSql(), row);
             // 重置句柄
-            SqlResetAssist.resetSql(invocation, newSql.toString(), dataAuthServer.printSql());
+            SqlResetAssist.resetSql(invocation, sql, dataAuthServer.printSql());
         }
         return null;
     }
 
+    private String rowDataAuthAll(String originalSql, String... flags) throws Exception {
+        // 遍历标志位
+        for (String flag : flags) {
+            // 获取行权限数据
+            Map<String, List<? extends Comparable>> rowMap = FutureAssist.supplyAsync(() -> dataAuthServer.rowMap(flag));
+            Map<String, List<Expression>> wheres = new HashMap<>(rowMap.size());
+            rowMap.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> wheres.put(k, ExpressionAssist.as(v))));
+            // 添加行权限句柄
+            originalSql = SqlAssist.getNewSql(originalSql, wheres);
+        }
+        // 返回新句柄
+        return originalSql;
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
     private Object columnDataAuth(Invocation invocation) throws Exception {
-        DataFilter[] column = DataScopeUtil.getCol();
+        String[] column = DataScopeUtil.getCol();
         // 数据权限和解码关
         if (BoolUtil.isEmpty(column) && !codecServer.enable(CodecServer.DECODE)) {
             return null;
@@ -351,71 +369,10 @@ public class DataAuthInterceptor implements Interceptor {
         // 结果集处理
         Statement statement = (Statement) invocation.getArgs()[0];
         List<Object> objects = defaultResultSetHandler.handleResultSets(statement);
-        return columnDataAuthAll(objects, NullUtil.get(column, new DataFilter[0]));
+        return columnDataAuthAll(objects, NullUtil.get(column, new String[0]));
     }
 
-    private synchronized void fieldsHandler(String originalSql, StringBuilder sb, DataFilter[] dataFilters) {
-        sb.append("select ");
-        sb.append(ttt);
-        sb.append(".* ");
-        sb.append("from (");
-        sb.append(originalSql);
-        sb.append(") ");
-        sb.append(ttt);
-        sb.append(" where ");
-        for (int i = 0; i < dataFilters.length; i++) {
-            if (i > 0) {
-                sb.append(" and ");
-            }
-            DataFilter dataFilter = dataFilters[i];
-            String rowIn = FutureAssist.supplyAsync(() -> dataAuthServer.rowIn(dataFilter.flag()));
-            List<String> fields = FutureAssist.supplyAsync(() -> dataAuthServer.rowFields(dataFilter.flag()));
-            if (BoolUtil.notEmpty(fields)) {
-                if (BoolUtil.notEmpty(rowIn)) {
-                    for (int j = 0; j < fields.size(); j++) {
-                        if (j > 0) {
-                            sb.append("and");
-                        }
-                        sb.append(" ");
-                        sb.append(ttt);
-                        sb.append(".");
-                        sb.append(fields.get(j));
-                        sb.append(" in (");
-                        sb.append(rowIn);
-                        sb.append(") ");
-                    }
-                } else {
-                    sb.append("false");
-                }
-            } else {
-                sb.append("true");
-            }
-        }
-    }
-
-    private void sqlHandler(StringBuilder sb, String originalSql, DataFilter[] dataFilters) {
-        for (DataFilter dataFilter : dataFilters) {
-            if (BoolUtil.notEmpty(dataFilter.sql())) {
-                sb.append("select ");
-                sb.append(ttt);
-                sb.append(".* from (");
-                sb.append(originalSql);
-                sb.append(") ");
-                sb.append(ttt);
-                sb.append(" ");
-                sb.append(dataFilter.sql());
-                sb.append(" ");
-            } else {
-                sb.append(originalSql);
-            }
-        }
-    }
-
-
-    // -----------------------------------------------------------------------------------------------------------------
-
-
-    private Object columnDataAuthAll(List<Object> objects, DataFilter... dataFilters) throws Exception {
+    private Object columnDataAuthAll(List<Object> objects, String... flags) throws Exception {
         if (BoolUtil.notEmpty(objects)) {
             Iterator<Object> it = objects.iterator();
             while (it.hasNext()) {
@@ -455,7 +412,7 @@ public class DataAuthInterceptor implements Interceptor {
                     String key = entry.getKey();
                     Field field = entry.getValue();
                     // 数据权限处理
-                    filterColumns(o, key, field, dataFilters);
+                    filterColumns(o, key, field, flags);
                     // 字段解码处理
                     Object value = ClassUtil.getValue(o, field);
                     String decode = codecServer.decode(o, key, value);
@@ -468,12 +425,12 @@ public class DataAuthInterceptor implements Interceptor {
         return objects;
     }
 
-    private void filterColumns(Object o, String key, Field field, DataFilter... dataFilters) {
+    private void filterColumns(Object o, String key, Field field, String... flags) {
         boolean filter = true;
-        for (DataFilter dataFilter : dataFilters) {
-            List<String> columns = FutureAssist.supplyAsync(() -> dataAuthServer.colFields(dataFilter.flag()));
+        for (String flag : flags) {
+            List<String> columns = FutureAssist.supplyAsync(() -> dataAuthServer.colFields(flag));
             boolean contain = BoolUtil.containOne(columns, key, HumpUtil.hump2underline(key));
-            if (contain && !auth(key, dataFilter)) {
+            if (contain && !auth(key, flag)) {
                 filter = false;
                 break;
             }
@@ -484,10 +441,13 @@ public class DataAuthInterceptor implements Interceptor {
 
     /**
      * @param column
-     * @param dataFilter
+     * @param flag
      * @return 返回true则该字段将置空
      */
-    private synchronized boolean auth(String column, DataFilter dataFilter) {
-        return FutureAssist.supplyAsync(() -> dataAuthServer.colFilter(dataFilter.flag(), column));
+    private synchronized boolean auth(String column, String flag) {
+        return FutureAssist.supplyAsync(() -> dataAuthServer.colFilter(flag, column));
     }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
 }
