@@ -1,7 +1,7 @@
 package cn.gmlee.tools.mate;
 
 import cn.gmlee.tools.mate.assist.ExpressionAssist;
-import cn.gmlee.tools.mate.assist.SqlAssist;
+import cn.gmlee.tools.base.util.SqlUtil;
 import net.sf.jsqlparser.expression.Expression;
 
 import java.util.HashMap;
@@ -27,7 +27,7 @@ public class SqlTests {
         wheres.put("auth_id", ExpressionAssist.as());
 //        wheres.put("auth_id", ExpressionAssist.as("1", "2", "3"));
 //        wheres.put("auth_type", ExpressionAssist.as(0, 1));
-        String newSql = SqlAssist.getNewSql(sql, wheres);
+        String newSql = SqlUtil.newSelect(sql, wheres);
         System.out.println(newSql);
         System.out.println(newSql.equals(sql));
     }

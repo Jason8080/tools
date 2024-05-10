@@ -1,18 +1,17 @@
 package cn.gmlee.tools.profile.interceptor;
 
+import cn.gmlee.tools.base.builder.KvBuilder;
+import cn.gmlee.tools.base.util.SqlUtil;
 import cn.gmlee.tools.profile.assist.SqlAssist;
 import cn.gmlee.tools.profile.conf.ProfileProperties;
 import cn.gmlee.tools.profile.helper.ProfileHelper;
+import cn.gmlee.tools.profile.initializer.GrayDataTemplate;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.LongValue;
-import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
-import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.schema.Column;
-import net.sf.jsqlparser.statement.Statement;
-import net.sf.jsqlparser.statement.insert.Insert;
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.plugin.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.Connection;
 
@@ -26,6 +25,9 @@ import java.sql.Connection;
 public class ProfileInsertMarkInterceptor implements Interceptor {
 
     private final ProfileProperties properties;
+
+    @Autowired
+    private GrayDataTemplate grayDataTemplate;
 
     public ProfileInsertMarkInterceptor(ProfileProperties properties) {
         this.properties = properties;
@@ -60,20 +62,9 @@ public class ProfileInsertMarkInterceptor implements Interceptor {
         StatementHandler statementHandler = (StatementHandler) invocation.getTarget();
         BoundSql boundSql = statementHandler.getBoundSql();
         String originSql = boundSql.getSql();
-        Statement statement = CCJSqlParserUtil.parse(originSql);
-        // 非插入句柄不处理
-        if (!(statement instanceof Insert)) {
-            return;
-        }
-        String newSql = sqlHandler((Insert) statement);
+        // 构建新的句柄
+        SqlUtil.resetColumnQuoteSymbol(grayDataTemplate.getColumnQuoteSymbol());
+        String newSql = SqlUtil.newInsert(originSql, KvBuilder.array(properties.getEvn(), new LongValue(0)));
         SqlAssist.reset(boundSql, newSql);
-    }
-
-    private String sqlHandler(Insert statement) {
-        Column column = new Column("\"" + properties.getEvn() + "\"");
-        statement.addColumns(column);
-        ExpressionList expressionList = (ExpressionList) statement.getItemsList();
-        expressionList.getExpressions().add(new LongValue(0));
-        return statement.toString();
     }
 }

@@ -42,7 +42,7 @@ public class SqlAssist {
      * @throws NoSuchFieldException the no such field exception
      */
     public static void reset(BoundSql boundSql, String newSql) throws NoSuchFieldException {
-        if(BoolUtil.isEmpty(newSql)){
+        if (boundSql.getSql().equalsIgnoreCase(newSql) || BoolUtil.isEmpty(newSql)) {
             return;
         }
         log.info("数据灰度处理前: {}", boundSql.getSql());

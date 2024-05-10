@@ -1,9 +1,6 @@
-package cn.gmlee.tools.mate.assist;
+package cn.gmlee.tools.base.util;
 
-import cn.gmlee.tools.base.util.BoolUtil;
-import cn.gmlee.tools.base.util.NullUtil;
-import cn.gmlee.tools.base.util.QuickUtil;
-import cn.gmlee.tools.base.util.RegexUtil;
+import cn.gmlee.tools.base.mod.Kv;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
@@ -14,33 +11,89 @@ import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.*;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * The type Sql assist.
+ * jSqlParser脚本生成工具.
  */
 @Slf4j
-public class SqlAssist {
+public class SqlUtil {
+
+    private static String COLUMN_QUOTE_SYMBOL = "\"";
 
     /**
-     * Gets new sql.
+     * 重置列引用符.
+     *
+     * @param s 新符号
+     * @return string 旧符号
+     */
+    public static String resetColumnQuoteSymbol(String s) {
+        // 没有变化不处理
+        if (COLUMN_QUOTE_SYMBOL.equals(s)) {
+            return COLUMN_QUOTE_SYMBOL;
+        }
+        // 变化后返回原符
+        String old = COLUMN_QUOTE_SYMBOL;
+        COLUMN_QUOTE_SYMBOL = s;
+        return old;
+    }
+
+    /**
+     * New insert sql.
+     *
+     * @param originSql the origin sql
+     * @param kvs       the kvs
+     * @return the string
+     * @throws Exception the exception
+     */
+    public static String newInsert(String originSql, Kv<String, Expression>... kvs) throws Exception {
+        // 非空条件方才处理
+        if (BoolUtil.isEmpty(kvs)) {
+            return originSql;
+        }
+        Statement statement = CCJSqlParserUtil.parse(originSql);
+        String oldSql = statement.toString();
+        // 非插入句柄不处理
+        if (!(statement instanceof Insert)) {
+            return originSql;
+        }
+        // 句柄处理器
+        sqlHandler((Insert) statement, kvs);
+        // 获取新语句
+        String newSql = statement.toString();
+        return newSql.equals(oldSql) ? originSql : newSql;
+    }
+
+    private static void sqlHandler(Insert statement, Kv<String, Expression>... kvs) {
+        for (Kv<String, Expression> kv : kvs) {
+            Column column = getColumn(statement.getTable(), kv.getKey());
+            statement.addColumns(column);
+            ((ExpressionList) statement.getItemsList()).addExpressions(kv.getVal());
+        }
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * New select sql.
      *
      * @param originSql the origin sql
      * @param wheres    the wheres
      * @return the new sql
      * @throws Exception the exception
      */
-    public static String getNewSql(String originSql, Map<String, List<Expression>> wheres) throws Exception {
+    public static String newSelect(String originSql, Map<String, List<Expression>> wheres) throws Exception {
         // 非空条件方才处理
         if (BoolUtil.isEmpty(wheres)) {
             return originSql;
         }
         Statement statement = CCJSqlParserUtil.parse(originSql);
         String oldSql = statement.toString();
-        // 非插入句柄不处理
+        // 非查询句柄不处理
         if (!(statement instanceof Select)) {
             return originSql;
         }
@@ -131,8 +184,9 @@ public class SqlAssist {
 
     private static Column getColumn(FromItem item, String field) {
         String alias = NullUtil.get(() -> item.getAlias().getName(), item.toString());
-        String tab = String.format("%s%s%s", "`", alias, "`");
-        String name = String.format("%s.%s%s%s", tab, "`", field, "`");
+        // 考虑 oracle 的兼容性, table 暂不添加引用符 (开发者需注意别名不允许是数据库关键字)
+//        String tab = String.format("%s%s%s", COLUMN_QUOTE_SYMBOL, alias, COLUMN_QUOTE_SYMBOL);
+        String name = String.format("%s.%s%s%s", alias, COLUMN_QUOTE_SYMBOL, field, COLUMN_QUOTE_SYMBOL);
         return new Column(name);
     }
 

@@ -2,6 +2,8 @@ package cn.gmlee.tools.base.builder;
 
 import cn.gmlee.tools.base.mod.Kv;
 import cn.gmlee.tools.base.util.BoolUtil;
+import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.LongValue;
 
 import java.util.*;
 
@@ -83,5 +85,20 @@ public class KvBuilder {
             kvs[i] = new Kv(key, map.get(key));
         }
         return kvs;
+    }
+
+
+    /**
+     * Map map.
+     *
+     * @param <K> the type parameter
+     * @param <V> the type parameter
+     * @param k   the k
+     * @param v   the v
+     * @param os  the os
+     * @return the map
+     */
+    public static <K, V> Map<K, V> map(K k, V v, Object... os) {
+        return MapBuilder.build(k, v, os);
     }
 }

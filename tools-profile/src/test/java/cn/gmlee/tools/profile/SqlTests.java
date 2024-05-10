@@ -1,7 +1,13 @@
 package cn.gmlee.tools.profile;
 
+import cn.gmlee.tools.base.builder.KvBuilder;
+import cn.gmlee.tools.base.mod.Kv;
+import cn.gmlee.tools.base.util.SqlUtil;
 import cn.gmlee.tools.profile.conf.ProfileProperties;
 import cn.gmlee.tools.profile.interceptor.ProfileSelectFilterInterceptor;
+import net.sf.jsqlparser.expression.LongValue;
+
+import java.util.Arrays;
 
 public class SqlTests {
     public static void main(String[] args) throws Exception {
@@ -15,9 +21,7 @@ public class SqlTests {
                 "WHERE\n" +
                 "\tmoi.buy_merchant_id = '1691020167383453698'\n" +
                 "\tAND ( moi.order_status != '99' OR ( moi.order_status = '99' AND moi.deleted_by != 'buy' ) ) ";
-
-        ProfileSelectFilterInterceptor interceptor = new ProfileSelectFilterInterceptor(new ProfileProperties());
-        String newSql = interceptor.getNewSql(sql);
+        String newSql = SqlUtil.newSelect(sql, KvBuilder.map("env", Arrays.asList(new LongValue(0), new LongValue(1))));
         System.out.println();
         System.out.println(newSql);
         System.out.println();

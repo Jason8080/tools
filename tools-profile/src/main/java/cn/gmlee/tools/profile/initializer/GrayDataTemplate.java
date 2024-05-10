@@ -77,7 +77,7 @@ public class GrayDataTemplate {
         }
     }
 
-    public String getColumnSymbol() throws SQLException {
+    public String getColumnQuoteSymbol() throws SQLException {
         // 获取数据库型号
         String database = dataSource.getConnection().getMetaData().getDatabaseProductName();
         for (GrayDataInitializer initializer : initializers) {

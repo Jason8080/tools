@@ -4,7 +4,6 @@ package cn.gmlee.tools.mate.interceptor;
 import cn.gmlee.tools.base.util.*;
 import cn.gmlee.tools.mate.assist.ExpressionAssist;
 import cn.gmlee.tools.mate.assist.FutureAssist;
-import cn.gmlee.tools.mate.assist.SqlAssist;
 import cn.gmlee.tools.mate.assist.SqlResetAssist;
 import com.baomidou.mybatisplus.core.toolkit.PluginUtils;
 import lombok.SneakyThrows;
@@ -349,7 +348,7 @@ public class DataAuthInterceptor implements Interceptor {
             Map<String, List<Expression>> wheres = new HashMap<>(rowMap.size());
             rowMap.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> wheres.put(k, ExpressionAssist.as(v))));
             // 添加行权限句柄
-            originalSql = SqlAssist.getNewSql(originalSql, wheres);
+            originalSql = SqlUtil.newSelect(originalSql, wheres);
         }
         // 返回新句柄
         return originalSql;

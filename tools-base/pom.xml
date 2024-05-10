@@ -15,6 +15,7 @@
     <packaging>jar</packaging>
 
     <properties>
+        <jsqlparser.version>4.0</jsqlparser.version>
     </properties>
 
     <dependencies>
@@ -70,6 +71,13 @@
                     <groupId>org.apache.httpcomponents</groupId>
                 </exclusion>
             </exclusions>
+            <optional>true</optional>
+        </dependency>
+        <!-- ============================================================ -->
+        <dependency>
+            <groupId>com.github.jsqlparser</groupId>
+            <artifactId>jsqlparser</artifactId>
+            <version>${jsqlparser.version}</version>
             <optional>true</optional>
         </dependency>
         <!-- ============================================================ -->
