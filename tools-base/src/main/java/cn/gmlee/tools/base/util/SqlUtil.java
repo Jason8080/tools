@@ -2,6 +2,7 @@ package cn.gmlee.tools.base.util;
 
 import cn.gmlee.tools.base.mod.Kv;
 import lombok.extern.slf4j.Slf4j;
+import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
@@ -183,11 +184,13 @@ public class SqlUtil {
     }
 
     private static Column getColumn(FromItem item, String field) {
+        String name = String.format("%s%s%s", COLUMN_QUOTE_SYMBOL, field, COLUMN_QUOTE_SYMBOL);
+        if (item instanceof SubSelect){
+            return new Column(name);
+        }
         String alias = NullUtil.get(() -> item.getAlias().getName(), item.toString());
         // 考虑 oracle 的兼容性, table 暂不添加引用符 (开发者需注意别名不允许是数据库关键字)
-//        String tab = String.format("%s%s%s", COLUMN_QUOTE_SYMBOL, alias, COLUMN_QUOTE_SYMBOL);
-        String name = String.format("%s.%s%s%s", alias, COLUMN_QUOTE_SYMBOL, field, COLUMN_QUOTE_SYMBOL);
-        return new Column(name);
+        return new Column(String.format("%s.%s", alias, name));
     }
 
     private static void addColumns(PlainSelect plainSelect, Map<String, List<Expression>> wheres) {
