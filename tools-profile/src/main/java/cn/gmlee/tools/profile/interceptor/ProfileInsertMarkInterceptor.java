@@ -2,6 +2,7 @@ package cn.gmlee.tools.profile.interceptor;
 
 import cn.gmlee.tools.base.builder.KvBuilder;
 import cn.gmlee.tools.base.util.SqlUtil;
+import cn.gmlee.tools.profile.assist.FutureAssist;
 import cn.gmlee.tools.profile.assist.SqlAssist;
 import cn.gmlee.tools.profile.conf.ProfileProperties;
 import cn.gmlee.tools.profile.helper.ProfileHelper;
@@ -63,7 +64,8 @@ public class ProfileInsertMarkInterceptor implements Interceptor {
         BoundSql boundSql = statementHandler.getBoundSql();
         String originSql = boundSql.getSql();
         // 构建新的句柄
-        SqlUtil.resetColumnQuoteSymbol(grayDataTemplate.getColumnQuoteSymbol());
+        String symbol = FutureAssist.supplyAsync(grayDataTemplate::getColumnQuoteSymbol);
+        SqlUtil.resetColumnQuoteSymbol(symbol);
         String newSql = SqlUtil.newInsert(originSql, KvBuilder.array(properties.getField(), new LongValue(0)));
         SqlAssist.reset(boundSql, newSql);
     }

@@ -3,6 +3,7 @@ package cn.gmlee.tools.profile.interceptor;
 import cn.gmlee.tools.base.enums.Int;
 import cn.gmlee.tools.base.util.QuickUtil;
 import cn.gmlee.tools.base.util.SqlUtil;
+import cn.gmlee.tools.profile.assist.FutureAssist;
 import cn.gmlee.tools.profile.assist.SqlAssist;
 import cn.gmlee.tools.profile.conf.ProfileProperties;
 import cn.gmlee.tools.profile.helper.ProfileHelper;
@@ -78,7 +79,8 @@ public class ProfileSelectFilterInterceptor implements Interceptor {
         envs.add(new LongValue(Int.ONE)); // 保证查看正式数据
         wheres.put(properties.getField(), envs);
         // 构建新的筛选句柄
-        SqlUtil.resetColumnQuoteSymbol(grayDataTemplate.getColumnQuoteSymbol());
+        String symbol = FutureAssist.supplyAsync(grayDataTemplate::getColumnQuoteSymbol);
+        SqlUtil.resetColumnQuoteSymbol(symbol);
         String newSql = SqlUtil.newSelect(originSql, wheres);
         SqlAssist.reset(boundSql, newSql);
     }
