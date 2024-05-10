@@ -52,6 +52,24 @@ public class IdUtil {
     }
 
     /**
+     * 最低有效位.
+     *
+     * @return the long
+     */
+    public static Long uuidLeast(){
+        return UUID.randomUUID().getLeastSignificantBits();
+    }
+
+    /**
+     * 最高有效位.
+     *
+     * @return the long
+     */
+    public static Long uuidMost(){
+        return UUID.randomUUID().getMostSignificantBits();
+    }
+
+    /**
      * 去`-`号的UUID.
      *
      * @return the string
