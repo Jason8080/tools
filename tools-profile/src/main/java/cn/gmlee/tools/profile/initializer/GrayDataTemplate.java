@@ -2,8 +2,10 @@ package cn.gmlee.tools.profile.initializer;
 
 import cn.gmlee.tools.base.util.AssertUtil;
 import cn.gmlee.tools.base.util.CollectionUtil;
+import cn.gmlee.tools.base.util.NullUtil;
 import cn.gmlee.tools.profile.conf.ProfileProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -61,7 +63,7 @@ public class GrayDataTemplate {
                 // 过滤缺失环境字段的表
                 CollectionUtil.filter(columns, (String k, Map<String, Object> v) -> !v.containsKey(properties.getField()));
                 // 追加环境字段到缺失表
-                for (Map.Entry<String, Map<String, Object>> entry : columns.entrySet()){
+                for (Map.Entry<String, Map<String, Object>> entry : columns.entrySet()) {
                     try {
                         initializer.addColumn(properties, conn, entry.getKey(), entry.getValue());
                     } catch (Exception e) {
@@ -79,7 +81,9 @@ public class GrayDataTemplate {
 
     public String getColumnQuoteSymbol() throws SQLException {
         // 获取数据库型号
-        String database = dataSource.getConnection().getMetaData().getDatabaseProductName();
+        Connection connection = DataSourceUtils.getConnection(dataSource);
+        String database = NullUtil.get(connection, dataSource.getConnection())
+                .getMetaData().getDatabaseProductName();
         for (GrayDataInitializer initializer : initializers) {
             if (!initializer.support(database)) {
                 continue;
