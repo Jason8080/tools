@@ -188,7 +188,7 @@ public class SqlUtil {
         if (BoolUtil.isNull(item.getAlias())){
             return new Column(name);
         }
-        String alias = NullUtil.get(() -> item.getAlias().getName(), item.toString());
+        String alias = NullUtil.get(item.getAlias().getName(), item.toString());
         // 考虑 oracle 的兼容性, table 暂不添加引用符 (开发者需注意别名不允许是数据库关键字)
         return new Column(String.format("%s.%s", alias, name));
     }
