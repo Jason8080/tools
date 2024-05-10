@@ -1,3 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  cn.gmlee.tools.profile.conf.ProfileDataAutoConfiguration,\
-  cn.gmlee.tools.profile.conf.ProfileNodeAutoConfiguration
+  cn.gmlee.tools.profile.conf.ProfileDataAutoConfiguration
