@@ -185,7 +185,7 @@ public class SqlUtil {
 
     private static Column getColumn(FromItem item, String field) {
         String name = String.format("%s%s%s", COLUMN_QUOTE_SYMBOL, field, COLUMN_QUOTE_SYMBOL);
-        if (item instanceof SubSelect){
+        if (BoolUtil.isNull(item.getAlias())){
             return new Column(name);
         }
         String alias = NullUtil.get(() -> item.getAlias().getName(), item.toString());
