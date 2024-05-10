@@ -1,4 +1,4 @@
-package cn.gmlee.tools.mate.assist;
+package cn.gmlee.tools.base.assist;
 
 import cn.gmlee.tools.base.util.LocalDateTimeUtil;
 import net.sf.jsqlparser.expression.*;

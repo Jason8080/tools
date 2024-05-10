@@ -2,7 +2,7 @@ package cn.gmlee.tools.mate.interceptor;
 
 
 import cn.gmlee.tools.base.util.*;
-import cn.gmlee.tools.mate.assist.ExpressionAssist;
+import cn.gmlee.tools.base.assist.ExpressionAssist;
 import cn.gmlee.tools.mate.assist.FutureAssist;
 import cn.gmlee.tools.mate.assist.SqlResetAssist;
 import com.baomidou.mybatisplus.core.toolkit.PluginUtils;
