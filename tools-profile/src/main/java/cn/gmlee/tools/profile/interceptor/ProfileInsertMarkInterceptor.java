@@ -64,7 +64,7 @@ public class ProfileInsertMarkInterceptor implements Interceptor {
         String originSql = boundSql.getSql();
         // 构建新的句柄
         SqlUtil.resetColumnQuoteSymbol(grayDataTemplate.getColumnQuoteSymbol());
-        String newSql = SqlUtil.newInsert(originSql, KvBuilder.array(properties.getEvn(), new LongValue(0)));
+        String newSql = SqlUtil.newInsert(originSql, KvBuilder.array(properties.getField(), new LongValue(0)));
         SqlAssist.reset(boundSql, newSql);
     }
 }

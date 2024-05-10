@@ -59,7 +59,7 @@ public class GrayDataTemplate {
                 // 查询所有表和字段信息
                 Map<String, Map<String, Object>> columns = initializer.getColumn(conn, properties);
                 // 过滤缺失环境字段的表
-                CollectionUtil.filter(columns, (String k, Map<String, Object> v) -> !v.containsKey(properties.getEvn()));
+                CollectionUtil.filter(columns, (String k, Map<String, Object> v) -> !v.containsKey(properties.getField()));
                 // 追加环境字段到缺失表
                 for (Map.Entry<String, Map<String, Object>> entry : columns.entrySet()){
                     try {

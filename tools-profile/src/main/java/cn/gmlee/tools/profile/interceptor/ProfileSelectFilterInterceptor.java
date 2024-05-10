@@ -76,7 +76,7 @@ public class ProfileSelectFilterInterceptor implements Interceptor {
                 () -> envs.add(new LongValue(Int.ZERO)) // 开启后查测试数据
         );
         envs.add(new LongValue(Int.ONE)); // 保证查看正式数据
-        wheres.put(properties.getEvn(), envs);
+        wheres.put(properties.getField(), envs);
         // 构建新的筛选句柄
         SqlUtil.resetColumnQuoteSymbol(grayDataTemplate.getColumnQuoteSymbol());
         String newSql = SqlUtil.newSelect(originSql, wheres);
