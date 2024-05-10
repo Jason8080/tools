@@ -79,7 +79,7 @@ public class ProfileDataAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(ProfileInsertMarkInterceptor.class)
-    public ProfileInsertMarkInterceptor grayDataInterceptor(ProfileProperties properties) throws SQLException {
+    public ProfileInsertMarkInterceptor grayDataInterceptor(ProfileProperties properties) {
         return new ProfileInsertMarkInterceptor(properties);
     }
 
@@ -92,7 +92,7 @@ public class ProfileDataAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(ProfileSelectFilterInterceptor.class)
-    public ProfileSelectFilterInterceptor graySelectFilterInterceptor(ProfileProperties properties) throws SQLException {
+    public ProfileSelectFilterInterceptor graySelectFilterInterceptor(ProfileProperties properties) {
         return new ProfileSelectFilterInterceptor(properties);
     }
 }

@@ -4,7 +4,7 @@ package cn.gmlee.tools.profile.helper;
  * 环境帮助类.
  */
 public class ProfileHelper {
-    private static volatile Boolean enable;
+    private static volatile Boolean enable = Boolean.TRUE;
 
 
     /**
