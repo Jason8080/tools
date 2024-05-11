@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.sql.Connection;
 
 /**
- * 环境数据标记拦截器.
+ * 数据环境标记拦截器.
  */
 @Slf4j
 @Intercepts({

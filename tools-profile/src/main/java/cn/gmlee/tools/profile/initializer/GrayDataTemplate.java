@@ -1,11 +1,10 @@
 package cn.gmlee.tools.profile.initializer;
 
 import cn.gmlee.tools.base.util.AssertUtil;
+import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.CollectionUtil;
-import cn.gmlee.tools.base.util.NullUtil;
 import cn.gmlee.tools.profile.conf.ProfileProperties;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.datasource.DataSourceUtils;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -15,17 +14,16 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 灰度数据初始化模版.
+ * 数据环境初始化模版.
  */
 @Slf4j
 public class GrayDataTemplate {
 
-    /**
-     * The Data source.
-     */
     private final DataSource dataSource;
     private final ProfileProperties properties;
     private List<GrayDataInitializer> initializers;
+
+    private String databaseProductName;
 
     /**
      * Instantiates a new Gray data initializer template.
@@ -48,7 +46,7 @@ public class GrayDataTemplate {
         AssertUtil.notEmpty(initializers, "灰度初始化器丢失");
         this.initializers = Arrays.asList(initializers);
         // 获取数据库型号
-        String database = dataSource.getConnection().getMetaData().getDatabaseProductName();
+        String database = getDatabaseProductName();
         // 适配数据库操作
         for (GrayDataInitializer initializer : initializers) {
             if (!initializer.support(database)) {
@@ -67,7 +65,7 @@ public class GrayDataTemplate {
                     try {
                         initializer.addColumn(properties, conn, entry.getKey(), entry.getValue());
                     } catch (Exception e) {
-                        log.error("灰度数据库表{}初始化失败", entry.getKey(), e);
+                        log.error("数据环境库表{}初始化失败", entry.getKey(), e);
                     }
                 }
             } finally {
@@ -81,9 +79,7 @@ public class GrayDataTemplate {
 
     public String getColumnQuoteSymbol() throws SQLException {
         // 获取数据库型号
-        Connection connection = DataSourceUtils.getConnection(dataSource);
-        String database = NullUtil.get(connection, dataSource.getConnection())
-                .getMetaData().getDatabaseProductName();
+        String database = getDatabaseProductName();
         for (GrayDataInitializer initializer : initializers) {
             if (!initializer.support(database)) {
                 continue;
@@ -91,5 +87,12 @@ public class GrayDataTemplate {
             return initializer.getColumnSymbol();
         }
         throw new SQLException(String.format("不支持的数据库型号: %s", database));
+    }
+
+    private String getDatabaseProductName() throws SQLException {
+        if (BoolUtil.notEmpty(this.databaseProductName)) {
+            return this.databaseProductName;
+        }
+        return this.databaseProductName = dataSource.getConnection().getMetaData().getDatabaseProductName();
     }
 }
