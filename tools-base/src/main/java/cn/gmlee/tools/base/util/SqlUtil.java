@@ -16,6 +16,7 @@ import net.sf.jsqlparser.statement.select.*;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * jSqlParser脚本生成工具.
@@ -215,12 +216,23 @@ public class SqlUtil {
 
     private static void addColumn(PlainSelect plainSelect, String key, List<Expression> values) {
         List<SelectItem> selectItems = plainSelect.getSelectItems();
-        for (SelectItem item : selectItems) {
-            // tab.* 不需要添加返回列
-            String first = RegexUtil.first(item.toString(), "[\\w\\.]?[\\*]+");
-            if (BoolUtil.notEmpty(first)) {
-                return;
+        Optional<SelectItem> optional = selectItems.stream().filter(x -> {
+            // 如果是*则是包含所有字段
+            if (x instanceof AllColumns) {
+                return true;
             }
+            // 如果是tab.*则是包含当前表所有字段
+            if (x instanceof AllTableColumns) {
+                Table table = ((AllTableColumns) x).getTable();
+                FromItem fromItem = plainSelect.getFromItem();
+                return BoolUtil.eq(fromItem, table); // 必须是相同的表
+            }
+            // 否则不包含
+            return false;
+        }).findAny();
+        // 如果包含所有字段则不追key字段
+        if (optional.isPresent()) {
+            return;
         }
         // 添加返回列
         Column column = getColumn(plainSelect.getFromItem(), key);
