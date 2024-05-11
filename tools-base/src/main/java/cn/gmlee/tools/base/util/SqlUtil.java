@@ -3,6 +3,7 @@ package cn.gmlee.tools.base.util;
 import cn.gmlee.tools.base.mod.Kv;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.expression.operators.relational.InExpression;
@@ -78,7 +79,7 @@ public class SqlUtil {
     /**
      * New select sql.
      * <p>
-     *     注意: 该API会给所有表添加wheres筛选条件
+     * 注意: 该API会给所有表添加wheres筛选条件
      * </p>
      *
      * @param originSql the origin sql
@@ -216,7 +217,53 @@ public class SqlUtil {
         if (DATA_TYPE.equals(DataType.MYSQL)) {
             return;
         }
+        // Oracle存在聚合函数 或则 本身就存在分组 才需要添加分组列
+        if (plainSelect.getGroupBy() == null && !containsAggregationFunction(plainSelect)) {
+            return;
+        }
         wheres.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> addGroup(plainSelect, k, v)));
+    }
+
+    private static boolean containsAggregationFunction(PlainSelect plainSelect) {
+        List<SelectItem> selectItems = plainSelect.getSelectItems();
+        Optional<SelectItem> optional = selectItems.stream().filter(x -> {
+            if (!(x instanceof SelectExpressionItem)) {
+                return false;
+            }
+            Expression expression = ((SelectExpressionItem) x).getExpression();
+            return containsAggregationFunction(expression);
+        }).findAny();
+        return optional.isPresent();
+    }
+
+    private static boolean containsAggregationFunction(Expression expression) {
+        if (!(expression instanceof Function)) {
+            return false;
+        }
+        // 判断函数是否为聚合函数的方法
+        return isFunctionAggregate((Function) expression);
+    }
+
+    private static boolean isFunctionAggregate(Function function) {
+        String name = function.getName().toUpperCase(); // 将函数名转换为大写以便比较
+        if (isFunctionAggregate(name)) {
+            return true;
+        }
+        ExpressionList parameters = function.getParameters();
+        if (parameters == null) {
+            return false;
+        }
+        List<Expression> expressions = parameters.getExpressions();
+        if (expressions == null) {
+            return false;
+        }
+        return expressions.stream().filter(x -> containsAggregationFunction(x)).findAny().isPresent();
+    }
+
+    private static boolean isFunctionAggregate(String name) {
+        return name.equals("COUNT") || name.equals("SUM") ||
+                name.equals("AVG") || name.equals("MIN") ||
+                name.equals("MAX");
     }
 
 
@@ -234,13 +281,24 @@ public class SqlUtil {
     }
 
     private static void addGroup(PlainSelect plainSelect, String key, List<Expression> values) {
-        GroupByElement groupBy = plainSelect.getGroupBy();
-        if (groupBy == null) {
-            return;
-        }
-        // 添加返回列
+        // 构建返回列
         Column column = getColumn(plainSelect.getFromItem(), key);
-        groupBy.getGroupByExpressions().add(column);
+        // 检查是否存在当前列
+        List<SelectItem> selectItems = plainSelect.getSelectItems();
+        Optional<SelectItem> optional = selectItems.stream().filter(x -> {
+            if (!(x instanceof SelectExpressionItem)) {
+                return false;
+            }
+            Expression expression = ((SelectExpressionItem) x).getExpression();
+            if (!(expression instanceof Column)) {
+                return false;
+            }
+            return column.getColumnName().equalsIgnoreCase(((Column) expression).getColumnName());
+        }).findAny();
+        // 包含该列才能添加分组
+        if (optional.isPresent()) {
+            plainSelect.addGroupByColumnReference(column);
+        }
     }
 
     // -----------------------------------------------------------------------------------------------------------------
