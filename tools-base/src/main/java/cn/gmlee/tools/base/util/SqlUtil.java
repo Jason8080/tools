@@ -77,6 +77,9 @@ public class SqlUtil {
 
     /**
      * New select sql.
+     * <p>
+     *     注意: 该API会给所有表添加wheres筛选条件
+     * </p>
      *
      * @param originSql the origin sql
      * @param wheres    the wheres
@@ -216,20 +219,8 @@ public class SqlUtil {
 
     private static void addColumn(PlainSelect plainSelect, String key, List<Expression> values) {
         List<SelectItem> selectItems = plainSelect.getSelectItems();
-        Optional<SelectItem> optional = selectItems.stream().filter(x -> {
-            // 如果是*则是包含所有字段
-            if (x instanceof AllColumns) {
-                return true;
-            }
-            // 如果是tab.*则是包含当前表所有字段
-            if (x instanceof AllTableColumns) {
-                Table table = ((AllTableColumns) x).getTable();
-                FromItem fromItem = plainSelect.getFromItem();
-                return BoolUtil.eq(fromItem, table); // 必须是相同的表
-            }
-            // 否则不包含
-            return false;
-        }).findAny();
+        // 如果是* 或 tab.* 标识包含所有字段, 这种情况不需要追加返回列 (否则会有重复列异常)
+        Optional<SelectItem> optional = selectItems.stream().filter(x -> x instanceof AllColumns || x instanceof AllTableColumns).findAny();
         // 如果包含所有字段则不追key字段
         if (optional.isPresent()) {
             return;
