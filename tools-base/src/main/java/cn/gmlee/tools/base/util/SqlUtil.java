@@ -128,7 +128,7 @@ public class SqlUtil {
         }
     }
 
-    private static void join(List<Join> joins, Map<String, List<Expression>> wheres) {
+    private static void join(List<Join> joins, Map<String, List<Expression>> wheres) throws Exception {
         if (BoolUtil.isEmpty(joins)) {
             return;
         }
@@ -136,6 +136,9 @@ public class SqlUtil {
             FromItem item = join.getRightItem();
             if (item instanceof Table) {
                 addWheres(join, wheres);
+            }
+            if (item instanceof SubSelect) {
+                subSelect(item, wheres);
             }
         }
     }
