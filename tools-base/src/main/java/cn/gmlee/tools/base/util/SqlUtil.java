@@ -149,8 +149,12 @@ public class SqlUtil {
     }
 
     private static void addWhere(PlainSelect plainSelect, String key, List<Expression> values) {
-        // 获取别名值
+        // 构建返回列
         Column column = getColumn(plainSelect.getFromItem(), key);
+        // 包含该列才能添加分组
+        if(!containsColumn(plainSelect, column)){
+            return;
+        }
         // 添加条件值
         Expression expression = getExpression(values, column);
         AndExpression and = new AndExpression()
@@ -158,6 +162,22 @@ public class SqlUtil {
                 .withRightExpression(expression);
         // 设置条件
         plainSelect.setWhere(plainSelect.getWhere() != null ? and : expression);
+    }
+
+    private static boolean containsColumn(PlainSelect plainSelect, Column column) {
+        // 检查是否存在当前列
+        List<SelectItem> selectItems = plainSelect.getSelectItems();
+        Optional<SelectItem> optional = selectItems.stream().filter(x -> {
+            if (!(x instanceof SelectExpressionItem)) {
+                return false;
+            }
+            Expression expression = ((SelectExpressionItem) x).getExpression();
+            if (!(expression instanceof Column)) {
+                return false;
+            }
+            return column.getColumnName().equalsIgnoreCase(((Column) expression).getColumnName());
+        }).findAny();
+        return optional.isPresent();
     }
 
     private static Expression getExpression(List<Expression> values, Column column) {
@@ -283,20 +303,8 @@ public class SqlUtil {
     private static void addGroup(PlainSelect plainSelect, String key, List<Expression> values) {
         // 构建返回列
         Column column = getColumn(plainSelect.getFromItem(), key);
-        // 检查是否存在当前列
-        List<SelectItem> selectItems = plainSelect.getSelectItems();
-        Optional<SelectItem> optional = selectItems.stream().filter(x -> {
-            if (!(x instanceof SelectExpressionItem)) {
-                return false;
-            }
-            Expression expression = ((SelectExpressionItem) x).getExpression();
-            if (!(expression instanceof Column)) {
-                return false;
-            }
-            return column.getColumnName().equalsIgnoreCase(((Column) expression).getColumnName());
-        }).findAny();
         // 包含该列才能添加分组
-        if (optional.isPresent()) {
+        if (containsColumn(plainSelect, column)) {
             plainSelect.addGroupByColumnReference(column);
         }
     }
