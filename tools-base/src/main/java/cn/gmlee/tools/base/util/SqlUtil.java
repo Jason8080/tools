@@ -2,7 +2,6 @@ package cn.gmlee.tools.base.util;
 
 import cn.gmlee.tools.base.mod.Kv;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
@@ -24,23 +23,19 @@ import java.util.Map;
 @Slf4j
 public class SqlUtil {
 
-    private static String COLUMN_QUOTE_SYMBOL = "\"";
+    private static DataType DATA_TYPE = DataType.MYSQL;
+
 
     /**
-     * 重置列引用符.
+     * 重置数据库类型
      *
-     * @param s 新符号
-     * @return string 旧符号
+     * @param dataType
      */
-    public static String resetColumnQuoteSymbol(String s) {
-        // 没有变化不处理
-        if (COLUMN_QUOTE_SYMBOL.equals(s)) {
-            return COLUMN_QUOTE_SYMBOL;
+    public static void reset(DataType dataType) {
+        if (DATA_TYPE.equals(dataType)) {
+            return;
         }
-        // 变化后返回原符
-        String old = COLUMN_QUOTE_SYMBOL;
-        COLUMN_QUOTE_SYMBOL = s;
-        return old;
+        DATA_TYPE = dataType;
     }
 
     /**
@@ -115,8 +110,10 @@ public class SqlUtil {
         join(plainSelect.getJoins(), wheres);
         // 子句递归处理
         subSelect(plainSelect.getFromItem(), wheres);
-        // 列值句柄处理
+        // 加列句柄处理
         QuickUtil.isFalse(first, () -> addColumns(plainSelect, wheres));
+        // 加组句柄处理
+        QuickUtil.isFalse(first, () -> addGroups(plainSelect, wheres));
         // 条件句柄处理
         addWheres(plainSelect, wheres);
     }
@@ -184,8 +181,8 @@ public class SqlUtil {
     }
 
     private static Column getColumn(FromItem item, String field) {
-        String name = String.format("%s%s%s", COLUMN_QUOTE_SYMBOL, field, COLUMN_QUOTE_SYMBOL);
-        if (item.getAlias() == null){
+        String name = String.format("%s%s%s", getColumnQuoteSymbol(), field, getColumnQuoteSymbol());
+        if (item.getAlias() == null) {
             return new Column(name);
         }
         String alias = NullUtil.get(item.getAlias().getName(), item.toString());
@@ -193,8 +190,26 @@ public class SqlUtil {
         return new Column(String.format("%s.%s", alias, name));
     }
 
+    private static String getColumnQuoteSymbol() {
+        switch (DATA_TYPE) {
+            case MYSQL:
+                return "`";
+            case ORACLE:
+                return "\"";
+        }
+        return ExceptionUtil.cast("非法的数据源类型");
+    }
+
     private static void addColumns(PlainSelect plainSelect, Map<String, List<Expression>> wheres) {
         wheres.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> addColumn(plainSelect, k, v)));
+    }
+
+    private static void addGroups(PlainSelect plainSelect, Map<String, List<Expression>> wheres) {
+        // MySql不需要添加分组列
+        if (DATA_TYPE.equals(DataType.MYSQL)) {
+            return;
+        }
+        wheres.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> addGroup(plainSelect, k, v)));
     }
 
 
@@ -210,5 +225,36 @@ public class SqlUtil {
         // 添加返回列
         Column column = getColumn(plainSelect.getFromItem(), key);
         selectItems.add(new SelectExpressionItem(column));
+    }
+
+    private static void addGroup(PlainSelect plainSelect, String key, List<Expression> values) {
+        GroupByElement groupBy = plainSelect.getGroupBy();
+        if (groupBy == null) {
+            return;
+        }
+        // 添加返回列
+        Column column = getColumn(plainSelect.getFromItem(), key);
+        groupBy.getGroupByExpressions().add(column);
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * 数据源类型
+     */
+    public enum DataType {
+        MYSQL,
+        ORACLE,
+        ;
+
+        public static DataType of(String dataType) {
+            DataType[] values = DataType.values();
+            for (DataType dt : values) {
+                if (dt.name().equalsIgnoreCase(dataType)) {
+                    return dt;
+                }
+            }
+            return ExceptionUtil.cast(String.format("不支持的数据源类型: %s", dataType));
+        }
     }
 }

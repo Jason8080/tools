@@ -29,11 +29,6 @@ public class MysqlGrayDataInitializer implements GrayDataInitializer{
     }
 
     @Override
-    public String getColumnSymbol() {
-        return "`";
-    }
-
-    @Override
     public void addColumn(ProfileProperties properties, Connection conn, String table, Map<String, Object> map) throws SQLException {
         JdbcUtil.exec(conn, String.format(SqlAssist.ADD_COLUMNS_MYSQL, conn.getSchema(), table), false);
     }

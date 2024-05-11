@@ -29,11 +29,6 @@ public class OracleGrayDataInitializer implements GrayDataInitializer {
     }
 
     @Override
-    public String getColumnSymbol() {
-        return "\"";
-    }
-
-    @Override
     public void addColumn(ProfileProperties properties, Connection conn, String table, Map<String, Object> map) throws SQLException {
         JdbcUtil.exec(conn, String.format(SqlAssist.ADD_COLUMNS_ORACLE, conn.getSchema(), table), false);
         JdbcUtil.exec(conn, String.format(SqlAssist.ADD_COLUMNS_COMMENT_ORACLE, conn.getSchema(), table), false);

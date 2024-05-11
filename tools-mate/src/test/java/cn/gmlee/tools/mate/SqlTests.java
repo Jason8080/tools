@@ -27,7 +27,7 @@ public class SqlTests {
 //        wheres.put("auth_id", ExpressionAssist.as());
 //        wheres.put("auth_id", ExpressionAssist.as("1", "2", "3"));
         wheres.put("auth_type", ExpressionAssist.as(0, 1));
-        SqlUtil.resetColumnQuoteSymbol("`");
+        SqlUtil.reset(SqlUtil.DataType.MYSQL);
         String newSql = SqlUtil.newSelect(sql, wheres);
         System.out.println(newSql);
         System.out.println(newSql.equals(sql));

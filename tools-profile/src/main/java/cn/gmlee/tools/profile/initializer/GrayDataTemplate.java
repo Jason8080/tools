@@ -77,19 +77,7 @@ public class GrayDataTemplate {
         }
     }
 
-    public String getColumnQuoteSymbol() throws SQLException {
-        // 获取数据库型号
-        String database = getDatabaseProductName();
-        for (GrayDataInitializer initializer : initializers) {
-            if (!initializer.support(database)) {
-                continue;
-            }
-            return initializer.getColumnSymbol();
-        }
-        throw new SQLException(String.format("不支持的数据库型号: %s", database));
-    }
-
-    private String getDatabaseProductName() throws SQLException {
+    public String getDatabaseProductName() throws SQLException {
         if (BoolUtil.notEmpty(this.databaseProductName)) {
             return this.databaseProductName;
         }

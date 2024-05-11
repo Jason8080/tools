@@ -28,14 +28,6 @@ public interface GrayDataInitializer {
      */
     Map<String, Map<String, Object>> getColumn(Connection conn, ProfileProperties properties);
 
-
-    /**
-     * Gets column symbol.
-     *
-     * @return the column symbol
-     */
-    String getColumnSymbol();
-
     /**
      * Add column.
      *
