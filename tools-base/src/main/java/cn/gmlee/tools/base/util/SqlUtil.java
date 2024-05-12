@@ -116,9 +116,9 @@ public class SqlUtil {
         // 子句递归处理
         subSelect(plainSelect.getFromItem(), wheres);
         // 加列句柄处理
-        QuickUtil.isFalse(first, () -> addColumns(plainSelect, wheres));
+//        QuickUtil.isFalse(first, () -> addColumns(plainSelect, wheres));
         // 加组句柄处理
-        QuickUtil.isFalse(first, () -> addGroups(plainSelect, wheres));
+//        QuickUtil.isFalse(first, () -> addGroups(plainSelect, wheres));
         // 条件句柄处理
         addWheres(plainSelect, wheres);
     }
@@ -149,12 +149,12 @@ public class SqlUtil {
     }
 
     private static void addWhere(PlainSelect plainSelect, String key, List<Expression> values) {
-        // 构建返回列
-        Column column = getColumn(plainSelect.getFromItem(), key);
-        // 包含该列才能添加分组
-        if(!containsColumn(plainSelect, column)){
+        // 仅加表句柄
+        if(!(plainSelect.getFromItem() instanceof Table)){
             return;
         }
+        // 构建返回列
+        Column column = getColumn(plainSelect.getFromItem(), key);
         // 添加条件值
         Expression expression = getExpression(values, column);
         AndExpression and = new AndExpression()
