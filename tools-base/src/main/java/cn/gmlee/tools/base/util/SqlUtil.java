@@ -104,28 +104,24 @@ public class SqlUtil {
             return originSql;
         }
         // 句柄处理器
-        sqlHandler((PlainSelect) selectBody, wheres, true);
+        sqlHandler((PlainSelect) selectBody, wheres);
         // 获取新语句
         String newSql = statement.toString();
         return newSql.equals(oldSql) ? originSql : newSql;
     }
 
-    private static void sqlHandler(PlainSelect plainSelect, Map<String, List<Expression>> wheres, boolean first) throws Exception {
+    private static void sqlHandler(PlainSelect plainSelect, Map<String, List<Expression>> wheres) throws Exception {
         // 关联句柄处理
         join(plainSelect.getJoins(), wheres);
         // 子句递归处理
         subSelect(plainSelect.getFromItem(), wheres);
-        // 加列句柄处理
-//        QuickUtil.isFalse(first, () -> addColumns(plainSelect, wheres));
-        // 加组句柄处理
-//        QuickUtil.isFalse(first, () -> addGroups(plainSelect, wheres));
         // 条件句柄处理
         addWheres(plainSelect, wheres);
     }
 
     private static void subSelect(FromItem item, Map<String, List<Expression>> wheres) throws Exception {
         if (item instanceof SubSelect) {
-            sqlHandler((PlainSelect) ((SubSelect) item).getSelectBody(), wheres, false);
+            sqlHandler((PlainSelect) ((SubSelect) item).getSelectBody(), wheres);
         }
     }
 
