@@ -342,7 +342,7 @@ public class DataAuthInterceptor implements Interceptor {
         // 遍历标志位
         for (String flag : flags) {
             // 获取行权限数据
-            Map<String, List<? extends Comparable>> wheres = FutureAssist.supplyAsync(() -> dataAuthServer.rowMap(flag));
+            Map<String, List<? extends Comparable>> wheres = FutureAssist.supplyAsync(() -> dataAuthServer.rowWheres(flag));
             // 添加行权限句柄
             originalSql = SqlUtil.newSelect(originalSql, wheres);
         }

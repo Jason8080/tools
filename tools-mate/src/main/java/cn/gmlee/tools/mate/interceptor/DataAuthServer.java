@@ -45,7 +45,7 @@ public interface DataAuthServer {
      * @param flag
      * @return
      */
-    default Map<String, List<? extends Comparable>> rowMap(String flag) {
+    default Map<String, List<? extends Comparable>> rowWheres(String flag) {
         return null;
     }
 

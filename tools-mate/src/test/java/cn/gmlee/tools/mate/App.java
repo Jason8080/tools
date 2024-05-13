@@ -40,7 +40,7 @@ public class App {
             }
 
             @Override
-            public Map<String, List<? extends Comparable>> rowMap(String flag) {
+            public Map<String, List<? extends Comparable>> rowWheres(String flag) {
                 // 构建过滤条件:
                 Map<String, List<? extends Comparable>> wheres = new HashMap<>();
                 // # 仅查看自己的数据 (假如当前登录用户ID = 1)
