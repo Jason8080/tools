@@ -16,7 +16,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- * 数据环境自动装配类.
+ * 数据隔离自动装配类.
  */
 @EnableConfigurationProperties(ProfileProperties.class)
 public class ProfileDataAutoConfiguration {

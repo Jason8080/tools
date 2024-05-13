@@ -16,7 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.sql.Connection;
 
 /**
- * 数据环境标记拦截器.
+ * 数据隔离标记拦截器.
  */
 @Slf4j
 @Intercepts({
@@ -49,7 +49,7 @@ public class ProfileInsertMarkInterceptor implements Interceptor {
         try {
             mark(invocation);
         } catch (Throwable throwable) {
-            log.error("数据环境标记失败", throwable);
+            log.error("数据隔离标记失败", throwable);
         }
         return invocation.proceed();
     }

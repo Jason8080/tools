@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 数据环境初始化模版.
+ * 数据隔离初始化模版.
  */
 @Slf4j
 public class GrayDataTemplate {
@@ -65,7 +65,7 @@ public class GrayDataTemplate {
                     try {
                         initializer.addColumn(properties, conn, entry.getKey(), entry.getValue());
                     } catch (Exception e) {
-                        log.error("数据环境库表{}初始化失败", entry.getKey(), e);
+                        log.error("数据隔离库表{}初始化失败", entry.getKey(), e);
                     }
                 }
             } finally {

@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 数据环境选择拦截器.
+ * 数据隔离选择拦截器.
  */
 @Slf4j
 @Intercepts({
@@ -55,7 +55,7 @@ public class ProfileSelectFilterInterceptor implements Interceptor {
         try {
             filter(invocation);
         } catch (Throwable throwable) {
-            log.error("数据环境过滤失败", throwable);
+            log.error("数据隔离过滤失败", throwable);
         }
         return invocation.proceed();
     }

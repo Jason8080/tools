@@ -8,7 +8,7 @@ import java.sql.SQLException;
 import java.util.Map;
 
 /**
- * 数据环境初始化器.
+ * 数据隔离初始化器.
  */
 public interface GrayDataInitializer {
     /**
@@ -48,7 +48,7 @@ public interface GrayDataInitializer {
     default String getTable(Map<String, Object> map) {
         String field = "TABLE_NAME";
         Object value = map.containsKey(field) ? map.get(field) : map.get(field.toLowerCase());
-        AssertUtil.notNull(value, "数据环境初始化发现表名是空");
+        AssertUtil.notNull(value, "数据隔离初始化发现表名是空");
         return value.toString();
     }
 
@@ -61,7 +61,7 @@ public interface GrayDataInitializer {
     default String getField(Map<String, Object> map) {
         String field = "COLUMN_NAME";
         Object value = map.containsKey(field) ? map.get(field) : map.get(field.toLowerCase());
-        AssertUtil.notNull(value, "数据环境初始化发现表名是空");
+        AssertUtil.notNull(value, "数据隔离初始化发现表名是空");
         return value.toString();
     }
 
@@ -74,7 +74,7 @@ public interface GrayDataInitializer {
     default String getType(Map<String, Object> map) {
         String field = "DATA_TYPE";
         Object value = map.containsKey(field) ? map.get(field) : map.get(field.toLowerCase());
-        AssertUtil.notNull(value, "数据环境初始化发现表名是空");
+        AssertUtil.notNull(value, "数据隔离初始化发现表名是空");
         return value.toString();
     }
 }
