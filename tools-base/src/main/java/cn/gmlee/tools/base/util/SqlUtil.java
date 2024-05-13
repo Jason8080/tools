@@ -15,9 +15,11 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * jSqlParser脚本生成工具.
@@ -120,8 +122,21 @@ public class SqlUtil {
     }
 
     private static void subSelect(FromItem item, Map<String, List<Expression>> wheres) throws Exception {
-        if (item instanceof SubSelect) {
-            sqlHandler((PlainSelect) ((SubSelect) item).getSelectBody(), wheres);
+        if (!(item instanceof SubSelect)) {
+            return;
+        }
+        SubSelect subSelect = (SubSelect) item;
+        if(subSelect.getSelectBody() instanceof PlainSelect){
+            sqlHandler((PlainSelect) subSelect.getSelectBody(), wheres);
+        }
+        if(subSelect.getSelectBody() instanceof SetOperationList){
+            SetOperationList operationList = (SetOperationList) subSelect.getSelectBody();
+            List<SelectBody> selectBodies = NullUtil.get(operationList.getSelects(), Collections.emptyList());
+            // 暂时只处理PlainSelect
+            List<PlainSelect> plainSelects = selectBodies.stream().filter(x -> x instanceof PlainSelect).map(x -> (PlainSelect)x).collect(Collectors.toList());
+            for (PlainSelect plainSelect : plainSelects){
+                sqlHandler(plainSelect, wheres);
+            }
         }
     }
 
