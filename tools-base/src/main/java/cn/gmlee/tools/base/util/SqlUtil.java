@@ -1,5 +1,6 @@
 package cn.gmlee.tools.base.util;
 
+import cn.gmlee.tools.base.assist.ExpressionAssist;
 import cn.gmlee.tools.base.mod.Kv;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;
@@ -50,7 +51,7 @@ public class SqlUtil {
      * @return the string
      * @throws Exception the exception
      */
-    public static String newInsert(String originSql, Kv<String, Expression>... kvs) throws Exception {
+    public static String newInsert(String originSql, Kv<String, ? extends Comparable>... kvs) throws Exception {
         // 非空条件方才处理
         if (BoolUtil.isEmpty(kvs)) {
             return originSql;
@@ -68,11 +69,11 @@ public class SqlUtil {
         return newSql.equals(oldSql) ? originSql : newSql;
     }
 
-    private static void sqlHandler(Insert statement, Kv<String, Expression>... kvs) {
-        for (Kv<String, Expression> kv : kvs) {
+    private static void sqlHandler(Insert statement, Kv<String, ? extends Comparable>... kvs) {
+        for (Kv<String, ? extends Comparable> kv : kvs) {
             Column column = getColumn(statement.getTable(), kv.getKey());
             statement.addColumns(column);
-            ((ExpressionList) statement.getItemsList()).addExpressions(kv.getVal());
+            ((ExpressionList) statement.getItemsList()).addExpressions(ExpressionAssist.as(kv.getVal()));
         }
     }
 
@@ -89,7 +90,7 @@ public class SqlUtil {
      * @return the new sql
      * @throws Exception the exception
      */
-    public static String newSelect(String originSql, Map<String, List<Expression>> wheres) throws Exception {
+    public static String newSelect(String originSql, Map<String, List<? extends Comparable>> wheres) throws Exception {
         // 非空条件方才处理
         if (BoolUtil.isEmpty(wheres)) {
             return originSql;
@@ -112,7 +113,7 @@ public class SqlUtil {
         return newSql.equals(oldSql) ? originSql : newSql;
     }
 
-    private static void sqlHandler(PlainSelect plainSelect, Map<String, List<Expression>> wheres) throws Exception {
+    private static void sqlHandler(PlainSelect plainSelect, Map<String, List<? extends Comparable>> wheres) throws Exception {
         // 关联句柄处理
         join(plainSelect.getJoins(), wheres);
         // 子句递归处理
@@ -121,7 +122,7 @@ public class SqlUtil {
         addWheres(plainSelect, wheres);
     }
 
-    private static void subSelect(FromItem item, Map<String, List<Expression>> wheres) throws Exception {
+    private static void subSelect(FromItem item, Map<String, List<? extends Comparable>> wheres) throws Exception {
         if (!(item instanceof SubSelect)) {
             return;
         }
@@ -140,7 +141,7 @@ public class SqlUtil {
         }
     }
 
-    private static void join(List<Join> joins, Map<String, List<Expression>> wheres) throws Exception {
+    private static void join(List<Join> joins, Map<String, List<? extends Comparable>> wheres) throws Exception {
         if (BoolUtil.isEmpty(joins)) {
             return;
         }
@@ -155,11 +156,11 @@ public class SqlUtil {
         }
     }
 
-    private static void addWheres(PlainSelect plainSelect, Map<String, List<Expression>> wheres) {
+    private static void addWheres(PlainSelect plainSelect, Map<String, List<? extends Comparable>> wheres) {
         wheres.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> addWhere(plainSelect, k, v)));
     }
 
-    private static void addWhere(PlainSelect plainSelect, String key, List<Expression> values) {
+    private static void addWhere(PlainSelect plainSelect, String key, List<? extends Comparable> values) {
         // 仅加表句柄
         if(!(plainSelect.getFromItem() instanceof Table)){
             return;
@@ -191,7 +192,7 @@ public class SqlUtil {
         return optional.isPresent();
     }
 
-    private static Expression getExpression(List<Expression> values, Column column) {
+    private static Expression getExpression(List<? extends Comparable> values, Column column) {
         // 构建条件
         Expression e = BoolUtil.notEmpty(values) ? new InExpression() : new IsNullExpression();
         QuickUtil.isTrue(e instanceof InExpression, () -> ((InExpression) e).setLeftExpression(column));
@@ -199,15 +200,15 @@ public class SqlUtil {
         ExpressionList expressionList = new ExpressionList();
         QuickUtil.isTrue(e instanceof InExpression, () -> ((InExpression) e).setRightItemsList(expressionList));
         // 添加条件
-        expressionList.withExpressions(values);
+        expressionList.withExpressions(ExpressionAssist.as(values));
         return e;
     }
 
-    private static void addWheres(Join join, Map<String, List<Expression>> wheres) {
+    private static void addWheres(Join join, Map<String, List<? extends Comparable>> wheres) {
         wheres.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> addWhere(join, k, v)));
     }
 
-    private static void addWhere(Join join, String key, List<Expression> values) {
+    private static void addWhere(Join join, String key, List<? extends Comparable> values) {
         // 获取别名值
         Column column = getColumn(join.getRightItem(), key);
         // 构建条件

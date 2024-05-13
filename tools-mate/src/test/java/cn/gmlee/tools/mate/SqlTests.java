@@ -1,9 +1,8 @@
 package cn.gmlee.tools.mate;
 
-import cn.gmlee.tools.base.assist.ExpressionAssist;
 import cn.gmlee.tools.base.util.SqlUtil;
-import net.sf.jsqlparser.expression.Expression;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,10 +22,8 @@ public class SqlTests {
                 "WHERE\n" +
                 "\tlog.del = 0\n" +
                 "\t) t";
-        Map<String, List<Expression>> wheres = new HashMap<>();
-//        wheres.put("auth_id", ExpressionAssist.as());
-//        wheres.put("auth_id", ExpressionAssist.as("1", "2", "3"));
-        wheres.put("auth_type", ExpressionAssist.as(0, 1));
+        Map<String, List<? extends Comparable>> wheres = new HashMap<>();
+        wheres.put("auth_type", Arrays.asList(0, 1));
         SqlUtil.reset(SqlUtil.DataType.MYSQL);
         String newSql = SqlUtil.newSelect(sql, wheres);
         System.out.println(newSql);

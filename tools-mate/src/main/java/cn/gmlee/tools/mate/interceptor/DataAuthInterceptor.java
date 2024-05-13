@@ -2,12 +2,10 @@ package cn.gmlee.tools.mate.interceptor;
 
 
 import cn.gmlee.tools.base.util.*;
-import cn.gmlee.tools.base.assist.ExpressionAssist;
 import cn.gmlee.tools.mate.assist.FutureAssist;
 import cn.gmlee.tools.mate.assist.SqlResetAssist;
 import com.baomidou.mybatisplus.core.toolkit.PluginUtils;
 import lombok.SneakyThrows;
-import net.sf.jsqlparser.expression.Expression;
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.executor.parameter.ParameterHandler;
@@ -344,9 +342,7 @@ public class DataAuthInterceptor implements Interceptor {
         // 遍历标志位
         for (String flag : flags) {
             // 获取行权限数据
-            Map<String, List<? extends Comparable>> rowMap = FutureAssist.supplyAsync(() -> dataAuthServer.rowMap(flag));
-            Map<String, List<Expression>> wheres = new HashMap<>(rowMap.size());
-            rowMap.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> wheres.put(k, ExpressionAssist.as(v))));
+            Map<String, List<? extends Comparable>> wheres = FutureAssist.supplyAsync(() -> dataAuthServer.rowMap(flag));
             // 添加行权限句柄
             originalSql = SqlUtil.newSelect(originalSql, wheres);
         }

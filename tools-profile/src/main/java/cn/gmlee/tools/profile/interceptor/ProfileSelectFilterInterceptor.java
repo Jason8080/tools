@@ -8,8 +8,6 @@ import cn.gmlee.tools.profile.conf.ProfileProperties;
 import cn.gmlee.tools.profile.helper.ProfileHelper;
 import cn.gmlee.tools.profile.initializer.GrayDataTemplate;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.LongValue;
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.plugin.*;
@@ -70,12 +68,12 @@ public class ProfileSelectFilterInterceptor implements Interceptor {
         BoundSql boundSql = statementHandler.getBoundSql();
         String originSql = boundSql.getSql();
         // 构建环境筛选条件
-        Map<String, List<Expression>> wheres = new HashMap<>(Int.ONE);
-        List<Expression> envs = new ArrayList<>(Int.TWO);
+        Map<String, List<? extends Comparable>> wheres = new HashMap<>(Int.ONE);
+        List<Comparable> envs = new ArrayList<>(Int.TWO);
         QuickUtil.isTrue(ProfileHelper.enabled(),
-                () -> envs.add(new LongValue(Int.ZERO)) // 开启后查测试数据
+                () -> envs.add(Int.ZERO) // 开启后查测试数据
         );
-        envs.add(new LongValue(Int.ONE)); // 保证查看正式数据
+        envs.add(Int.ONE); // 保证查看正式数据
         wheres.put(properties.getField(), envs);
         // 构建新的筛选句柄
         SqlUtil.reset(SqlUtil.DataType.of(grayDataTemplate.getDatabaseProductName()));

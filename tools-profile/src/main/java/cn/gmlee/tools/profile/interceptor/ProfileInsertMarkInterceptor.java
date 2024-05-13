@@ -7,7 +7,6 @@ import cn.gmlee.tools.profile.conf.ProfileProperties;
 import cn.gmlee.tools.profile.helper.ProfileHelper;
 import cn.gmlee.tools.profile.initializer.GrayDataTemplate;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.expression.LongValue;
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.plugin.*;
@@ -64,7 +63,7 @@ public class ProfileInsertMarkInterceptor implements Interceptor {
         String originSql = boundSql.getSql();
         // 构建新的句柄
         SqlUtil.reset(SqlUtil.DataType.of(grayDataTemplate.getDatabaseProductName()));
-        String newSql = SqlUtil.newInsert(originSql, KvBuilder.array(properties.getField(), new LongValue(0)));
+        String newSql = SqlUtil.newInsert(originSql, KvBuilder.array(properties.getField(), 0));
         SqlAssist.reset(boundSql, newSql);
     }
 }
