@@ -22,7 +22,7 @@ public class SqlTests {
                 "WHERE\n" +
                 "\tlog.del = 0\n" +
                 "\t) t";
-        Map<String, List<? extends Comparable>> wheres = new HashMap<>();
+        Map<String, List> wheres = new HashMap<>();
         wheres.put("auth_type", Arrays.asList(0, 1));
         SqlUtil.reset(SqlUtil.DataType.MYSQL);
         String newSql = SqlUtil.newSelect(sql, wheres);

@@ -40,9 +40,9 @@ public class App {
             }
 
             @Override
-            public Map<String, List<? extends Comparable>> rowWheres(String flag) {
+            public Map<String, List> rowWheres(String flag) {
                 // 构建过滤条件:
-                Map<String, List<? extends Comparable>> wheres = new HashMap<>();
+                Map<String, List> wheres = new HashMap<>();
                 // # 仅查看自己的数据 (假如当前登录用户ID = 1)
                 wheres.put("created_by", Arrays.asList(1));
                 // # 仅查看能看的数据 (假如当前用户能看auth_type = 2的数据)

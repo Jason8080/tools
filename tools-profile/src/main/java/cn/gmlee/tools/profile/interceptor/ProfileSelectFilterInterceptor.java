@@ -68,7 +68,7 @@ public class ProfileSelectFilterInterceptor implements Interceptor {
         BoundSql boundSql = statementHandler.getBoundSql();
         String originSql = boundSql.getSql();
         // 构建环境筛选条件
-        Map<String, List<? extends Comparable>> wheres = new HashMap<>(Int.ONE);
+        Map<String, List> wheres = new HashMap<>(Int.ONE);
         List<Comparable> envs = new ArrayList<>(Int.TWO);
         QuickUtil.isTrue(ProfileHelper.enabled(),
                 () -> envs.add(Int.ZERO) // 开启后查测试数据

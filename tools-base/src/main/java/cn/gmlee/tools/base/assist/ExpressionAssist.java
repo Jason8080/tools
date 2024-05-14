@@ -17,7 +17,7 @@ public class ExpressionAssist {
      * @param cs the cs
      * @return the list
      */
-    public static List<Expression> as(Collection<? extends Comparable> cs) {
+    public static List<Expression> as(Collection<?> cs) {
         if (cs == null) {
             return Collections.emptyList();
         }
@@ -30,7 +30,7 @@ public class ExpressionAssist {
      * @param cs the cs
      * @return the list
      */
-    public static List<Expression> as(Comparable... cs) {
+    public static List<Expression> as(Object... cs) {
         if (cs == null) {
             return Collections.emptyList();
         }

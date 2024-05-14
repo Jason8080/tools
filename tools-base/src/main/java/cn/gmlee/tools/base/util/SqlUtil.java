@@ -69,8 +69,8 @@ public class SqlUtil {
         return newSql.equals(oldSql) ? originSql : newSql;
     }
 
-    private static void sqlHandler(Insert statement, Kv<String, ? extends Comparable>... kvs) {
-        for (Kv<String, ? extends Comparable> kv : kvs) {
+    private static void sqlHandler(Insert statement, Kv<String, ?>... kvs) {
+        for (Kv<String, ?> kv : kvs) {
             Column column = getColumn(statement.getTable(), kv.getKey());
             statement.addColumns(column);
             ((ExpressionList) statement.getItemsList()).addExpressions(ExpressionAssist.as(kv.getVal()));
@@ -90,7 +90,7 @@ public class SqlUtil {
      * @return the new sql
      * @throws Exception the exception
      */
-    public static String newSelect(String originSql, Map<String, List<? extends Comparable>> wheres) throws Exception {
+    public static String newSelect(String originSql, Map<String, List> wheres) throws Exception {
         // 非空条件方才处理
         if (BoolUtil.isEmpty(wheres)) {
             return originSql;
@@ -113,7 +113,7 @@ public class SqlUtil {
         return newSql.equals(oldSql) ? originSql : newSql;
     }
 
-    private static void sqlHandler(PlainSelect plainSelect, Map<String, List<? extends Comparable>> wheres) throws Exception {
+    private static void sqlHandler(PlainSelect plainSelect, Map<String, List> wheres) throws Exception {
         // 关联句柄处理
         join(plainSelect.getJoins(), wheres);
         // 子句递归处理
@@ -122,26 +122,26 @@ public class SqlUtil {
         addWheres(plainSelect, wheres);
     }
 
-    private static void subSelect(FromItem item, Map<String, List<? extends Comparable>> wheres) throws Exception {
+    private static void subSelect(FromItem item, Map<String, List> wheres) throws Exception {
         if (!(item instanceof SubSelect)) {
             return;
         }
         SubSelect subSelect = (SubSelect) item;
-        if(subSelect.getSelectBody() instanceof PlainSelect){
+        if (subSelect.getSelectBody() instanceof PlainSelect) {
             sqlHandler((PlainSelect) subSelect.getSelectBody(), wheres);
         }
-        if(subSelect.getSelectBody() instanceof SetOperationList){
+        if (subSelect.getSelectBody() instanceof SetOperationList) {
             SetOperationList operationList = (SetOperationList) subSelect.getSelectBody();
             List<SelectBody> selectBodies = NullUtil.get(operationList.getSelects(), Collections.emptyList());
             // 暂时只处理PlainSelect
-            List<PlainSelect> plainSelects = selectBodies.stream().filter(x -> x instanceof PlainSelect).map(x -> (PlainSelect)x).collect(Collectors.toList());
-            for (PlainSelect plainSelect : plainSelects){
+            List<PlainSelect> plainSelects = selectBodies.stream().filter(x -> x instanceof PlainSelect).map(x -> (PlainSelect) x).collect(Collectors.toList());
+            for (PlainSelect plainSelect : plainSelects) {
                 sqlHandler(plainSelect, wheres);
             }
         }
     }
 
-    private static void join(List<Join> joins, Map<String, List<? extends Comparable>> wheres) throws Exception {
+    private static void join(List<Join> joins, Map<String, List> wheres) throws Exception {
         if (BoolUtil.isEmpty(joins)) {
             return;
         }
@@ -156,18 +156,18 @@ public class SqlUtil {
         }
     }
 
-    private static void addWheres(PlainSelect plainSelect, Map<String, List<? extends Comparable>> wheres) {
+    private static void addWheres(PlainSelect plainSelect, Map<String, List> wheres) {
         wheres.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> addWhere(plainSelect, k, v)));
     }
 
     private static void addWhere(PlainSelect plainSelect, String key, List<? extends Comparable> values) {
         FromItem fromItem = plainSelect.getFromItem();
         // 如果不是表
-        if(!(fromItem instanceof Table)){
+        if (!(fromItem instanceof Table)) {
             return;
         }
         // 还是虚拟表
-        if(isVirtualTable((Table) fromItem)){
+        if (isVirtualTable((Table) fromItem)) {
             return;
         }
         // 构建返回列
@@ -209,7 +209,7 @@ public class SqlUtil {
         return e;
     }
 
-    private static void addWheres(Join join, Map<String, List<? extends Comparable>> wheres) {
+    private static void addWheres(Join join, Map<String, List> wheres) {
         wheres.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> addWhere(join, k, v)));
     }
 

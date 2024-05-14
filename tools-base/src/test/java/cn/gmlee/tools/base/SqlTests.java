@@ -13,7 +13,7 @@ public class SqlTests {
     @Test
     public void testSql1() throws Exception{
         String sql = "SELECT 1 AS example_column";
-        Map<String, List<? extends Comparable>> wheres = new HashMap<>();
+        Map<String, List> wheres = new HashMap<>();
         wheres.put("env", Arrays.asList("0", "1"));
         SqlUtil.reset(SqlUtil.DataType.ORACLE);
         String newSql = SqlUtil.newSelect(sql, wheres);
