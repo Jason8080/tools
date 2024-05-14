@@ -3,7 +3,7 @@ package cn.gmlee.tools.base.mod;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.Collection;
 
 /**
  * 数据权限: 树.
@@ -11,7 +11,7 @@ import java.util.List;
  * @author Jas
  */
 @Data
-public class Option<Code> implements Serializable {
+public class Option<ID> implements Tree<Option,ID>, Serializable {
     /**
      * 应用编号.
      */
@@ -31,9 +31,13 @@ public class Option<Code> implements Serializable {
      * 用户信息列权限: id_card(String)、mobile(String)
      * </p>
      */
-    private Code code;
+    private ID id;
+    /**
+     * 上级标识
+     */
+    private ID parentId;
     /**
      * 下级 (列权限一般没有下级)
      */
-    private List<Option> options;
+    private Collection<Option> children;
 }

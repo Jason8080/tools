@@ -102,10 +102,10 @@ public class TreeUtil {
         return list;
     }
 
-    private static <T extends Tree> Collection<T> handlerRoot(Collection<T> list, Object rootId) {
+    private static <T extends Tree, ID> Collection<T> handlerRoot(Collection<T> list, Object rootId) {
         Collection<T> tree = new ArrayList();
         list.forEach(obj -> {
-            Long parentId = obj.getParentId();
+            Object parentId = obj.getParentId();
             if (BoolUtil.isNull(parentId) || BoolUtil.eq(parentId, obj.getId()) || BoolUtil.eq(parentId, rootId)) {
                 tree.add(obj);
             }

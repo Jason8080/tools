@@ -6,38 +6,39 @@ import java.util.Collection;
 /**
  * 树.
  *
- * @param <T> the type parameter
+ * @param <T>  类型
+ * @param <ID> 主键类型
  * @author Jas °
  * @date 2021 /10/19 (周二)
  */
-public interface Tree<T extends Tree> extends Serializable {
+public interface Tree<T, ID> extends Serializable {
     /**
      * Gets id.
      *
      * @return the id
      */
-    Long getId();
+    ID getId();
 
     /**
      * Sets id.
      *
      * @param id the id
      */
-    void setId(Long id);
+    void setId(ID id);
 
     /**
      * Gets parent id.
      *
      * @return the parent id
      */
-    Long getParentId();
+    ID getParentId();
 
     /**
      * Sets parent id.
      *
      * @param parentId the parent id
      */
-    void setParentId(Long parentId);
+    void setParentId(ID parentId);
 
     /**
      * Gets children.

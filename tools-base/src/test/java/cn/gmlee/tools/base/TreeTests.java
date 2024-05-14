@@ -1,5 +1,6 @@
 package cn.gmlee.tools.base;
 
+import cn.gmlee.tools.base.mod.Tree;
 import cn.gmlee.tools.base.util.JsonUtil;
 import cn.gmlee.tools.base.util.TreeUtil;
 import lombok.Data;
@@ -18,12 +19,12 @@ import java.util.List;
 public class TreeTests {
 
     @Data
-    static class Tree<T extends Tree> implements cn.gmlee.tools.base.mod.Tree<T> {
-        private Long id;
-        private Long parentId;
-        private Collection<T> children;
+    static class MyTree<ID> implements Tree<MyTree,ID> {
+        private ID id;
+        private ID parentId;
+        private Collection<MyTree> children;
 
-        public Tree(Long id, Long parentId) {
+        public MyTree(ID id, ID parentId) {
             this.id = id;
             this.parentId = parentId;
         }
@@ -31,16 +32,16 @@ public class TreeTests {
 
     @Test
     public void test() throws Exception {
-        List<Tree> list = new ArrayList();
-        list.add(new Tree(1L, 0L));
-        list.add(new Tree(2L, null));
-        list.add(new Tree(3L, 1L));
-        list.add(new Tree(4L, 1L));
-        list.add(new Tree(5L, 2L));
-        list.add(new Tree(6L, 2L));
-        list.add(new Tree(7L, 6L));
-        list.add(new Tree(8L, 7L));
-        Collection<Tree> tree = TreeUtil.tree(list);
-        System.out.println(JsonUtil.toJson(tree));
+        List<MyTree<Long>> list = new ArrayList();
+        list.add(new MyTree(1L, 0L));
+        list.add(new MyTree(2L, null));
+        list.add(new MyTree(3L, 1L));
+        list.add(new MyTree(4L, 1L));
+        list.add(new MyTree(5L, 2L));
+        list.add(new MyTree(6L, 2L));
+        list.add(new MyTree(7L, 6L));
+        list.add(new MyTree(8L, 7L));
+        Collection<MyTree<Long>> tree = TreeUtil.tree(list);
+        System.out.println(JsonUtil.format(tree));
     }
 }
