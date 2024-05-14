@@ -16,20 +16,8 @@ import java.util.stream.Stream;
  * @date 2021 /10/19 (周二)
  */
 public class TreeUtil {
-
     /**
      * 扁平化处理.
-     *
-     * @param <T>  the type parameter
-     * @param tree the tree
-     * @return the list
-     */
-    private static <T extends Tree> List<T> flatten(Collection<T> tree) {
-        return tree.stream().flatMap(TreeUtil::flatten).collect(Collectors.toList());
-    }
-
-    /**
-     * Flatten stream.
      *
      * @param <T>  the type parameter
      * @param tree the tree
@@ -48,7 +36,7 @@ public class TreeUtil {
      */
     public static <T extends Tree> Collection<T> list(Collection<T> tree) {
         if (BoolUtil.notEmpty(tree)) {
-            return flatten(tree);
+            return tree.stream().flatMap(TreeUtil::flatten).collect(Collectors.toList());
         }
         return tree;
     }
