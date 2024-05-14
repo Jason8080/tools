@@ -98,7 +98,7 @@ public class TreeUtil {
         return list;
     }
 
-    private static <T extends Tree, ID> Collection<T> handlerRoot(Collection<T> list, Object rootId) {
+    private static <T extends Tree> Collection<T> handlerRoot(Collection<T> list, Object rootId) {
         Collection<T> tree = new ArrayList();
         list.forEach(obj -> {
             Object parentId = obj.getParentId();
