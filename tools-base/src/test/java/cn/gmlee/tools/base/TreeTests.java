@@ -9,6 +9,7 @@ import org.junit.Test;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * .
@@ -32,16 +33,17 @@ public class TreeTests {
 
     @Test
     public void test() throws Exception {
-        List<MyTree<Long>> list = new ArrayList();
-        list.add(new MyTree(1L, 0L));
-        list.add(new MyTree(2L, null));
-        list.add(new MyTree(3L, 1L));
-        list.add(new MyTree(4L, 1L));
-        list.add(new MyTree(5L, 2L));
-        list.add(new MyTree(6L, 2L));
-        list.add(new MyTree(7L, 6L));
-        list.add(new MyTree(8L, 7L));
-        Collection<MyTree<Long>> tree = TreeUtil.tree(list);
-        System.out.println(JsonUtil.format(tree));
+        List<MyTree<Integer>> list = new ArrayList();
+        list.add(new MyTree(1, 0));
+        list.add(new MyTree(2, null));
+        list.add(new MyTree(3, 1));
+        list.add(new MyTree(4, 1));
+        list.add(new MyTree(5, 2));
+        list.add(new MyTree(6, 2));
+        list.add(new MyTree(7, 6));
+        list.add(new MyTree(8, 7));
+        Collection<MyTree<Integer>> tree = TreeUtil.tree(list, 0, null);
+        List<Integer> collect = TreeUtil.list(tree).stream().map(MyTree::getId).collect(Collectors.toList());
+        System.out.println(JsonUtil.format(collect));
     }
 }

@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 树状结构工具包.
@@ -15,6 +16,45 @@ import java.util.stream.Collectors;
  * @date 2021 /10/19 (周二)
  */
 public class TreeUtil {
+
+    /**
+     * 扁平化处理.
+     *
+     * @param <T>  the type parameter
+     * @param tree the tree
+     * @return the list
+     */
+    private static <T extends Tree> List<T> flatten(Collection<T> tree) {
+        return tree.stream().flatMap(TreeUtil::flatten).collect(Collectors.toList());
+    }
+
+    /**
+     * Flatten stream.
+     *
+     * @param <T>  the type parameter
+     * @param tree the tree
+     * @return the stream
+     */
+    private static <T extends Tree> Stream<T> flatten(T tree) {
+        return Stream.concat(Stream.of(tree), tree.getChildren().stream().flatMap((x) -> flatten((T) x)));
+    }
+
+    /**
+     * List collection.
+     *
+     * @param <T>  the type parameter
+     * @param tree the tree
+     * @return the collection
+     */
+    public static <T extends Tree> Collection<T> list(Collection<T> tree) {
+        if (BoolUtil.notEmpty(tree)) {
+            return flatten(tree);
+        }
+        return tree;
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
     /**
      * Tree list.
      *
@@ -36,17 +76,19 @@ public class TreeUtil {
      *
      * @param <T>    the type parameter
      * @param list   the list
-     * @param rootId the root id
+     * @param rootIds the root id
      * @return the list
      */
-    public static <T extends Tree> Collection<T> tree(Collection<T> list, Object rootId) {
+    public static <T extends Tree> Collection<T> tree(Collection<T> list, Object... rootIds) {
         if (BoolUtil.notEmpty(list)) {
-            Collection<T> roots = handlerRoot(list, rootId);
+            Collection<T> roots = handlerRoot(list, rootIds);
             handleChildren(roots, list);
             return roots;
         }
         return list;
     }
+
+    // -----------------------------------------------------------------------------------------------------------------
 
     /**
      * Tree map list.
@@ -86,6 +128,8 @@ public class TreeUtil {
      *
      * @param <T>            the type parameter
      * @param list           the list
+     * @param customId       the custom id
+     * @param customParentId the custom parent id
      * @param customChildren the custom children
      * @return the list
      */
@@ -98,23 +142,27 @@ public class TreeUtil {
         return list;
     }
 
-    private static <T extends Tree> Collection<T> handlerRoot(Collection<T> list, Object rootId) {
+    // -----------------------------------------------------------------------------------------------------------------
+
+    private static <T extends Tree> Collection<T> handlerRoot(Collection<T> list, Object... rootIds) {
         Collection<T> tree = new ArrayList();
         list.forEach(obj -> {
             Object parentId = obj.getParentId();
-            if (BoolUtil.isNull(parentId) || BoolUtil.eq(parentId, obj.getId()) || BoolUtil.eq(parentId, rootId)) {
+            if (BoolUtil.isNull(parentId) || BoolUtil.eq(parentId, obj.getId()) || BoolUtil.containOne(rootIds, parentId)) {
                 tree.add(obj);
             }
         });
         return tree;
     }
 
-    private static Collection<Map> handlerRootByMap(Collection<Map> list, String parentId) {
+    private static Collection<Map> handlerRootByMap(Collection<Map> list, String... parentIds) {
         Collection<Map> tree = new ArrayList();
         list.forEach(map -> {
-            Object o = map.get(parentId);
-            if (BoolUtil.isNull(o) || BoolUtil.eq(parentId, map.get(Tree.ID))) {
-                tree.add(map);
+            for (String parentId : parentIds) {
+                Object o = map.get(parentId);
+                if (BoolUtil.isNull(o) || BoolUtil.eq(parentId, map.get(Tree.ID))) {
+                    tree.add(map);
+                }
             }
         });
         return tree;
