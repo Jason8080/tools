@@ -11,7 +11,7 @@ import java.util.Collection;
  * @author Jas
  */
 @Data
-public class Option<ID> implements Tree<Option,ID>, Serializable {
+public class Option<Code> implements Tree<Option, Code>, Serializable {
     /**
      * 应用编号.
      */
@@ -25,24 +25,17 @@ public class Option<ID> implements Tree<Option,ID>, Serializable {
      */
     private String name;
     /**
-     * 权限编码
-     * <p>
-     * 个人权限: create_by、部门权限: dept_id、部门(包含所有下级)权限: dept_ids、全部权限: true
-     * </p>
-     */
-    private String code;
-    /**
      * 权限标识
      * <p>
      * 组织结构行权限: 100(Long)、444(Long)
      * 用户信息列权限: id_card(String)、mobile(String)
      * </p>
      */
-    private ID id;
+    private Code id;
     /**
      * 上级标识
      */
-    private ID parentId;
+    private Code parentId;
     /**
      * 下级 (列权限一般没有下级)
      */

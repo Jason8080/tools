@@ -32,8 +32,8 @@ public class PermissionInfo implements Serializable {
      * 权限标识
      * <p>
      * 配置规范 (flag.code)
-     * # 以[row-auth]开头默认为行权限
-     * # 以[column-auth]开头默认为列权限
+     * # 以[row]开头默认为行权限
+     * # 以[column]开头默认为列权限
      *
      * </p>
      */
