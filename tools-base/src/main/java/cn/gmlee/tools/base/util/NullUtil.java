@@ -47,6 +47,39 @@ public class NullUtil {
     }
 
     /**
+     * Get t.
+     *
+     * @param <T> the type parameter
+     * @param run the run
+     * @param def the def
+     * @return the t
+     */
+    public static <T> T get(Function.Zero2r<T> run, Function.Zero2r<T> def) {
+        try {
+            return run.run();
+        } catch (NullPointerException e) {
+            return ExceptionUtil.suppress(def);
+        } catch (Throwable e) {
+            return ExceptionUtil.cast(e);
+        }
+    }
+
+    /**
+     * Get t.
+     *
+     * @param <T>    the type parameter
+     * @param source the source
+     * @param def    the def
+     * @return the t
+     */
+    public static <T> T get(T source, Function.Zero2r<T> def) {
+        if (source == null) {
+            return ExceptionUtil.suppress(def);
+        }
+        return source;
+    }
+
+    /**
      * 获取不为null的字符串.
      *
      * @param source the source
