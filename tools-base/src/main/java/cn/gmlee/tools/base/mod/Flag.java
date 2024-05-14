@@ -39,9 +39,9 @@ public class Flag<Code> implements Serializable {
     /**
      * 标签编码
      * <p>
-     * 简权限: 个人 oneself、部门 dept_id、部门(包含全部下级) dept_ids、全部 all..
+     * 简权限: oneself、dept_id、dept_ids、all</br>
      * 行权限: create_by、dept_id、dept_ids、merchant_id..
-     * 列权限: 暂留扩展位,可能是: table1、table2..
+     * 列权限: table1、table2..
      * </p>
      */
     private String code;
