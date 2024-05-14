@@ -161,12 +161,17 @@ public class SqlUtil {
     }
 
     private static void addWhere(PlainSelect plainSelect, String key, List<? extends Comparable> values) {
-        // 仅加表句柄
-        if(!(plainSelect.getFromItem() instanceof Table)){
+        FromItem fromItem = plainSelect.getFromItem();
+        // 如果不是表
+        if(!(fromItem instanceof Table)){
+            return;
+        }
+        // 还是虚拟表
+        if(isVirtualTable((Table) fromItem)){
             return;
         }
         // 构建返回列
-        Column column = getColumn(plainSelect.getFromItem(), key);
+        Column column = getColumn(fromItem, key);
         // 添加条件值
         Expression expression = getExpression(values, column);
         AndExpression and = new AndExpression()
@@ -298,6 +303,10 @@ public class SqlUtil {
                 name.equals("MAX");
     }
 
+    private static boolean isVirtualTable(Table table) {
+        String tableName = table.getName().toUpperCase();
+        return "DUAL".equals(tableName);  // 添加更多虚拟表的名称
+    }
 
     private static void addColumn(PlainSelect plainSelect, String key, List<Expression> values) {
         List<SelectItem> selectItems = plainSelect.getSelectItems();
