@@ -25,6 +25,13 @@ public class Option<ID> implements Tree<Option,ID>, Serializable {
      */
     private String name;
     /**
+     * 权限编码
+     * <p>
+     * 个人权限: create_by、部门权限: dept_id、部门(包含所有下级)权限: dept_ids、全部权限: true
+     * </p>
+     */
+    private String code;
+    /**
      * 权限标识
      * <p>
      * 组织结构行权限: 100(Long)、444(Long)
