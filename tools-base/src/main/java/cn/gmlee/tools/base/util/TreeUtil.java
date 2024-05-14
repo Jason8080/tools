@@ -15,10 +15,6 @@ import java.util.stream.Collectors;
  * @date 2021 /10/19 (周二)
  */
 public class TreeUtil {
-    private static final String ID = "id";
-    private static final String PARENT_FIELD_NAME = "parentId";
-    private static final String CHILDREN = "children";
-
     /**
      * Tree list.
      *
@@ -61,8 +57,8 @@ public class TreeUtil {
      */
     public static <T> Collection<Map> treeMap(Collection<Map> list) {
         if (BoolUtil.notEmpty(list)) {
-            Collection<Map> roots = handlerRootByMap(list, PARENT_FIELD_NAME);
-            handleChildrenByMap(roots, list, ID, PARENT_FIELD_NAME, CHILDREN);
+            Collection<Map> roots = handlerRootByMap(list, Tree.PARENT_ID);
+            handleChildrenByMap(roots, list, Tree.ID, Tree.PARENT_ID, Tree.CHILDREN);
             return roots;
         }
         return list;
@@ -78,8 +74,8 @@ public class TreeUtil {
      */
     public static <T> Collection<Map> treeMap(List<Map> list, String customChildren) {
         if (BoolUtil.notEmpty(list)) {
-            Collection<Map> roots = handlerRootByMap(list, PARENT_FIELD_NAME);
-            handleChildrenByMap(roots, list, ID, PARENT_FIELD_NAME, customChildren);
+            Collection<Map> roots = handlerRootByMap(list, Tree.PARENT_ID);
+            handleChildrenByMap(roots, list, Tree.ID, Tree.PARENT_ID, customChildren);
             return roots;
         }
         return list;
@@ -95,7 +91,7 @@ public class TreeUtil {
      */
     public static <T> Collection<Map> treeMap(Collection<Map> list, String customId, String customParentId, String customChildren) {
         if (BoolUtil.notEmpty(list)) {
-            Collection<Map> root = handlerRootByMap(list, PARENT_FIELD_NAME);
+            Collection<Map> root = handlerRootByMap(list, Tree.PARENT_ID);
             handleChildrenByMap(root, list, customId, customParentId, customChildren);
             return root;
         }
@@ -117,7 +113,7 @@ public class TreeUtil {
         Collection<Map> tree = new ArrayList();
         list.forEach(map -> {
             Object o = map.get(parentId);
-            if (BoolUtil.isNull(o) || BoolUtil.eq(parentId, map.get(ID))) {
+            if (BoolUtil.isNull(o) || BoolUtil.eq(parentId, map.get(Tree.ID))) {
                 tree.add(map);
             }
         });

@@ -12,6 +12,9 @@ import java.util.Collection;
  * @date 2021 /10/19 (周二)
  */
 public interface Tree<T, ID> extends Serializable {
+    String ID = "id";
+    String PARENT_ID = "parentId";
+    String CHILDREN = "children";
     /**
      * Gets id.
      *
