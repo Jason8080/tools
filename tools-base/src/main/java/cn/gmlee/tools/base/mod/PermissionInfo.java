@@ -3,6 +3,7 @@ package cn.gmlee.tools.base.mod;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -19,14 +20,14 @@ public class PermissionInfo implements Serializable {
      * (修改后须重新登陆)
      * </p>
      */
-    private List<Role> roles;
+    private List<Role> roles = new ArrayList<>();
     /**
      * 功能列表
      * <p>
      * (可全部抽取之后存入Set达到去重效果)
      * </p>
      */
-    private List<Feature> features;
+    private List<Feature> features = new ArrayList<>();
     /**
      * 权限标识
      * <p>
@@ -36,5 +37,5 @@ public class PermissionInfo implements Serializable {
      *
      * </p>
      */
-    private List<Flag> flags;
+    private List<Flag> flags = new ArrayList<>();
 }
