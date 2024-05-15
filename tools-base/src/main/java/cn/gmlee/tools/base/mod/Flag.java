@@ -31,8 +31,9 @@ public class Flag<Code> implements Serializable {
     /**
      * 标签名称
      * <p>
-     * 行权限: 组织结构、行政区域
-     * 列权限: 用户信息、车辆信息
+     * 简权限: 简单模式 </br>
+     * 行权限: 组织结构、行政区域<br/>
+     * 列权限: 用户信息、车辆信息<br/>
      * </p>
      */
     private String name;
