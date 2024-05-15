@@ -20,6 +20,15 @@ public class Flag<Code> implements Serializable {
      */
     private Long appId;
     /**
+     * 标签编码
+     * <p>
+     * 简权限: 保留位 </br>
+     * 行权限: create_by、dept_id、dept_ids、merchant_id..<br/>
+     * 列权限: table1、table2..
+     * </p>
+     */
+    private String code;
+    /**
      * 标签名称
      * <p>
      * 行权限: 组织结构、行政区域
@@ -36,15 +45,6 @@ public class Flag<Code> implements Serializable {
      * </p>
      */
     private Code id;
-    /**
-     * 标签编码
-     * <p>
-     * 简权限: oneself、dept_id、dept_ids、all</br>
-     * 行权限: create_by、dept_id、dept_ids、merchant_id..
-     * 列权限: table1、table2..
-     * </p>
-     */
-    private String code;
     /**
      * 权限树
      */

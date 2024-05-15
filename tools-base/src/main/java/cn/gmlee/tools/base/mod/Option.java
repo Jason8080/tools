@@ -17,9 +17,18 @@ public class Option<Code> implements Tree<Option, Code>, Serializable {
      */
     private Long appId;
     /**
+     * 权限编码
+     * <p>
+     * 简权限: oneself、dept_id、dept_ids、all </br>
+     * 行权限: 保留位 <br/>
+     * 列权限: 保留位
+     * </p>
+     */
+    private String code;
+    /**
      * 权限名称
      * <p>
-     * 非常简单的权限: 仅自己场景不需要options、IT部、技术中心(包含IT部等子部门)、全部的场景不需要options</br>
+     * 非常简单的权限: 仅自己、部门、部门(包含所有下级)、全部</br>
      * 组织结构行权限: 巨微科技(中国)、巨微科技(日本)</br>
      * 用户信息列权限: 身份证号码、手机号码
      * </p>
@@ -28,7 +37,7 @@ public class Option<Code> implements Tree<Option, Code>, Serializable {
     /**
      * 权限标识
      * <p>
-     * 非常简单的权限: ...、100、100101、...</br>
+     * 非常简单的权限: -、100、100101、-</br>
      * 组织结构行权限: 100(Long)、444(Long)</br>
      * 用户信息列权限: id_card(String)、mobile(String)
      * </p>
