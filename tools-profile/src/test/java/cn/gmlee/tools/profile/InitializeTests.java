@@ -25,8 +25,8 @@ public class InitializeTests {
     public static void main(String[] args) throws SQLException {
         OracleDataSource dataSource = new OracleDataSource();
         dataSource.setURL("jdbc:oracle:thin:@//scan-ip.exgrain.org:1521/ygwdb");
-        dataSource.setUser("username");
-        dataSource.setPassword("password");
+        dataSource.setUser("cpp");
+        dataSource.setPassword("cpp1234");
         ProfileProperties properties = new ProfileProperties();
         ProfileDataTemplate profileDataTemplate = new ProfileDataTemplate(dataSource, properties);
         profileDataTemplate.init(new OracleProfileDataInitializer());
