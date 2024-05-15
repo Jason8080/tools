@@ -12,7 +12,7 @@ public class SqlTests {
 
     @Test
     public void testSql1() throws Exception{
-        String sql = "SELECT 1 AS example_column";
+        String sql = "SELECT * FROM SYS_USER";
         Map<String, List> wheres = new HashMap<>();
         wheres.put("env", Arrays.asList("0", "1"));
         SqlUtil.reset(SqlUtil.DataType.ORACLE);

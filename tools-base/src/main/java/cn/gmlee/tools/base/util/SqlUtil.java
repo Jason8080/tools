@@ -16,10 +16,7 @@ import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.*;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -101,34 +98,35 @@ public class SqlUtil {
         if (!(statement instanceof Select)) {
             return originSql;
         }
+        List<WithItem> withItems = ((Select) statement).getWithItemsList();
         SelectBody selectBody = ((Select) statement).getSelectBody();
         // 非普通句柄不处理
         if (!(selectBody instanceof PlainSelect)) {
             return originSql;
         }
         // 句柄处理器
-        sqlHandler((PlainSelect) selectBody, wheres);
+        sqlHandler((PlainSelect) selectBody, withItems, wheres);
         // 获取新语句
         String newSql = statement.toString();
         return newSql.equals(oldSql) ? originSql : newSql;
     }
 
-    private static void sqlHandler(PlainSelect plainSelect, Map<String, List> wheres) throws Exception {
+    private static void sqlHandler(PlainSelect plainSelect, List<WithItem> withItems, Map<String, List> wheres) throws Exception {
         // 关联句柄处理
-        join(plainSelect.getJoins(), wheres);
+        join(plainSelect.getJoins(), withItems, wheres);
         // 子句递归处理
-        subSelect(plainSelect.getFromItem(), wheres);
+        subSelect(plainSelect.getFromItem(), withItems, wheres);
         // 条件句柄处理
-        addWheres(plainSelect, wheres);
+        addWheres(plainSelect, withItems, wheres);
     }
 
-    private static void subSelect(FromItem item, Map<String, List> wheres) throws Exception {
+    private static void subSelect(FromItem item, List<WithItem> withItems, Map<String, List> wheres) throws Exception {
         if (!(item instanceof SubSelect)) {
             return;
         }
         SubSelect subSelect = (SubSelect) item;
         if (subSelect.getSelectBody() instanceof PlainSelect) {
-            sqlHandler((PlainSelect) subSelect.getSelectBody(), wheres);
+            sqlHandler((PlainSelect) subSelect.getSelectBody(), withItems, wheres);
         }
         if (subSelect.getSelectBody() instanceof SetOperationList) {
             SetOperationList operationList = (SetOperationList) subSelect.getSelectBody();
@@ -136,38 +134,38 @@ public class SqlUtil {
             // 暂时只处理PlainSelect
             List<PlainSelect> plainSelects = selectBodies.stream().filter(x -> x instanceof PlainSelect).map(x -> (PlainSelect) x).collect(Collectors.toList());
             for (PlainSelect plainSelect : plainSelects) {
-                sqlHandler(plainSelect, wheres);
+                sqlHandler(plainSelect, withItems, wheres);
             }
         }
     }
 
-    private static void join(List<Join> joins, Map<String, List> wheres) throws Exception {
+    private static void join(List<Join> joins, List<WithItem> withItems, Map<String, List> wheres) throws Exception {
         if (BoolUtil.isEmpty(joins)) {
             return;
         }
         for (Join join : joins) {
             FromItem item = join.getRightItem();
             if (item instanceof Table) {
-                addWheres(join, wheres);
+                addWheres(join, withItems, wheres);
             }
             if (item instanceof SubSelect) {
-                subSelect(item, wheres);
+                subSelect(item, withItems, wheres);
             }
         }
     }
 
-    private static void addWheres(PlainSelect plainSelect, Map<String, List> wheres) {
-        wheres.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> addWhere(plainSelect, k, v)));
+    private static void addWheres(PlainSelect plainSelect, List<WithItem> withItems, Map<String, List> wheres) {
+        wheres.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> addWhere(plainSelect, withItems, k, v)));
     }
 
-    private static void addWhere(PlainSelect plainSelect, String key, List<? extends Comparable> values) {
+    private static void addWhere(PlainSelect plainSelect, List<WithItem> withItems, String key, List<? extends Comparable> values) {
         FromItem fromItem = plainSelect.getFromItem();
         // 如果不是表
         if (!(fromItem instanceof Table)) {
             return;
         }
         // 还是虚拟表
-        if (isVirtualTable((Table) fromItem)) {
+        if (isVirtualTable((Table) fromItem, withItems)) {
             return;
         }
         // 构建返回列
@@ -209,11 +207,11 @@ public class SqlUtil {
         return e;
     }
 
-    private static void addWheres(Join join, Map<String, List> wheres) {
-        wheres.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> addWhere(join, k, v)));
+    private static void addWheres(Join join, List<WithItem> withItems, Map<String, List> wheres) {
+        wheres.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> addWhere(join, withItems, k, v)));
     }
 
-    private static void addWhere(Join join, String key, List<? extends Comparable> values) {
+    private static void addWhere(Join join, List<WithItem> withItems, String key, List<? extends Comparable> values) {
         // 获取别名值
         Column column = getColumn(join.getRightItem(), key);
         // 构建条件
@@ -303,9 +301,17 @@ public class SqlUtil {
                 name.equals("MAX");
     }
 
-    private static boolean isVirtualTable(Table table) {
+    private static boolean isVirtualTable(Table table, List<WithItem> withItems) {
         String tableName = table.getName().toUpperCase();
-        return "DUAL".equals(tableName);  // 添加更多虚拟表的名称
+        Optional<String> withOpt = withItems == null ? Optional.empty() : // WITH AS 语法支持
+                withItems.stream()
+                        .map(WithItem::getName)
+                        .filter(Objects::nonNull)
+                        .map(String::toUpperCase)
+                        .filter(tableName::equals)
+                        .findAny();
+        return "DUAL".equals(tableName) || // 添加更多虚拟表的名称
+                withOpt.isPresent();
     }
 
     private static void addColumn(PlainSelect plainSelect, String key, List<Expression> values) {
