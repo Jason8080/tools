@@ -18,14 +18,6 @@ public interface Tree<T extends Tree, ID> extends Serializable {
     String PARENT_ID = "parentId";
     String CHILDREN = "children";
 
-    @Data
-    class Simple<Code> implements Tree<Simple, Code> {
-        private Code id;
-        private String name;
-        private Code parentId;
-        private Collection<Simple> children;
-    }
-
     /**
      * Gets id.
      *
