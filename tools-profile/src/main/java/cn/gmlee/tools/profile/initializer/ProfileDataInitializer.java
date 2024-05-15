@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * 数据隔离初始化器.
  */
-public interface GrayDataInitializer {
+public interface ProfileDataInitializer {
     /**
      * Support boolean.
      *

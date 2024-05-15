@@ -1,9 +1,9 @@
 package cn.gmlee.tools.profile.conf;
 
-import cn.gmlee.tools.profile.initializer.GrayDataInitializer;
-import cn.gmlee.tools.profile.initializer.GrayDataTemplate;
-import cn.gmlee.tools.profile.initializer.MysqlGrayDataInitializer;
-import cn.gmlee.tools.profile.initializer.OracleGrayDataInitializer;
+import cn.gmlee.tools.profile.initializer.ProfileDataInitializer;
+import cn.gmlee.tools.profile.initializer.ProfileDataTemplate;
+import cn.gmlee.tools.profile.initializer.MysqlProfileDataInitializer;
+import cn.gmlee.tools.profile.initializer.OracleProfileDataInitializer;
 import cn.gmlee.tools.profile.interceptor.ProfileInsertMarkInterceptor;
 import cn.gmlee.tools.profile.interceptor.ProfileSelectFilterInterceptor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -38,9 +38,9 @@ public class ProfileDataAutoConfiguration {
      * @return the mysql gray data initializer
      */
     @Bean
-    @ConditionalOnMissingBean(MysqlGrayDataInitializer.class)
-    public MysqlGrayDataInitializer mysqlGrayDataInitializer(){
-        return new MysqlGrayDataInitializer();
+    @ConditionalOnMissingBean(MysqlProfileDataInitializer.class)
+    public MysqlProfileDataInitializer mysqlProfileDataInitializer(){
+        return new MysqlProfileDataInitializer();
     }
 
     /**
@@ -49,9 +49,9 @@ public class ProfileDataAutoConfiguration {
      * @return the oracle gray data initializer
      */
     @Bean
-    @ConditionalOnMissingBean(OracleGrayDataInitializer.class)
-    public OracleGrayDataInitializer oracleGrayDataInitializer(){
-        return new OracleGrayDataInitializer();
+    @ConditionalOnMissingBean(OracleProfileDataInitializer.class)
+    public OracleProfileDataInitializer oracleProfileDataInitializer(){
+        return new OracleProfileDataInitializer();
     }
 
     /**
@@ -63,10 +63,10 @@ public class ProfileDataAutoConfiguration {
      * @throws SQLException the sql exception
      */
     @Bean
-    @ConditionalOnBean(GrayDataInitializer.class)
-    public GrayDataTemplate grayDataInitializerTemplate(List<GrayDataInitializer> initializers, ProfileProperties properties) throws SQLException {
-        GrayDataTemplate template = new GrayDataTemplate(dataSource, properties);
-        template.init(initializers.toArray(new GrayDataInitializer[0]));
+    @ConditionalOnBean(ProfileDataInitializer.class)
+    public ProfileDataTemplate profileDataTemplate(List<ProfileDataInitializer> initializers, ProfileProperties properties) throws SQLException {
+        ProfileDataTemplate template = new ProfileDataTemplate(dataSource, properties);
+        template.init(initializers.toArray(new ProfileDataInitializer[0]));
         return template;
     }
 
@@ -79,7 +79,7 @@ public class ProfileDataAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(ProfileInsertMarkInterceptor.class)
-    public ProfileInsertMarkInterceptor grayDataInterceptor(ProfileProperties properties) {
+    public ProfileInsertMarkInterceptor profileInsertMarkInterceptor(ProfileProperties properties) {
         return new ProfileInsertMarkInterceptor(properties);
     }
 
@@ -92,7 +92,7 @@ public class ProfileDataAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(ProfileSelectFilterInterceptor.class)
-    public ProfileSelectFilterInterceptor graySelectFilterInterceptor(ProfileProperties properties) {
+    public ProfileSelectFilterInterceptor profileSelectFilterInterceptor(ProfileProperties properties) {
         return new ProfileSelectFilterInterceptor(properties);
     }
 }

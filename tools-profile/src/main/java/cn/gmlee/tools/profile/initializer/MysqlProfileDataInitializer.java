@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 /**
  * Mysql数据初始化.
  */
-public class MysqlGrayDataInitializer implements GrayDataInitializer{
+public class MysqlProfileDataInitializer implements ProfileDataInitializer {
 
     private final String database = "mysql";
 

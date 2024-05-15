@@ -5,7 +5,7 @@ import cn.gmlee.tools.base.util.SqlUtil;
 import cn.gmlee.tools.profile.assist.SqlAssist;
 import cn.gmlee.tools.profile.conf.ProfileProperties;
 import cn.gmlee.tools.profile.helper.ProfileHelper;
-import cn.gmlee.tools.profile.initializer.GrayDataTemplate;
+import cn.gmlee.tools.profile.initializer.ProfileDataTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.BoundSql;
@@ -26,7 +26,7 @@ public class ProfileInsertMarkInterceptor implements Interceptor {
     private final ProfileProperties properties;
 
     @Autowired
-    private GrayDataTemplate grayDataTemplate;
+    private ProfileDataTemplate profileDataTemplate;
 
     public ProfileInsertMarkInterceptor(ProfileProperties properties) {
         this.properties = properties;
@@ -62,7 +62,7 @@ public class ProfileInsertMarkInterceptor implements Interceptor {
         BoundSql boundSql = statementHandler.getBoundSql();
         String originSql = boundSql.getSql();
         // 构建新的句柄
-        SqlUtil.reset(SqlUtil.DataType.of(grayDataTemplate.getDatabaseProductName()));
+        SqlUtil.reset(SqlUtil.DataType.of(profileDataTemplate.getDatabaseProductName()));
         String newSql = SqlUtil.newInsert(originSql, KvBuilder.array(properties.getField(), 0));
         SqlAssist.reset(boundSql, newSql);
     }

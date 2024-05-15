@@ -6,7 +6,7 @@ import cn.gmlee.tools.base.util.SqlUtil;
 import cn.gmlee.tools.profile.assist.SqlAssist;
 import cn.gmlee.tools.profile.conf.ProfileProperties;
 import cn.gmlee.tools.profile.helper.ProfileHelper;
-import cn.gmlee.tools.profile.initializer.GrayDataTemplate;
+import cn.gmlee.tools.profile.initializer.ProfileDataTemplate;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.BoundSql;
@@ -31,7 +31,7 @@ public class ProfileSelectFilterInterceptor implements Interceptor {
     private final ProfileProperties properties;
 
     @Autowired
-    private GrayDataTemplate grayDataTemplate;
+    private ProfileDataTemplate profileDataTemplate;
 
     public ProfileSelectFilterInterceptor(ProfileProperties properties) {
         this.properties = properties;
@@ -76,7 +76,7 @@ public class ProfileSelectFilterInterceptor implements Interceptor {
         envs.add(Int.ONE); // 保证查看正式数据
         wheres.put(properties.getField(), envs);
         // 构建新的筛选句柄
-        SqlUtil.reset(SqlUtil.DataType.of(grayDataTemplate.getDatabaseProductName()));
+        SqlUtil.reset(SqlUtil.DataType.of(profileDataTemplate.getDatabaseProductName()));
         String newSql = SqlUtil.newSelect(originSql, wheres);
         SqlAssist.reset(boundSql, newSql);
     }

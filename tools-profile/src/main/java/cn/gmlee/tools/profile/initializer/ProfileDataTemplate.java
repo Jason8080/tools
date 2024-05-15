@@ -9,19 +9,16 @@ import lombok.extern.slf4j.Slf4j;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 /**
  * 数据隔离初始化模版.
  */
 @Slf4j
-public class GrayDataTemplate {
+public class ProfileDataTemplate {
 
     private final DataSource dataSource;
     private final ProfileProperties properties;
-    private List<GrayDataInitializer> initializers;
 
     private String databaseProductName;
 
@@ -31,7 +28,7 @@ public class GrayDataTemplate {
      * @param dataSource the data source
      * @param properties the gray properties
      */
-    public GrayDataTemplate(DataSource dataSource, ProfileProperties properties) {
+    public ProfileDataTemplate(DataSource dataSource, ProfileProperties properties) {
         this.dataSource = dataSource;
         this.properties = properties;
     }
@@ -42,13 +39,12 @@ public class GrayDataTemplate {
      * @param initializers the initializers
      * @throws SQLException the sql exception
      */
-    public void init(GrayDataInitializer... initializers) throws SQLException {
+    public void init(ProfileDataInitializer... initializers) throws SQLException {
         AssertUtil.notEmpty(initializers, "灰度初始化器丢失");
-        this.initializers = Arrays.asList(initializers);
         // 获取数据库型号
         String database = getDatabaseProductName();
         // 适配数据库操作
-        for (GrayDataInitializer initializer : initializers) {
+        for (ProfileDataInitializer initializer : initializers) {
             if (!initializer.support(database)) {
                 continue;
             }
