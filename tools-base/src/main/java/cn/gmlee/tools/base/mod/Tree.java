@@ -1,5 +1,7 @@
 package cn.gmlee.tools.base.mod;
 
+import lombok.Data;
+
 import java.io.Serializable;
 import java.util.Collection;
 
@@ -15,6 +17,13 @@ public interface Tree<T extends Tree, ID> extends Serializable {
     String ID = "id";
     String PARENT_ID = "parentId";
     String CHILDREN = "children";
+
+    @Data
+    class Simple<Code> implements Tree<Simple, Code> {
+        private Code id;
+        private Code parentId;
+        private Collection<Simple> children;
+    }
 
     /**
      * Gets id.
