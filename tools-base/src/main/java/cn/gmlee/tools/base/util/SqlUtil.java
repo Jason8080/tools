@@ -209,6 +209,7 @@ public class SqlUtil {
             return;
         }
         for (SelectItem selectItem : selectItems) {
+            // 字段子查询
             selectItemHandler(selectItem, virtualTables, wheres);
         }
     }
