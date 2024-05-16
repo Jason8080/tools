@@ -280,7 +280,9 @@ public class SqlUtil {
         if (ohExpression == null) {
             return;
         }
+        // 条件子查询
         whereHandler(ohExpression.getStartExpression(), virtualTables, wheres);
+        // 条件子查询
         whereHandler(ohExpression.getConnectExpression(), virtualTables, wheres);
     }
 
@@ -301,6 +303,8 @@ public class SqlUtil {
             }
         });
     }
+
+    // -----------------------------------------------------------------------------------------------------------------
 
     private static void addWheres(Join join, Set<String> virtualTables, Map<String, List> wheres) {
         wheres.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> addWhere(join, virtualTables, k, v)));
