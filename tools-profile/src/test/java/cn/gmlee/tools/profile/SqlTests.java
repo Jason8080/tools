@@ -17,6 +17,7 @@ public class SqlTests {
                 "WHERE\n" +
                 "\tmoi.buy_merchant_id = '1691020167383453698'\n" +
                 "\tAND ( moi.order_status != '99' OR ( moi.order_status = '99' AND moi.deleted_by != 'buy' ) ) ";
+        SqlUtil.reset(SqlUtil.DataType.ORACLE);
         String newSql = SqlUtil.newSelect(sql, KvBuilder.map("env", Arrays.asList(0, 1)));
         System.out.println();
         System.out.println(newSql);
