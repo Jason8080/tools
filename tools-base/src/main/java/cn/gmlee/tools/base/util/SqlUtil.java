@@ -4,6 +4,8 @@ import cn.gmlee.tools.base.assist.ExpressionAssist;
 import cn.gmlee.tools.base.mod.Kv;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.Function;
+import net.sf.jsqlparser.expression.OracleHierarchicalExpression;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -138,6 +140,8 @@ public class SqlUtil {
                 selectItemsHandler(plainSelect.getSelectItems(), virtualTables, wheres);
                 // 条件子查询
                 whereHandler(plainSelect.getWhere(), virtualTables, wheres);
+                // 层级子查询
+                oracleHierarchicalHandler(plainSelect.getOracleHierarchical(), virtualTables, wheres);
                 //------------------------------------------------------------------------------------------------------
                 addWheres(plainSelect, virtualTables, wheres); // 构建条件
                 //------------------------------------------------------------------------------------------------------
@@ -223,6 +227,16 @@ public class SqlUtil {
         });
     }
 
+    private static void wheresHandler(List<Expression> expressions, Set<String> virtualTables, Map<String, List> wheres) {
+        if (expressions == null) {
+            return;
+        }
+        for (Expression expression : expressions) {
+            // 条件子查询
+            whereHandler(expression, virtualTables, wheres);
+        }
+    }
+
     private static void whereHandler(Expression expression, Set<String> virtualTables, Map<String, List> wheres) {
         if (expression == null) {
             return;
@@ -232,11 +246,41 @@ public class SqlUtil {
             fromItemHandler((FromItem) expression, virtualTables, wheres);
             return;
         }
+        if (expression instanceof Function) {
+            // 函数子查询
+            expressionListHandler(((Function) expression).getParameters(), virtualTables, wheres);
+            return;
+        }
         // 深度处理
-        ItemsList left = ClassUtil.getValue(expression, "leftItemsList");
-        itemsListHandler(left, virtualTables, wheres);
-        ItemsList right = ClassUtil.getValue(expression, "rightItemsList");
-        itemsListHandler(right, virtualTables, wheres);
+        ItemsList leftItemsList = ClassUtil.getValue(expression, "leftItemsList");
+        itemsListHandler(leftItemsList, virtualTables, wheres);
+        ItemsList rightItemsList = ClassUtil.getValue(expression, "rightItemsList");
+        itemsListHandler(rightItemsList, virtualTables, wheres);
+        // 深度处理
+        Expression leftExpression = ClassUtil.getValue(expression, "leftExpression");
+        whereHandler(leftExpression, virtualTables, wheres);
+        Expression rightExpression = ClassUtil.getValue(expression, "rightExpression");
+        whereHandler(rightExpression, virtualTables, wheres);
+    }
+
+    private static void expressionListHandler(ExpressionList expressionList, Set<String> virtualTables, Map<String, List> wheres) {
+        if (expressionList == null) {
+            return;
+        }
+        List<Expression> expressions = expressionList.getExpressions();
+        // 条件子查询
+        wheresHandler(expressions, virtualTables, wheres);
+    }
+
+    private static void oracleHierarchicalHandler(OracleHierarchicalExpression ohExpression, Set<String> virtualTables, Map<String, List> wheres) {
+        if (!DATA_TYPE.equals(DataType.ORACLE)) {
+            return;
+        }
+        if (ohExpression == null) {
+            return;
+        }
+        whereHandler(ohExpression.getStartExpression(), virtualTables, wheres);
+        whereHandler(ohExpression.getConnectExpression(), virtualTables, wheres);
     }
 
     private static void itemsListHandler(ItemsList itemsList, Set<String> virtualTables, Map<String, List> wheres) {
@@ -248,6 +292,11 @@ public class SqlUtil {
             public void visit(SubSelect subSelect) {
                 // 嵌套子查询
                 fromItemHandler(subSelect, virtualTables, wheres);
+            }
+
+            @Override
+            public void visit(ExpressionList expressionList) {
+                super.visit(expressionList);
             }
         });
     }
