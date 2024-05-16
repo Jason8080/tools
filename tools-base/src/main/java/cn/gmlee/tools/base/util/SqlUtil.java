@@ -150,6 +150,7 @@ public class SqlUtil {
             @Override
             public void visit(SetOperationList setOpList) {
                 List<SelectBody> selects = setOpList.getSelects();
+                // 处理查询体
                 selectBodiesHandler(selects, virtualTables, wheres);
             }
 
@@ -253,15 +254,11 @@ public class SqlUtil {
             return;
         }
         // 深度处理
-        ItemsList leftItemsList = ClassUtil.getValue(expression, "leftItemsList");
-        itemsListHandler(leftItemsList, virtualTables, wheres);
-        ItemsList rightItemsList = ClassUtil.getValue(expression, "rightItemsList");
-        itemsListHandler(rightItemsList, virtualTables, wheres);
+        ExceptionUtil.sandbox(() -> itemsListHandler(ClassUtil.getValue(expression, "leftItemsList"), virtualTables, wheres));
+        ExceptionUtil.sandbox(() -> itemsListHandler(ClassUtil.getValue(expression, "rightItemsList"), virtualTables, wheres));
         // 深度处理
-        Expression leftExpression = ClassUtil.getValue(expression, "leftExpression");
-        whereHandler(leftExpression, virtualTables, wheres);
-        Expression rightExpression = ClassUtil.getValue(expression, "rightExpression");
-        whereHandler(rightExpression, virtualTables, wheres);
+        ExceptionUtil.sandbox(() -> whereHandler(ClassUtil.getValue(expression, "leftExpression"), virtualTables, wheres));
+        ExceptionUtil.sandbox(() -> whereHandler(ClassUtil.getValue(expression, "rightExpression"), virtualTables, wheres));
     }
 
     private static void expressionListHandler(ExpressionList expressionList, Set<String> virtualTables, Map<String, List> wheres) {
