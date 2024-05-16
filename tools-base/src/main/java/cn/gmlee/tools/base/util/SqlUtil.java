@@ -98,74 +98,121 @@ public class SqlUtil {
         if (!(statement instanceof Select)) {
             return originSql;
         }
-        List<WithItem> withItems = ((Select) statement).getWithItemsList();
+        // 临时表解析并处理
+        List<String> virtualTables = getVirtualTables(((Select) statement).getWithItemsList());
+        withItemList(((Select) statement).getWithItemsList(), virtualTables, wheres);
         SelectBody selectBody = ((Select) statement).getSelectBody();
         // 非普通句柄不处理
         if (!(selectBody instanceof PlainSelect)) {
             return originSql;
         }
         // 句柄处理器
-        sqlHandler((PlainSelect) selectBody, withItems, wheres);
+        sqlHandler((PlainSelect) selectBody, virtualTables, wheres);
         // 获取新语句
         String newSql = statement.toString();
         return newSql.equals(oldSql) ? originSql : newSql;
     }
 
-    private static void sqlHandler(PlainSelect plainSelect, List<WithItem> withItems, Map<String, List> wheres) throws Exception {
+    private static void sqlHandler(PlainSelect plainSelect, List<String> virtualTables, Map<String, List> wheres) throws Exception {
         // 关联句柄处理
-        join(plainSelect.getJoins(), withItems, wheres);
+        join(plainSelect.getJoins(), virtualTables, wheres);
         // 子句递归处理
-        subSelect(plainSelect.getFromItem(), withItems, wheres);
+        subSelect(plainSelect.getFromItem(), virtualTables, wheres);
+        // 条件子句处理
+        whereSubSelect(plainSelect.getWhere(), wheres);
         // 条件句柄处理
-        addWheres(plainSelect, withItems, wheres);
+        addWheres(plainSelect, virtualTables, wheres);
     }
 
-    private static void subSelect(FromItem item, List<WithItem> withItems, Map<String, List> wheres) throws Exception {
+    private static void withItemList(List<WithItem> withItems, List<String> virtualTables, Map<String, List> wheres) throws Exception {
+        if (withItems == null) {
+            return;
+        }
+        for (WithItem withItem : withItems) {
+            selectBody(withItem.getSelectBody(), virtualTables, wheres);
+        }
+    }
+
+    private static void subSelect(FromItem item, List<String> virtualTables, Map<String, List> wheres) throws Exception {
         if (!(item instanceof SubSelect)) {
             return;
         }
         SubSelect subSelect = (SubSelect) item;
-        if (subSelect.getSelectBody() instanceof PlainSelect) {
-            sqlHandler((PlainSelect) subSelect.getSelectBody(), withItems, wheres);
+        SelectBody selectBody = subSelect.getSelectBody();
+        // 查询体处理
+        selectBody(selectBody, virtualTables, wheres);
+    }
+
+    private static void whereSubSelect(Expression where, Map<String, List> wheres) {
+    }
+
+    private static void selectBody(SelectBody selectBody, List<String> virtualTables, Map<String, List> wheres) throws Exception {
+        if (selectBody instanceof PlainSelect) {
+            sqlHandler((PlainSelect) selectBody, virtualTables, wheres);
         }
-        if (subSelect.getSelectBody() instanceof SetOperationList) {
-            SetOperationList operationList = (SetOperationList) subSelect.getSelectBody();
+        if (selectBody instanceof SetOperationList) {
+            SetOperationList operationList = (SetOperationList) selectBody;
             List<SelectBody> selectBodies = NullUtil.get(operationList.getSelects(), Collections.emptyList());
             // 暂时只处理PlainSelect
             List<PlainSelect> plainSelects = selectBodies.stream().filter(x -> x instanceof PlainSelect).map(x -> (PlainSelect) x).collect(Collectors.toList());
             for (PlainSelect plainSelect : plainSelects) {
-                sqlHandler(plainSelect, withItems, wheres);
+                sqlHandler(plainSelect, virtualTables, wheres);
             }
         }
     }
 
-    private static void join(List<Join> joins, List<WithItem> withItems, Map<String, List> wheres) throws Exception {
+    private static void join(List<Join> joins, List<String> virtualTables, Map<String, List> wheres) throws Exception {
         if (BoolUtil.isEmpty(joins)) {
             return;
         }
         for (Join join : joins) {
             FromItem item = join.getRightItem();
             if (item instanceof Table) {
-                addWheres(join, withItems, wheres);
+                addWheres(join, virtualTables, wheres);
             }
             if (item instanceof SubSelect) {
-                subSelect(item, withItems, wheres);
+                subSelect(item, virtualTables, wheres);
             }
         }
     }
 
-    private static void addWheres(PlainSelect plainSelect, List<WithItem> withItems, Map<String, List> wheres) {
-        wheres.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> addWhere(plainSelect, withItems, k, v)));
+    private static void addWheres(Join join, List<String> virtualTables, Map<String, List> wheres) {
+        wheres.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> addWhere(join, virtualTables, k, v)));
     }
 
-    private static void addWhere(PlainSelect plainSelect, List<WithItem> withItems, String key, List<? extends Comparable> values) {
+    private static void addWhere(Join join, List<String> virtualTables, String key, List<? extends Comparable> values) {
+        FromItem fromItem = join.getRightItem();
+        // 如果不是表
+        if (!(fromItem instanceof Table)) {
+            return;
+        }
+        // 还是虚拟表
+        if (isVirtualTable((Table) fromItem, virtualTables)) {
+            return;
+        }
+        // 获取别名值
+        Column column = getColumn(fromItem, key);
+        // 构建条件
+        Expression expression = getExpression(values, column);
+        // 设置条件
+        AndExpression and = new AndExpression()
+                .withLeftExpression(join.getOnExpression())
+                .withRightExpression(expression);
+        join.setOnExpression(and);
+    }
+
+    private static void addWheres(PlainSelect plainSelect, List<String> virtualTables, Map<String, List> wheres) {
+        wheres.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> addWhere(plainSelect, virtualTables, k, v)));
+    }
+
+    private static void addWhere(PlainSelect plainSelect, List<String> virtualTables, String key, List<? extends Comparable> values) {
         FromItem fromItem = plainSelect.getFromItem();
         // 如果不是表
         if (!(fromItem instanceof Table)) {
             return;
         }
         // 还是虚拟表
-        if (isVirtualTable((Table) fromItem, withItems)) {
+        if (isVirtualTable((Table) fromItem, virtualTables)) {
             return;
         }
         // 构建返回列
@@ -205,22 +252,6 @@ public class SqlUtil {
         // 添加条件
         expressionList.withExpressions(ExpressionAssist.as(values));
         return e;
-    }
-
-    private static void addWheres(Join join, List<WithItem> withItems, Map<String, List> wheres) {
-        wheres.forEach((k, v) -> QuickUtil.isTrue(BoolUtil.notEmpty(k), () -> addWhere(join, withItems, k, v)));
-    }
-
-    private static void addWhere(Join join, List<WithItem> withItems, String key, List<? extends Comparable> values) {
-        // 获取别名值
-        Column column = getColumn(join.getRightItem(), key);
-        // 构建条件
-        Expression expression = getExpression(values, column);
-        // 设置条件
-        AndExpression and = new AndExpression()
-                .withLeftExpression(join.getOnExpression())
-                .withRightExpression(expression);
-        join.setOnExpression(and);
     }
 
     private static Column getColumn(FromItem item, String field) {
@@ -301,17 +332,20 @@ public class SqlUtil {
                 name.equals("MAX");
     }
 
-    private static boolean isVirtualTable(Table table, List<WithItem> withItems) {
-        String tableName = table.getName().toUpperCase();
-        Optional<String> withOpt = withItems == null ? Optional.empty() : // WITH AS 语法支持
-                withItems.stream()
-                        .map(WithItem::getName)
-                        .filter(Objects::nonNull)
-                        .map(String::toUpperCase)
-                        .filter(tableName::equals)
-                        .findAny();
-        return "DUAL".equals(tableName) || // 添加更多虚拟表的名称
-                withOpt.isPresent();
+    private static boolean isVirtualTable(Table table, List<String> duals) {
+        String name = table.getName(); // 当前表名
+        return duals.stream().filter(name::equalsIgnoreCase).findAny().isPresent();
+    }
+
+    private static List<String> getVirtualTables(List<WithItem> withItems) {
+        List<String> duals = new ArrayList<>();
+        duals.add("DUAL"); // 添加虚拟表关键字
+        List<String> temps = withItems == null ? duals : withItems.stream()
+                .map(WithItem::getName)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        duals.addAll(temps); // 支持WITH AS
+        return duals;
     }
 
     private static void addColumn(PlainSelect plainSelect, String key, List<Expression> values) {
