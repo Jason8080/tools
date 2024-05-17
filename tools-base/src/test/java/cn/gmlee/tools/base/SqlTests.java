@@ -12,123 +12,86 @@ public class SqlTests {
 
     @Test
     public void testSql1() throws Exception{
-        String sql = "WITH increaseCustomer AS (\n" +
+        String sql = "SELECT\n" +
+                "\t* \n" +
+                "FROM\n" +
+                "\t(\n" +
                 "\tSELECT\n" +
-                "\t\tdayFormatTime,\n" +
-                "\t\tCOUNT( 1 ) AS increaseNum \n" +
+                "\t\tTMP.*,\n" +
+                "\t\tROWNUM ROW_ID \n" +
                 "\tFROM\n" +
                 "\t\t(\n" +
-                "\t\tSELECT\n" +
-                "\t\t\tMERCHANT_NAME,\n" +
-                "\t\t\tMIN( dayFormatTime ) AS dayFormatTime \n" +
+                "\t\t\tWITH t1 AS (\n" +
+                "\t\t\tSELECT\n" +
+                "\t\t\t\tu.real_name,\n" +
+                "\t\t\t\tu.phone,\n" +
+                "\t\t\t\tur.user_id,\n" +
+                "\t\t\t\tu.post,\n" +
+                "\t\t\t\tur.id \n" +
+                "\t\t\tFROM\n" +
+                "\t\t\t\tsys_user_role ur\n" +
+                "\t\t\t\tLEFT JOIN sys_role r ON r.id = ur.role_id\n" +
+                "\t\t\t\tLEFT JOIN sys_user u ON ur.user_id = u.id \n" +
+                "\t\t\tWHERE\n" +
+                "\t\t\t\tur.role_id = '1681870437338206209' \n" +
+                "\t\t\t\tAND ur.merchant_id = 'M00610' \n" +
+                "\t\t\t\tAND ur.has_deleted = '0' \n" +
+                "\t\t\t),\n" +
+                "\t\t\tt2 AS (\n" +
+                "\t\t\tSELECT\n" +
+                "\t\t\t\tud.user_id,\n" +
+                "\t\t\t\twm_concat ( d.dept_name ) AS deptName \n" +
+                "\t\t\tFROM\n" +
+                "\t\t\t\tsys_user_dept ud\n" +
+                "\t\t\t\tLEFT JOIN sys_dept d ON ud.dept_id = d.id\n" +
+                "\t\t\t\tLEFT JOIN t1 ON ud.user_id = t1.user_id \n" +
+                "\t\t\tWHERE\n" +
+                "\t\t\t\tud.has_deleted = '0' \n" +
+                "\t\t\t\tAND ud.merchant_id = 'M00610' \n" +
+                "\t\t\tGROUP BY\n" +
+                "\t\t\t\tud.user_id \n" +
+                "\t\t\t),\n" +
+                "\t\t\tt3 AS (\n" +
+                "\t\t\tSELECT\n" +
+                "\t\t\t\tsur.user_id,\n" +
+                "\t\t\t\twm_concat ( sr.role_name ) AS roleName \n" +
+                "\t\t\tFROM\n" +
+                "\t\t\t\tsys_user_role sur\n" +
+                "\t\t\t\tLEFT JOIN sys_role sr ON sur.role_id = sr.id\n" +
+                "\t\t\t\tLEFT JOIN t1 ON sur.user_id = t1.user_id \n" +
+                "\t\t\tWHERE\n" +
+                "\t\t\t\tsur.has_deleted = '0' \n" +
+                "\t\t\t\tAND sur.merchant_id = 'M00610' \n" +
+                "\t\t\tGROUP BY\n" +
+                "\t\t\t\tsur.user_id \n" +
+                "\t\t\t),\n" +
+                "\t\t\tt4 AS (\n" +
+                "\t\t\tSELECT\n" +
+                "\t\t\t\tt1.id,\n" +
+                "\t\t\t\tt1.user_id userId,\n" +
+                "\t\t\t\tt1.real_name realName,\n" +
+                "\t\t\t\tt1.phone,\n" +
+                "\t\t\t\tt1.post,\n" +
+                "\t\t\t\tt2.deptName,\n" +
+                "\t\t\t\tt3.roleName \n" +
+                "\t\t\tFROM\n" +
+                "\t\t\t\tt1\n" +
+                "\t\t\t\tLEFT JOIN t2 ON t1.user_id = t2.user_id\n" +
+                "\t\t\t\tLEFT JOIN t3 ON t1.user_id = t3.user_id \n" +
+                "\t\t\tORDER BY\n" +
+                "\t\t\t\tt1.user_id \n" +
+                "\t\t\t) SELECT\n" +
+                "\t\t\t* \n" +
                 "\t\tFROM\n" +
-                "\t\t\t(\n" +
-                "\t\t\tSELECT\n" +
-                "\t\t\t\tMERCHANT_NAME,\n" +
-                "\t\t\t\tTO_CHAR( CREATE_TIME, 'YYYY-MM' ) AS dayFormatTime \n" +
-                "\t\t\tFROM\n" +
-                "\t\t\t\tLDW_BID.BID_PRICE_RECORD \n" +
-                "\t\t\tWHERE\n" +
-                "\t\t\t\tHAS_DELETED = '0' UNION ALL\n" +
-                "\t\t\tSELECT\n" +
-                "\t\t\t\tSIGN_MERCHANT_NAME,\n" +
-                "\t\t\t\tTO_CHAR( UPDATE_TIME, 'YYYY-MM' ) AS dayFormatTime \n" +
-                "\t\t\tFROM\n" +
-                "\t\t\t\tLDW_BID.BID_ENROLL \n" +
-                "\t\t\tWHERE\n" +
-                "\t\t\t\tAUDIT_STATUS = '2' \n" +
-                "\t\t\t\tAND HAS_DELETED = '0' UNION ALL\n" +
-                "\t\t\tSELECT\n" +
-                "\t\t\t\tCUST_NAME AS MERCHANT_ID,\n" +
-                "\t\t\t\tTO_CHAR( REG_TIME, 'YYYY-MM' ) AS dayFormatTime \n" +
-                "\t\t\tFROM\n" +
-                "\t\t\t\tebp.T_BID_PRICE_RECORD UNION ALL\n" +
-                "\t\t\tSELECT\n" +
-                "\t\t\t\tMERCHANT_NAME AS MERCHANT_ID,\n" +
-                "\t\t\t\tTO_CHAR( UPD_TIME, 'YYYY-MM' ) AS dayFormatTime \n" +
-                "\t\t\tFROM\n" +
-                "\t\t\t\tebp.T_FAIR_MEMBERSHIP_ENROLL e\n" +
-                "\t\t\t\tLEFT JOIN SYS_MERCHANT s ON e.cust_no = s.id \n" +
-                "\t\t\tWHERE\n" +
-                "\t\t\t\tAUDIT_STATUS = '2' \n" +
-                "\t\t\t) \n" +
-                "\t\tGROUP BY\n" +
-                "\t\t\tMERCHANT_NAME \n" +
-                "\t\t) temp \n" +
+                "\t\t\tt4 \n" +
+                "\t\tORDER BY\n" +
+                "\t\t\tid \n" +
+                "\t\t) TMP \n" +
                 "\tWHERE\n" +
-                "\t\tMERCHANT_NAME NOT IN ( SELECT MERCHANT_NAME FROM DATA_BOARD_TEST_MERCHANT ) \n" +
-                "\tGROUP BY\n" +
-                "\t\tdayFormatTime \n" +
-                "\t) SELECT\n" +
-                "\tnvl( c1.increaseNum, 0 ) addCustomersCount,\n" +
-                "\tnvl( c1.dayFormatTime, temp.day ) dayTime,\n" +
-                "CASE\n" +
-                "\t\t\n" +
-                "\t\tWHEN c2.increaseNum IS NULL THEN\n" +
-                "\t\t0 ELSE ROUND( ( nvl( c1.increaseNum, 0 ) - c2.increaseNum ) / c2.increaseNum, 4 ) * 100 \n" +
-                "\tEND AS sameComparison,\n" +
-                "CASE\n" +
-                "\t\t\n" +
-                "\t\tWHEN c3.increaseNum IS NULL THEN\n" +
-                "\t\t0 ELSE ROUND( ( nvl( c1.increaseNum, 0 ) - c3.increaseNum ) / c3.increaseNum, 4 ) * 100 \n" +
-                "\tEND AS sequentialComparison \n" +
-                "FROM\n" +
-                "\tincreaseCustomer c1\n" +
-                "\tFULL JOIN (\n" +
-                "\tSELECT\n" +
-                "\t\tTO_CHAR( ADD_MONTHS( SYSDATE, - ( LEVEL - 1 ) ), 'YYYY-MM' ) AS day \n" +
-                "\tFROM\n" +
-                "\t\tDUAL CONNECT BY LEVEL <= (\n" +
-                "\t\tSELECT\n" +
-                "\t\t\tMONTHS_BETWEEN(\n" +
-                "\t\t\t\tTO_DATE( TO_CHAR( SYSDATE, 'YYYY-MM' ), 'YYYY-MM' ),\n" +
-                "\t\t\t\tTO_DATE(\n" +
-                "\t\t\t\t\t(\n" +
-                "\t\t\t\t\tSELECT\n" +
-                "\t\t\t\t\t\tmin( dayFormatTime ) \n" +
-                "\t\t\t\t\tFROM\n" +
-                "\t\t\t\t\t\t(\n" +
-                "\t\t\t\t\t\tSELECT\n" +
-                "\t\t\t\t\t\t\tMERCHANT_NAME,\n" +
-                "\t\t\t\t\t\t\tTO_CHAR( CREATE_TIME, 'YYYY-MM' ) dayFormatTime \n" +
-                "\t\t\t\t\t\tFROM\n" +
-                "\t\t\t\t\t\t\tLDW_BID.BID_PRICE_RECORD \n" +
-                "\t\t\t\t\t\tWHERE\n" +
-                "\t\t\t\t\t\t\tHAS_DELETED = '0' UNION ALL\n" +
-                "\t\t\t\t\t\tSELECT\n" +
-                "\t\t\t\t\t\t\tSIGN_MERCHANT_NAME,\n" +
-                "\t\t\t\t\t\t\tTO_CHAR( UPDATE_TIME, 'YYYY-MM' ) dayFormatTime \n" +
-                "\t\t\t\t\t\tFROM\n" +
-                "\t\t\t\t\t\t\tLDW_BID.BID_ENROLL \n" +
-                "\t\t\t\t\t\tWHERE\n" +
-                "\t\t\t\t\t\t\tAUDIT_STATUS = '2' \n" +
-                "\t\t\t\t\t\t\tAND HAS_DELETED = '0' UNION ALL\n" +
-                "\t\t\t\t\t\tSELECT\n" +
-                "\t\t\t\t\t\t\tCUST_NAME,\n" +
-                "\t\t\t\t\t\t\tTO_CHAR( REG_TIME, 'YYYY-MM' ) dayFormatTime \n" +
-                "\t\t\t\t\t\tFROM\n" +
-                "\t\t\t\t\t\t\tebp.T_BID_PRICE_RECORD UNION ALL\n" +
-                "\t\t\t\t\t\tSELECT\n" +
-                "\t\t\t\t\t\t\tmerchant_name,\n" +
-                "\t\t\t\t\t\t\tTO_CHAR( UPD_TIME, 'YYYY-MM' ) dayFormatTime \n" +
-                "\t\t\t\t\t\tFROM\n" +
-                "\t\t\t\t\t\t\tebp.T_FAIR_MEMBERSHIP_ENROLL e\n" +
-                "\t\t\t\t\t\t\tLEFT JOIN SYS_MERCHANT s ON e.cust_no = s.id \n" +
-                "\t\t\t\t\t\tWHERE\n" +
-                "\t\t\t\t\t\t\tAUDIT_STATUS = '2' \n" +
-                "\t\t\t\t\t\t) \n" +
-                "\t\t\t\t\t),\n" +
-                "\t\t\t\t\t'YYYY-MM' \n" +
-                "\t\t\t\t) \n" +
-                "\t\t\t) + 1 \n" +
-                "\t\tFROM\n" +
-                "\t\t\tdual \n" +
-                "\t\t) \n" +
-                "\t) temp ON temp.day = c1.dayFormatTime\n" +
-                "\tLEFT JOIN increaseCustomer c2 ON nvl( c1.dayFormatTime, temp.day ) = TO_CHAR( ADD_MONTHS( TO_DATE( c2.dayFormatTime, 'YYYY-MM' ), 12 ), 'YYYY-MM' )\n" +
-                "\tLEFT JOIN increaseCustomer c3 ON nvl( c1.dayFormatTime, temp.day ) = TO_CHAR( ADD_MONTHS( TO_DATE( c3.dayFormatTime, 'YYYY-MM' ), 1 ), 'YYYY-MM' ) \n" +
-                "ORDER BY\n" +
-                "\tdayTime";
+                "\t\tROWNUM <= 10 \n" +
+                "\t) \n" +
+                "WHERE\n" +
+                "\tROW_ID > 0";
         Map<String, List> wheres = new HashMap<>();
         wheres.put("env", Arrays.asList("0", "1"));
         SqlUtil.reset(SqlUtil.DataType.ORACLE);

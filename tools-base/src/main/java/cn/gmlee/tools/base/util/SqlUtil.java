@@ -169,6 +169,8 @@ public class SqlUtil {
             return;
         }
         for (WithItem withItem : withItemsList) {
+            // 添加临时表
+            virtualTables.add(withItem.getName());
             // 处理查询体
             selectBodyHandler(withItem.getSelectBody(), virtualTables, wheres);
             // 字段子查询
@@ -185,6 +187,8 @@ public class SqlUtil {
             public void visit(SubSelect subSelect) {
                 // 处理查询体
                 selectBodyHandler(subSelect.getSelectBody(), virtualTables, wheres);
+                // 处理临时表
+                withItemsListHandler(subSelect.getWithItemsList(), virtualTables, wheres);
             }
         });
     }
