@@ -108,10 +108,10 @@ public class SqlUtil {
     private static void sqlHandler(SelectBody selectBody, List<WithItem> withItemsList, Map<String, List> wheres) {
         // 获取临时表
         Set<String> virtualTables = getVirtualTables();
-        // 处理查询体
-        selectBodyHandler(selectBody, virtualTables, wheres);
         // 处理临时表
         withItemsListHandler(withItemsList, virtualTables, wheres);
+        // 处理查询体
+        selectBodyHandler(selectBody, virtualTables, wheres);
     }
 
     private static void selectBodiesHandler(List<SelectBody> selectBodies, Set<String> virtualTables, Map<String, List> wheres) {
