@@ -107,7 +107,7 @@ public class SqlUtil {
 
     private static void sqlHandler(SelectBody selectBody, List<WithItem> withItemsList, Map<String, List> wheres) {
         // 获取临时表
-        Set<String> virtualTables = getVirtualTables(withItemsList);
+        Set<String> virtualTables = getVirtualTables();
         // 处理查询体
         selectBodyHandler(selectBody, virtualTables, wheres);
         // 处理临时表
@@ -168,9 +168,9 @@ public class SqlUtil {
         if (withItemsList == null) {
             return;
         }
+        // 添加临时表
+        virtualTables.addAll(withItemsList.stream().map(WithItem::getName).collect(Collectors.toList()));
         for (WithItem withItem : withItemsList) {
-            // 添加临时表
-            virtualTables.add(withItem.getName());
             // 处理查询体
             selectBodyHandler(withItem.getSelectBody(), virtualTables, wheres);
             // 字段子查询
@@ -185,10 +185,10 @@ public class SqlUtil {
         fromItem.accept(new FromItemVisitorAdapter() {
             @Override
             public void visit(SubSelect subSelect) {
-                // 处理查询体
-                selectBodyHandler(subSelect.getSelectBody(), virtualTables, wheres);
                 // 处理临时表
                 withItemsListHandler(subSelect.getWithItemsList(), virtualTables, wheres);
+                // 处理查询体
+                selectBodyHandler(subSelect.getSelectBody(), virtualTables, wheres);
             }
         });
     }
@@ -399,14 +399,9 @@ public class SqlUtil {
         return duals.stream().filter(name::equalsIgnoreCase).findAny().isPresent();
     }
 
-    private static Set<String> getVirtualTables(List<WithItem> withItems) {
+    private static Set<String> getVirtualTables() {
         Set<String> duals = new HashSet();
         QuickUtil.isTrue(DATA_TYPE.equals(DataType.ORACLE), () -> duals.add("DUAL")); // 添加虚拟表关键字
-        Set<String> temps = withItems == null ? duals : withItems.stream()
-                .map(WithItem::getName)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-        duals.addAll(temps); // 支持WITH AS
         return duals;
     }
 
