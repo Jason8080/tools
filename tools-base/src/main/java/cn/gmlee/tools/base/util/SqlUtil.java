@@ -3,9 +3,7 @@ package cn.gmlee.tools.base.util;
 import cn.gmlee.tools.base.assist.ExpressionAssist;
 import cn.gmlee.tools.base.mod.Kv;
 import lombok.extern.slf4j.Slf4j;
-import net.sf.jsqlparser.expression.Expression;
-import net.sf.jsqlparser.expression.Function;
-import net.sf.jsqlparser.expression.OracleHierarchicalExpression;
+import net.sf.jsqlparser.expression.*;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
 import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -257,6 +255,32 @@ public class SqlUtil {
             expressionListHandler(((Function) expression).getParameters(), virtualTables, wheres);
             return;
         }
+        if (expression instanceof CaseExpression) {
+            // 条件子查询
+            whereHandler(((CaseExpression) expression).getSwitchExpression(), virtualTables, wheres);
+            // 分流子查询
+            whenClausesHandler(((CaseExpression) expression).getWhenClauses(), virtualTables, wheres);
+            // 条件子查询
+            whereHandler(((CaseExpression) expression).getElseExpression(), virtualTables, wheres);
+            return;
+        }
+        // 深度处理: 采用反射的统一处理方式 (节省代码但可能遗漏场景)
+        unifiedAdvancedProcessing(expression, virtualTables, wheres);
+    }
+
+    private static void whenClausesHandler(List<WhenClause> whenClauses, Set<String> virtualTables, Map<String, List> wheres) {
+        if(whenClauses == null){
+            return;
+        }
+        for (WhenClause whenClause : whenClauses){
+            // 条件子查询
+            whereHandler(whenClause.getWhenExpression(), virtualTables, wheres);
+            // 条件子查询
+            whereHandler(whenClause.getThenExpression(), virtualTables, wheres);
+        }
+    }
+
+    private static void unifiedAdvancedProcessing(Expression expression, Set<String> virtualTables, Map<String, List> wheres) {
         // 深度处理
         ExceptionUtil.sandbox(() -> itemsListHandler(ClassUtil.getValue(expression, "leftItemsList"), virtualTables, wheres));
         ExceptionUtil.sandbox(() -> itemsListHandler(ClassUtil.getValue(expression, "rightItemsList"), virtualTables, wheres));

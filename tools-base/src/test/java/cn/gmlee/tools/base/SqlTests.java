@@ -12,69 +12,47 @@ public class SqlTests {
 
     @Test
     public void testSql1() throws Exception{
-        String sql = "WITH t1 AS (\n" +
-                "\tSELECT\n" +
-                "\t\tu.real_name,\n" +
-                "\t\tu.phone,\n" +
-                "\t\tur.user_id,\n" +
-                "\t\tu.post,\n" +
-                "\t\tur.id \n" +
-                "\tFROM\n" +
-                "\t\tsys_user_role ur\n" +
-                "\t\tLEFT JOIN sys_role r ON r.id = ur.role_id\n" +
-                "\t\tLEFT JOIN sys_user u ON ur.user_id = u.id \n" +
-                "\tWHERE\n" +
-                "\t\tur.role_id = '1681870437338206209' \n" +
-                "\t\tAND ur.merchant_id = 'M00610' \n" +
-                "\t\tAND ur.has_deleted = '0' \n" +
-                "\t),\n" +
-                "\tt2 AS (\n" +
-                "\tSELECT\n" +
-                "\t\tud.user_id,\n" +
-                "\t\twm_concat ( d.dept_name ) AS deptName \n" +
-                "\tFROM\n" +
-                "\t\tsys_user_dept ud\n" +
-                "\t\tLEFT JOIN sys_dept d ON ud.dept_id = d.id\n" +
-                "\t\tLEFT JOIN t1 ON ud.user_id = t1.user_id \n" +
-                "\tWHERE\n" +
-                "\t\tud.has_deleted = '0' \n" +
-                "\t\tAND ud.merchant_id = 'M00610' \n" +
-                "\tGROUP BY\n" +
-                "\t\tud.user_id \n" +
-                "\t),\n" +
-                "\tt3 AS (\n" +
-                "\tSELECT\n" +
-                "\t\tsur.user_id,\n" +
-                "\t\twm_concat ( sr.role_name ) AS roleName \n" +
-                "\tFROM\n" +
-                "\t\tsys_user_role sur\n" +
-                "\t\tLEFT JOIN sys_role sr ON sur.role_id = sr.id\n" +
-                "\t\tLEFT JOIN t1 ON sur.user_id = t1.user_id \n" +
-                "\tWHERE\n" +
-                "\t\tsur.has_deleted = '0' \n" +
-                "\t\tAND sur.merchant_id = 'M00610' \n" +
-                "\tGROUP BY\n" +
-                "\t\tsur.user_id \n" +
-                "\t),\n" +
-                "\tt4 AS (\n" +
-                "\tSELECT\n" +
-                "\t\tt1.id,\n" +
-                "\t\tt1.user_id userId,\n" +
-                "\t\tt1.real_name realName,\n" +
-                "\t\tt1.phone,\n" +
-                "\t\tt1.post,\n" +
-                "\t\tt2.deptName,\n" +
-                "\t\tt3.roleName \n" +
-                "\tFROM\n" +
-                "\t\tt1\n" +
-                "\t\tLEFT JOIN t2 ON t1.user_id = t2.user_id\n" +
-                "\t\tLEFT JOIN t3 ON t1.user_id = t3.user_id \n" +
-                "\tORDER BY\n" +
-                "\t\tt1.user_id \n" +
-                "\t) SELECT\n" +
-                "\tCOUNT( * ) \n" +
+        String sql = "SELECT\n" +
+                "\ta.capital_change_id,\n" +
+                "\ta.payment_type,\n" +
+                "\ta.available_balance,\n" +
+                "\ta.freezed_available_balance,\n" +
+                "\ta.amount,\n" +
+                "\ta.create_time,\n" +
+                "\tb.trade_record_id,\n" +
+                "\tc.file_path,\n" +
+                "CASE\n" +
+                "\t\t\n" +
+                "\t\tWHEN b.flow_type = '2' THEN\n" +
+                "\t\tnvl( b.REMARK, '--' ) ELSE NULL \n" +
+                "\tEND AS remark,\n" +
+                "\tb.BANK_FLOW_ID,\n" +
+                "CASE\n" +
+                "\t\t\n" +
+                "\t\tWHEN b.PAYMENT_ACCOUNT_ID IS NOT NULL THEN\n" +
+                "\t\t( SELECT t.bank_sub_account FROM cpp.t_merchant_account t WHERE t.account_id = b.PAYMENT_ACCOUNT_ID ) \n" +
+                "\t\tWHEN b.PAYMENT_ACCOUNT_ID IS NULL THEN\n" +
+                "\t\t( SELECT t.encrypt_account FROM cpp.t_cust_settle t WHERE t.settle_account_id = b.PAYMENT_SETTLE_ACCOUNT_ID ) ELSE b.PAYMENT_ACCOUNT_ID \n" +
+                "\tEND AS pay_ACCOUNT_ID,\n" +
+                "CASE\n" +
+                "\t\t\n" +
+                "\t\tWHEN b.COLLECT_ACCOUNT_ID IS NOT NULL THEN\n" +
+                "\t\t( SELECT t.bank_sub_account FROM cpp.t_merchant_account t WHERE t.account_id = b.COLLECT_ACCOUNT_ID ) \n" +
+                "\t\tWHEN b.COLLECT_ACCOUNT_ID IS NULL THEN\n" +
+                "\t\t( SELECT t.encrypt_account FROM cpp.t_cust_settle t WHERE t.settle_account_id = b.COLLECT_SETTLE_ACCOUNT_ID ) ELSE b.COLLECT_ACCOUNT_ID \n" +
+                "\tEND AS collect_ACCOUNT_ID,\n" +
+                "\tb.payer_cust_no,\n" +
+                "\tb.collect_cust_no \n" +
                 "FROM\n" +
-                "\tt4";
+                "\tcpp.t_capital_change_record b\n" +
+                "\tINNER JOIN cpp.t_capital_change_flow a ON a.capital_change_id = b.capital_change_id \n" +
+                "\tINNER JOIN cpp.t_merchant_account t ON a.account_id = t.account_id \n" +
+                "\tLEFT JOIN cpp.t_bank_receipt c ON c.bank_id = b.bank_flow_id \n" +
+                "WHERE\n" +
+                "\tt.cust_no = 'M00610' \n" +
+                "\tAND a.create_time >= to_date( '2023-5-21' || ' 00:00:00', 'yyyy-mm-dd hh24:mi:ss' ) \n" +
+                "\tAND a.create_time <= to_date( '2024-5-20' || ' 23:59:59', 'yyyy-mm-dd hh24:mi:ss' ) \n" +
+                "\tAND a.payment_type IN ( '1', '2', '3', '4' ) ";
         Map<String, List> wheres = new HashMap<>();
         wheres.put("env", Arrays.asList("0", "1"));
         SqlUtil.reset(SqlUtil.DataType.ORACLE);
