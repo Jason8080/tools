@@ -282,6 +282,8 @@ public class SqlUtil {
 
     private static void unifiedAdvancedProcessing(Expression expression, Set<String> virtualTables, Map<String, List> wheres) {
         // 深度处理
+        ExceptionUtil.sandbox(() -> whereHandler(ClassUtil.getValue(expression, "expression"), virtualTables, wheres));
+        // 深度处理
         ExceptionUtil.sandbox(() -> itemsListHandler(ClassUtil.getValue(expression, "leftItemsList"), virtualTables, wheres));
         ExceptionUtil.sandbox(() -> itemsListHandler(ClassUtil.getValue(expression, "rightItemsList"), virtualTables, wheres));
         // 深度处理
