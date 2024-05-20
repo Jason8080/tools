@@ -27,7 +27,7 @@ public class InitializeTests {
         // 注意环境地址
         String url = "jdbc:oracle:thin:@//scan-ip.exgrain.org:1521/ygwdb";
         // 开始批量处理
-        handleBatch(url, KvBuilder.array("cpp", "cpp1234"));
+        handleBatch(url, KvBuilder.array("carry", "carry123"));
     }
 
     private static void handleBatch(String url, Kv<String, String>... kvs) throws SQLException {

@@ -5,6 +5,7 @@ import cn.gmlee.tools.profile.conf.ProfileProperties;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -18,6 +19,13 @@ public interface ProfileDataInitializer {
      * @return the boolean
      */
     boolean support(String database);
+
+    /**
+     * Gets tables.
+     *
+     * @return the list
+     */
+    List<String> getTables();
 
     /**
      * Gets columns.

@@ -3,9 +3,12 @@ package cn.gmlee.tools.profile.initializer;
 import cn.gmlee.tools.base.util.JdbcUtil;
 import cn.gmlee.tools.profile.assist.SqlAssist;
 import cn.gmlee.tools.profile.conf.ProfileProperties;
+import lombok.Getter;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -16,6 +19,13 @@ import java.util.stream.Collectors;
 public class OracleProfileDataInitializer implements ProfileDataInitializer {
 
     private final String database = "oracle";
+
+    @Getter
+    private final List<String> tables;
+
+    public OracleProfileDataInitializer(String... tables) {
+        this.tables = Arrays.asList(tables);
+    }
 
     @Override
     public boolean support(String database) {

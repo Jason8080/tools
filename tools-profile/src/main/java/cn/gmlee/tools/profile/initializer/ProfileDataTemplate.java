@@ -54,6 +54,8 @@ public class ProfileDataTemplate {
             try {
                 // 查询所有表和字段信息
                 Map<String, Map<String, Object>> columns = initializer.getColumn(conn, properties);
+                // 过滤启动配置限定的表
+                CollectionUtil.filter(columns, (String k, Map<String, Object> v) -> initializer.getTables().isEmpty() || initializer.getTables().contains(k));
                 // 过滤缺失环境字段的表
                 CollectionUtil.filter(columns, (String k, Map<String, Object> v) -> !v.containsKey(properties.getField()));
                 // 追加环境字段到缺失表
