@@ -62,7 +62,7 @@ public class ProfileDataTemplate {
                 for (Map.Entry<String, Map<String, Object>> entry : columns.entrySet()) {
                     try {
                         initializer.addColumn(properties, conn, entry.getKey(), entry.getValue());
-                        log.debug("数据隔离库表{}初始化成功 {}:{}", entry.getKey(), entry.getValue());
+                        log.info("数据隔离库表{}初始化成功 {}:{}", entry.getKey(), entry.getValue());
                     } catch (Exception e) {
                         log.error("数据隔离库表{}初始化失败", entry.getKey(), e);
                     }
