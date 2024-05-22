@@ -10,9 +10,6 @@ import cn.gmlee.tools.base.util.BigDecimalUtil;
  */
 public class BigDecimalTests {
     public static void main(String[] args) {
-        System.out.println(BigDecimalUtil.add(66, 2, 3, 5));
-        System.out.println(BigDecimalUtil.subtract(66, 2, 3, 5));
-        System.out.println(BigDecimalUtil.multiply(66, 2, 3, 5));
-        System.out.println(BigDecimalUtil.divide(66, 2, 3, 5));
+        System.out.println(BigDecimalUtil.divide("7672.57", "3.333"));
     }
 }

@@ -107,7 +107,9 @@ public class BigDecimalUtil {
                 if (BoolUtil.eq(divisor, BigDecimal.ZERO)) {
                     return BigDecimal.ZERO;
                 }
-                num = num.divide(divisor)/*.setScale(SCALE_2, BigDecimal.ROUND_HALF_UP)*/;
+                // 没有BigDecimal.ROUND_HALF_UP将会抛出以下异常
+                // java.lang.ArithmeticException: Non-terminating decimal expansion; no exact representable decimal result.
+                num = num.divide(divisor, 10, BigDecimal.ROUND_HALF_UP)/*.setScale(SCALE_2, BigDecimal.ROUND_HALF_UP)*/;
             }
         }
         return NullUtil.get(num, BigDecimal.ZERO);
@@ -455,7 +457,8 @@ public class BigDecimalUtil {
     }
 
     /**
-     * Divide big decimal.
+     * 除法.
+     *
      *
      * @param num  the num 1
      * @param nums the num 2
