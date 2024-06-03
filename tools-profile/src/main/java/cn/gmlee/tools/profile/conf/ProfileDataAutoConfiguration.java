@@ -6,6 +6,7 @@ import cn.gmlee.tools.profile.initializer.MysqlProfileDataInitializer;
 import cn.gmlee.tools.profile.initializer.OracleProfileDataInitializer;
 import cn.gmlee.tools.profile.interceptor.ProfileInsertMarkInterceptor;
 import cn.gmlee.tools.profile.interceptor.ProfileSelectFilterInterceptor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -64,7 +65,7 @@ public class ProfileDataAutoConfiguration {
      */
     @Bean
     @ConditionalOnBean(ProfileDataInitializer.class)
-    public ProfileDataTemplate profileDataTemplate(List<ProfileDataInitializer> initializers, ProfileProperties properties) throws SQLException {
+    public ProfileDataTemplate profileDataTemplate(List<ProfileDataInitializer> initializers, @Qualifier ProfileProperties properties) throws SQLException {
         ProfileDataTemplate template = new ProfileDataTemplate(dataSource, properties);
         template.init(initializers.toArray(new ProfileDataInitializer[0]));
         return template;
@@ -79,7 +80,7 @@ public class ProfileDataAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(ProfileInsertMarkInterceptor.class)
-    public ProfileInsertMarkInterceptor profileInsertMarkInterceptor(ProfileProperties properties) {
+    public ProfileInsertMarkInterceptor profileInsertMarkInterceptor(@Qualifier ProfileProperties properties) {
         return new ProfileInsertMarkInterceptor(properties);
     }
 
@@ -92,7 +93,7 @@ public class ProfileDataAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(ProfileSelectFilterInterceptor.class)
-    public ProfileSelectFilterInterceptor profileSelectFilterInterceptor(ProfileProperties properties) {
+    public ProfileSelectFilterInterceptor profileSelectFilterInterceptor(@Qualifier ProfileProperties properties) {
         return new ProfileSelectFilterInterceptor(properties);
     }
 }
