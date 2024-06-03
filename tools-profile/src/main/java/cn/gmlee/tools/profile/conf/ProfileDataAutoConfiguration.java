@@ -1,12 +1,12 @@
 package cn.gmlee.tools.profile.conf;
 
-import cn.gmlee.tools.profile.initializer.ProfileDataInitializer;
-import cn.gmlee.tools.profile.initializer.ProfileDataTemplate;
+import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.profile.initializer.MysqlProfileDataInitializer;
 import cn.gmlee.tools.profile.initializer.OracleProfileDataInitializer;
+import cn.gmlee.tools.profile.initializer.ProfileDataInitializer;
+import cn.gmlee.tools.profile.initializer.ProfileDataTemplate;
 import cn.gmlee.tools.profile.interceptor.ProfileInsertMarkInterceptor;
 import cn.gmlee.tools.profile.interceptor.ProfileSelectFilterInterceptor;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -65,8 +65,9 @@ public class ProfileDataAutoConfiguration {
      */
     @Bean
     @ConditionalOnBean(ProfileDataInitializer.class)
-    public ProfileDataTemplate profileDataTemplate(List<ProfileDataInitializer> initializers, @Qualifier ProfileProperties properties) throws SQLException {
-        ProfileDataTemplate template = new ProfileDataTemplate(dataSource, properties);
+    public ProfileDataTemplate profileDataTemplate(List<ProfileDataInitializer> initializers, ProfileProperties... properties) throws SQLException {
+        ProfileProperties prop = BoolUtil.isEmpty(properties) ? new ProfileProperties() : properties[0];
+        ProfileDataTemplate template = new ProfileDataTemplate(dataSource, prop);
         template.init(initializers.toArray(new ProfileDataInitializer[0]));
         return template;
     }
@@ -80,8 +81,9 @@ public class ProfileDataAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(ProfileInsertMarkInterceptor.class)
-    public ProfileInsertMarkInterceptor profileInsertMarkInterceptor(@Qualifier ProfileProperties properties) {
-        return new ProfileInsertMarkInterceptor(properties);
+    public ProfileInsertMarkInterceptor profileInsertMarkInterceptor(ProfileProperties... properties) {
+        ProfileProperties prop = BoolUtil.isEmpty(properties) ? new ProfileProperties() : properties[0];
+        return new ProfileInsertMarkInterceptor(prop);
     }
 
     /**
@@ -93,7 +95,8 @@ public class ProfileDataAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean(ProfileSelectFilterInterceptor.class)
-    public ProfileSelectFilterInterceptor profileSelectFilterInterceptor(@Qualifier ProfileProperties properties) {
-        return new ProfileSelectFilterInterceptor(properties);
+    public ProfileSelectFilterInterceptor profileSelectFilterInterceptor(ProfileProperties... properties) {
+        ProfileProperties prop = BoolUtil.isEmpty(properties) ? new ProfileProperties() : properties[0];
+        return new ProfileSelectFilterInterceptor(prop);
     }
 }
