@@ -10,6 +10,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = ProfileProperties.PREFIX)
 public class ProfileProperties {
     public static final String PREFIX = "tools.profile";
-    private Boolean open = Boolean.TRUE;
     private String field = "env";
 }
