@@ -17,4 +17,5 @@ public class ProfileProperties {
     private Boolean open = Boolean.TRUE;
     private String field = "env";
     private List<String> uid = Collections.emptyList();
+    private List<String> urls = Collections.emptyList();
 }
