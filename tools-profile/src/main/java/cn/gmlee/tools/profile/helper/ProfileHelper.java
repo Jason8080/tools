@@ -1,5 +1,7 @@
 package cn.gmlee.tools.profile.helper;
 
+import lombok.Getter;
+
 /**
  * 环境帮助类.
  */
@@ -7,7 +9,15 @@ public class ProfileHelper {
 
     private static volatile Boolean open = Boolean.TRUE;
 
-    private static ThreadLocal<Boolean> env = new InheritableThreadLocal<>();
+    private static ThreadLocal<Boolean> read = new InheritableThreadLocal<>();
+    private static ThreadLocal<Boolean> write = new InheritableThreadLocal<>();
+
+    @Getter
+    public enum ReadWrite {
+        READ,
+        WRITE,
+        ;
+    }
 
 
     /**
@@ -15,8 +25,12 @@ public class ProfileHelper {
      *
      * @return the boolean
      */
-    public static void enable(boolean enable) {
-        ProfileHelper.env.set(enable);
+    public static void enable(ReadWrite rw) {
+        if (ReadWrite.READ.equals(rw)) {
+            ProfileHelper.read.set(true);
+        } else if (ReadWrite.WRITE.equals(rw)) {
+            ProfileHelper.write.set(true);
+        }
     }
 
     /**
@@ -25,7 +39,8 @@ public class ProfileHelper {
      * @return the boolean
      */
     public static void remove() {
-        ProfileHelper.env.remove();
+        ProfileHelper.read.remove();
+        ProfileHelper.write.remove();
     }
 
     /**
@@ -33,8 +48,8 @@ public class ProfileHelper {
      *
      * @return the boolean
      */
-    public static boolean enabled() {
-        return Boolean.TRUE.equals(env.get());
+    public static boolean enabled(ReadWrite rw) {
+        return ReadWrite.READ.equals(rw) ? Boolean.TRUE.equals(read.get()) : Boolean.TRUE.equals(write.get());
     }
 
     // -----------------------------------------------------------------------------------------------------------------

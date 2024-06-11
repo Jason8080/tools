@@ -70,7 +70,7 @@ public class ProfileSelectFilterInterceptor implements Interceptor {
         // 构建环境筛选条件
         Map<String, List> wheres = new HashMap<>(Int.ONE);
         List<Comparable> envs = new ArrayList<>(Int.TWO);
-        QuickUtil.isTrue(ProfileHelper.enabled(),
+        QuickUtil.isTrue(ProfileHelper.enabled(ProfileHelper.ReadWrite.READ),
                 () -> envs.add(Int.ZERO) // 开启后查测试数据
         );
         envs.add(Int.ONE); // 保证查看正式数据

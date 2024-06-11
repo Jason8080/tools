@@ -55,7 +55,7 @@ public class ProfileInsertMarkInterceptor implements Interceptor {
 
     private void mark(Invocation invocation) throws Exception {
         // 关闭的不处理
-        if (ProfileHelper.closed() || !ProfileHelper.enabled()) {
+        if (ProfileHelper.closed() || !ProfileHelper.enabled(ProfileHelper.ReadWrite.WRITE)) {
             return;
         }
         StatementHandler statementHandler = (StatementHandler) invocation.getTarget();
