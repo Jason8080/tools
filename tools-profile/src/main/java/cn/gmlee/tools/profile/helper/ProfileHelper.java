@@ -1,5 +1,6 @@
 package cn.gmlee.tools.profile.helper;
 
+import cn.gmlee.tools.base.util.NullUtil;
 import cn.gmlee.tools.base.util.WebUtil;
 import lombok.Getter;
 
@@ -51,8 +52,10 @@ public class ProfileHelper {
      */
     public static boolean enabled(ReadWrite rw) {
         // 系统兜底视角: 读正式+测试、写正式
-        if(WebUtil.isWeb()){
-            return ReadWrite.READ.equals(rw) ? true : false;
+        if (!WebUtil.isWeb()) {
+            Boolean read = NullUtil.get(ProfileHelper.read.get(), true);
+            Boolean write = NullUtil.get(ProfileHelper.write.get(), false);
+            return ReadWrite.READ.equals(rw) ? Boolean.TRUE.equals(read) : Boolean.TRUE.equals(write);
         }
         return ReadWrite.READ.equals(rw) ? Boolean.TRUE.equals(read.get()) : Boolean.TRUE.equals(write.get());
     }
