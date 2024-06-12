@@ -1,5 +1,6 @@
 package cn.gmlee.tools.profile.helper;
 
+import cn.gmlee.tools.base.util.WebUtil;
 import lombok.Getter;
 
 /**
@@ -49,6 +50,10 @@ public class ProfileHelper {
      * @return the boolean
      */
     public static boolean enabled(ReadWrite rw) {
+        // 系统兜底视角: 读正式+测试、写正式
+        if(WebUtil.isWeb()){
+            return ReadWrite.READ.equals(rw) ? true : false;
+        }
         return ReadWrite.READ.equals(rw) ? Boolean.TRUE.equals(read.get()) : Boolean.TRUE.equals(write.get());
     }
 

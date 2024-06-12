@@ -102,6 +102,15 @@ public class WebUtil {
         return sra != null ? sra.getResponse() : null;
     }
 
+    /**
+     * Is web boolean.
+     *
+     * @return the boolean
+     */
+    public static boolean isWeb() {
+        return getRequest()!=null;
+    }
+
 
     private static final String unknown = "unknown";
 
