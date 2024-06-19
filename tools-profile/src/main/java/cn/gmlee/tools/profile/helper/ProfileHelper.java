@@ -1,5 +1,6 @@
 package cn.gmlee.tools.profile.helper;
 
+import cn.gmlee.tools.base.util.WebUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -107,10 +108,6 @@ public class ProfileHelper {
      */
     public static boolean enabled(ReadWrite rw) {
         Set<Env> envs = get(rw);
-        if(envs.isEmpty()){
-            // 默认启用生产环境
-            envs.add(Env.PRD);
-        }
         return envs.contains(Env.STG);
     }
 
