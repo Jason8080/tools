@@ -1,6 +1,7 @@
 package cn.gmlee.tools.base.util;
 
 import java.io.*;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -18,6 +19,38 @@ public class CopyUtil {
      * @return the t
      */
     public static <T> T get(T object) {
+        if (object == null) {
+            return null;
+        }
+        if (Modifier.isFinal(object.getClass().getModifiers())) {
+            return object; // final class 不允许更改可以不处理
+        } else if (object instanceof Serializable) {
+            return getBySerializable(object);
+        } else if (object instanceof Cloneable) {
+            return getByCloneable(object);
+        } else if (BoolUtil.isBean(object, String.class)) {
+            return getByJackson(object);
+        }
+        return ExceptionUtil.cast(String.format("建议实现java.io.Serializable接口: %s", object.getClass().getName()));
+    }
+
+    private static <T> T getByJackson(T object) {
+        try {
+            return (T) JsonUtil.convert(object, object.getClass());
+        } catch (Exception e) {
+            return ExceptionUtil.cast("深度拷贝异常Jackson", e);
+        }
+    }
+
+    private static <T> T getByCloneable(T object) {
+        try {
+            return (T) object.getClass().getMethod("clone").invoke(object);
+        } catch (Exception e) {
+            return ExceptionUtil.cast("深度拷贝异常Cloneable", e);
+        }
+    }
+
+    private static <T> T getBySerializable(T object) {
         try {
             // 输出对象流
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -30,7 +63,7 @@ public class CopyUtil {
             ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
             return (T) objectInputStream.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException("Deep copy error", e);
+            return ExceptionUtil.cast("深度拷贝异常Serializable", e);
         }
     }
 
