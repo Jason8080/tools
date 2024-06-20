@@ -54,7 +54,7 @@ public class ProfileInsertMarkInterceptor implements Interceptor {
     }
 
     private void mark(Invocation invocation) throws Exception {
-        // 关闭的不处理
+        // 关闭的不处理: 数据库默认生产
         if (ProfileHelper.closed() || !ProfileHelper.enabled(ProfileHelper.ReadWrite.WRITE)) {
             return;
         }

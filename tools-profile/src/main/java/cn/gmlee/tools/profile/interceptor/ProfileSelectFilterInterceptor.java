@@ -14,10 +14,8 @@ import org.apache.ibatis.plugin.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 数据隔离选择拦截器.
@@ -69,11 +67,10 @@ public class ProfileSelectFilterInterceptor implements Interceptor {
         String originSql = boundSql.getSql();
         // 构建环境筛选条件
         Map<String, List> wheres = new HashMap<>(Int.ONE);
-        List<Comparable> envs = new ArrayList<>(Int.TWO);
-        QuickUtil.isTrue(ProfileHelper.enabled(ProfileHelper.ReadWrite.READ),
-                () -> envs.add(Int.ZERO) // 开启后查测试数据
-        );
-        envs.add(Int.ONE); // 保证查看正式数据
+        Set<ProfileHelper.Env> set = ProfileHelper.get(ProfileHelper.ReadWrite.READ);
+        List<Integer> envs = set.stream().map(x -> x.value).collect(Collectors.toList());
+        // 保证至少有1个环境: 默认生产
+        QuickUtil.isTrue(envs.isEmpty(), () -> envs.add(ProfileHelper.Env.PRD.value));
         wheres.put(properties.getField(), envs);
         // 构建新的筛选句柄
         SqlUtil.reset(SqlUtil.DataType.of(profileDataTemplate.getDatabaseProductName()));
