@@ -1,7 +1,10 @@
 package cn.gmlee.tools.base.util;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * 对象深拷贝工具.
@@ -29,6 +32,27 @@ public class CopyUtil {
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException("Deep copy error", e);
         }
+    }
+
+    /**
+     * Get list.
+     *
+     * @param <T> the type parameter
+     * @param os  the os
+     * @return the list
+     */
+    public static <T> List<T> get(Collection<T> os) {
+        // 空组不处理
+        if (BoolUtil.isEmpty(os)) {
+            return new ArrayList();
+        }
+        // 创建新集合
+        List<T> list = new ArrayList(os);
+        for (int i = 0; i < list.size(); i++) {
+            T o = list.get(i);
+            list.set(i, get(o));
+        }
+        return list;
     }
 
     /**
