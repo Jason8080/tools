@@ -160,7 +160,7 @@ public class ExceptionUtil {
         try {
             fun.run();
         } catch (Throwable e) {
-            if(print){
+            if (print) {
                 logger.warn("沙箱异常提示: ", e);
             }
         }
@@ -211,7 +211,7 @@ public class ExceptionUtil {
         try {
             return fun.run();
         } catch (Throwable e) {
-            if(print){
+            if (print) {
                 logger.warn("沙箱异常提示: ", e);
             }
             return false;
@@ -241,7 +241,7 @@ public class ExceptionUtil {
         try {
             return fun.run();
         } catch (Throwable e) {
-            if(print){
+            if (print) {
                 logger.warn("沙箱异常提示: ", e);
             }
             return null;
@@ -393,7 +393,8 @@ public class ExceptionUtil {
         if (cause != null) {
             return e.getCause().getLocalizedMessage();
         }
-        return e.getLocalizedMessage();
+        Object target = ClassUtil.getValue(e, "target");
+        return target instanceof Throwable ? ((Throwable) target).getLocalizedMessage() : e.getLocalizedMessage();
     }
 
     /**
