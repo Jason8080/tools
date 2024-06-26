@@ -389,12 +389,11 @@ public class ExceptionUtil {
      * @return
      */
     private static String cause(Throwable e) {
-        Throwable cause = e.getCause();
-        if (cause != null) {
-            return e.getCause().getLocalizedMessage();
+        if (e.getCause() == null) {
+            Object target = ClassUtil.getValue(e, "target");
+            return target instanceof Throwable ? cause((Throwable) target) : e.getLocalizedMessage();
         }
-        Object target = ClassUtil.getValue(e, "target");
-        return target instanceof Throwable ? ((Throwable) target).getLocalizedMessage() : e.getLocalizedMessage();
+        return cause(e.getCause());
     }
 
     /**
