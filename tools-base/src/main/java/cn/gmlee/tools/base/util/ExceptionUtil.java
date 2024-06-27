@@ -317,6 +317,7 @@ public class ExceptionUtil {
      * 压制异常 (有异常仍然抛出).
      *
      * @param fun the fun
+     * @param run the run
      */
     public static void suppress(Function.Zero fun, Function.One<Throwable> run) {
         try {
@@ -340,6 +341,25 @@ public class ExceptionUtil {
         try {
             return fun.run();
         } catch (Throwable e) {
+            return cast(e);
+        }
+    }
+
+    /**
+     * 压制异常 (有异常仍然抛出).
+     *
+     * @param <R> the type parameter
+     * @param fun the fun
+     * @param run the run
+     * @return the r
+     */
+    public static <R> R suppress(Function.Zero2r<R> fun, Function.One<Throwable> run) {
+        try {
+            return fun.run();
+        } catch (Throwable e) {
+            // 先执行异常处理
+            sandbox(() -> run.run(e));
+            // 再抛出异常
             return cast(e);
         }
     }
