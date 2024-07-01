@@ -51,6 +51,7 @@ public class ProfileSelectFilterInterceptor implements Interceptor {
         try {
             filter(invocation);
         } catch (Throwable throwable) {
+            // 过滤失败不处理
             log.error("数据隔离过滤失败", throwable);
         }
         return invocation.proceed();

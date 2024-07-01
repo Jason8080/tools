@@ -1,6 +1,7 @@
 package cn.gmlee.tools.profile.interceptor;
 
 import cn.gmlee.tools.base.builder.KvBuilder;
+import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.SqlUtil;
 import cn.gmlee.tools.profile.assist.SqlAssist;
 import cn.gmlee.tools.profile.conf.ProfileProperties;
@@ -48,7 +49,8 @@ public class ProfileInsertMarkInterceptor implements Interceptor {
         try {
             mark(invocation);
         } catch (Throwable throwable) {
-            log.error("数据隔离标记失败", throwable);
+            // 标记失败须中断业务
+            ExceptionUtil.cast("数据隔离标记失败", throwable);
         }
         return invocation.proceed();
     }
