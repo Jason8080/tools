@@ -11,7 +11,7 @@ import java.util.*;
  */
 public class ProfileHelper {
 
-    private static volatile Boolean open = Boolean.TRUE;
+    private static volatile Boolean open = Boolean.FALSE;
 
     private static ThreadLocal<Map<ReadWrite, Set<Env>>> env = new InheritableThreadLocal<>();
 
@@ -21,11 +21,11 @@ public class ProfileHelper {
     @Getter
     public enum ReadWrite {
         /**
-         * Read read write.
+         * read.
          */
         READ,
         /**
-         * Write read write.
+         * write.
          */
         WRITE,
         ;
