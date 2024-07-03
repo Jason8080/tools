@@ -237,7 +237,7 @@ public class JsonLog implements Serializable {
         }
         int start = length / 2;
         return format.substring(0, start) +
-                "\n...\n" +
+                "\t···\t" +
                 format.substring(format.length() - start);
     }
 
