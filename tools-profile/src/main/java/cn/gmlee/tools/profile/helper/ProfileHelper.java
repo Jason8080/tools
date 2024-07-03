@@ -1,6 +1,5 @@
 package cn.gmlee.tools.profile.helper;
 
-import cn.gmlee.tools.base.util.WebUtil;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -10,8 +9,6 @@ import java.util.*;
  * 环境帮助类.
  */
 public class ProfileHelper {
-
-    private static volatile Boolean open = Boolean.FALSE;
 
     private static ThreadLocal<Map<ReadWrite, Set<Env>>> env = new InheritableThreadLocal<>();
 
@@ -109,26 +106,5 @@ public class ProfileHelper {
     public static boolean enabled(ReadWrite rw) {
         Set<Env> envs = get(rw);
         return envs.contains(Env.STG);
-    }
-
-    // -----------------------------------------------------------------------------------------------------------------
-
-    /**
-     * 开关.
-     *
-     * @param open the open
-     * @return the boolean
-     */
-    public static void open(boolean open) {
-        ProfileHelper.open = open;
-    }
-
-    /**
-     * 是否已关闭.
-     *
-     * @return the boolean
-     */
-    public static boolean closed() {
-        return !Boolean.TRUE.equals(open);
     }
 }

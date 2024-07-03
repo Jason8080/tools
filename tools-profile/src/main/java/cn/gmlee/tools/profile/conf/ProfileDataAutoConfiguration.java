@@ -82,8 +82,7 @@ public class ProfileDataAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(ProfileInsertMarkInterceptor.class)
     public ProfileInsertMarkInterceptor profileInsertMarkInterceptor(ProfileProperties... properties) {
-        ProfileProperties prop = BoolUtil.isEmpty(properties) ? new ProfileProperties() : properties[0];
-        return new ProfileInsertMarkInterceptor(prop);
+        return new ProfileInsertMarkInterceptor();
     }
 
     /**
@@ -96,7 +95,6 @@ public class ProfileDataAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(ProfileSelectFilterInterceptor.class)
     public ProfileSelectFilterInterceptor profileSelectFilterInterceptor(ProfileProperties... properties) {
-        ProfileProperties prop = BoolUtil.isEmpty(properties) ? new ProfileProperties() : properties[0];
-        return new ProfileSelectFilterInterceptor(prop);
+        return new ProfileSelectFilterInterceptor();
     }
 }
