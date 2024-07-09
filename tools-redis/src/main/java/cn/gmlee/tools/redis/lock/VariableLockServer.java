@@ -42,6 +42,7 @@ public interface VariableLockServer {
     default String getKey(VariableLock vl, String... values) {
         AssertUtil.eq(vl.value().length, values.length, "参数量不符合预期");
         StringBuilder sb = new StringBuilder(getKeyPrefix());
+        sb.append(vl.biz()); // 追加业务前缀
         for (int i = 0; i < vl.value().length; i++) {
             sb.append(vl.value()[i]);
             sb.append("_");

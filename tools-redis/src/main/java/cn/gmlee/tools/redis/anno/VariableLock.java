@@ -43,6 +43,13 @@ public @interface VariableLock {
     String[] value();
 
     /**
+     * 业务.
+     *
+     * @return 默认""不区分业务
+     */
+    String biz() default "";
+
+    /**
      * 来源.
      *
      * @return empty表示全部 origin [ ]
