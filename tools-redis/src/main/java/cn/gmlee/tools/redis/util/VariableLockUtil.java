@@ -109,6 +109,11 @@ public class VariableLockUtil {
             }
 
             @Override
+            public String biz() {
+                return "";
+            }
+
+            @Override
             public Origin[] origin() {
                 return new Origin[0];
             }
