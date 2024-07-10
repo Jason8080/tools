@@ -167,7 +167,7 @@ public class CollectionUtil {
         if (BoolUtil.isEmpty(map)) {
             return;
         }
-        for (Map.Entry<K, V> next : new ConcurrentHashMap<>(map).entrySet()) {
+        for (Map.Entry<K, V> next : new HashMap<>(map).entrySet()) {
             K key = next.getKey();
             V val = next.getValue();
             Boolean ok = ExceptionUtil.sandbox(() -> run.run(key, val));
