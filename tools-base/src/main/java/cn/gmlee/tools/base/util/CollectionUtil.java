@@ -3,6 +3,7 @@ package cn.gmlee.tools.base.util;
 import cn.gmlee.tools.base.enums.Function;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 集合工具
@@ -166,7 +167,7 @@ public class CollectionUtil {
         if (BoolUtil.isEmpty(map)) {
             return;
         }
-        for (Map.Entry<K, V> next : new HashMap<>(map).entrySet()) {
+        for (Map.Entry<K, V> next : new ConcurrentHashMap<>(map).entrySet()) {
             K key = next.getKey();
             V val = next.getValue();
             Boolean ok = ExceptionUtil.sandbox(() -> run.run(key, val));
