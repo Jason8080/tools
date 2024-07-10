@@ -22,7 +22,7 @@ public class Weight {
      * @param ratios the ratios
      * @return the 灰度组和比例
      */
-    public static int[][] groups(int... ratios) {
+    public synchronized static int[][] groups(int... ratios) {
         if (ratios == null || ratios.length == 0) {
             return empty;
         }
@@ -68,7 +68,7 @@ public class Weight {
      * @param n the n
      * @return the set
      */
-    private static int[] random(int n) {
+    private synchronized static int[] random(int n) {
         AssertUtil.lte(n, 100, String.format("最大%s无法生成%s个随机值", 100, n));
 
         int[] arr = new int[n];

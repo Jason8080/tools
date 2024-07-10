@@ -59,13 +59,12 @@ public class WeightHandler extends AbstractGrayHandler {
         return current.incrementAndGet();
     }
 
-    private int[] generateGroup(String app) {
+    private synchronized int[] generateGroup(String app) {
         Integer ratio = getRatio(app);
         if (ratio == null) {
             return null;
         }
-        int[][] groups = Weight.groups(ratio);
-        return groups[0];
+        return Weight.groups(ratio)[0];
     }
 
     private Integer getRatio(String app) {
