@@ -17,7 +17,7 @@ public class WeightHandler extends AbstractGrayHandler {
 
     private final AtomicLong current = new AtomicLong(0);
 
-    private final Map<String, int[]> apps = new ConcurrentHashMap<>();
+    private final Map<String, Weight> apps = new ConcurrentHashMap<>();
 
     /**
      * Instantiates a new Abstract gray handler.
@@ -36,35 +36,21 @@ public class WeightHandler extends AbstractGrayHandler {
     @Override
     @SuppressWarnings("all")
     public boolean allow(String app, String num) {
-        int[] group = apps.get(app);
-        if (group == null || change(app, group)) {
-            group = generateGroup(app);
-            apps.put(app, group);
+        Weight weight = apps.get(app);
+        Integer ratio = getRatio(app);
+        if (weight == null || change(app, weight.allowedPercentage)) {
+            weight = new Weight(ratio);
+            apps.put(app, weight);
         }
-        return Weight.request(getIncrementAndGet(), group);
+        return weight.shouldAllowRequest();
     }
 
-    private boolean change(String app, int[] group) {
+    private boolean change(String app, int num) {
         Integer ratio = getRatio(app);
         if (ratio == null) {
             return false;
         }
-        return group.length != ratio;
-    }
-
-    private long getIncrementAndGet() {
-        if (current.get() > Long.MAX_VALUE - 1) {
-            current.set(0);
-        }
-        return current.incrementAndGet();
-    }
-
-    private synchronized int[] generateGroup(String app) {
-        Integer ratio = getRatio(app);
-        if (ratio == null) {
-            return null;
-        }
-        return Weight.groups(ratio)[0];
+        return !ratio.equals(num);
     }
 
     private Integer getRatio(String app) {

@@ -1,100 +1,50 @@
 package cn.gmlee.tools.base.alg.weight;
 
-import cn.gmlee.tools.base.util.AssertUtil;
-
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Random;
-import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * 灰度算法.
+ * 权重算法.
  */
 public class Weight {
-    private static final Set<Integer> temporary = new HashSet<>(100);
-    private static final Random random = new Random();
-    private static final int[][] empty = new int[0][0];
-
+    public final int allowedPercentage;
+    private final AtomicLong counter;
+    private final Random random;
 
     /**
-     * 随机生成灰度组.
+     * Instantiates a new Weight.
      *
-     * @param ratios the ratios
-     * @return the 灰度组和比例
+     * @param allowedPercentage the allowed percentage
      */
-    public synchronized static int[][] groups(int... ratios) {
-        if (ratios == null || ratios.length == 0) {
-            return empty;
+    public Weight(int allowedPercentage) {
+        if (allowedPercentage < 0 || allowedPercentage > 100) {
+            throw new IllegalArgumentException("Weight allowed percentage must be between 0 and 100");
         }
-        // 保存灰度组
-        int[][] groups = new int[ratios.length][];
-        // 遍历灰度组
-        int count = 0;
-        for (int i = 0; i < ratios.length; i++) {
-            int ratio = ratios[i];
-            count += ratio;
-            AssertUtil.lte(count, 100, String.format("权重超额分配(%s%% > 100%%): %s", count, Arrays.toString(ratios)));
-            int[] group = random(ratio);
-            groups[i] = group;
-        }
-        // 清除占用位
-        temporary.clear();
-        return groups;
+        this.allowedPercentage = allowedPercentage;
+        this.counter = new AtomicLong(0);
+        this.random = new Random();
     }
 
     /**
-     * 是否允许请求.
+     * Should allow request boolean.
      *
-     * @param current 当前请求数
-     * @param group   灰度位
      * @return the boolean
      */
-    public static boolean request(long current, int... group) {
-        long index = current % 100;
-        if (group == null) {
-            return false;
+    public boolean shouldAllowRequest() {
+        long currentCount = counter.incrementAndGet();
+
+        if (currentCount % 100 == 0) {
+            // 每100次请求重置计数器,避免长时间运行导致的溢出
+            counter.set(0);
         }
-        for (int i : group) {
-            if (i == index) {
-                return true;
-            }
-        }
-        return false;
+
+        return random.nextInt(100) < allowedPercentage;
     }
 
-    /**
-     * 随机生成n个0~100以内的数字.
-     *
-     * @param n the n
-     * @return the set
-     */
-    private synchronized static int[] random(int n) {
-        AssertUtil.lte(n, 100, String.format("最大%s无法生成%s个随机值", 100, n));
-
-        int[] arr = new int[n];
-
-        for (int i = 0; i < n; ) {
-            int num = random.nextInt(100);
-            // 已经存在不需要
-            if (Weight.temporary.contains(num)) {
-                continue;
-            }
-            arr[i++] = num;
-            Weight.temporary.add(num);
-        }
-
-        return arr;
-    }
-
-    /**
-     * The entry point of application.
-     *
-     * @param args the input arguments
-     */
     public static void main(String[] args) {
-        int[][] groups = groups(10, 20, 30, 40);
-        for (int[] group : groups) {
-            System.out.println(Arrays.toString(group));
+        Weight weight = new Weight(98);
+        for (int i = 0; i < 100; i++){
+            System.out.println(weight.shouldAllowRequest()? "-------------------" : "×××××××××××××××××××××××");
         }
     }
 }
