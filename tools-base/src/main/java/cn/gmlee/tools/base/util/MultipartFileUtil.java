@@ -26,6 +26,18 @@ public class MultipartFileUtil {
     }
 
     /**
+     * To file multipart file.
+     *
+     * @param filename the filename
+     * @param base64   the base 64
+     * @return the multipart file
+     */
+    public static MultipartFile toFile(String filename, String base64){
+        byte[] bytes = Base64.getDecoder().decode(base64);
+        return toFile(filename, bytes);
+    }
+
+    /**
      * To commons multipart file.
      *
      * @param bytes the bytes
@@ -36,10 +48,25 @@ public class MultipartFileUtil {
         return new CommonsMultipartFile(fileItem);
     }
 
+    /**
+     * To file commons multipart file.
+     *
+     * @param filename the filename
+     * @param bytes    the bytes
+     * @return the commons multipart file
+     */
+    public static CommonsMultipartFile toFile(String filename, byte[] bytes) {
+        FileItem fileItem = ExceptionUtil.suppress(() -> createFileItem(filename, bytes));
+        return new CommonsMultipartFile(fileItem);
+    }
 
     private static FileItem createFileItem(byte... bytes) throws IOException {
+        return createFileItem("file", bytes);
+    }
+
+    private static FileItem createFileItem(String name, byte... bytes) throws IOException {
         DiskFileItemFactory factory = new DiskFileItemFactory();
-        FileItem item = factory.createItem("file", MediaType.MULTIPART_FORM_DATA_VALUE, true, "file");
+        FileItem item = factory.createItem("file", MediaType.MULTIPART_FORM_DATA_VALUE, true, name);
         item.getOutputStream().write(bytes);
         return item;
     }
