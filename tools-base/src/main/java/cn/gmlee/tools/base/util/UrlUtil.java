@@ -1,6 +1,5 @@
 package cn.gmlee.tools.base.util;
 
-import cn.gmlee.tools.base.ex.SkillException;
 import org.springframework.util.AntPathMatcher;
 
 import java.io.ByteArrayOutputStream;
@@ -90,7 +89,7 @@ public class UrlUtil {
      */
     public static String decodeOnce(String url) {
         try {
-            if(BoolUtil.contain(url, "+")){
+            if (BoolUtil.contain(url, "+")) {
                 // 包含+符合无法解码
                 return url;
             }
@@ -143,7 +142,8 @@ public class UrlUtil {
      * @param url the url
      * @return the byte array output stream
      */
-    public static ByteArrayOutputStream download(String url){
+    public static ByteArrayOutputStream download(String url) {
+        InputStream in = null;
         try {
             // 将在线图片地址转换为URL对象
             URL u = new URL(url);
@@ -152,11 +152,16 @@ public class UrlUtil {
             // 转换为连接
             HttpURLConnection httpURLConnection = (HttpURLConnection) connection;
             // 获取输入流
-            InputStream inputStream = httpURLConnection.getInputStream();
+            in = httpURLConnection.getInputStream();
             // 转换复用流
-            return StreamUtil.toStream(inputStream);
+            return StreamUtil.toStream(in);
         } catch (IOException e) {
             throw new RuntimeException(String.format("文件下载错误: %s", url), e);
+        } finally {
+            // 关闭输入流
+            if (in != null) {
+                ExceptionUtil.suppress(in::close);
+            }
         }
     }
 }
