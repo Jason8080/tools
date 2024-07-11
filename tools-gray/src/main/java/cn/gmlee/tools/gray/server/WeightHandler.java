@@ -8,14 +8,11 @@ import cn.gmlee.tools.gray.mod.Rule;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 权重处理器.
  */
 public class WeightHandler extends AbstractGrayHandler {
-
-    private final AtomicLong current = new AtomicLong(0);
 
     private final Map<String, Weight> apps = new ConcurrentHashMap<>();
 
