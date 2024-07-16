@@ -27,6 +27,9 @@ public class ProfileInsertMarkInterceptor implements Interceptor {
     @Value("${tools.profile.open:false}")
     private Boolean open = Boolean.FALSE;
 
+    @Value("${tools.profile.print:false}")
+    private Boolean print = Boolean.FALSE;
+
     @Value("${tools.profile.field:env}")
     private String field = "env";
 
@@ -66,6 +69,6 @@ public class ProfileInsertMarkInterceptor implements Interceptor {
         // 构建新的句柄
         SqlUtil.reset(SqlUtil.DataType.of(profileDataTemplate.getDatabaseProductName()));
         String newSql = SqlUtil.newInsert(originSql, KvBuilder.array(field, 0));
-        SqlAssist.reset(boundSql, newSql);
+        SqlAssist.reset(boundSql, newSql, print);
     }
 }

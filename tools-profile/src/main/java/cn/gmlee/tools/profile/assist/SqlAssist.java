@@ -39,18 +39,19 @@ public class SqlAssist {
      *
      * @param boundSql the bound sql
      * @param newSql   the new sql
+     * @param print
      * @throws NoSuchFieldException the no such field exception
      */
-    public static void reset(BoundSql boundSql, String newSql) throws NoSuchFieldException {
+    public static void reset(BoundSql boundSql, String newSql, Boolean print) throws NoSuchFieldException {
         if (boundSql.getSql().equalsIgnoreCase(newSql) || BoolUtil.isEmpty(newSql)) {
             return;
         }
-        log.info("数据隔离处理前: {}", boundSql.getSql());
+        QuickUtil.isTrue(print, () -> log.info("数据隔离处理前: {}", boundSql.getSql()));
         Field field = boundSql.getClass().getDeclaredField("sql");
         boolean ok = field.isAccessible();
         QuickUtil.isFalse(ok, () -> field.setAccessible(true));
         ExceptionUtil.suppress(() -> field.set(boundSql, newSql));
         QuickUtil.isFalse(ok, () -> field.setAccessible(false));
-        log.info("数据隔离处理后: {}", boundSql.getSql());
+        QuickUtil.isTrue(print, () -> log.info("数据隔离处理后: {}", boundSql.getSql()));
     }
 }
