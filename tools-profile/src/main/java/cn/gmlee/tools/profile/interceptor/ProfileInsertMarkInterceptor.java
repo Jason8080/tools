@@ -4,6 +4,7 @@ import cn.gmlee.tools.base.builder.KvBuilder;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.SqlUtil;
 import cn.gmlee.tools.profile.assist.SqlAssist;
+import cn.gmlee.tools.profile.conf.ProfileProperties;
 import cn.gmlee.tools.profile.helper.ProfileHelper;
 import cn.gmlee.tools.profile.initializer.ProfileDataTemplate;
 import lombok.extern.slf4j.Slf4j;
@@ -11,9 +12,9 @@ import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.plugin.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.sql.Connection;
+import java.util.List;
 
 /**
  * 数据隔离标记拦截器.
@@ -24,17 +25,11 @@ import java.sql.Connection;
 })
 public class ProfileInsertMarkInterceptor implements Interceptor {
 
-    @Value("${tools.profile.open:false}")
-    private Boolean open = Boolean.FALSE;
-
-    @Value("${tools.profile.print:false}")
-    private Boolean print = Boolean.FALSE;
-
-    @Value("${tools.profile.field:env}")
-    private String field = "env";
-
     @Autowired
     private ProfileDataTemplate profileDataTemplate;
+
+    @Autowired
+    private List<ProfileProperties> profilePropertiesList;
 
     /**
      * 为了兼容3.4.5以下版本
@@ -59,8 +54,9 @@ public class ProfileInsertMarkInterceptor implements Interceptor {
     }
 
     private void mark(Invocation invocation) throws Exception {
+        ProfileProperties profileProperties = profilePropertiesList.get(0);
         // 关闭的不处理: 数据库默认生产
-        if (!open || !ProfileHelper.enabled(ProfileHelper.ReadWrite.WRITE)) {
+        if (!profileProperties.getOpen() || !ProfileHelper.enabled(ProfileHelper.ReadWrite.WRITE)) {
             return;
         }
         StatementHandler statementHandler = (StatementHandler) invocation.getTarget();
@@ -68,7 +64,7 @@ public class ProfileInsertMarkInterceptor implements Interceptor {
         String originSql = boundSql.getSql();
         // 构建新的句柄
         SqlUtil.reset(SqlUtil.DataType.of(profileDataTemplate.getDatabaseProductName()));
-        String newSql = SqlUtil.newInsert(originSql, KvBuilder.array(field, 0));
-        SqlAssist.reset(boundSql, newSql, print);
+        String newSql = SqlUtil.newInsert(originSql, KvBuilder.array(profileProperties.getField(), 0));
+        SqlAssist.reset(boundSql, newSql, profileProperties.getPrint());
     }
 }
