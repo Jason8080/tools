@@ -18,7 +18,7 @@ public class RedisVariableLockServer implements VariableLockServer {
     private static final Logger log = LoggerFactory.getLogger(RedisVariableLockServer.class);
 
     @Getter
-    @Value("${tools.api.variableLock.keyPrefix:tools:api:variableLock:}")
+    @Value("${tools.redis.variableLock.keyPrefix:tools:redis:variableLock:}")
     private String keyPrefix;
 
     @Autowired

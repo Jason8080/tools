@@ -1,7 +1,7 @@
 package cn.gmlee.tools.redis.lock;
 
-import cn.gmlee.tools.redis.anno.VariableLock;
 import cn.gmlee.tools.base.util.AssertUtil;
+import cn.gmlee.tools.redis.anno.VariableLock;
 
 /**
  * 数据加锁服务.
@@ -42,7 +42,12 @@ public interface VariableLockServer {
     default String getKey(VariableLock vl, String... values) {
         AssertUtil.eq(vl.value().length, values.length, "参数量不符合预期");
         StringBuilder sb = new StringBuilder(getKeyPrefix());
-        sb.append(vl.biz()); // 追加业务前缀
+        // 追加业务前缀
+        String biz = vl.biz();
+        if(!biz.isEmpty()){
+            sb.append(biz);
+            sb.append(":");
+        }
         for (int i = 0; i < vl.value().length; i++) {
             sb.append(vl.value()[i]);
             sb.append("_");
