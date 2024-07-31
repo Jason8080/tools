@@ -8,6 +8,25 @@ import java.io.UnsupportedEncodingException;
  * @author Jas
  */
 public class CharUtil {
+
+    /**
+     * 获取非空的字符串.
+     *
+     * @param os the os
+     * @return the string
+     */
+    public static String getNonempty(String... os) {
+        if (os == null) {
+            return "";
+        }
+        for (String o : os) {
+            if (BoolUtil.notEmpty(o)) {
+                return o;
+            }
+        }
+        return "";
+    }
+
     /**
      * 字节转字符.
      *
