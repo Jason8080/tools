@@ -105,7 +105,7 @@ public class CacheAspect {
                 Object ret = ExceptionUtil.suppress(() -> field.get(result));
                 if (ret instanceof Collection) {
                     for (Object obj : (Collection) ret) {
-                        kvs.addAll(getFields(conf, obj, depth - 1));
+                        QuickUtil.isTrue(depth > 0, () -> kvs.addAll(getFields(conf, obj, depth - 1)));
                     }
                 }
                 // 带有注解
@@ -121,9 +121,7 @@ public class CacheAspect {
                 if (ret == null || result.getClass().isAssignableFrom(ret.getClass())) {
                     continue;
                 }
-                if (depth > 0) {
-                    kvs.addAll(getFields(conf, ret, depth - 1));
-                }
+                QuickUtil.isTrue(depth > 0, () -> kvs.addAll(getFields(conf, ret, depth - 1)));
             } finally {
                 QuickUtil.isFalse(old, () -> field.setAccessible(false));
             }
