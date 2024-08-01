@@ -11,6 +11,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Data
@@ -41,7 +42,8 @@ public class RedisCacheServer extends AbstractCacheServer {
     @Override
     public void clear(String... keys) {
         if (BoolUtil.isEmpty(keys)) {
-            return;
+            Set<String> set = redis.keys(cacheKey.concat("*"));
+            keys = set.toArray(new String[0]);
         }
         for (String key : keys) {
             redis.delete(getKey(key));

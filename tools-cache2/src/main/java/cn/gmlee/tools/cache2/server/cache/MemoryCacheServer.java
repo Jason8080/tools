@@ -9,6 +9,7 @@ import lombok.Data;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Data
@@ -39,7 +40,8 @@ public class MemoryCacheServer extends AbstractCacheServer {
     @Override
     public void clear(String... keys) {
         if (BoolUtil.isEmpty(keys)) {
-            return;
+            Set<String> set = memory.keySet();
+            keys = set.toArray(new String[0]);
         }
         for (String key : keys) {
             memory.remove(key);
