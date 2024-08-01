@@ -122,6 +122,12 @@ public class CacheApp {
 
 
 
+## 缓存深度
+
+> 默认深度: 3 (从0开始, 一层{}算1级, 数组不算) 
+
+![image-20240801173926788](C:\project\owner\tools\doc\Cache2-二次查询方案集成简要说明.assets\image-20240801173926788.png) 
+
 
 
 ## 运行日志
@@ -201,5 +207,4 @@ public class CacheApp {
 - 当以上两种缓存系统无法满足时
 
   > 在项目中注入自定义实现即可: CacheServer
-
 
