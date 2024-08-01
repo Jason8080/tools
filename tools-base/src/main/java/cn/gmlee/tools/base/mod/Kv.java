@@ -1,8 +1,6 @@
 package cn.gmlee.tools.base.mod;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -10,9 +8,7 @@ import java.util.HashMap;
 /**
  * @author Jas°
  */
-@Getter
-@Setter
-@ToString
+@Data
 public class Kv<K,V> extends HashMap<K,V> implements Serializable {
     private String name;
     private String desc;
