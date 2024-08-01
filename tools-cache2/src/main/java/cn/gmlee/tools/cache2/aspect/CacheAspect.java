@@ -105,7 +105,7 @@ public class CacheAspect {
                 Object ret = ExceptionUtil.suppress(() -> field.get(result));
                 if (ret instanceof Collection) {
                     for (Object obj : (Collection) ret) {
-                        kvs.addAll(getFields(conf, obj, depth--));
+                        kvs.addAll(getFields(conf, obj, --depth));
                     }
                 }
                 // 带有注解
@@ -122,7 +122,7 @@ public class CacheAspect {
                     continue;
                 }
                 if (depth > 0) {
-                    kvs.addAll(getFields(conf, ret, depth--));
+                    kvs.addAll(getFields(conf, ret, --depth));
                 }
             } finally {
                 QuickUtil.isFalse(old, () -> field.setAccessible(false));
