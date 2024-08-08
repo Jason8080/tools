@@ -244,9 +244,9 @@ public class CollectionUtil {
         if (BoolUtil.isEmpty(ts)) {
             return t;
         }
-        T[] newTs = (T[]) new Object[t.length + ts.length];
+        T[] newTs = (T[]) java.lang.reflect.Array.newInstance(t.getClass().getComponentType(), t.length + ts.length);
         System.arraycopy(t, 0, newTs, 0, t.length);
-        System.arraycopy(ts, 0, newTs, t.length, t.length);
+        System.arraycopy(ts, 0, newTs, t.length, ts.length);
         return newTs;
     }
 

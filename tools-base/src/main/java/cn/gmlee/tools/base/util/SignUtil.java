@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.validation.annotation.Validated;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -94,8 +95,9 @@ public class SignUtil {
             Map.Entry<String, T> next = it.next();
             T os = next.getValue();
             String toString = os.toString();
-            if (os instanceof Object[]) {
-                toString = SerializableUtil.encoder(os);
+            if (!BoolUtil.isBaseClass(os, String.class)) {
+                // 未实现Serializable接口的字段不参与签名
+                toString = os instanceof Serializable ? SerializableUtil.encoder(os) : "";
             }
             sb.append(toString);
         }

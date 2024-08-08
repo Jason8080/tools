@@ -32,7 +32,7 @@ public class SerializableUtil implements Serializable {
                 ObjectOutputStream oos = new ObjectOutputStream(stream);
                 oos.writeObject(t);
             } catch (Exception e) {
-                logger.error(String.format("序列化失败"), e);
+                ExceptionUtil.cast(String.format("序列化失败"), e);
             }
         }
         return stream;
