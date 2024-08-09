@@ -95,7 +95,7 @@ public class SignUtil {
             T os = next.getValue();
             String toString = os != null ? os.toString() : null;
             // 非 (...) 需要拼接JSON有序序列化字符串(包括null字段)
-            if (!BoolUtil.isBaseClass(os, String.class)) {
+            if (os != null && !BoolUtil.isBaseClass(os, String.class)) {
                 toString = JsonUtil.toJson(os);
             }
             // 八大基本类型及其包装类型+字符串类型可直接拼接字符串
