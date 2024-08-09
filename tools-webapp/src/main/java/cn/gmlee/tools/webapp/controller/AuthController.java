@@ -31,7 +31,6 @@ public class AuthController<U, P, S, D, C> extends ParameterController {
     protected LoginService loginService;
 
     protected U user;
-    protected P permissions;
     protected Map<String, S> settings;
     protected Set<D> data;
     protected List<C> configs;
@@ -53,12 +52,11 @@ public class AuthController<U, P, S, D, C> extends ParameterController {
             throw new SkillException(XCode.LOGIN_TIMEOUT.code, XCode.LOGIN_TIMEOUT.msg);
         }
         // 登陆效验
-        Login<U, P, S, D, C> old = loginService.getLogin(token);
+        Login<U, S, D, C> old = loginService.getLogin(token);
         if (Objects.isNull(old)) {
             throw new SkillException(XCode.LOGIN_TIMEOUT.code, XCode.LOGIN_TIMEOUT.msg);
         }
         user = old.getUser();
-        permissions = old.getPermissions();
         configs = old.getConfigs();
         settings = old.getSettings();
         data = old.getData();

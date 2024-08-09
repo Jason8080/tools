@@ -12,7 +12,6 @@ import java.util.Set;
  * 通用登陆用户信息对象
  *
  * @param <U> 用户泛型
- * @param <P> the type parameter
  * @param <S> the type parameter
  * @param <D> the type parameter
  * @param <C> 配置泛型
@@ -20,7 +19,7 @@ import java.util.Set;
  * @date 2020 /9/27 (周日)
  */
 @Data
-public class Login<U, P, S, D, C> implements Payload, Serializable {
+public class Login<U, S, D, C> implements Payload, Serializable {
     /**
      * The Login time.
      */
@@ -98,10 +97,6 @@ public class Login<U, P, S, D, C> implements Payload, Serializable {
      * 唯一用户信息: 用户在本次登录中的用户信息
      */
     protected U user;
-    /**
-     * 唯一用户信息: 用户在本次登录中的权限信息
-     */
-    protected P permissions;
     /**
      * 去重用户设置: 用户在本次登录中的临时设置信息
      */

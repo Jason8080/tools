@@ -80,7 +80,7 @@ public class LoginService<U, P, S, D, C> {
      */
     @SuppressWarnings("all")
     @Autowired(required = false)
-    protected RedisClient<String, Login<U, P, S, D, C>> rc;
+    protected RedisClient<String, Login<U, S, D, C>> rc;
 
     /**
      * 将请求中的token代表的登陆对象保存到线程中.
@@ -99,7 +99,7 @@ public class LoginService<U, P, S, D, C> {
      * @throws SkillException the skill exception
      */
     public void set(String token) throws SkillException {
-        Login<U, P, S, D, C> login = getLogin(NullUtil.get(token));
+        Login<U, S, D, C> login = getLogin(NullUtil.get(token));
         if (required && login == null) {
             ExceptionUtil.cast(XCode.LOGIN_TIMEOUT);
         } else if (login != null) {
@@ -113,7 +113,7 @@ public class LoginService<U, P, S, D, C> {
      * @param token the token
      * @return the login
      */
-    public Login<U, P, S, D, C> getLogin(String token) {
+    public Login<U, S, D, C> getLogin(String token) {
         // 自动续期
         ExceptionUtil.sandbox(() -> renew(token));
         return rc.get(tokenPrefix.concat(token));
@@ -145,7 +145,7 @@ public class LoginService<U, P, S, D, C> {
      * @param login      the login
      * @param successful the successful
      */
-    public void login(Login<U, P, S, D, C> login, Function.One<Login>... successful) {
+    public void login(Login<U, S, D, C> login, Function.One<Login>... successful) {
         for (int i = 0; i < Int.THREE; i++) {
             if (generate(login)) {
                 success(login, successful);
@@ -191,7 +191,7 @@ public class LoginService<U, P, S, D, C> {
      * @param login      the login
      * @param successful the successful
      */
-    public void success(Login<U, P, S, D, C> login, Function.One<Login>... successful) {
+    public void success(Login<U, S, D, C> login, Function.One<Login>... successful) {
         QuickUtil.notEmpty(successful, array -> {
             for (Function.One<Login> one : successful) {
                 one.run(login);
@@ -205,7 +205,7 @@ public class LoginService<U, P, S, D, C> {
      * @param login the login
      * @return the string
      */
-    public boolean generate(Login<U, P, S, D, C> login) {
+    public boolean generate(Login<U, S, D, C> login) {
         QuickUtil.isEmpty(login.getToken(), x -> login.setToken(generator(login)));
         return rc.setNx(tokenPrefix.concat(login.getToken()), login, expire);
     }
@@ -216,7 +216,7 @@ public class LoginService<U, P, S, D, C> {
      * @param login the login
      * @return the string
      */
-    public String generator(Login<U, P, S, D, C> login) {
+    public String generator(Login<U, S, D, C> login) {
         // 可用Jwt生成
         return IdUtil.uuidReplaceUpperCase();
     }
