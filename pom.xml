@@ -208,7 +208,7 @@
                         <version>0.5.0</version>
                         <extensions>true</extensions>
                         <configuration>
-                            <publishingServerId>central</publishingServerId>
+                            <publishingServerId>sonatype</publishingServerId>
                             <autoPublish>true</autoPublish>
                         </configuration>
                     </plugin>
@@ -294,7 +294,7 @@
         </profile>
 
         <profile>
-            <id>central</id>
+            <id>sonatype</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
