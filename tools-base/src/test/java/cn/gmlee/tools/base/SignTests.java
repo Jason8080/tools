@@ -1,5 +1,6 @@
 package cn.gmlee.tools.base;
 
+import cn.gmlee.tools.base.util.JsonUtil;
 import cn.gmlee.tools.base.util.LocalDateTimeUtil;
 import cn.gmlee.tools.base.util.SignUtil;
 import lombok.Data;
@@ -25,8 +26,8 @@ public class SignTests {
         System.out.println("timestamp: " + map.get("timestamp"));
         Aa aa = new Aa();
         aa.setA3(new Aa());
-        map.put("Aa", aa);
-        System.out.println("Aa: " + map.get("Aa"));
+        map.put("body", aa);
+        System.out.println("body: " + JsonUtil.toJson(map.get("body")));
         String signature = SignUtil.sign(map, "dGT6IKVQL9oSOlOJSGcZnPPCv39z9mHU");
         map.put("signature", signature);
         System.out.println("signature: " + map.get("signature"));
