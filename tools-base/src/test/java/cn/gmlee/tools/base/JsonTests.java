@@ -8,6 +8,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
+import lombok.Getter;
 import org.junit.Test;
 
 import java.util.List;
@@ -26,6 +27,21 @@ public class JsonTests {
         jo1.put("jo1", jo1);
         System.out.println(JsonUtil.toJson(jo1));
     }
+    @Test
+    public void testSort(){
+        Aa obj = new Aa();
+        System.out.println(JsonUtil.toJson(obj));
+    }
+
+    @Getter
+    public static class Aa {
+        private String b1 = "b1";
+        private String a2 = "a2";
+        private String c1 = "c1";
+        private String b2 = "b2";
+        private String e1 = "e1";
+    }
+
 
 
     @Test

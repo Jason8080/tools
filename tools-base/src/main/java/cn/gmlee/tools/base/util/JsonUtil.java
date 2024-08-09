@@ -60,6 +60,8 @@ public class JsonUtil {
         module.addSerializer(LocalTime.class, LocalTimeSerializer.INSTANCE);
         module.addSerializer(Date.class, DateSerializer.instance);
         objectMapper.registerModule(module);
+        // 序列化固定排序
+        objectMapper.configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
         // 允许出现单引号
         objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
         // 接受空字符和空对象

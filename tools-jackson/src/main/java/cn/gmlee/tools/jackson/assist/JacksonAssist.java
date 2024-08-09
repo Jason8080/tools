@@ -131,5 +131,7 @@ public class JacksonAssist {
     public static void registerEnableModule(ObjectMapper objectMapper, JacksonModuleProperties module) {
         // 开启 json 格式化
         objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+        // 开启 json 有序性
+        objectMapper.configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
     }
 }
