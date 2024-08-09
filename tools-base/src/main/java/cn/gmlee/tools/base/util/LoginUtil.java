@@ -93,44 +93,6 @@ public class LoginUtil {
     }
 
     /**
-     * Gets permissions.
-     *
-     * @param <P>      the type parameter
-     * @param clazz    the clazz
-     * @param required the required
-     * @return the permissions
-     */
-    public static <P> P getPermissions(Class<P> clazz, boolean required) {
-        P p = getPermissions(clazz);
-        if (required && p == null) {
-            return ExceptionUtil.cast(XCode.USER_PERMISSION);
-        }
-        return p;
-    }
-
-    /**
-     * 获取登陆权限 (没有登陆将抛出异常).
-     *
-     * @param <P>   the type parameter
-     * @param clazz the clazz
-     * @return the permissions
-     */
-    public static <P> P getPermissions(Class<P> clazz) {
-        Login login = users.get();
-        if (login == null) {
-            return null;
-        }
-        Object permissions = login.getPermissions();
-        if (permissions == null) {
-            return null;
-        }
-        if (BoolUtil.isParentClass(clazz, permissions.getClass())) {
-            return (P) permissions;
-        }
-        return JsonUtil.convert(permissions, clazz);
-    }
-
-    /**
      * 执行函数并保存返回结果到当前线程 .
      * <p>
      * 优先线程上的数据, 线程上没有在执行函数获取.
