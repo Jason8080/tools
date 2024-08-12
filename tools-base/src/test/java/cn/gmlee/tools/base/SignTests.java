@@ -26,11 +26,10 @@ public class SignTests {
         System.out.println("timestamp: " + map.get("timestamp"));
         Aa aa = new Aa();
         aa.setA3(new Aa());
-        map.put("body", null);
+        map.put("body", aa);
         System.out.println("body: " + JsonUtil.toJson(map.get("body")));
         String signature = SignUtil.sign(map, "dGT6IKVQL9oSOlOJSGcZnPPCv39z9mHU");
         map.put("signature", signature);
-        System.out.println("signature: " + map.get("signature"));
         System.out.println(SignUtil.check(map, "dGT6IKVQL9oSOlOJSGcZnPPCv39z9mHU"));
     }
 

@@ -39,27 +39,30 @@ public class JsonUtil {
      *
      * @return the object mapper
      */
+    @SuppressWarnings("all")
     private static ObjectMapper jacksonObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
         // 忽略类型: 类为空时，不要抛异常
         objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
         // 包含空值
         objectMapper.setSerializationInclusion(Include.ALWAYS);
-        SimpleModule module = new SimpleModule();
+        SimpleModule timeModule = new SimpleModule();
         objectMapper.setDateFormat(XTime.SECOND_MINUS_BLANK_COLON.dateFormat);
         objectMapper.getSerializationConfig().with(XTime.SECOND_MINUS_BLANK_COLON.dateFormat);
         objectMapper.getDeserializationConfig().with(XTime.SECOND_MINUS_BLANK_COLON.dateFormat);
         // 时间字符串反序列化成Data
         objectMapper.setTimeZone(TimeZone.getTimeZone("GMT+8"));
-        module.addDeserializer(LocalDateTime.class, LocalDateTimeDeserializer.INSTANCE);
-        module.addDeserializer(LocalDate.class, LocalDateDeserializer.INSTANCE);
-        module.addDeserializer(LocalTime.class, LocalTimeDeserializer.INSTANCE);
-        module.addDeserializer(Date.class, DateDeserializers.DateDeserializer.instance);
-        module.addSerializer(LocalDateTime.class, LocalDateTimeSerializer.INSTANCE);
-        module.addSerializer(LocalDate.class, LocalDateSerializer.INSTANCE);
-        module.addSerializer(LocalTime.class, LocalTimeSerializer.INSTANCE);
-        module.addSerializer(Date.class, DateSerializer.instance);
-        objectMapper.registerModule(module);
+        // 序列化
+        timeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
+        timeModule.addSerializer(LocalDate.class, new LocalDateSerializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
+        timeModule.addSerializer(LocalTime.class, new LocalTimeSerializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
+        timeModule.addSerializer(Date.class, DateSerializer.instance);
+        // 反序列
+        timeModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
+        timeModule.addDeserializer(LocalDate.class, new LocalDateDeserializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
+        timeModule.addDeserializer(LocalTime.class, new LocalTimeDeserializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
+        timeModule.addDeserializer(Date.class, DateDeserializers.DateDeserializer.instance);
+        objectMapper.registerModule(timeModule);
         // 序列化固定排序
         objectMapper.configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
         // 允许出现单引号
@@ -120,8 +123,8 @@ public class JsonUtil {
     /**
      * To json string.
      *
-     * @param obj       the obj
-     * @param allowEx   the allowEx
+     * @param obj        the obj
+     * @param allowEx    the allowEx
      * @param ignoreNull the ignoreNull
      * @return the string
      */
@@ -290,7 +293,7 @@ public class JsonUtil {
     public static <T> T convert(Object obj, Class<T> clazz, boolean allowEx, boolean useSnake) {
         ObjectMapper objectMapper = getInstance();
         // 开启驼峰命名: json串中的hoMe 将 将无法再转到 属性中
-        if (useSnake){
+        if (useSnake) {
             objectMapper = jacksonObjectMapper();
             objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
         }

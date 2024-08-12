@@ -85,7 +85,8 @@ public class SignUtil {
      * @return 签名 string
      * @throws Exception 签名工具异常
      */
-    public static <T> String sign(Map<String, T> map, String secretKey) {
+    @Deprecated
+    public static <T> String signDeprecated(Map<String, T> map, String secretKey) {
         TreeMap<String, T> treeMap = CollectionUtil.keySort(map);
         treeMap.remove(getSignature());
         StringBuilder sb = new StringBuilder();
@@ -107,6 +108,22 @@ public class SignUtil {
         } catch (Exception e) {
             throw new SkillException(XCode.API_SIGN.code, e);
         }
+    }
+
+    /**
+     * 签名.
+     *
+     * @param <T>       the type parameter
+     * @param t         the t
+     * @param secretKey the secret key
+     * @return string
+     */
+    public static <T> String sign(T t, String secretKey) {
+        String json = JsonUtil.toJson(t);
+        logger.info("签名内容: {}", json);
+        String concat = secretKey.concat(json).concat(secretKey);
+        logger.info("签名字符: {}", concat);
+        return ExceptionUtil.suppress(() -> Md5Util.encode(concat), x -> new SkillException(XCode.API_SIGN));
     }
 
     /**
@@ -152,8 +169,9 @@ public class SignUtil {
     /**
      * 签名.
      *
-     * @param req       参与签名的参数
-     * @param secretKey the secret key
+     * @param req          参与签名的参数
+     * @param secretKey    the secret key
+     * @param extraHeaders the extra headers
      * @return 签名 string
      * @throws Exception the exception
      */
@@ -170,7 +188,8 @@ public class SignUtil {
     /**
      * 用于方便打印日志
      *
-     * @param req the req
+     * @param req          the req
+     * @param extraHeaders the extra headers
      * @return header map
      */
     public static Map<String, Object> getHeaderMap(HttpServletRequest req, String... extraHeaders) {
@@ -191,8 +210,9 @@ public class SignUtil {
     /**
      * 签名验证 .
      *
-     * @param req       the req
-     * @param secretKey the secret key
+     * @param req          the req
+     * @param secretKey    the secret key
+     * @param extraHeaders the extra headers
      * @return the boolean
      * @throws Exception the exception
      */
@@ -225,11 +245,12 @@ public class SignUtil {
      *
      * @param map       the map
      * @param secretKey the secret key
-     * @return boolean boolean
+     * @return boolean 验签结果
      */
     public static boolean check(Map<String, Object> map, String secretKey) {
         String signature = (String) map.remove(getSignature());
         String sign = sign(map, secretKey);
+        logger.info("签名结果: {}", sign);
         return sign.equals(signature);
     }
 }

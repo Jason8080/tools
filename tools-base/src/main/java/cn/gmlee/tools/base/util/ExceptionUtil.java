@@ -176,7 +176,6 @@ public class ExceptionUtil {
         try {
             fun.run();
         } catch (Throwable e) {
-            logger.info("沙箱异常提示: ", e);
             suppress(def);
         }
     }
@@ -260,7 +259,6 @@ public class ExceptionUtil {
         try {
             return fun.run();
         } catch (Throwable e) {
-            logger.info("沙箱异常已返回默认值: {}", def, e);
             return def;
         }
     }
@@ -278,7 +276,6 @@ public class ExceptionUtil {
             return fun.run();
         } catch (Throwable e) {
             R ret = suppress(def);
-            logger.info("沙箱异常已返回默认值: {}", ret, e);
             return ret;
         }
     }
@@ -295,7 +292,6 @@ public class ExceptionUtil {
         try {
             return fun.run();
         } catch (Throwable e) {
-            // 已经返回异常则不打印日志
             return suppress(() -> def.run(e));
         }
     }

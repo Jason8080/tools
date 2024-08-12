@@ -48,9 +48,9 @@ public class JacksonWebMvcConfigurer implements WebMvcConfigurer {
 //                () -> objectMapper.setTimeZone(jacksonProperties.getTimeZone()),
 //                () -> objectMapper.setTimeZone(TimeZone.getTimeZone("GMT+8")));
         QuickUtil.notNull(jacksonProperties.getTimeZone(), x -> objectMapper.setTimeZone(x));
-        // 注入时间格式: 默认yyyy-MM-dd HH:mm:ss.SSS
+        // 注入时间格式: 默认yyyy-MM-dd HH:mm:ss
         QuickUtil.is(BoolUtil.notEmpty(jacksonProperties.getDateFormat()),
                 () -> objectMapper.setDateFormat(new SimpleDateFormat(jacksonProperties.getDateFormat())),
-                () -> objectMapper.setDateFormat(XTime.MS_MINUS_BLANK_COLON_DOT.dateFormat));
+                () -> objectMapper.setDateFormat(XTime.SECOND_MINUS_BLANK_COLON.dateFormat));
     }
 }

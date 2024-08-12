@@ -1,5 +1,6 @@
 package cn.gmlee.tools.jackson.assist;
 
+import cn.gmlee.tools.base.enums.XTime;
 import cn.gmlee.tools.base.util.QuickUtil;
 import cn.gmlee.tools.jackson.config.JacksonModuleProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -8,9 +9,13 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.deser.std.DateDeserializers;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.DateSerializer;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
@@ -54,16 +59,20 @@ public class JacksonAssist {
      * @param objectMapper the object mapper
      * @param module       the module
      */
+    @SuppressWarnings("all")
     public static void registerTimeModule(ObjectMapper objectMapper, JacksonModuleProperties module) {
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         SimpleModule timeModule = new SimpleModule();
         // 序列化
-        timeModule.addSerializer(LocalDateTime.class, LocalDateTimeSerializer.INSTANCE);
-        timeModule.addSerializer(LocalDate.class, LocalDateSerializer.INSTANCE);
-        timeModule.addSerializer(LocalTime.class, LocalTimeSerializer.INSTANCE);
+        timeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
+        timeModule.addSerializer(LocalDate.class, new LocalDateSerializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
+        timeModule.addSerializer(LocalTime.class, new LocalTimeSerializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
         timeModule.addSerializer(Date.class, DateSerializer.instance);
         // 反序列
-        timeModule.addDeserializer(Date.class, TimeJsonDeserializer.instance);
+        timeModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
+        timeModule.addDeserializer(LocalDate.class, new LocalDateDeserializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
+        timeModule.addDeserializer(LocalTime.class, new LocalTimeDeserializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
+        timeModule.addDeserializer(Date.class, DateDeserializers.DateDeserializer.instance);
         objectMapper.registerModule(timeModule);
     }
 
