@@ -18,6 +18,6 @@ public class TxUtil {
         boolean currentTransactionReadOnly = TransactionSynchronizationManager.isCurrentTransactionReadOnly();
         String currentTransactionName = TransactionSynchronizationManager.getCurrentTransactionName();
         Integer currentTransactionIsolationLevel = TransactionSynchronizationManager.getCurrentTransactionIsolationLevel();
-        log.info("{} -> name: {}, active: {}, read-only: {}, level: {}", tip, actualTransactionActive, currentTransactionReadOnly, currentTransactionName, currentTransactionIsolationLevel);
+        log.info("{} -> tx: {}, active: {}, read-only: {}, level: {}", tip, currentTransactionName, actualTransactionActive, currentTransactionReadOnly, currentTransactionIsolationLevel);
     }
 }
