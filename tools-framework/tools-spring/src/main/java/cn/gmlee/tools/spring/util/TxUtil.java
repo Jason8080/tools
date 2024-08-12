@@ -15,8 +15,9 @@ public class TxUtil {
     public static void print(String... tips) {
         String tip = String.join(" • ", NullUtil.get(tips, new String[]{"事务信息"}));
         boolean actualTransactionActive = TransactionSynchronizationManager.isActualTransactionActive();
+        boolean currentTransactionReadOnly = TransactionSynchronizationManager.isCurrentTransactionReadOnly();
         String currentTransactionName = TransactionSynchronizationManager.getCurrentTransactionName();
         Integer currentTransactionIsolationLevel = TransactionSynchronizationManager.getCurrentTransactionIsolationLevel();
-        log.info("{} -> active: {}, name: {}, level: {}", tip, actualTransactionActive, currentTransactionName, currentTransactionIsolationLevel);
+        log.info("{} -> name: {}, active: {}, read-only: {}, level: {}", tip, actualTransactionActive, currentTransactionReadOnly, currentTransactionName, currentTransactionIsolationLevel);
     }
 }
