@@ -23,8 +23,8 @@ public class SignTests {
 
         // ---------------------
         Kv<String, String> kv = RsaUtil.generateSecretKey();
-        System.setProperty("tools.jackson.codec.publicKey", kv.getKey());
-        System.setProperty("tools.jackson.codec.privateKey", kv.getVal());
+        System.setProperty("tools.jackson.codec.default.publicKey", kv.getKey());
+        System.setProperty("tools.jackson.codec.default.privateKey", kv.getVal());
         // ---------------------
 
         Map<String, Object> map = new HashMap();
