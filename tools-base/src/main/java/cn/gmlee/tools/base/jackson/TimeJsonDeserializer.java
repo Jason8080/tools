@@ -1,4 +1,4 @@
-package cn.gmlee.tools.base.assist;
+package cn.gmlee.tools.base.jackson;
 
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.TimeUtil;

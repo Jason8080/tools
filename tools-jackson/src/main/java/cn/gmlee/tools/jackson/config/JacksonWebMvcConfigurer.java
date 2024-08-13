@@ -1,6 +1,6 @@
 package cn.gmlee.tools.jackson.config;
 
-import cn.gmlee.tools.base.assist.JacksonAssist;
+import cn.gmlee.tools.base.jackson.JacksonAssist;
 import cn.gmlee.tools.base.util.JsonUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -32,7 +32,9 @@ public class JacksonWebMvcConfigurer implements WebMvcConfigurer {
         converters.forEach(x -> {
             if (x instanceof AbstractJackson2HttpMessageConverter) {
                 ObjectMapper objectMapper = ((AbstractJackson2HttpMessageConverter) x).getObjectMapper();
+                // 注入框架原生配置
                 autoInjectSpringOriginal(objectMapper, jacksonProperties, jacksonModuleProperties);
+                // 注册其他默认配置
                 JacksonAssist.registerDefaultModule(objectMapper);
             }
         });

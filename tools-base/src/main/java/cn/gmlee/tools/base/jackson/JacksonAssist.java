@@ -1,14 +1,12 @@
-package cn.gmlee.tools.base.assist;
+package cn.gmlee.tools.base.jackson;
 
+import cn.gmlee.tools.base.define.Codec;
 import cn.gmlee.tools.base.enums.XTime;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.QuickUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.DateSerializer;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
@@ -121,7 +119,7 @@ public class JacksonAssist {
      */
     public static void registerIgnoreModule(ObjectMapper objectMapper) {
         // 忽略  null 的属性
-        objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         // 忽略 transient 修饰的属性
         objectMapper.configure(MapperFeature.PROPAGATE_TRANSIENT_MARKER, true);
     }
@@ -152,6 +150,29 @@ public class JacksonAssist {
         QuickUtil.isTrue(longToString || longToString == null, () -> typeModule.addSerializer(Long.class, ToStringSerializer.instance));
         // 注册模块
         objectMapper.registerModule(typeModule);
+    }
+
+    /**
+     * 注册编解码模块
+     *
+     * @param objectMapper
+     */
+    public static void registerCodecModule(ObjectMapper objectMapper, Codec... codecs) {
+        if(BoolUtil.isEmpty(codecs)){
+            return;
+        }
+        // 构建模块
+        SimpleModule codecModule = new SimpleModule();
+        for (Codec codec : codecs) {
+            if(codec instanceof JsonSerializer){
+                codecModule.addSerializer(codec.support(), (JsonSerializer) codec);
+            }
+            if(codec instanceof JsonDeserializer){
+                codecModule.addDeserializer(codec.support(), (JsonDeserializer) codec);
+            }
+        }
+        // 注册模块
+        objectMapper.registerModule(codecModule);
     }
 
     /**

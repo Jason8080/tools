@@ -1,6 +1,6 @@
 package cn.gmlee.tools.base.util;
 
-import cn.gmlee.tools.base.assist.JacksonAssist;
+import cn.gmlee.tools.base.jackson.JacksonAssist;
 import cn.gmlee.tools.base.enums.XTime;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
