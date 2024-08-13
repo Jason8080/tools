@@ -72,7 +72,7 @@ public class JacksonAssist {
         timeModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
         timeModule.addDeserializer(LocalDate.class, new LocalDateDeserializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
         timeModule.addDeserializer(LocalTime.class, new LocalTimeDeserializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
-        timeModule.addDeserializer(Date.class, DateDeserializers.DateDeserializer.instance);
+        timeModule.addDeserializer(Date.class, TimeJsonDeserializer.instance);
         objectMapper.registerModule(timeModule);
     }
 
