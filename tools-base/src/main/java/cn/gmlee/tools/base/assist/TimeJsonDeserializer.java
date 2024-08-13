@@ -1,4 +1,4 @@
-package cn.gmlee.tools.jackson.assist;
+package cn.gmlee.tools.base.assist;
 
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.TimeUtil;
@@ -23,7 +23,7 @@ public class TimeJsonDeserializer extends JsonDeserializer<Date> {
 
     @Override
     public Date deserialize(JsonParser p, DeserializationContext txt) throws IOException, JsonProcessingException {
-        // 如果是空则不处理
+        // 如果为空则不处理
         String text = p.getText();
         if (BoolUtil.isEmpty(text)) {
             return null;

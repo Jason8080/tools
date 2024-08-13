@@ -1,27 +1,14 @@
 package cn.gmlee.tools.base.util;
 
+import cn.gmlee.tools.base.assist.JacksonAssist;
 import cn.gmlee.tools.base.enums.XTime;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.databind.deser.std.DateDeserializers;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.ser.std.DateSerializer;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import org.springframework.util.StringUtils;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Date;
 import java.util.TimeZone;
 
 /**
@@ -39,47 +26,16 @@ public class JsonUtil {
      *
      * @return the object mapper
      */
-    @SuppressWarnings("all")
     private static ObjectMapper jacksonObjectMapper() {
         ObjectMapper objectMapper = new ObjectMapper();
-        // 忽略类型: 类为空时，不要抛异常
-        objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
-        // 包含空值
-        objectMapper.setSerializationInclusion(Include.ALWAYS);
-        SimpleModule timeModule = new SimpleModule();
-        objectMapper.setDateFormat(XTime.SECOND_MINUS_BLANK_COLON.dateFormat);
-        objectMapper.getSerializationConfig().with(XTime.SECOND_MINUS_BLANK_COLON.dateFormat);
-        objectMapper.getDeserializationConfig().with(XTime.SECOND_MINUS_BLANK_COLON.dateFormat);
-        // 时间字符串反序列化成Data
-        objectMapper.setTimeZone(TimeZone.getTimeZone("GMT+8"));
-        // 序列化
-        timeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
-        timeModule.addSerializer(LocalDate.class, new LocalDateSerializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
-        timeModule.addSerializer(LocalTime.class, new LocalTimeSerializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
-        timeModule.addSerializer(Date.class, DateSerializer.instance);
-        // 反序列
-        timeModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
-        timeModule.addDeserializer(LocalDate.class, new LocalDateDeserializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
-        timeModule.addDeserializer(LocalTime.class, new LocalTimeDeserializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
-        timeModule.addDeserializer(Date.class, DateDeserializers.DateDeserializer.instance);
-        objectMapper.registerModule(timeModule);
-        // 序列化固定排序
-        objectMapper.configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
-        // 允许出现单引号
-        objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
-        // 接受空字符和空对象
-        objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
-        // 接受简单值: 数组
-        objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-        // 忽略未知属性
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        // 循环引用: 如果出现循环引用序列号会比较慢
-//        objectMapper.configure(SerializationFeature.FAIL_ON_SELF_REFERENCES, false);
-        // 低版本不支持
-//        objectMapper.configure(SerializationFeature.WRITE_SELF_REFERENCES_AS_NULL, true);
+        // 默认注册: 保持与框架同步
+        JacksonAssist.registerDefaultModule(objectMapper);
+        // 默认转换: 默认long类型会转换成String
+        JacksonAssist.registerTypeModule(objectMapper, true);
+        // 默认时区: 默认 GMT+8 时区 yyyy-MM-dd HH:mm:ss 格式
+        JacksonAssist.registerTimeZoneModule(objectMapper, TimeZone.getTimeZone("GMT+8"), XTime.SECOND_MINUS_BLANK_COLON.pattern);
         return objectMapper;
     }
-
     /**
      * Gets instance.
      *
@@ -87,26 +43,6 @@ public class JsonUtil {
      */
     public static ObjectMapper getInstance() {
         return objectMapper;
-    }
-
-    /**
-     * 格式化类型
-     *
-     * @param pattern 格式化类型
-     */
-    public static void setDateFormat(String pattern) {
-        DateFormat dateFormat = new SimpleDateFormat(pattern);
-        getInstance().setDateFormat(dateFormat);
-        getInstance().getDeserializationConfig().with(dateFormat);
-    }
-
-    /**
-     * 设置时区
-     *
-     * @param tz 时区代号
-     */
-    public static void setTimeZone(String tz) {
-        getInstance().setTimeZone(TimeZone.getTimeZone(tz));
     }
 
     /**

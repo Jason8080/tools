@@ -1,15 +1,14 @@
-package cn.gmlee.tools.jackson.assist;
+package cn.gmlee.tools.base.assist;
 
 import cn.gmlee.tools.base.enums.XTime;
+import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.QuickUtil;
-import cn.gmlee.tools.jackson.config.JacksonModuleProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.deser.std.DateDeserializers;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.std.DateSerializer;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
@@ -20,10 +19,12 @@ import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * The type Jackson assist.
@@ -33,36 +34,36 @@ import java.util.Date;
  */
 public class JacksonAssist {
     /**
-     * 注册所有模块.
+     * 注册默认模块.
      *
      * @param objectMapper the object mapper
-     * @param module       the module
      */
-    public static void registerAllModule(ObjectMapper objectMapper, JacksonModuleProperties module) {
-        // 注册时间类型转换模块
-        JacksonAssist.registerTimeModule(objectMapper, module);
-        // 注册其他类型转换模块
-        JacksonAssist.registerConvertModule(objectMapper, module);
-        // 注册异常禁止抛出模块
-        JacksonAssist.registerDisableModule(objectMapper, module);
-        // 注册常见情况允许模块
-        JacksonAssist.registerAllowModule(objectMapper, module);
-        // 注册特定忽略场景模块
-        JacksonAssist.registerIgnoreModule(objectMapper, module);
-        // 注册开启特殊功能模块
-        JacksonAssist.registerEnableModule(objectMapper, module);
+    public static void registerDefaultModule(ObjectMapper objectMapper) {
+        // 注册时间
+        JacksonAssist.registerTimeModule(objectMapper);
+        // 注册禁用
+        JacksonAssist.registerDisableModule(objectMapper);
+        // 注册启用
+        JacksonAssist.registerEnableModule(objectMapper);
+        // 注册忽略
+        JacksonAssist.registerIgnoreModule(objectMapper);
+        // 注册允许
+        JacksonAssist.registerAllowModule(objectMapper);
+        // 注册接收
+        JacksonAssist.registerAcceptModule(objectMapper);
     }
 
     /**
      * 注册时间模块
      *
      * @param objectMapper the object mapper
-     * @param module       the module
      */
-    @SuppressWarnings("all")
-    public static void registerTimeModule(ObjectMapper objectMapper, JacksonModuleProperties module) {
+    public static void registerTimeModule(ObjectMapper objectMapper) {
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         SimpleModule timeModule = new SimpleModule();
+        // 默认值
+        objectMapper.getSerializationConfig().with(XTime.SECOND_MINUS_BLANK_COLON.dateFormat);
+        objectMapper.getDeserializationConfig().with(XTime.SECOND_MINUS_BLANK_COLON.dateFormat);
         // 序列化
         timeModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
         timeModule.addSerializer(LocalDate.class, new LocalDateSerializer(XTime.SECOND_MINUS_BLANK_COLON.timeFormat));
@@ -77,26 +78,11 @@ public class JacksonAssist {
     }
 
     /**
-     * 注册转换模块
-     *
-     * @param objectMapper the object mapper
-     * @param module       the module
-     */
-    public static void registerConvertModule(ObjectMapper objectMapper, JacksonModuleProperties module) {
-        SimpleModule typeModule = new SimpleModule();
-        // Long类型都以String方式返回: 解决精度丢失问题
-        QuickUtil.isTrue(module.getLongToString(), () -> typeModule.addSerializer(Long.class, ToStringSerializer.instance));
-        objectMapper.registerModule(typeModule);
-    }
-
-
-    /**
      * 注册禁用模块
      *
      * @param objectMapper the object mapper
-     * @param module       the module
      */
-    public static void registerDisableModule(ObjectMapper objectMapper, JacksonModuleProperties module) {
+    public static void registerDisableModule(ObjectMapper objectMapper) {
         // 序列化时: 空对象不抛出异常
         objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
         // 序列化时: 对象少了属性不抛出异常
@@ -106,14 +92,25 @@ public class JacksonAssist {
     /**
      * 注册允许模块
      *
-     * @param objectMapper
-     * @param module
+     * @param objectMapper the object mapper
      */
-    public static void registerAllowModule(ObjectMapper objectMapper, JacksonModuleProperties module) {
+    public static void registerAllowModule(ObjectMapper objectMapper) {
         // 允许属性名称没有引号
         objectMapper.configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
         // 允许单引号
         objectMapper.configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+    }
+
+    /**
+     * 注册接收模块.
+     *
+     * @param objectMapper the object mapper
+     */
+    public static void registerAcceptModule(ObjectMapper objectMapper) {
+        // 接受空对象: 空符
+        objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
+        // 接受简单值: 数组
+        objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
     }
 
 
@@ -121,9 +118,8 @@ public class JacksonAssist {
      * 注册忽略模块
      *
      * @param objectMapper the object mapper
-     * @param module       the module
      */
-    public static void registerIgnoreModule(ObjectMapper objectMapper, JacksonModuleProperties module) {
+    public static void registerIgnoreModule(ObjectMapper objectMapper) {
         // 忽略  null 的属性
         objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
         // 忽略 transient 修饰的属性
@@ -135,12 +131,42 @@ public class JacksonAssist {
      * 注册启用模块
      *
      * @param objectMapper the object mapper
-     * @param module       the module
      */
-    public static void registerEnableModule(ObjectMapper objectMapper, JacksonModuleProperties module) {
+    public static void registerEnableModule(ObjectMapper objectMapper) {
         // 开启 json 格式化
-        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+//        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         // 开启 json 有序性
         objectMapper.configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
+    }
+
+    /**
+     * Register type module.
+     *
+     * @param objectMapper the object mapper
+     * @param longToString the long to string
+     */
+    public static void registerTypeModule(ObjectMapper objectMapper, Boolean longToString) {
+        // 构建模块
+        SimpleModule typeModule = new SimpleModule();
+        // 精度丢失
+        QuickUtil.isTrue(longToString || longToString == null, () -> typeModule.addSerializer(Long.class, ToStringSerializer.instance));
+        // 注册模块
+        objectMapper.registerModule(typeModule);
+    }
+
+    /**
+     * Register time zone module.
+     *
+     * @param objectMapper the object mapper
+     * @param timeZone     the time zone
+     * @param dateFormat   the date format
+     */
+    public static void registerTimeZoneModule(ObjectMapper objectMapper, TimeZone timeZone, String dateFormat) {
+        // 注入时区
+        QuickUtil.notNull(timeZone, x -> objectMapper.setTimeZone(x));
+        // 注入时间格式: 默认yyyy-MM-dd HH:mm:ss
+        QuickUtil.is(BoolUtil.notEmpty(dateFormat),
+                () -> objectMapper.setDateFormat(new SimpleDateFormat(dateFormat)),
+                () -> objectMapper.setDateFormat(XTime.SECOND_MINUS_BLANK_COLON.dateFormat));
     }
 }

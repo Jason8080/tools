@@ -1,9 +1,7 @@
 package cn.gmlee.tools.jackson.config;
 
-import cn.gmlee.tools.base.enums.XTime;
-import cn.gmlee.tools.base.util.BoolUtil;
-import cn.gmlee.tools.base.util.QuickUtil;
-import cn.gmlee.tools.jackson.assist.JacksonAssist;
+import cn.gmlee.tools.base.assist.JacksonAssist;
+import cn.gmlee.tools.base.util.JsonUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.jackson.JacksonProperties;
@@ -13,7 +11,6 @@ import org.springframework.http.converter.json.AbstractJackson2HttpMessageConver
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.annotation.Resource;
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 /**
@@ -35,22 +32,19 @@ public class JacksonWebMvcConfigurer implements WebMvcConfigurer {
         converters.forEach(x -> {
             if (x instanceof AbstractJackson2HttpMessageConverter) {
                 ObjectMapper objectMapper = ((AbstractJackson2HttpMessageConverter) x).getObjectMapper();
-                autoInjectSpringOriginal(objectMapper, jacksonProperties);
-                JacksonAssist.registerAllModule(objectMapper, jacksonModuleProperties);
+                autoInjectSpringOriginal(objectMapper, jacksonProperties, jacksonModuleProperties);
+                JacksonAssist.registerDefaultModule(objectMapper);
             }
         });
     }
 
 
-    private static void autoInjectSpringOriginal(ObjectMapper objectMapper, JacksonProperties jacksonProperties) {
-        // 注入时区
-//        QuickUtil.is(BoolUtil.notNull(jacksonProperties.getTimeZone()),
-//                () -> objectMapper.setTimeZone(jacksonProperties.getTimeZone()),
-//                () -> objectMapper.setTimeZone(TimeZone.getTimeZone("GMT+8")));
-        QuickUtil.notNull(jacksonProperties.getTimeZone(), x -> objectMapper.setTimeZone(x));
-        // 注入时间格式: 默认yyyy-MM-dd HH:mm:ss
-        QuickUtil.is(BoolUtil.notEmpty(jacksonProperties.getDateFormat()),
-                () -> objectMapper.setDateFormat(new SimpleDateFormat(jacksonProperties.getDateFormat())),
-                () -> objectMapper.setDateFormat(XTime.SECOND_MINUS_BLANK_COLON.dateFormat));
+    private static void autoInjectSpringOriginal(ObjectMapper objectMapper, JacksonProperties jacksonProperties, JacksonModuleProperties jacksonModuleProperties) {
+        // 类型转换
+        JacksonAssist.registerTypeModule(objectMapper, jacksonModuleProperties.getLongToString());
+        JacksonAssist.registerTypeModule(JsonUtil.getInstance(), jacksonModuleProperties.getLongToString());
+        // 时区转换
+        JacksonAssist.registerTimeZoneModule(objectMapper, jacksonProperties.getTimeZone(), jacksonProperties.getDateFormat());
+        JacksonAssist.registerTimeZoneModule(JsonUtil.getInstance(), jacksonProperties.getTimeZone(), jacksonProperties.getDateFormat());
     }
 }
