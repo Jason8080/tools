@@ -51,6 +51,7 @@ public class SignTests {
     public static class Aa {
         private Date a = new Date("Fri Aug 09 10:28:35 CST 2024");
         private LocalDateTime a1 = LocalDateTimeUtil.toLocalDateTime(a);
+        @Codec
         private String b = "b";
         @Codec
         private String b1 = "b1";

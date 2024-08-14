@@ -1,7 +1,6 @@
 package cn.gmlee.tools.jackson.codec;
 
 import cn.gmlee.tools.base.define.RsaCodec;
-import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.jackson.anno.Codec;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -18,18 +17,17 @@ public class RsaCodecJsonSerializer extends JsonSerializer<String> implements Rs
 
     private String appId;
 
-    @Override
-    public String getPrivateKey() {
-        String appId = BoolUtil.isEmpty(this.appId) ? "default" : this.appId;
-        String key = String.format("tools.jackson.codec.%s.privateKey", appId);
-        return System.getProperty(key);
+    public RsaCodecJsonSerializer() {
+        this.appId = null;
+    }
+
+    public RsaCodecJsonSerializer(String appId) {
+        this.appId = appId;
     }
 
     @Override
-    public String getPublicKey() {
-        String appId = BoolUtil.isEmpty(this.appId) ? "default" : this.appId;
-        String key = String.format("tools.jackson.codec.%s.publicKey", appId);
-        return System.getProperty(key);
+    public String getAppId() {
+        return this.appId;
     }
 
     @Override
@@ -50,10 +48,14 @@ public class RsaCodecJsonSerializer extends JsonSerializer<String> implements Rs
                 codec = property.getContextAnnotation(Codec.class);
             }
             if (codec != null) {
-                this.appId = codec.appId();
-                return this;
+                return this.that(codec);
             }
         }
         return new StringSerializer();
+    }
+
+    private JsonSerializer<?> that(Codec codec) {
+        this.appId = codec.appId();
+        return this;
     }
 }
