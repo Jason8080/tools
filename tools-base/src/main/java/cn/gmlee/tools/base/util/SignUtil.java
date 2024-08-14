@@ -116,7 +116,7 @@ public class SignUtil {
      * @param <T>       the type parameter
      * @param t         the t
      * @param secretKey the secret key
-     * @return string
+     * @return string string
      */
     public static <T> String sign(T t, String secretKey) {
         String json = JsonUtil.toJson(t);
@@ -164,6 +164,16 @@ public class SignUtil {
             }
         }
         return kvs.toArray(new Kv[0]);
+    }
+
+    /**
+     * Gets header map.
+     *
+     * @param sign the sign
+     * @return the header map
+     */
+    public static Map<String, String> getHeaderMap(Sign sign) {
+        return ClassUtil.generateMap(sign);
     }
 
     /**
