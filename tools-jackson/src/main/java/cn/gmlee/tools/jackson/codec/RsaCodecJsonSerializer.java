@@ -1,7 +1,11 @@
 package cn.gmlee.tools.jackson.codec;
 
 import cn.gmlee.tools.base.define.RsaCodec;
+import cn.gmlee.tools.base.enums.XCode;
+import cn.gmlee.tools.base.ex.SkillException;
+import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
+import cn.gmlee.tools.base.util.QuickUtil;
 import cn.gmlee.tools.jackson.anno.Codec;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.BeanProperty;
@@ -10,9 +14,11 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.ContextualSerializer;
 import com.fasterxml.jackson.databind.ser.std.StringSerializer;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 
+@Slf4j
 public class RsaCodecJsonSerializer extends JsonSerializer<String> implements RsaCodec, ContextualSerializer {
 
     private String appId;
@@ -48,6 +54,9 @@ public class RsaCodecJsonSerializer extends JsonSerializer<String> implements Rs
                 codec = property.getContextAnnotation(Codec.class);
             }
             if (codec != null) {
+                boolean isCharSequence = BoolUtil.eq(String.class, property.getType().getRawClass());
+                String msg = String.format("@Codec (%s)%s is not string!", property.getType().getRawClass().getSimpleName(), property.getName());
+                QuickUtil.isFalse(isCharSequence, () -> log.error("编码异常", new SkillException(XCode.FAIL.code, msg)));
                 return this.that(codec);
             }
         }
