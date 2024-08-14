@@ -1,5 +1,6 @@
 package cn.gmlee.tools.base.util;
 
+import cn.gmlee.tools.base.builder.KvBuilder;
 import cn.gmlee.tools.base.enums.XCode;
 import cn.gmlee.tools.base.mod.HttpResult;
 import cn.gmlee.tools.base.mod.Kv;
@@ -371,6 +372,35 @@ public class HttpUtil {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 签名调用POST请求(application/json).
+     *
+     * @param url     the url
+     * @param body    the body
+     * @param headers the headers
+     * @return t t
+     */
+    public static HttpResult signPost(String secretKey, String url, Object body, Kv<String, String>... headers) {
+        // 收集参数
+        Map<String, Object> all = new HashMap<>();
+        // 查询参数
+        all.putAll(WebUtil.getParams(url));
+        // 头部参数
+        Map<String, String> header = Arrays.stream(headers).collect(Collectors.toMap(Kv::getKey, Kv::getVal));
+        all.putAll(header);
+        // 体部参数
+        String json = JsonUtil.toJson(body);
+        Map<? extends String, ?> bodies = JsonUtil.toBean(json, Map.class);
+        // 非{}对象类型可能反序列化失败: 但是这类参数约定不参与签名
+        QuickUtil.notEmpty(bodies, x -> all.putAll(bodies));
+        // 开始签名
+        all.remove(SignUtil.getSignature());
+        String sign = SignUtil.sign(all, secretKey);
+        // 添加签名
+        header.put(SignUtil.getSignature(), sign);
+        return HttpUtil.post(url, body, KvBuilder.array(header));
     }
 
     /**
