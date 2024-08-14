@@ -182,6 +182,8 @@ public class SignUtil {
         map.putAll(queryMap);
         Map<String, Object> headerMap = getHeaderMap(req, extraHeaders);
         map.putAll(headerMap);
+        // 去除签名
+        map.remove(getSignature());
         return sign(map, secretKey);
     }
 
