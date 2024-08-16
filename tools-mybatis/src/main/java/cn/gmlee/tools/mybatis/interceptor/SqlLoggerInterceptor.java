@@ -53,8 +53,9 @@ public class SqlLoggerInterceptor implements Interceptor {
         String tx = TransactionSynchronizationManager.getCurrentTransactionName();
         boolean active = TransactionSynchronizationManager.isActualTransactionActive();
         boolean readOnly = TransactionSynchronizationManager.isCurrentTransactionReadOnly();
+        Integer isolation = TransactionSynchronizationManager.getCurrentTransactionIsolationLevel();
         // 打印语句
-        log.info("Transaction(active/read-only/ms): {}({}/{}/{})\r\n\r\n==> Executing sql: {}", tx, active, readOnly, ms, sql);
+        log.info("Transaction(active/read-only/isolation/ms): {}({}/{}/{})\r\n\r\n==> Executing sql: {}", tx, active, readOnly, isolation, ms, sql);
     }
 
 }
