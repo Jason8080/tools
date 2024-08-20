@@ -10,9 +10,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>tools-base</artifactId>
+
     <version>5.5.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
+
+    <!--项目信息-->
+    <name>tools-base</name>
+    <description>TOOLS-BASE: 纯净版(没有依赖放心引入)开发工具包, 应有仅有!</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-base</url>
 
     <properties>
         <jsqlparser.version>4.0</jsqlparser.version>

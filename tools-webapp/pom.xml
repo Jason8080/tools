@@ -10,9 +10,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>tools-webapp</artifactId>
+
     <version>5.5.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
+
+    <!--项目信息-->
+    <name>tools-webapp</name>
+    <description>TOOLS-WEBAPP: WEB相关的应用配置(包含:静态文件映射、登录校验、跨域配置、验证码自动化、异常处理等)</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-webapp</url>
 
     <dependencies>
         <!-- ============================================================ -->

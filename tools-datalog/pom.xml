@@ -13,6 +13,11 @@
 
     <packaging>jar</packaging>
 
+    <!--项目信息-->
+    <name>tools-datalog</name>
+    <description>TOOLS-DATALOG: 将详细的将每次操作变更前后的数据记录到数据库</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-datalog</url>
+
     <dependencies>
         <!-- ============================================================ -->
         <dependency>

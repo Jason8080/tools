@@ -10,9 +10,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>tools-kv</artifactId>
+
     <version>5.5.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
+
+    <!--项目信息-->
+    <name>tools-kv</name>
+    <description>TOOLS-KV: 基于数据库实现的redis方案</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-kv</url>
 
     <dependencies>
         <!-- ============================================================ -->

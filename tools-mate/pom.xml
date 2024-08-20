@@ -11,8 +11,14 @@
 
     <artifactId>tools-mate</artifactId>
 
-    <packaging>jar</packaging>
     <version>5.5.0-SNAPSHOT</version>
+
+    <packaging>jar</packaging>
+
+    <!--项目信息-->
+    <name>tools-mate</name>
+    <description>TOOLS-MATE: 数据权限框架(有行、列、编解码等能力)</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-mate</url>
 
     <properties>
         <jsqlparser.version>4.0</jsqlparser.version>

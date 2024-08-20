@@ -11,7 +11,14 @@
 
     <artifactId>tools-overstep</artifactId>
 
+    <version>5.5.0-SNAPSHOT</version>
+
     <packaging>jar</packaging>
+
+    <!--项目信息-->
+    <name>tools-overstep</name>
+    <description>TOOLS-overstep: 接口越权的加密解决方案</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-overstep</url>
 
     <dependencies>
         <dependency>

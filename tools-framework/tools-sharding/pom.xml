@@ -10,9 +10,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>tools-sharding</artifactId>
+
     <version>5.5.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
+
+    <!--项目信息-->
+    <name>tools-sharding</name>
+    <description>TOOLS-SHARDING: 基于ShardingJdbc自动扩缩容分库分表工件</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-sharding</url>
 
     <properties>
         <shardingSphere.version>5.3.0</shardingSphere.version>

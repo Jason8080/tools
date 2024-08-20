@@ -11,7 +11,15 @@
     </parent>
 
     <artifactId>tools-gray</artifactId>
+
     <version>5.5.0-SNAPSHOT</version>
+
+    <packaging>jar</packaging>
+
+    <!--项目信息-->
+    <name>tools-gray</name>
+    <description>TOOLS-GRAY: 基于SpringCloudGateway+Nacos方案全端(网关+服务端+客户端)通用的全链路灰度发布方案</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-gray</url>
 
     <properties>
         <spring.cloud>3.0.2</spring.cloud>

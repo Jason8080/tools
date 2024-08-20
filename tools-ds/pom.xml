@@ -10,9 +10,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>tools-ds</artifactId>
+
     <version>5.5.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
+
+    <!--项目信息-->
+    <name>tools-ds</name>
+    <description>TOOLS-DS: 动态数据源相关支持(包含读写分离等)</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-ds</url>
 
     <dependencies>
         <dependency>

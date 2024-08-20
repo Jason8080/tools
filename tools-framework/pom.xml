@@ -15,6 +15,11 @@
 
     <packaging>pom</packaging>
 
+    <!--项目信息-->
+    <name>tools-framework</name>
+    <description>TOOLS(图尔斯): 是一款Java开发库, 包含但不限于: 基础工具包, 解决方案, 微架构等</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-framework</url>
+
     <modules>
         <!-- 临时注释 -->
         <module>tools-seata</module>

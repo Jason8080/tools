@@ -10,10 +10,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>tools-dt</artifactId>
+
     <version>5.5.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
+    <!--项目信息-->
+    <name>tools-dt</name>
+    <description>TOOLS-DT: 分布式事务框架</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-dt</url>
 
     <dependencies>
         <dependency>

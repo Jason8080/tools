@@ -10,9 +10,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>tools-cloud</artifactId>
+
     <version>5.5.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
+
+    <!--项目信息-->
+    <name>tools-cloud</name>
+    <description>TOOLS-CLOUD: SpringCloud框架的辅助插件(Feign调用日志等)</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-cloud</url>
 
     <dependencies>
         <dependency>

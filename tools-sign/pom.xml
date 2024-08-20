@@ -13,6 +13,13 @@
 
     <version>5.5.0-SNAPSHOT</version>
 
+    <packaging>jar</packaging>
+
+    <!--项目信息-->
+    <name>tools-sign</name>
+    <description>TOOLS-REDIS: 接口签名独立工具包(支持SpringMVC以及OpenFeign)</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-sign</url>
+
     <dependencies>
         <dependency>
             <groupId>cn.gmlee.tools</groupId>

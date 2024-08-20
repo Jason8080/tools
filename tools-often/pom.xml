@@ -10,9 +10,15 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>tools-often</artifactId>
+
     <version>5.5.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
+
+    <!--项目信息-->
+    <name>tools-often</name>
+    <description>TOOLS-OFTEN: TOOLS常规依赖</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-often</url>
 
     <dependencies>
         <!-- ============================================================ -->

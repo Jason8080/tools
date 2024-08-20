@@ -10,7 +10,15 @@
     </parent>
 
     <artifactId>tools-profile</artifactId>
+
     <version>5.5.0-SNAPSHOT</version>
+
+    <packaging>jar</packaging>
+
+    <!--项目信息-->
+    <name>tools-profile</name>
+    <description>TOOLS-PROFILE: 数据隔离工件(使正式数据与测试数据相互独立互不影响)</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-profile</url>
 
     <properties>
         <jsqlparser.version>4.0</jsqlparser.version>

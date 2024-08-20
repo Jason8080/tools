@@ -11,6 +11,15 @@
 
     <artifactId>tools-prevent</artifactId>
 
+    <version>5.5.0-SNAPSHOT</version>
+
+    <packaging>jar</packaging>
+
+    <!--项目信息-->
+    <name>tools-prevent</name>
+    <description>TOOLS-PREVENT: 接口限流插件</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-prevent</url>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>

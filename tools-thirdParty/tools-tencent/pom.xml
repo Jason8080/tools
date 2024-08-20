@@ -15,6 +15,11 @@
 
     <packaging>jar</packaging>
 
+    <!--项目信息-->
+    <name>tools-tencent</name>
+    <description>TOOLS-TENCENT: Tencent相关的开放平台集成</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-tencent</url>
+
     <dependencies>
         <dependency>
             <groupId>cn.gmlee.tools</groupId>

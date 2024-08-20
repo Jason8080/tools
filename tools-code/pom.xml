@@ -13,6 +13,11 @@
 
     <packaging>jar</packaging>
 
+    <!--项目信息-->
+    <name>tools-code</name>
+    <description>TOOLS-CODE: 基于MybatisPlus的代码生成器(controller+service+dao)</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-code</url>
+
     <dependencies>
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
