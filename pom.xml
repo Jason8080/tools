@@ -82,6 +82,7 @@
         <!--<module>tools-prevent</module>-->
         <module>tools-profile</module>
         <module>tools-gray</module>
+        <module>tools-sign</module>
     </modules>
 
     <properties>

@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  com.ldw.kit.api.conf.LdwSignatureAutoConfiguration

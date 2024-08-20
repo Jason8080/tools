@@ -402,6 +402,24 @@ public class QuickUtil {
     }
 
     /**
+     * 非空才执行.
+     *
+     * @param <O> the type parameter
+     * @param o   the o
+     * @param run the run
+     */
+    public static <O extends CharSequence> void notEmpty(O o, Function.Zero run) {
+        try {
+            if (BoolUtil.notEmpty(o)) {
+                run.run();
+            }
+        } catch (Throwable throwable) {
+            logger.error("敏捷工具提示: ", throwable);
+            ExceptionUtil.cast(throwable);
+        }
+    }
+
+    /**
      * Is empty.
      *
      * @param <O> the type parameter

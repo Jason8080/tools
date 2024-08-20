@@ -120,6 +120,17 @@ public class SignUtil {
      */
     public static <T> String sign(T t, String secretKey) {
         String json = JsonUtil.toJson(t);
+        return signDirect(secretKey, json);
+    }
+
+    /**
+     * @see SignUtil#sign(java.lang.Object, java.lang.String)
+     *
+     * @param secretKey the secret key
+     * @param json      the json
+     * @return the string
+     */
+    public static String signDirect(String secretKey, String json) {
         logger.info("签名内容: {}", json);
         String concat = secretKey.concat(json).concat(secretKey);
         logger.info("签名字符: {}", concat);
