@@ -20,6 +20,14 @@
     <description>TOOLS-JACKSON: 基于jackson序列化和反序列化的常规SpringMvc配置</description>
     <url>https://github.com/Jason8080/tools/tree/master/tools-jackson</url>
 
+    <!--开源协议-->
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
     <dependencies>
         <dependency>
             <groupId>cn.gmlee.tools</groupId>

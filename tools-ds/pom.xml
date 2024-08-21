@@ -20,6 +20,14 @@
     <description>TOOLS-DS: 动态数据源相关支持(包含读写分离等)</description>
     <url>https://github.com/Jason8080/tools/tree/master/tools-ds</url>
 
+    <!--开源协议-->
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
     <dependencies>
         <dependency>
             <groupId>cn.gmlee.tools</groupId>

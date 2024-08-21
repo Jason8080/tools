@@ -21,6 +21,14 @@
     <description>TOOLS-GRAY: 基于SpringCloudGateway+Nacos方案全端(网关+服务端+客户端)通用的全链路灰度发布方案</description>
     <url>https://github.com/Jason8080/tools/tree/master/tools-gray</url>
 
+    <!--开源协议-->
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
     <properties>
         <spring.cloud>3.0.2</spring.cloud>
     </properties>

@@ -20,6 +20,14 @@
     <description>TOOLS-SEATA: Ali的分布式事务集成</description>
     <url>https://github.com/Jason8080/tools/tree/master/tools-seata</url>
 
+    <!--开源协议-->
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
     <dependencies>
         <dependency>
             <groupId>cn.gmlee.tools</groupId>

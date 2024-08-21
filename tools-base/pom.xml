@@ -20,6 +20,14 @@
     <description>TOOLS-BASE: 纯净版(没有依赖放心引入)开发工具包, 应有仅有!</description>
     <url>https://github.com/Jason8080/tools/tree/master/tools-base</url>
 
+    <!--开源协议-->
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
     <properties>
         <jsqlparser.version>4.0</jsqlparser.version>
     </properties>

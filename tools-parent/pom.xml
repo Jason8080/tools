@@ -20,6 +20,14 @@
     <description>TOOLS(图尔斯): 是一款Java开发库, 包含但不限于: 基础工具包, 解决方案, 微架构等</description>
     <url>https://github.com/Jason8080/tools/tree/master/tools-parent</url>
 
+    <!--开源协议-->
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
     <dependencyManagement>
         <dependencies>
             <!-- 航空母舰集装箱 >>> Tools -->
@@ -122,6 +130,11 @@
             <dependency>
                 <groupId>cn.gmlee.tools</groupId>
                 <artifactId>tools-cache2</artifactId>
+                <version>5.5.0-SNAPSHOT</version>
+            </dependency>
+            <dependency>
+                <groupId>cn.gmlee.tools</groupId>
+                <artifactId>tools-parent</artifactId>
                 <version>5.5.0-SNAPSHOT</version>
             </dependency>
             <dependency>

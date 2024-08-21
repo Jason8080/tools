@@ -18,6 +18,14 @@
     <description>TOOLS-CODE: 基于MybatisPlus的代码生成器(controller+service+dao)</description>
     <url>https://github.com/Jason8080/tools/tree/master/tools-code</url>
 
+    <!--开源协议-->
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
     <dependencies>
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
