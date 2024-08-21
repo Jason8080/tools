@@ -49,10 +49,6 @@
         </developer>
     </developers>
 
-    <properties>
-        <jsqlparser.version>4.0</jsqlparser.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
@@ -71,6 +67,7 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-jdbc</artifactId>
+            <version>5.2.9.RELEASE</version>
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
@@ -84,12 +81,14 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
+            <version>2.3.4.RELEASE</version>
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
+            <version>1.7.30</version>
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
@@ -98,6 +97,7 @@
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>
             <artifactId>ojdbc8</artifactId>
+            <version>19.3.0.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

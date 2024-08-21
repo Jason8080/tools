@@ -54,38 +54,53 @@
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-base</artifactId>
             <version>5.5.0-SNAPSHOT</version>
+            <scope>provided</scope>
+            <optional>true</optional>
         </dependency>
         <!-- ============================================================ -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-redis</artifactId>
+            <version>2.3.4.RELEASE</version>
+            <scope>provided</scope>
+            <optional>true</optional>
         </dependency>
         <!-- ============================================================ -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-pool2</artifactId>
+            <version>2.8.1</version>
+            <scope>provided</scope>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
+            <version>3.3.0</version>
+            <scope>provided</scope>
             <optional>true</optional>
         </dependency>
         <!-- ============================================================ -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+            <version>2.11.2</version>
+            <scope>provided</scope>
             <optional>true</optional>
         </dependency>
         <!-- ============================================================ -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+            <version>2.3.4.RELEASE</version>
+            <scope>provided</scope>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.aspectj</groupId>
             <artifactId>aspectjrt</artifactId>
+            <version>1.9.6</version>
+            <scope>provided</scope>
             <optional>true</optional>
         </dependency>
 

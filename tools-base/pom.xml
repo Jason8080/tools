@@ -49,19 +49,17 @@
         </developer>
     </developers>
 
-    <properties>
-        <jsqlparser.version>4.0</jsqlparser.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+            <version>1.18.22</version>
         </dependency>
         <!-- ============================================================ -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+            <version>2.11.2</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -164,6 +162,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+            <version>2.3.4.RELEASE</version>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -175,6 +174,7 @@
         <dependency>
             <groupId>javax.validation</groupId>
             <artifactId>validation-api</artifactId>
+            <version>2.0.1.Final</version>
             <optional>true</optional>
         </dependency>
         <!-- ============================================================ -->
@@ -182,17 +182,19 @@
             <groupId>org.javassist</groupId>
             <artifactId>javassist</artifactId>
             <version>${javassist.version}</version>
-            <scope>provided</scope>
+            <optional>true</optional>
         </dependency>
         <!-- ============================================================ -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
-            <scope>provided</scope>
+            <version>2.3.4.RELEASE</version>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <optional>true</optional>
             <scope>test</scope>
         </dependency>
         <!-- ============================================================ -->

@@ -49,20 +49,19 @@
         </developer>
     </developers>
 
-    <properties>
-        <jsqlparser.version>4.0</jsqlparser.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-base</artifactId>
             <version>5.5.0-SNAPSHOT</version>
+            <scope>provided</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-mybatis</artifactId>
             <version>5.5.0-SNAPSHOT</version>
+            <optional>true</optional>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -70,10 +69,12 @@
             <artifactId>tools-code</artifactId>
             <version>5.5.0-SNAPSHOT</version>
             <scope>test</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
+            <version>2.3.4.RELEASE</version>
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
@@ -82,12 +83,14 @@
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-logback</artifactId>
             <version>5.5.0-SNAPSHOT</version>
+            <optional>true</optional>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-ds</artifactId>
             <version>5.5.0-SNAPSHOT</version>
+            <optional>true</optional>
             <scope>test</scope>
         </dependency>
         <!-- ============================================================ -->
@@ -104,26 +107,32 @@
             <artifactId>mybatis-plus-boot-starter</artifactId>
             <version>${mybatis-plus.version}</version>
             <optional>true</optional>
+            <scope>provided</scope>
         </dependency>
         <!-- ============================================================ -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
+            <version>2.3.4.RELEASE</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
+            <version>2.3.4.RELEASE</version>
             <optional>true</optional>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <version>2.3.4.RELEASE</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
+            <version>4.13</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
