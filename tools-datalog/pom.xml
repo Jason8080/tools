@@ -9,8 +9,8 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
+    <groupId>cn.gmlee.tools</groupId>
     <artifactId>tools-datalog</artifactId>
-
     <packaging>jar</packaging>
 
     <!--项目信息-->

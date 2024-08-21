@@ -10,8 +10,8 @@
         <version>5.5.0-SNAPSHOT</version>
     </parent>
 
+    <groupId>cn.gmlee.tools</groupId>
     <artifactId>tools-gray</artifactId>
-
     <version>5.5.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
