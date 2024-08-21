@@ -19,11 +19,6 @@ echo "==========================================================================
 call mvn clean deploy -DskipTests -Ppg,dep --file=tools-base/pom.xml -DpomFile=pom.xml
 call mvn install -DskipTests -Psource --file=tools-base/pom.xml -DpomFile=pom.xml
 echo "======================================================================================"
-echo "				Start deploy tools-often"
-echo "======================================================================================"
-call mvn clean deploy -DskipTests -Ppg,dep --file=tools-often/pom.xml -DpomFile=pom.xml
-call mvn install -DskipTests -Psource --file=tools-often/pom.xml -DpomFile=pom.xml
-echo "======================================================================================"
 echo "				Start deploy tools-cloud"
 echo "======================================================================================"
 call mvn clean deploy -DskipTests -Ppg,dep --file=tools-cloud/pom.xml -DpomFile=pom.xml

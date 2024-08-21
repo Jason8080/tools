@@ -1,10 +1,9 @@
 package cn.gmlee.tools.kv.config;
 
 import cn.gmlee.tools.base.util.*;
-import cn.gmlee.tools.kv.mysql.redis.FakeRedis;
 import cn.gmlee.tools.kv.cmd.MysqlFakeRedisConstant;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import cn.gmlee.tools.kv.mysql.redis.FakeRedis;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -22,10 +21,9 @@ import java.util.Map;
  * @author Jas°
  * @date 2021/7/20 (周二)
  */
+@Slf4j
 @EnableScheduling
 public class MysqlFakeRedisAutoConfiguration {
-
-    private static final Logger logger = LoggerFactory.getLogger(MysqlFakeRedisAutoConfiguration.class);
 
     private static final String SCHEDULED_RECYCLE = "fake:redis:lock:scheduled_recycle";
 
@@ -60,7 +58,7 @@ public class MysqlFakeRedisAutoConfiguration {
     @Scheduled(cron = "0 0 4 * * ?")
     public void recycle() throws Exception {
         if (lock()) {
-            logger.debug("{}: 占锁成功即将执行回收任务..", InetAddress.getLocalHost());
+            log.debug("{}: 占锁成功即将执行回收任务..", InetAddress.getLocalHost());
             JdbcUtil.exec(dataSource, MysqlFakeRedisConstant.RECYCLE_KV_SQL);
         }
     }
