@@ -35,6 +35,20 @@
         <url>https://github.com/Jason8080/tools</url>
     </scm>
 
+    <!--开发者信息-->
+    <developers>
+        <developer>
+            <id>J°杰森</id>
+            <name>J°杰森</name>
+            <email>xiaoku13141@163.com</email>
+            <roles>
+                <role>Project Manager</role>
+                <role>Architect</role>
+            </roles>
+            <timezone>+8</timezone>
+        </developer>
+    </developers>
+
     <dependencies>
         <dependency>
             <groupId>cn.gmlee.tools</groupId>

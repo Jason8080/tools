@@ -35,6 +35,20 @@
         <url>https://github.com/Jason8080/tools</url>
     </scm>
 
+    <!--开发者信息-->
+    <developers>
+        <developer>
+            <id>xiaomu98</id>
+            <name>xiaomu98</name>
+            <email>2387770830@qq.com</email>
+            <roles>
+                <role>Project Manager</role>
+                <role>Architect</role>
+            </roles>
+            <timezone>+8</timezone>
+        </developer>
+    </developers>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
