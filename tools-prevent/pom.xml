@@ -28,6 +28,13 @@
         </license>
     </licenses>
 
+    <!--托管平台的地址-->
+    <scm>
+        <connection>https://github.com/Jason8080/tools.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:Jason8080/tools.git</developerConnection>
+        <url>https://github.com/Jason8080/tools</url>
+    </scm>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>

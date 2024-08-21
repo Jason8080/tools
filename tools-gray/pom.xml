@@ -29,6 +29,13 @@
         </license>
     </licenses>
 
+    <!--托管平台的地址-->
+    <scm>
+        <connection>https://github.com/Jason8080/tools.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:Jason8080/tools.git</developerConnection>
+        <url>https://github.com/Jason8080/tools</url>
+    </scm>
+
     <properties>
         <spring.cloud>3.0.2</spring.cloud>
     </properties>
