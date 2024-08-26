@@ -1,5 +1,6 @@
 package cn.gmlee.tools.base.mod;
 
+import cn.gmlee.tools.base.util.CharUtil;
 import cn.gmlee.tools.base.util.JsonUtil;
 
 import java.io.Serializable;
@@ -221,24 +222,7 @@ public class JsonLog implements Serializable {
     public String builder(boolean isFormat, int length) {
         String json = JsonUtil.toJson(this);
         String format = isFormat ? JsonUtil.format(json) : json;
-        return maxlength(format, length);
-    }
-
-    /**
-     * Maxlength string.
-     *
-     * @param length the length
-     * @param format the format
-     * @return the string
-     */
-    public static String maxlength(String format, int length) {
-        if (length == -1 || format.length() < length) {
-            return format;
-        }
-        int start = length / 2;
-        return format.substring(0, start) +
-                "\t···\t" +
-                format.substring(format.length() - start);
+        return CharUtil.digest(format, length);
     }
 
     @Override

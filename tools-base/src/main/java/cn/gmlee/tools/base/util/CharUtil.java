@@ -8,6 +8,24 @@ import java.io.UnsupportedEncodingException;
  * @author Jas
  */
 public class CharUtil {
+    /**
+     * 摘要.
+     *
+     * <p>内容超出最大长度后,中间替换为内容过长仅保留前后段部分</p>
+     *
+     * @param maxlength the maxlength
+     * @param content the content
+     * @return the string
+     */
+    public static String digest(String content, int maxlength) {
+        if (maxlength == -1 || content.length() < maxlength) {
+            return content;
+        }
+        int start = maxlength / 2;
+        return content.substring(0, start) +
+                "\t 内容过长 \t" +
+                content.substring(content.length() - start);
+    }
 
     /**
      * 获取非空的字符串.
