@@ -15,7 +15,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
  * PreventAutoConfiguration
  *
  * @author James
- * @date 2023-07-26
+ * @since 2023-07-26
  */
 @Lazy(value = false)
 @Configuration
