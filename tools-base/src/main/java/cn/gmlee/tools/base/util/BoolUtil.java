@@ -1216,6 +1216,27 @@ public class BoolUtil {
     }
 
     /**
+     * Contain one boolean.
+     *
+     * @param <T>     the type parameter
+     * @param source  the source
+     * @param targets the targets
+     * @return the boolean
+     */
+    public static <T> boolean containOne(T source, T... targets) {
+        if (isNull(source) || isEmpty(targets)) {
+            return false;
+        }
+        for (int i = 0; i < targets.length; i++) {
+            T target = targets[i];
+            if (Objects.equals(source, target)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Not contain one boolean.
      *
      * @param <T>     the type parameter
@@ -1224,6 +1245,18 @@ public class BoolUtil {
      * @return the boolean
      */
     public static <T> boolean notContainOne(T[] source, T... targets) {
+        return !containOne(source, targets);
+    }
+
+    /**
+     * Not contain one boolean.
+     *
+     * @param <T>     the type parameter
+     * @param source  the source
+     * @param targets the targets
+     * @return the boolean
+     */
+    public static <T> boolean notContainOne(T source, T... targets) {
         return !containOne(source, targets);
     }
 
