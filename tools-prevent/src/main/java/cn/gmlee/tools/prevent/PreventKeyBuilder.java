@@ -30,7 +30,7 @@ public class PreventKeyBuilder {
     /**
      * 构建key 优先级别  自定义key--->请求URI--->方法全名(类全名+方法名)
      *
-     * @param requestURI          请求URLI
+     * @param requestURI          请求URI
      * @param invocation          MethodInvocation
      * @param definitionKey       缓存key
      * @param definitionKeyParams key参数
