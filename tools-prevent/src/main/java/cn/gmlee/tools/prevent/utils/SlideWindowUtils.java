@@ -8,15 +8,15 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import java.util.Collections;
 
 /**
- * @desc: SlideWindowUtils
+ * SlideWindowUtils
  *
- * @author: James
- * @date: 2023/7/27 18:32
+ * @author James
+ * @since 2023/7/27 18:32
  */
 @Slf4j
 public class SlideWindowUtils {
 
-    private StringRedisTemplate stringRedisTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
 
     public SlideWindowUtils(StringRedisTemplate stringRedisTemplate) {
         this.stringRedisTemplate = stringRedisTemplate;
@@ -26,8 +26,8 @@ public class SlideWindowUtils {
         if (count <= 0 || timeWindow <= 0) {
             return false;
         }
-        long eval = stringRedisTemplate.execute(
-                new DefaultRedisScript<Long>(SlideWindowLuaConstant.SLIDE_WINDOW_LUA, Long.class),
+        Long eval = stringRedisTemplate.execute(
+                new DefaultRedisScript<>(SlideWindowLuaConstant.SLIDE_WINDOW_LUA, Long.class),
                 Collections.singletonList(key),
                 String.valueOf(count - 1), String.valueOf(timeWindow), String.valueOf(System.currentTimeMillis()));
         return Long.valueOf(1L).equals(eval);
