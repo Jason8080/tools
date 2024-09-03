@@ -13,15 +13,29 @@ public class CharUtil {
      *
      * <p>内容超出最大长度后,中间替换为内容过长仅保留前后段部分</p>
      *
-     * @param maxlength the maxlength
-     * @param content the content
-     * @return the string
+     * @param content   目标内容
+     * @param maxlength 限制长度
+     * @return string 摘要内容
      */
     public static String digest(String content, int maxlength) {
+        return digest(content, maxlength, maxlength);
+    }
+
+    /**
+     * 摘要.
+     *
+     * <p>内容超出最大长度后,中间替换为内容过长仅保留前后段部分</p>
+     *
+     * @param content   目标内容
+     * @param maxlength 限制长度
+     * @param show      摘要长度
+     * @return string 摘要内容
+     */
+    public static String digest(String content, int maxlength, int show) {
         if (maxlength == -1 || content.length() < maxlength) {
             return content;
         }
-        int start = maxlength / 2;
+        int start = show / 2;
         return content.substring(0, start) +
                 "\t 内容过长 \t" +
                 content.substring(content.length() - start);
