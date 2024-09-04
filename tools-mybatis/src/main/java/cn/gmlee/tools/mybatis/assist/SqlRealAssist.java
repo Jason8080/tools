@@ -21,19 +21,23 @@ public class SqlRealAssist {
      * @return the string
      */
     public static String replaceStrip(Configuration configuration, BoundSql boundSql, Object parameterObject) {
-        String sql = boundSql.getSql();
-        MetaObject metaObject = configuration.newMetaObject(parameterObject);
-        List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
-        if (parameterObject != null && parameterMappings != null) {
-            for (ParameterMapping parameterMapping : parameterMappings) {
-                String propertyName = parameterMapping.getProperty();
-                Object value = boundSql.hasAdditionalParameter(propertyName) ?
-                        boundSql.getAdditionalParameter(propertyName) :
-                        getValue(metaObject.getValue(propertyName));
-                sql = sql.replaceFirst("\\?", value.toString());
+        try {
+            String sql = boundSql.getSql();
+            MetaObject metaObject = configuration.newMetaObject(parameterObject);
+            List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
+            if (parameterObject != null && parameterMappings != null) {
+                for (ParameterMapping parameterMapping : parameterMappings) {
+                    String propertyName = parameterMapping.getProperty();
+                    Object value = boundSql.hasAdditionalParameter(propertyName) ?
+                            boundSql.getAdditionalParameter(propertyName) :
+                            getValue(metaObject.getValue(propertyName));
+                    sql = sql.replaceFirst("\\?", value.toString());
+                }
             }
+            return sql.trim();
+        } catch (Exception e) {
+            return boundSql.toString();
         }
-        return sql.replaceAll("\\s+", " ").trim();
     }
 
     private static Object getValue(Object value) {

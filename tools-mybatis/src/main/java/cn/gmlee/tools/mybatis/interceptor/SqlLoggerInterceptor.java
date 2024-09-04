@@ -30,8 +30,10 @@ public class SqlLoggerInterceptor implements Interceptor {
         try {
             kv.setKey(System.currentTimeMillis());
             proceed = invocation.proceed();
-            kv.setVal(System.currentTimeMillis());
+        } catch (Throwable throwable) {
+            throw throwable;
         } finally {
+            kv.setVal(System.currentTimeMillis());
             ExceptionUtil.sandbox(() -> print(invocation, kv.getVal() - kv.getKey()), false);
         }
         return proceed;
