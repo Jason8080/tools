@@ -4,7 +4,7 @@ import cn.gmlee.tools.base.mod.JsonLog;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.TimeUtil;
 import cn.gmlee.tools.base.util.WebUtil;
-import cn.gmlee.tools.log.cof.ApiPrintTrigger;
+import cn.gmlee.tools.log.config.ApiPrintTrigger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;

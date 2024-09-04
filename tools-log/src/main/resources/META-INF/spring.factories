@@ -1,3 +1,3 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  cn.gmlee.tools.log.cof.ApiPrintAutoConfiguration,\
-  cn.gmlee.tools.log.cof.HttpLoggerAutoConfiguration
+  cn.gmlee.tools.log.config.ApiPrintAutoConfiguration,\
+  cn.gmlee.tools.log.config.HttpLoggerAutoConfiguration

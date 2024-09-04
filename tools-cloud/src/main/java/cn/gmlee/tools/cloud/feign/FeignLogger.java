@@ -37,7 +37,7 @@ public class FeignLogger extends Logger {
                                               long elapsedTime) {
         int status = response.status();
 
-        String responsBody = "";
+        String responseBody = "";
         if (response.body() != null && !(status == 204 || status == 205)) {
             byte[] bodyData;
             try {
@@ -46,7 +46,7 @@ public class FeignLogger extends Logger {
                 throw new RuntimeException(e);
             }
             if (bodyData.length > 0) {
-                responsBody = decodeOrDefault(bodyData, UTF_8, "Binary data");
+                responseBody = decodeOrDefault(bodyData, UTF_8, "Binary data");
             }
             response = response.toBuilder().body(bodyData).build();
         }
@@ -65,7 +65,7 @@ public class FeignLogger extends Logger {
                         BoolUtil.isEmpty(requestBody) ? "无" : CharUtil.digest(requestBody, properties.getFeignLog().maxlength),
                     status,
                     elapsedTime,
-                    BoolUtil.isEmpty(responsBody) ? "无" : CharUtil.digest(responsBody, properties.getFeignLog().maxlength),
+                    BoolUtil.isEmpty(responseBody) ? "无" : CharUtil.digest(responseBody, properties.getFeignLog().maxlength),
                     "-----------------------------------------------"
             );
 

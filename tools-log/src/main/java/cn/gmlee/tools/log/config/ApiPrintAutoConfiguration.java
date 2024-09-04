@@ -1,4 +1,4 @@
-package cn.gmlee.tools.log.cof;
+package cn.gmlee.tools.log.config;
 
 import cn.gmlee.tools.log.aop.ApiPrintAspect;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

@@ -38,6 +38,10 @@ public class JsonLog implements Serializable {
      */
     public Integer type;
     /**
+     * 响应代码
+     */
+    public Integer code;
+    /**
      * 请求地址
      */
     public String requestIp;
@@ -119,6 +123,17 @@ public class JsonLog implements Serializable {
      */
     public JsonLog setType(Integer type) {
         this.type = type;
+        return this;
+    }
+
+    /**
+     * Sets code.
+     *
+     * @param code the code
+     * @return the code
+     */
+    public JsonLog setCode(Integer code) {
+        this.code = code;
         return this;
     }
 
@@ -261,6 +276,7 @@ public class JsonLog implements Serializable {
                 "url='" + url + '\'' +
                 ", method='" + method + '\'' +
                 ", print='" + print + '\'' +
+                ", code='" + code + '\'' +
                 ", requestIp='" + requestIp + '\'' +
                 ", requestHeaders=" + requestHeaders +
                 ", requestParams=" + requestParams +

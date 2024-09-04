@@ -7,7 +7,7 @@ import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.NullUtil;
 import cn.gmlee.tools.base.util.TimeUtil;
 import cn.gmlee.tools.base.util.WebUtil;
-import cn.gmlee.tools.log.cof.ApiPrintTrigger;
+import cn.gmlee.tools.log.config.ApiPrintTrigger;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
