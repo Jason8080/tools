@@ -26,6 +26,10 @@ public class JsonLog implements Serializable {
      */
     public String url;
     /**
+     * 请求方法
+     */
+    public String method;
+    /**
      * 请求说明 [ApiPrint: value(version)]
      */
     public String print;
@@ -54,6 +58,10 @@ public class JsonLog implements Serializable {
      */
     public Object responseParams;
     /**
+     * 响应参数
+     */
+    public Object responseHeaders;
+    /**
      * 响应时间
      */
     public String responseTime;
@@ -78,6 +86,17 @@ public class JsonLog implements Serializable {
      */
     public JsonLog setUrl(String url) {
         this.url = url;
+        return this;
+    }
+
+    /**
+     * Sets method.
+     *
+     * @param method the method
+     * @return the method
+     */
+    public JsonLog setMethod(String method) {
+        this.method = method;
         return this;
     }
 
@@ -159,6 +178,17 @@ public class JsonLog implements Serializable {
     }
 
     /**
+     * Sets response headers.
+     *
+     * @param responseHeaders the response headers
+     * @return the response headers
+     */
+    public JsonLog setResponseHeaders(Object responseHeaders) {
+        this.responseHeaders = responseHeaders;
+        return this;
+    }
+
+    /**
      * Sets response time.
      *
      * @param responseTime the response time
@@ -229,12 +259,14 @@ public class JsonLog implements Serializable {
     public String toString() {
         return "JsonLog{" +
                 "url='" + url + '\'' +
+                ", method='" + method + '\'' +
                 ", print='" + print + '\'' +
                 ", requestIp='" + requestIp + '\'' +
                 ", requestHeaders=" + requestHeaders +
                 ", requestParams=" + requestParams +
                 ", requestTime='" + requestTime + '\'' +
                 ", responseParams=" + responseParams +
+                ", responseHeaders=" + responseHeaders +
                 ", responseTime='" + responseTime + '\'' +
                 ", elapsedTime=" + elapsedTime +
                 ", ex='" + ex + '\'' +

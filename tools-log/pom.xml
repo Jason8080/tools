@@ -17,7 +17,7 @@
 
     <!--项目信息-->
     <name>tools-log</name>
-    <description>TOOLS-LOG: 接口日志的相关辅助插件(如触发器等)</description>
+    <description>TOOLS-LOG: 接口日志的相关辅助插件(如触发器、拦截器等)</description>
     <url>https://github.com/Jason8080/tools/tree/master/tools-log</url>
 
     <!--开源协议-->
@@ -55,6 +55,14 @@
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-base</artifactId>
             <version>5.5.0-SNAPSHOT</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <!-- ============================================================ -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>3.14.4</version>
             <scope>provided</scope>
             <optional>true</optional>
         </dependency>

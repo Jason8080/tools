@@ -6,6 +6,7 @@ import cn.gmlee.tools.base.mod.R;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /**
@@ -387,6 +388,13 @@ public class AssertUtil {
         }
     }
 
+    public static <T, R extends RuntimeException> void isNull(T o, Function<T, R> function) throws R {
+        boolean aNull = BoolUtil.isNull(o);
+        if (!aNull) {
+            throw function.apply(o);
+        }
+    }
+
     public static void isNull(Object o, String msg) {
         boolean aNull = BoolUtil.isNull(o);
         if (!aNull) {
@@ -412,6 +420,13 @@ public class AssertUtil {
         boolean notNull = BoolUtil.notNull(o);
         if (!notNull) {
             throw supplier.get();
+        }
+    }
+
+    public static <T, R extends RuntimeException> void notNull(T o, Function<T, R> function) throws R {
+        boolean notNull = BoolUtil.notNull(o);
+        if (!notNull) {
+            throw function.apply(null);
         }
     }
 

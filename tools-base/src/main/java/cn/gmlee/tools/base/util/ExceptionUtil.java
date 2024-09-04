@@ -90,8 +90,7 @@ public class ExceptionUtil {
     /**
      * Cast t.
      *
-     * @param <T> the type parameter
-     * @param e   the e
+     * @param e the e
      * @return the t
      */
     public static <T> T cast(Throwable e) {

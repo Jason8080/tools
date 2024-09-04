@@ -12,9 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
-import javax.annotation.Resource;
 import java.lang.reflect.Method;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,7 +33,7 @@ public class ApiPrintAspect {
     @Value("${tools.log.maxlength:-1}")
     private Integer maxlength;
 
-    @Resource
+    @Autowired
     private ApiPrintTrigger apiPrintTrigger;
 
     @Pointcut("@annotation(cn.gmlee.tools.base.anno.ApiPrint)")
