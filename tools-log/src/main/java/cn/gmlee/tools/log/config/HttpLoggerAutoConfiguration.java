@@ -1,16 +1,34 @@
 package cn.gmlee.tools.log.config;
 
+import cn.gmlee.tools.log.http.HttpClientInterceptor;
 import cn.gmlee.tools.log.http.OkHttpInterceptor;
+import okhttp3.Interceptor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class HttpLoggerAutoConfiguration {
 
     @Bean
-    @ConditionalOnClass(OkHttpInterceptor.class)
-    @ConditionalOnMissingBean(OkHttpInterceptor.class)
+    @ConditionalOnClass(Interceptor.class)
     public OkHttpInterceptor okHttpInterceptor(){
         return new OkHttpInterceptor();
+    }
+
+    @Bean
+    @ConditionalOnClass(ClientHttpRequestInterceptor.class)
+    public HttpClientInterceptor clientHttpRequestInterceptor(RestTemplate restTemplate){
+        List<ClientHttpRequestInterceptor> interceptors = restTemplate.getInterceptors();
+        if(interceptors == null){
+            interceptors = new ArrayList<>();
+            restTemplate.setInterceptors(interceptors);
+        }
+        HttpClientInterceptor interceptor = new HttpClientInterceptor();
+        interceptors.add(interceptor);
+        return interceptor;
     }
 }

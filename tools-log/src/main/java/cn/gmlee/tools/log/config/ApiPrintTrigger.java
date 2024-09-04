@@ -11,10 +11,10 @@ public interface ApiPrintTrigger extends Serializable {
     /**
      * 触发器.
      *
-     * @param jsonLog   日志内容
+     * @param log       日志内容
      * @param result    响应结果
      * @param throwable 异常信息
      * @throws Throwable 抛出异常
      */
-    void log(JsonLog jsonLog, Object result, Throwable throwable) throws Throwable;
+    void log(JsonLog log, Object result, Throwable throwable) throws Throwable;
 }
