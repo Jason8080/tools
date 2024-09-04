@@ -6,10 +6,6 @@ import okhttp3.Interceptor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.client.ClientHttpRequestInterceptor;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class HttpLoggerAutoConfiguration {
 
@@ -21,14 +17,7 @@ public class HttpLoggerAutoConfiguration {
 
     @Bean
     @ConditionalOnClass(ClientHttpRequestInterceptor.class)
-    public HttpClientInterceptor clientHttpRequestInterceptor(RestTemplate restTemplate){
-        List<ClientHttpRequestInterceptor> interceptors = restTemplate.getInterceptors();
-        if(interceptors == null){
-            interceptors = new ArrayList<>();
-            restTemplate.setInterceptors(interceptors);
-        }
-        HttpClientInterceptor interceptor = new HttpClientInterceptor();
-        interceptors.add(interceptor);
-        return interceptor;
+    public HttpClientInterceptor clientHttpRequestInterceptor(){
+        return new HttpClientInterceptor();
     }
 }
