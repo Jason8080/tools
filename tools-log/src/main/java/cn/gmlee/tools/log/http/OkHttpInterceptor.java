@@ -27,6 +27,7 @@ public class OkHttpInterceptor implements Interceptor {
         try {
             Response response = chain.proceed(chain.request());
             ExceptionUtil.sandbox(() -> after(response, log, start));
+            ExceptionUtil.sandbox(() -> apiPrintTrigger.log(log, null, null));
             return response;
         } catch (Throwable throwable) {
             ExceptionUtil.sandbox(() -> ex(log, throwable, start));
