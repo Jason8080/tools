@@ -788,6 +788,20 @@ public class BoolUtil {
     }
 
     /**
+     * Equals ignore case boolean.
+     *
+     * @param source the source
+     * @param target the target
+     * @return the boolean
+     */
+    public static boolean equalsIgnoreCase(String source, String target) {
+        if (allNotNull(source, target)) {
+            return source.equalsIgnoreCase(target);
+        }
+        return Objects.equals(source, target);
+    }
+
+    /**
      * 判断source是否等于target.
      *
      * @param source the source
