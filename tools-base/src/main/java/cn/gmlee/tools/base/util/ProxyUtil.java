@@ -22,10 +22,9 @@ public class ProxyUtil {
      */
     public static <T> T JdkProxy(T t, Class<?>... interfaces) {
         AssertUtil.notNull(t, "代理源对象是空");
-        Class<?> clazz = t.getClass();
         return (T) Proxy.newProxyInstance(
-                clazz.getClassLoader(),
-                CollectionUtil.merge(clazz.getInterfaces(), interfaces),
+                t.getClass().getClassLoader(),
+                CollectionUtil.merge(t.getClass().getInterfaces(), interfaces),
                 (Object proxy, Method method, Object[] args) -> method.invoke(t, args)
         );
     }
@@ -34,17 +33,15 @@ public class ProxyUtil {
      * 代理对象追加接口.
      *
      * @param <T>        the type parameter
-     * @param t          the t
+     * @param target     the target
      * @param ih         the ih
      * @param interfaces the interfaces
-     * @return the t
+     * @return the target
      */
-    public static <T> T JdkProxy(T t, InvocationHandler ih, Class<?>... interfaces) {
-        AssertUtil.notNull(t, "代理源对象是空");
-        Class<?> clazz = t.getClass();
+    public static <T> T JdkProxy(Class<T> target, InvocationHandler ih, Class<?>... interfaces) {
         return (T) Proxy.newProxyInstance(
-                clazz.getClassLoader(),
-                CollectionUtil.merge(clazz.getInterfaces(), interfaces), ih
+                target.getClassLoader(),
+                CollectionUtil.merge(target.getInterfaces(), interfaces), ih
         );
     }
 
@@ -54,14 +51,13 @@ public class ProxyUtil {
      * @param <T>        the type parameter
      * @param t          the t
      * @param interfaces the interfaces
-     * @return the t
+     * @return the target
      */
     public static <T> T CglibProxy(T t, Class<?>... interfaces) {
         AssertUtil.notNull(t, "代理源对象是空");
-        Class<?> clazz = t.getClass();
         // 代理
         Enhancer enhancer = new Enhancer();
-        enhancer.setSuperclass(clazz);
+        enhancer.setSuperclass(t.getClass());
         enhancer.setInterfaces(interfaces);
         // 拦截
         MethodInterceptor interceptor = (proxy, method, args, methodProxy) -> method.invoke(t, args);
@@ -74,17 +70,16 @@ public class ProxyUtil {
      * 代理对象追加接口.
      *
      * @param <T>        the type parameter
-     * @param t          the t
+     * @param target     the target
      * @param ih         the ih
      * @param interfaces the interfaces
-     * @return the t
+     * @return the target
      */
-    public static <T> T CglibProxy(T t, org.springframework.cglib.proxy.InvocationHandler ih, Class<?>... interfaces) {
-        AssertUtil.notNull(t, "代理源对象是空");
-        Class<?> clazz = t.getClass();
+    public static <T> T CglibProxy(Class<T> target, org.springframework.cglib.proxy.InvocationHandler ih, Class<?>... interfaces) {
+        AssertUtil.notNull(target, "代理目标类是空");
         // 代理
         Enhancer enhancer = new Enhancer();
-        enhancer.setSuperclass(clazz);
+        enhancer.setSuperclass(target);
         enhancer.setInterfaces(interfaces);
         // 拦截
         enhancer.setCallback(ih);

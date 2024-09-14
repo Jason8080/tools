@@ -24,7 +24,7 @@ public class MvcUtil {
      * @param rm         the 方法
      * @param controller the 源对象
      */
-    public static <C extends Runnable> void register(String uri, String rm, C controller) {
+    public static <C extends Runnable> void register(String uri, String rm, Class<C> controller) {
         RequestMethod requestMethod = EnumUtil.name(rm, RequestMethod.class);
         AssertUtil.notNull(requestMethod, "Register controller method is not exist");
         register(uri, requestMethod, controller);
@@ -38,7 +38,7 @@ public class MvcUtil {
      * @param rm         the 方法
      * @param controller the 源对象
      */
-    public static <C extends Runnable> void register(String uri, RequestMethod rm, C controller) {
+    public static <C extends Runnable> void register(String uri, RequestMethod rm, Class<C> controller) {
         register(new RequestMappingInfo(
                 new PatternsRequestCondition(uri),
                 new RequestMethodsRequestCondition(rm),
@@ -58,7 +58,7 @@ public class MvcUtil {
      * @param info       the 请求信息
      * @param controller the 源对象
      */
-    public static <C extends Runnable> void register(RequestMappingInfo info, C controller) {
+    public static <C extends Runnable> void register(RequestMappingInfo info, Class<C> controller) {
         // 创建代理对象
         C c = ProxyUtil.CglibProxy(controller, (Object obj, Method method, Object[] args) -> method.invoke(obj, args));
         // 获取映射集合
