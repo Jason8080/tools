@@ -1,7 +1,7 @@
 package cn.gmlee.tools.spring.mvc;
 
-public interface DynamicController<P, R> {
+public interface DynamicController {
 
-    R api(P p);
+    <P, R> R api(P p);
 
 }
