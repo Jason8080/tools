@@ -66,7 +66,7 @@ public class MvcUtil {
         RequestMappingHandlerMapping handlerMapping = IocUtil.getBean(RequestMappingHandlerMapping.class);
         AssertUtil.notNull(handlerMapping, "Ioc create bean error: RequestMappingHandlerMapping");
         // 注册动态接口
-        HandlerMethod handler = new HandlerMethod(c, Runnable.class.getMethods()[0]);
+        HandlerMethod handler = new HandlerMethod(c, controller.getMethods()[0]);
         handlerMapping.registerMapping(
                 info, // 映射条件
                 handler.getBean(), // 处理对象
