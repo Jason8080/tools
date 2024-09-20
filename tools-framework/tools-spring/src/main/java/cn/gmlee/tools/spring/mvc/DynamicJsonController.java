@@ -15,6 +15,8 @@ public interface DynamicJsonController<P, R> {
     /**
      * 动态接口定义.
      *
+     * <p>query、body、header、cookie、path(暂未支持)</p>
+     *
      * @param p 动态参数定义
      * @return 动态相应定义
      */
