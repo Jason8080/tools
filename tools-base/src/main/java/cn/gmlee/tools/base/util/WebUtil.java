@@ -491,6 +491,31 @@ public class WebUtil {
     /**
      * 相对路径.
      *
+     * @return current relative path
+     */
+    public static String getCurrentRelativePath() {
+        HttpServletRequest req = WebUtil.getRequest();
+        if(req != null){
+            return getRelativePath(req);
+        }
+        return null;
+    }
+
+    /**
+     * 相对路径.
+     *
+     * @param req the req
+     * @return the relative path
+     */
+    public static String getRelativePath(HttpServletRequest req) {
+        String contextPath = req.getContextPath();
+        String servletPath = req.getServletPath();
+        return servletPath.substring(contextPath.length());
+    }
+
+    /**
+     * 资源路径.
+     *
      * @param req the req
      * @return the rel path
      */
@@ -499,7 +524,7 @@ public class WebUtil {
     }
 
     /**
-     * 当前请求相对路径.
+     * 当前请求资源路径.
      *
      * @return the current rel path
      */
