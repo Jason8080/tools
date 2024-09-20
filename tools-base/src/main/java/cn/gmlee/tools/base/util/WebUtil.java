@@ -494,19 +494,19 @@ public class WebUtil {
      * @param req the req
      * @return the rel path
      */
-    public static String getRelPath(HttpServletRequest req) {
+    public static String getUri(HttpServletRequest req) {
         return req.getServletPath();
     }
 
     /**
-     * Gets current rel path.
+     * 当前请求相对路径.
      *
      * @return the current rel path
      */
-    public static String getCurrentRelPath() {
+    public static String getCurrentUri() {
         HttpServletRequest req = WebUtil.getRequest();
         if (req != null) {
-            return getRelPath(req);
+            return getUri(req);
         }
         return null;
     }

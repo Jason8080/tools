@@ -104,7 +104,7 @@ public class DesensitizationAspect {
     }
 
     private boolean isUrlExcludes() {
-        String relativePath = WebUtil.getCurrentRelPath();
+        String relativePath = WebUtil.getCurrentUri();
         if (BoolUtil.notEmpty(relativePath)) {
             for (String pattern : desensitizationUrlExcludes) {
                 boolean match = matcher.match(pattern, relativePath);

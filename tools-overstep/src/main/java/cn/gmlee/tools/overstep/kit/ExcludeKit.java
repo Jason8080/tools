@@ -36,7 +36,7 @@ public class ExcludeKit {
      * @return
      */
     private static boolean exclude(SnProperties snProperties){
-        boolean ok = UrlUtil.matchOne(snProperties.getUrls(), WebUtil.getCurrentRelPath());
+        boolean ok = UrlUtil.matchOne(snProperties.getUrls(), WebUtil.getCurrentUri());
         return snProperties.getExclude() ? !ok : ok;
     }
 }
