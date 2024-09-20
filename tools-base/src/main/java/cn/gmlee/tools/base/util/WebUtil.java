@@ -494,7 +494,7 @@ public class WebUtil {
      * @param req the req
      * @return the rel path
      */
-    public static String getUri(HttpServletRequest req) {
+    public static String getServletPath(HttpServletRequest req) {
         return req.getServletPath();
     }
 
@@ -503,10 +503,10 @@ public class WebUtil {
      *
      * @return the current rel path
      */
-    public static String getCurrentUri() {
+    public static String getCurrentServletPath() {
         HttpServletRequest req = WebUtil.getRequest();
         if (req != null) {
-            return getUri(req);
+            return getServletPath(req);
         }
         return null;
     }

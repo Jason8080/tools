@@ -27,7 +27,7 @@ public class LogData extends Datalog {
         this(newData, null);
         this.site = ExceptionUtil.sandbox(() -> logApi.site);
         this.params = ExceptionUtil.sandbox(() -> logApi.params);
-        this.api = NullUtil.get(ExceptionUtil.sandbox(() -> logApi.api), WebUtil.getCurrentUri());
+        this.api = NullUtil.get(ExceptionUtil.sandbox(() -> logApi.api), WebUtil.getCurrentServletPath());
         this.requestIp = NullUtil.get(ExceptionUtil.sandbox(() -> logApi.requestIp), WebUtil.getCurrentIp());
         this.requestUrl = NullUtil.get(ExceptionUtil.sandbox(() -> logApi.requestUrl), WebUtil.getCurrentUrl());
         this.requestTime = NullUtil.get(ExceptionUtil.sandbox(() -> logApi.requestTime), TimeUtil.getCurrentDate());
@@ -37,7 +37,7 @@ public class LogData extends Datalog {
         this(newData, oldsData);
         this.site = ExceptionUtil.sandbox(() -> logApi.site);
         this.params = ExceptionUtil.sandbox(() -> logApi.params);
-        this.api = NullUtil.get(ExceptionUtil.sandbox(() -> logApi.api), WebUtil.getCurrentUri());
+        this.api = NullUtil.get(ExceptionUtil.sandbox(() -> logApi.api), WebUtil.getCurrentServletPath());
         this.requestIp = NullUtil.get(ExceptionUtil.sandbox(() -> logApi.requestIp), WebUtil.getCurrentIp());
         this.requestUrl = NullUtil.get(ExceptionUtil.sandbox(() -> logApi.requestUrl), WebUtil.getCurrentUrl());
         this.requestTime = NullUtil.get(ExceptionUtil.sandbox(() -> logApi.requestTime), TimeUtil.getCurrentDate());
