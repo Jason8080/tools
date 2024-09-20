@@ -1,5 +1,8 @@
 package cn.gmlee.tools.spring.mvc;
 
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
+
 /**
  * 动态控制器定义.
  *
@@ -7,7 +10,7 @@ package cn.gmlee.tools.spring.mvc;
  * @param <R> the type parameter
  */
 @FunctionalInterface
-public interface DynamicController<P, R> {
+public interface DynamicJsonController<P, R> {
 
     /**
      * 动态接口定义.
@@ -15,6 +18,7 @@ public interface DynamicController<P, R> {
      * @param p 动态参数定义
      * @return 动态相应定义
      */
-    R handle(P p);
+    @ResponseBody
+    R handle(@RequestBody P p);
 
 }

@@ -25,7 +25,7 @@ public class ProxyUtil {
         return (T) Proxy.newProxyInstance(
                 t.getClass().getClassLoader(),
                 CollectionUtil.merge(t.getClass().getInterfaces(), interfaces),
-                (Object proxy, Method method, Object[] args) -> method.invoke(t, args)
+                (Object proxy, Method method, Object[] args) -> method.invoke(proxy, args)
         );
     }
 
@@ -71,18 +71,18 @@ public class ProxyUtil {
      *
      * @param <T>        the type parameter
      * @param target     the target
-     * @param ih         the ih
+     * @param mi         the mi
      * @param interfaces the interfaces
      * @return the target
      */
-    public static <T> T CglibProxy(Class<T> target, org.springframework.cglib.proxy.InvocationHandler ih, Class<?>... interfaces) {
+    public static <T> T CglibProxy(Class<T> target, MethodInterceptor mi, Class<?>... interfaces) {
         AssertUtil.notNull(target, "代理目标类是空");
         // 代理
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(target);
         enhancer.setInterfaces(interfaces);
         // 拦截
-        enhancer.setCallback(ih);
+        enhancer.setCallback(mi);
         // 生成
         return (T) enhancer.create();
     }

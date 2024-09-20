@@ -809,6 +809,27 @@ public class WebUtil {
     }
 
     /**
+     * Gets cookie map.
+     *
+     * @param request the request
+     * @return the cookie map
+     */
+    public static Map<String, String> getCookieMap(HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
+        Map<String, String> map = new HashMap<>();
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return map;
+        }
+        for (Cookie cookie : cookies) {
+            map.put(cookie.getName(), cookie.getValue());
+        }
+        return map;
+    }
+
+    /**
      * 获取指定cookie
      *
      * @param name    名称
