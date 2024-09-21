@@ -77,11 +77,57 @@ public class MvcUtil {
     private static <C> Method getMethod(Class<C> controller) {
         // 检查方法数量
         AssertUtil.notEmpty(controller.getMethods(), String.format("%s the methods is empty!", controller.getName()));
-        for (Method method : controller.getMethods()){
-            if(method.isAccessible()){
+        for (Method method : controller.getMethods()) {
+            if (method.isAccessible()) {
                 return method;
             }
         }
         return controller.getMethods()[0];
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * 注销映射处理器.
+     *
+     * @param <C> the type parameter
+     * @param uri the uri
+     * @param rm  the rm
+     */
+    public static <C> void unregister(String uri, String rm) {
+        RequestMethod requestMethod = EnumUtil.name(rm, RequestMethod.class);
+        AssertUtil.notNull(requestMethod, "Register controller method is not exist");
+        unregister(uri, requestMethod);
+    }
+
+    /**
+     * 注销映射处理器.
+     *
+     * @param <C> the type parameter
+     * @param uri the uri
+     * @param rm  the rm
+     */
+    public static <C> void unregister(String uri, RequestMethod rm) {
+        unregister(new RequestMappingInfo(
+                new PatternsRequestCondition(uri),
+                new RequestMethodsRequestCondition(rm),
+                null,
+                null,
+                null,
+                null,
+                null)
+        );
+    }
+
+    /**
+     * 注销映射处理器.
+     *
+     * @param <C>  the type parameter
+     * @param info the info
+     */
+    public static <C> void unregister(RequestMappingInfo info) {
+        RequestMappingHandlerMapping handlerMapping = IocUtil.getBean(RequestMappingHandlerMapping.class);
+        AssertUtil.notNull(handlerMapping, "Ioc create bean error: RequestMappingHandlerMapping");
+        handlerMapping.unregisterMapping(info);
     }
 }
