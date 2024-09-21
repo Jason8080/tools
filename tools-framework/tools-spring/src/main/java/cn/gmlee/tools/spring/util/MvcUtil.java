@@ -130,4 +130,20 @@ public class MvcUtil {
         AssertUtil.notNull(handlerMapping, "Ioc create bean error: RequestMappingHandlerMapping");
         handlerMapping.unregisterMapping(info);
     }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+
+    /**
+     * 重置映射处理器.
+     *
+     * @param <C>        the type parameter
+     * @param uri        the uri
+     * @param rm         the rm
+     * @param controller the controller
+     */
+    public static <C> void resetRegister(String uri, String rm, Class<C> controller) {
+        unregister(uri, rm);
+        register(uri, rm, controller);
+    }
 }
