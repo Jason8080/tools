@@ -707,8 +707,12 @@ public class ClassUtil {
         if (parameters.length == 1) {
             return new Object[]{JsonUtil.toBean(jsonArgs, method.getParameterTypes()[0], true)};
         }
-        Object[] args = new Object[parameters.length];
         Map map = JsonUtil.toBean(jsonArgs, Map.class);
+        Object[] args = new Object[parameters.length];
+        if (BoolUtil.isEmpty(map)) {
+            // 没有参数 或者 参数是null
+            return args;
+        }
         for (int i = 0; i < args.length; i++) {
             Parameter p = parameters[i];
             Object o = map.get(p.getName());
