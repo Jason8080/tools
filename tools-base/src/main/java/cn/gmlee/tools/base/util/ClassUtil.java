@@ -1,6 +1,7 @@
 package cn.gmlee.tools.base.util;
 
 import cn.gmlee.tools.base.anno.Column;
+import cn.gmlee.tools.base.mod.Kv;
 import com.alibaba.fastjson.util.ParameterizedTypeImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,8 +15,10 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.stream.Collectors;
 
 /**
  * 通用字节码工具类
@@ -553,5 +556,165 @@ public class ClassUtil {
                 }
             }
         }
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+
+    /**
+     * Get classes class [ ].
+     *
+     * @param os the os
+     * @return the class [ ]
+     */
+    public static Class[] getClasses(Object... os) {
+        if (BoolUtil.isEmpty(os)) {
+            return new Class[0];
+        }
+        return Arrays.stream(os).filter(Objects::nonNull).map(Object::getClass).toArray(Class[]::new);
+    }
+
+    /**
+     * Gets digest.
+     *
+     * @param method the method
+     * @return the digest
+     */
+    public static String getDigest(Method method) {
+        return getDigest(method, Class::getSimpleName);
+    }
+
+    /**
+     * Gets digest.
+     *
+     * @param method the method
+     * @param simple the simple
+     * @return the digest
+     */
+    public static String getDigest(Method method, boolean simple) {
+        return getDigest(method, simple ? Class::getSimpleName : Class::getName);
+    }
+
+    /**
+     * Gets digest.
+     *
+     * @param method the method
+     * @param fun    the fun
+     * @return the digest
+     */
+    public static String getDigest(Method method, Function<Class, ? extends String> fun) {
+        AssertUtil.notNull(method, "摘要的方法是空");
+        Class<?> clazz = method.getDeclaringClass();
+        String name = method.getName();
+        Class<?>[] pts = method.getParameterTypes();
+        String parameters = String.join(",", Arrays.stream(pts).filter(Objects::nonNull).map(fun).collect(Collectors.toList()));
+        return String.format("%s#%s(%s)", clazz.getName(), name, parameters);
+    }
+
+    /**
+     * Gets digest.
+     *
+     * @param methods the methods
+     * @return the digest
+     */
+    public static Map<String, Method> getDigest(Method... methods) {
+        if (BoolUtil.isEmpty(methods)) {
+            return new HashMap<>();
+        }
+        return Arrays.stream(methods).filter(Objects::nonNull).collect(Collectors.toMap(ClassUtil::getDigest, x -> x));
+    }
+
+    /**
+     * 根据方法摘要反射方法对象.
+     * <p>可以不带(java.lang.String, int)字样</p>
+     * <p>注意参数列表的类型是 simpleName 而非全限定路径 (参考示例) </p>
+     *
+     * @param method 示例: {@linkplain cn.gmlee.tools.base.util.HttpUtil#post(String, Kv[])}}
+     * @return 方法对象 method
+     */
+    public static Method getMethod(String method) {
+        AssertUtil.notEmpty(method, "方法摘要是空");
+        AssertUtil.contain(method, "#", "方法摘要不合法");
+        String clazz = method.substring(0, method.indexOf("#"));
+        Class c = ExceptionUtil.sandbox(() -> Class.forName(clazz), false);
+        AssertUtil.notNull(c, "方法摘要的字节码不存在");
+        String key = method.replaceAll("\\s", "");
+        Map<String, Method> methodMap = getDigest(c.getMethods());
+        return methodMap.get(key);
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Call r.
+     *
+     * @param <R>    the type parameter
+     * @param obj    静态方法传 null 即可
+     * @param method the method
+     * @param args   the args
+     * @return the r
+     */
+    public static <R> R call(Object obj, Method method, Object... args) {
+        AssertUtil.notNull(method, "方法是空");
+        return (R) ExceptionUtil.suppress(() -> method.invoke(obj, args));
+    }
+
+    /**
+     * 调用方法.
+     * <p>反射</p>
+     *
+     * @param <R>    the type parameter
+     * @param obj    静态方法传 null 即可
+     * @param method 示例: {@linkplain cn.gmlee.tools.base.util.LoginUtil#get(boolean)}}
+     * @param args   the args
+     * @return r
+     */
+    public static <R> R call(Object obj, String method, Object... args) {
+        Method m = getMethod(method);
+        AssertUtil.notNull(m, "摘要的方法不存在");
+        return (R) ExceptionUtil.suppress(() -> m.invoke(obj, args));
+    }
+
+    /**
+     * Call json args r.
+     *
+     * @param <R>      the type parameter
+     * @param obj      静态方法传 null 即可
+     * @param method   the method
+     * @param jsonArgs the json args
+     * @return the r
+     */
+    public static <R> R callJsonArgs(Object obj, String method, String jsonArgs) {
+        Method m = getMethod(method);
+        AssertUtil.notNull(m, "摘要的方法不存在");
+        Object[] args = getArgs(m, jsonArgs);
+        return (R) ExceptionUtil.suppress(() -> m.invoke(obj, args));
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+    /**
+     * Get args object [ ].
+     *
+     * @param method   the method
+     * @param jsonArgs the json args
+     * @return the object [ ]
+     */
+    public static Object[] getArgs(Method method, String jsonArgs) {
+        AssertUtil.notNull(method, "方法是空");
+        AssertUtil.isFalse(method.isVarArgs(), "暂不支持可变参数");
+        Parameter[] parameters = method.getParameters();
+        if (parameters.length == 1) {
+            return new Object[]{JsonUtil.toBean(jsonArgs, method.getParameterTypes()[0], true)};
+        }
+        Object[] args = new Object[parameters.length];
+        Map map = JsonUtil.toBean(jsonArgs, Map.class);
+        for (int i = 0; i < args.length; i++) {
+            Parameter p = parameters[i];
+            Object o = map.get(p.getName());
+            Object arg = o != null ? JsonUtil.convert(o, p.getType(), true) : null;
+            args[i] = arg;
+        }
+        return args;
     }
 }
