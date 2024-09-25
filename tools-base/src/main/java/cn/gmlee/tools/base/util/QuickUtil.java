@@ -570,7 +570,7 @@ public class QuickUtil {
      * @param no    the no
      * @return the t
      */
-    public static void is(Function.OkOs check, Function.Zero yes, Function.Zero no) {
+    public static void is(Function.OsOk check, Function.Zero yes, Function.Zero no) {
         try {
             if (BoolUtil.isTrue(check.run())) {
                 yes.run();
@@ -595,7 +595,7 @@ public class QuickUtil {
      * @param no    the no
      * @return the t
      */
-    public static <T> T is(Function.OkOs check, Function.Zero2r<T> yes, Function.Zero2r<T> no) {
+    public static <T> T is(Function.OsOk check, Function.Zero2r<T> yes, Function.Zero2r<T> no) {
         try {
             if (BoolUtil.isTrue(check.run())) {
                 return yes.run();

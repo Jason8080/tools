@@ -79,7 +79,7 @@ public interface Function {
      * The interface Ok os.
      */
     @FunctionalInterface
-    interface OkOs extends Function {
+    interface OsOk extends Function {
         /**
          * Run boolean.
          *
@@ -88,6 +88,23 @@ public interface Function {
          * @throws Throwable the throwable
          */
         Boolean run(Object... os) throws Throwable;
+    }
+
+    /**
+     * The interface Os one.
+     *
+     * @param <R> the type parameter
+     */
+    @FunctionalInterface
+    interface OsOne<R> extends Function {
+        /**
+         * Run boolean.
+         *
+         * @param os the os
+         * @return the boolean
+         * @throws Throwable the throwable
+         */
+        R run(Object... os) throws Throwable;
     }
 
     /**
