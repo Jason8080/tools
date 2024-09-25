@@ -108,7 +108,7 @@ public class WebUtil {
      * @return the boolean
      */
     public static boolean isWeb() {
-        return getRequest()!=null;
+        return getRequest() != null;
     }
 
 
@@ -495,7 +495,7 @@ public class WebUtil {
      */
     public static String getCurrentRelativePath() {
         HttpServletRequest req = WebUtil.getRequest();
-        if(req != null){
+        if (req != null) {
             return getRelativePath(req);
         }
         return null;
@@ -924,13 +924,32 @@ public class WebUtil {
     }
 
     /**
+     * Gets parameter map.
+     *
+     * @param req the req
+     * @return the parameter map
+     */
+    public static Map<String, Object> getParameterMap(HttpServletRequest req) {
+        Map<String, Object> map = new HashMap<>();
+        if (req == null) {
+            return map;
+        }
+        Map<String, String[]> parameterMap = req.getParameterMap();
+        if (BoolUtil.isEmpty(parameterMap)) {
+            return map;
+        }
+        parameterMap.forEach((k, v) -> map.put(k, Arrays.asList(v)));
+        return map;
+    }
+
+    /**
      * Gets url parameter map.
      *
      * @param req the req
      * @return url parameter map
      */
     public static Map<String, Object> getUrlParameterMap(HttpServletRequest req) {
-        return getQueryString(req!=null ? req.getQueryString() : null);
+        return getQueryString(req != null ? req.getQueryString() : null);
     }
 
     /**
@@ -979,7 +998,7 @@ public class WebUtil {
      */
     public static Map<String, String> getHeaderMap(HttpServletRequest req) {
         Map<String, String> reqHeaders = new HashMap(0);
-        if(req == null){
+        if (req == null) {
             return reqHeaders;
         }
         Enumeration<String> names = req.getHeaderNames();
