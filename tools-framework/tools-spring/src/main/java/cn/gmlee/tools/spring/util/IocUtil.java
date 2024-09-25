@@ -1,5 +1,6 @@
 package cn.gmlee.tools.spring.util;
 
+import cn.gmlee.tools.base.util.AssertUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.spring.SpringInstanceProvider;
 import org.springframework.context.ApplicationContext;
@@ -40,19 +41,32 @@ public class IocUtil {
 	 * 注册对象.
 	 *
 	 * @param <T>   the type parameter
+	 * @param clazz the clazz
+	 * @param args  the args
+	 * @return the t
+	 */
+	public static <T> T registerBean(Class<T> clazz, Object... args) {
+		AssertUtil.notNull(clazz, "注册对象类型是空");
+		return registerBean(clazz.getSimpleName(), clazz, args);
+	}
+
+	/**
+	 * Register bean t.
+	 *
+	 * @param <T>   the type parameter
 	 * @param name  the name
 	 * @param clazz the clazz
 	 * @param args  the args
 	 * @return the t
 	 */
 	public static <T> T registerBean(String name, Class<T> clazz, Object... args) {
+		AssertUtil.notNull(clazz, "注册对象类型是空");
 		ApplicationContext applicationContext = instanceProvider.getApplicationContext();
 		if(applicationContext instanceof ConfigurableApplicationContext){
 			return cn.gmlee.tools.base.util.IocUtil.registerBean((ConfigurableApplicationContext) applicationContext, name, clazz, args);
 		}
 		return ExceptionUtil.cast(String.format("Spring 上下文不符合注册要求"));
 	}
-
 
 	/**
 	 * 获取指定类型的对象实例。如果IoC容器没配置好或者IoC容器中找不到该类型的实例则抛出异常。
