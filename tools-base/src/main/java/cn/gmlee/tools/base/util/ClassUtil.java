@@ -571,24 +571,27 @@ public class ClassUtil {
         if (BoolUtil.isEmpty(os)) {
             return new Class[0];
         }
-        return Arrays.stream(os).filter(Objects::nonNull).map(Object::getClass).toArray(Class[]::new);
+        return Arrays.stream(os)
+                .filter(Objects::nonNull)
+                .map(Object::getClass).toArray(Class[]::new);
     }
 
     /**
-     * Gets digest.
+     * 获取方法摘要.
      *
      * @param method the method
-     * @return the digest
+     * @return string 摘要: 默认对入参类型进行简单摘要 (即非全限定路径)
      */
     public static String getDigest(Method method) {
+        // 默认对入参类型进行简单摘要 (即非全限定路径)
         return getDigest(method, Class::getSimpleName);
     }
 
     /**
-     * Gets digest.
+     * 获取方法摘要.
      *
      * @param method the method
-     * @param simple the simple
+     * @param simple 是否对入参类型进行简单摘要 (即非全限定路径)
      * @return the digest
      */
     public static String getDigest(Method method, boolean simple) {
@@ -596,10 +599,10 @@ public class ClassUtil {
     }
 
     /**
-     * Gets digest.
+     * 获取方法摘要.
      *
-     * @param method the method
-     * @param fun    the fun
+     * @param method 摘要方法
+     * @param fun    获取入参类型的方法 (可选简单名称和全限定类名)
      * @return the digest
      */
     public static String getDigest(Method method, Function<Class, ? extends String> fun) {
@@ -607,7 +610,10 @@ public class ClassUtil {
         Class<?> clazz = method.getDeclaringClass();
         String name = method.getName();
         Class<?>[] pts = method.getParameterTypes();
-        String parameters = String.join(",", Arrays.stream(pts).filter(Objects::nonNull).map(fun).collect(Collectors.toList()));
+        String parameters = String
+                .join(",", Arrays.stream(pts)
+                        .filter(Objects::nonNull)
+                        .map(fun).collect(Collectors.toList()));
         return String.format("%s#%s(%s)", clazz.getName(), name, parameters);
     }
 
@@ -621,7 +627,9 @@ public class ClassUtil {
         if (BoolUtil.isEmpty(methods)) {
             return new HashMap<>();
         }
-        return Arrays.stream(methods).filter(Objects::nonNull).collect(Collectors.toMap(ClassUtil::getDigest, x -> x));
+        return Arrays.stream(methods)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(ClassUtil::getDigest, x -> x));
     }
 
     /**
@@ -646,13 +654,13 @@ public class ClassUtil {
     // -----------------------------------------------------------------------------------------------------------------
 
     /**
-     * Call r.
+     * 方法调用.
      *
-     * @param <R>    the type parameter
+     * @param <R>    返回类型泛型
      * @param obj    静态方法传 null 即可
-     * @param method the method
-     * @param args   the args
-     * @return the r
+     * @param method 方法对象
+     * @param args   方法入参
+     * @return r 调用结果
      */
     public static <R> R call(Object obj, Method method, Object... args) {
         AssertUtil.notNull(method, "方法是空");
@@ -663,11 +671,11 @@ public class ClassUtil {
      * 调用方法.
      * <p>反射</p>
      *
-     * @param <R>    the type parameter
+     * @param <R>    返回类型泛型
      * @param obj    静态方法传 null 即可
      * @param method 示例: {@linkplain cn.gmlee.tools.base.util.LoginUtil#get(boolean)}}
-     * @param args   the args
-     * @return r
+     * @param args   方法入参
+     * @return r 调用结果
      */
     public static <R> R call(Object obj, String method, Object... args) {
         Method m = getMethod(method);
@@ -676,17 +684,51 @@ public class ClassUtil {
     }
 
     /**
-     * Call json args r.
+     * 调用方法.
      *
-     * @param <R>      the type parameter
+     * @param <R>      返回类型泛型
      * @param obj      静态方法传 null 即可
-     * @param method   the method
-     * @param jsonArgs the json args
-     * @return the r
+     * @param method   方法摘要
+     * @param jsonArgs 方法入参JSON字符串
+     * @return r 调用结果
      */
     public static <R> R callJsonArgs(Object obj, String method, String jsonArgs) {
         Method m = getMethod(method);
         AssertUtil.notNull(m, "摘要的方法不存在");
+        Object[] args = getArgs(m, jsonArgs);
+        return (R) ExceptionUtil.suppress(() -> m.invoke(obj, args));
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+
+    /**
+     * 简单指定方法名调用.
+     *
+     * @param <R>    返回类型泛型
+     * @param obj    调用对象 (非空)
+     * @param method 简单方法名(非摘要): callSimple、callSimpleJsonArgs
+     * @param args   方法入参
+     * @return r 返回对象
+     */
+    public static <R> R callSimple(Object obj, String method, Object... args) {
+        Method m = getMethodMap(obj).get(method);
+        AssertUtil.notNull(m, "方法不存在");
+        return (R) ExceptionUtil.suppress(() -> m.invoke(obj, args));
+    }
+
+    /**
+     * 简单指定方法名调用.
+     *
+     * @param <R>      返回类型泛型
+     * @param obj      调用对象 (非空)
+     * @param method   简单方法名(非摘要): callSimple、callSimpleJsonArgs
+     * @param jsonArgs 方法入参JSON字符串
+     * @return r 返回对象
+     */
+    public static <R> R callSimpleJsonArgs(Object obj, String method, String jsonArgs) {
+        Method m = getMethodMap(obj).get(method);
+        AssertUtil.notNull(m, "方法不存在");
         Object[] args = getArgs(m, jsonArgs);
         return (R) ExceptionUtil.suppress(() -> m.invoke(obj, args));
     }
@@ -721,4 +763,49 @@ public class ClassUtil {
         }
         return args;
     }
+
+    // -----------------------------------------------------------------------------------------------------------------
+
+
+    /**
+     * Gets method map.
+     *
+     * @param obj the obj
+     * @return the method map
+     */
+    public static Map<String, Method> getMethodMap(Object obj) {
+        return getMethodMap(obj, true);
+    }
+
+    /**
+     * Gets method map.
+     *
+     * @param obj    the obj
+     * @param simple the simple
+     * @return the method map
+     */
+    public static Map<String, Method> getMethodMap(Object obj, boolean simple) {
+        AssertUtil.notNull(obj, "对象是空");
+        return getMethodMap(obj.getClass(), simple ? Method::getName : ClassUtil::getDigest);
+    }
+
+    /**
+     * Gets method map.
+     *
+     * @param clazz the clazz
+     * @param fun   the fun
+     * @return the method map
+     */
+    public static Map<String, Method> getMethodMap(Class<?> clazz, Function<Method, String> fun) {
+        AssertUtil.notNull(clazz, "字节码是空");
+        Method[] methods = clazz.getMethods();
+        if (BoolUtil.isEmpty(methods)) {
+            return new HashMap<>();
+        }
+        return Arrays.stream(methods)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(fun, x -> x, (k, v) -> v));
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
 }

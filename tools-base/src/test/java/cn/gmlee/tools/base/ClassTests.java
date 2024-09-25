@@ -1,6 +1,7 @@
 package cn.gmlee.tools.base;
 
 import cn.gmlee.tools.base.entity.Create;
+import cn.gmlee.tools.base.mod.JsonLog;
 import cn.gmlee.tools.base.util.ClassUtil;
 import cn.gmlee.tools.base.util.LoginUtil;
 import org.junit.Test;
@@ -26,6 +27,13 @@ public class ClassTests {
     public void testDigest() {
         Object call = ClassUtil.call(null, "cn.gmlee.tools.base.util.LoginUtil#get(boolean)", false);
         System.out.println(call);
+    }
+
+    @Test
+    public void testCall() {
+        Object call1 = ClassUtil.callSimple(new JsonLog(), "log");
+        Object call2 = ClassUtil.callSimple(call1, "setUrl", "https://www.baidu.com");
+        System.out.println(call2);
     }
 
     public static void main(String[] args) throws InterruptedException {
