@@ -189,7 +189,7 @@ public class MvcUtil {
     private static <C> Method getMethod(Class<C> controller) {
         // 检查方法数量
         AssertUtil.notEmpty(controller.getDeclaredMethods(), String.format("%s the methods is empty!", controller.getName()));
-        return controller.getDeclaredMethods()[0];
+        return controller.getMethods()[0];
     }
 
     // -----------------------------------------------------------------------------------------------------------------
