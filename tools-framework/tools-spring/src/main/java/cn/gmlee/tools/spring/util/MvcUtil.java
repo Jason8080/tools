@@ -21,14 +21,13 @@ import java.lang.reflect.Method;
 public class MvcUtil {
     /**
      * 注册映射处理器.
-     * 已弃用 (无法精准定位处理函数).
+     * (使用类中第1个函数处理请求)
      *
      * @param <C>        the 处理器
      * @param uri        the 路径
      * @param rm         the 方法
      * @param controller the 源对象
      */
-    @Deprecated
     public static <C> void register(String uri, String rm, Class<C> controller) {
         RequestMethod requestMethod = EnumUtil.name(rm, RequestMethod.class);
         AssertUtil.notNull(requestMethod, "Register controller method is not exist");
@@ -52,14 +51,13 @@ public class MvcUtil {
 
     /**
      * 注册映射处理器.
-     * 已弃用 (无法精准定位处理函数).
+     * (使用类中第1个函数处理请求)
      *
      * @param <C>        the 处理器
      * @param uri        the 路径
      * @param rm         the 方法
      * @param controller the 源对象
      */
-    @Deprecated
     public static <C> void register(String uri, RequestMethod rm, Class<C> controller) {
         register(new RequestMappingInfo(
                 new PatternsRequestCondition(uri),
@@ -96,13 +94,12 @@ public class MvcUtil {
 
     /**
      * 注册映射处理器.
-     * 已弃用 (无法精准定位处理函数).
+     * (使用类中第1个函数处理请求)
      *
      * @param <C>        the 处理器
      * @param info       the 请求信息
      * @param controller the 源对象
      */
-    @Deprecated
     public static <C> void register(RequestMappingInfo info, Class<C> controller) {
         // 创建代理对象
         C c = ProxyUtil.CglibProxy(controller, (Object obj, Method method, Object[] args, MethodProxy proxy) -> proxy.invokeSuper(obj, args));
@@ -201,14 +198,13 @@ public class MvcUtil {
 
     /**
      * 重置映射处理器.
-     * 已弃用 (无法精准定位处理函数).
+     * (使用类中第1个函数处理请求)
      *
      * @param <C>        the type parameter
      * @param uri        the uri
      * @param rm         the rm
      * @param controller the controller
      */
-    @Deprecated
     public static <C> void resetRegister(String uri, String rm, Class<C> controller) {
         unregister(uri, rm);
         register(uri, rm, controller);
