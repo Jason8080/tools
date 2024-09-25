@@ -35,21 +35,6 @@ public class MvcUtil {
     }
 
     /**
-     * 已弃用 (无法精准定位处理函数).
-     *
-     * @param <C>        the type parameter
-     * @param uri        the uri
-     * @param rm         the rm
-     * @param controller the controller
-     */
-    @Deprecated
-    public static <C> void register(String uri, String rm, C controller) {
-        RequestMethod requestMethod = EnumUtil.name(rm, RequestMethod.class);
-        AssertUtil.notNull(requestMethod, "Register controller method is not exist");
-        register(uri, requestMethod, controller);
-    }
-
-    /**
      * Register.
      *
      * @param <C>        the type parameter
@@ -75,27 +60,6 @@ public class MvcUtil {
      */
     @Deprecated
     public static <C> void register(String uri, RequestMethod rm, Class<C> controller) {
-        register(new RequestMappingInfo(
-                new PatternsRequestCondition(uri),
-                new RequestMethodsRequestCondition(rm),
-                null,
-                null,
-                null,
-                null,
-                null
-        ), controller);
-    }
-
-    /**
-     * 已弃用 (无法精准定位处理函数).
-     *
-     * @param <C>        the type parameter
-     * @param uri        the uri
-     * @param rm         the rm
-     * @param controller the controller
-     */
-    @Deprecated
-    public static <C> void register(String uri, RequestMethod rm, C controller) {
         register(new RequestMappingInfo(
                 new PatternsRequestCondition(uri),
                 new RequestMethodsRequestCondition(rm),
@@ -140,20 +104,8 @@ public class MvcUtil {
     @Deprecated
     public static <C> void register(RequestMappingInfo info, Class<C> controller) {
         // 创建代理对象
-        register(info, ProxyUtil.CglibProxy(controller, (Object obj, Method method, Object[] args, MethodProxy proxy) -> proxy.invokeSuper(obj, args)));
-    }
-
-    /**
-     * 已弃用 (无法精准定位处理函数).
-     *
-     * @param <C>  the type parameter
-     * @param info the info
-     * @param c    the c
-     */
-    @Deprecated
-    public static <C> void register(RequestMappingInfo info, C c) {
-        AssertUtil.notNull(c, "对象是空");
-        register(info, c, getMethod(c.getClass()));
+        C c = ProxyUtil.CglibProxy(controller, (Object obj, Method method, Object[] args, MethodProxy proxy) -> proxy.invokeSuper(obj, args));
+        register(info, c, getMethod(controller));
     }
 
     /**
@@ -198,7 +150,7 @@ public class MvcUtil {
     private static <C> Method getMethod(Class<C> controller) {
         // 检查方法数量
         AssertUtil.notEmpty(controller.getDeclaredMethods(), String.format("%s the methods is empty!", controller.getName()));
-        return controller.getMethods()[0];
+        return controller.getDeclaredMethods()[0]; // 必须获取自身方法, 否则无法精确调用函数
     }
 
     // -----------------------------------------------------------------------------------------------------------------
@@ -261,20 +213,6 @@ public class MvcUtil {
      */
     @Deprecated
     public static <C> void resetRegister(String uri, String rm, Class<C> controller) {
-        unregister(uri, rm);
-        register(uri, rm, controller);
-    }
-
-    /**
-     * 已弃用 (无法精准定位处理函数).
-     *
-     * @param <C>        the type parameter
-     * @param uri        the uri
-     * @param rm         the rm
-     * @param controller the controller
-     */
-    @Deprecated
-    public static <C> void resetRegister(String uri, String rm, C controller) {
         unregister(uri, rm);
         register(uri, rm, controller);
     }
