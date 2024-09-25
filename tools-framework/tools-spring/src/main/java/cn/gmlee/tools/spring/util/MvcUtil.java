@@ -258,20 +258,6 @@ public class MvcUtil {
     }
 
     /**
-     * Reset register.
-     *
-     * @param <C>        the type parameter
-     * @param uri        the uri
-     * @param rm         the rm
-     * @param controller the controller
-     * @param method     the method
-     */
-    public static <C> void resetRegister(String uri, String rm, Class<C> controller, String method) {
-        unregister(uri, rm);
-        register(uri, rm, controller, method);
-    }
-
-    /**
      * 已弃用 (无法精准定位处理函数).
      *
      * @param <C>        the type parameter
