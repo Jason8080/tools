@@ -1,6 +1,7 @@
 package cn.gmlee.tools.spring.util;
 
 import cn.gmlee.tools.base.util.AssertUtil;
+import cn.gmlee.tools.base.util.ClassUtil;
 import cn.gmlee.tools.base.util.EnumUtil;
 import cn.gmlee.tools.base.util.ProxyUtil;
 import org.springframework.cglib.proxy.MethodProxy;
@@ -32,6 +33,35 @@ public class MvcUtil {
     }
 
     /**
+     * Register.
+     *
+     * @param <C>        the type parameter
+     * @param uri        the uri
+     * @param rm         the rm
+     * @param controller the controller
+     */
+    public static <C> void register(String uri, String rm, C controller) {
+        RequestMethod requestMethod = EnumUtil.name(rm, RequestMethod.class);
+        AssertUtil.notNull(requestMethod, "Register controller method is not exist");
+        register(uri, requestMethod, controller);
+    }
+
+    /**
+     * Register.
+     *
+     * @param <C>        the type parameter
+     * @param uri        the uri
+     * @param rm         the rm
+     * @param controller the controller
+     * @param method     the method
+     */
+    public static <C> void register(String uri, String rm, C controller, String method) {
+        RequestMethod requestMethod = EnumUtil.name(rm, RequestMethod.class);
+        AssertUtil.notNull(requestMethod, "Register controller method is not exist");
+        register(uri, requestMethod, controller, method);
+    }
+
+    /**
      * 注册映射处理器.
      *
      * @param <C>        the 处理器
@@ -51,6 +81,47 @@ public class MvcUtil {
         ), controller);
     }
 
+    /**
+     * Register.
+     *
+     * @param <C>        the type parameter
+     * @param uri        the uri
+     * @param rm         the rm
+     * @param controller the controller
+     */
+    public static <C> void register(String uri, RequestMethod rm, C controller) {
+        register(new RequestMappingInfo(
+                new PatternsRequestCondition(uri),
+                new RequestMethodsRequestCondition(rm),
+                null,
+                null,
+                null,
+                null,
+                null
+        ), controller);
+    }
+
+    /**
+     * Register.
+     *
+     * @param <C>        the type parameter
+     * @param uri        the uri
+     * @param rm         the rm
+     * @param controller the controller
+     * @param method     the method
+     */
+    public static <C> void register(String uri, RequestMethod rm, C controller, String method) {
+        register(new RequestMappingInfo(
+                new PatternsRequestCondition(uri),
+                new RequestMethodsRequestCondition(rm),
+                null,
+                null,
+                null,
+                null,
+                null
+        ), controller, method);
+    }
+
 
     /**
      * 注册映射处理器.
@@ -61,12 +132,53 @@ public class MvcUtil {
      */
     public static <C> void register(RequestMappingInfo info, Class<C> controller) {
         // 创建代理对象
-        C c = ProxyUtil.CglibProxy(controller, (Object obj, Method method, Object[] args, MethodProxy proxy) -> proxy.invokeSuper(obj, args));
+        register(info, ProxyUtil.CglibProxy(controller, (Object obj, Method method, Object[] args, MethodProxy proxy) -> proxy.invokeSuper(obj, args)));
+    }
+
+    /**
+     * Register.
+     *
+     * @param <C>  the type parameter
+     * @param info the info
+     * @param c    the c
+     */
+    public static <C> void register(RequestMappingInfo info, C c) {
+        AssertUtil.notNull(c, "对象是空");
+        register(info, c, getMethod(c.getClass()));
+    }
+
+    /**
+     * Register.
+     *
+     * @param <C>    the type parameter
+     * @param info   the info
+     * @param c      the c
+     * @param method the method
+     */
+    public static <C> void register(RequestMappingInfo info, C c, String method) {
+        AssertUtil.notNull(c, "对象是空");
+        AssertUtil.notEmpty(method, "方法名称是空");
+        Method m = ClassUtil.getMethodMap(c).get(method);
+        register(info, c, m);
+    }
+
+    /**
+     * Register.
+     *
+     * @param <C>    the type parameter
+     * @param info   the info
+     * @param c      the c
+     * @param method the method
+     */
+    public static <C> void register(RequestMappingInfo info, C c, Method method) {
+        // 参数合法校验
+        AssertUtil.notNull(c, "对象是空");
+        AssertUtil.notNull(method, "处理方法不存在");
         // 获取映射集合
         RequestMappingHandlerMapping handlerMapping = IocUtil.getBean(RequestMappingHandlerMapping.class);
         AssertUtil.notNull(handlerMapping, "Ioc create bean error: RequestMappingHandlerMapping");
         // 注册动态接口
-        HandlerMethod handler = new HandlerMethod(c, getMethod(controller));
+        HandlerMethod handler = new HandlerMethod(c, method);
         handlerMapping.registerMapping(
                 info, // 映射条件
                 handler.getBean(), // 处理对象
@@ -146,4 +258,47 @@ public class MvcUtil {
         unregister(uri, rm);
         register(uri, rm, controller);
     }
+
+    /**
+     * Reset register.
+     *
+     * @param <C>        the type parameter
+     * @param uri        the uri
+     * @param rm         the rm
+     * @param controller the controller
+     * @param method     the method
+     */
+    public static <C> void resetRegister(String uri, String rm, Class<C> controller, String method) {
+        unregister(uri, rm);
+        register(uri, rm, controller, method);
+    }
+
+    /**
+     * Reset register.
+     *
+     * @param <C>        the type parameter
+     * @param uri        the uri
+     * @param rm         the rm
+     * @param controller the controller
+     */
+    public static <C> void resetRegister(String uri, String rm, C controller) {
+        unregister(uri, rm);
+        register(uri, rm, controller);
+    }
+
+    /**
+     * Reset register.
+     *
+     * @param <C>        the type parameter
+     * @param uri        the uri
+     * @param rm         the rm
+     * @param controller the controller
+     * @param method     the method
+     */
+    public static <C> void resetRegister(String uri, String rm, C controller, String method) {
+        unregister(uri, rm);
+        register(uri, rm, controller, method);
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
 }
