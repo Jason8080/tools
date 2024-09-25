@@ -33,13 +33,14 @@ public class MvcUtil {
     }
 
     /**
-     * Register.
+     * 已弃用 (无法精准定位处理函数).
      *
      * @param <C>        the type parameter
      * @param uri        the uri
      * @param rm         the rm
      * @param controller the controller
      */
+    @Deprecated
     public static <C> void register(String uri, String rm, C controller) {
         RequestMethod requestMethod = EnumUtil.name(rm, RequestMethod.class);
         AssertUtil.notNull(requestMethod, "Register controller method is not exist");
@@ -82,13 +83,14 @@ public class MvcUtil {
     }
 
     /**
-     * Register.
+     * 已弃用 (无法精准定位处理函数).
      *
      * @param <C>        the type parameter
      * @param uri        the uri
      * @param rm         the rm
      * @param controller the controller
      */
+    @Deprecated
     public static <C> void register(String uri, RequestMethod rm, C controller) {
         register(new RequestMappingInfo(
                 new PatternsRequestCondition(uri),
@@ -136,12 +138,13 @@ public class MvcUtil {
     }
 
     /**
-     * Register.
+     * 已弃用 (无法精准定位处理函数).
      *
      * @param <C>  the type parameter
      * @param info the info
      * @param c    the c
      */
+    @Deprecated
     public static <C> void register(RequestMappingInfo info, C c) {
         AssertUtil.notNull(c, "对象是空");
         register(info, c, getMethod(c.getClass()));
@@ -269,13 +272,14 @@ public class MvcUtil {
     }
 
     /**
-     * Reset register.
+     * 已弃用 (无法精准定位处理函数).
      *
      * @param <C>        the type parameter
      * @param uri        the uri
      * @param rm         the rm
      * @param controller the controller
      */
+    @Deprecated
     public static <C> void resetRegister(String uri, String rm, C controller) {
         unregister(uri, rm);
         register(uri, rm, controller);
