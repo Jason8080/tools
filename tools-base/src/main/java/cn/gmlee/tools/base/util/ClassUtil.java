@@ -705,6 +705,8 @@ public class ClassUtil {
     /**
      * 简单指定方法名调用.
      *
+     * <p>注意: 当前方法入参 {@param method} 不支持重载</p>
+     *
      * @param <R>    返回类型泛型
      * @param obj    调用对象 (非空)
      * @param method 简单方法名(非摘要): callSimple、callSimpleJsonArgs
@@ -719,6 +721,8 @@ public class ClassUtil {
 
     /**
      * 简单指定方法名调用.
+     *
+     * <p>注意: 当前方法入参 {@param method} 不支持重载</p>
      *
      * @param <R>      返回类型泛型
      * @param obj      调用对象 (非空)
