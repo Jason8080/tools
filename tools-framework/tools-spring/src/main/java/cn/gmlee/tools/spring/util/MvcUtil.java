@@ -4,9 +4,10 @@ import cn.gmlee.tools.base.util.AssertUtil;
 import cn.gmlee.tools.base.util.ClassUtil;
 import cn.gmlee.tools.base.util.EnumUtil;
 import cn.gmlee.tools.base.util.ProxyUtil;
+import org.springframework.aop.support.AopUtils;
 import org.springframework.cglib.proxy.MethodProxy;
+import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.condition.PatternsRequestCondition;
 import org.springframework.web.servlet.mvc.condition.RequestMethodsRequestCondition;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
@@ -139,12 +140,8 @@ public class MvcUtil {
         RequestMappingHandlerMapping handlerMapping = IocUtil.getBean(RequestMappingHandlerMapping.class);
         AssertUtil.notNull(handlerMapping, "Ioc create bean error: RequestMappingHandlerMapping");
         // 注册动态接口
-        HandlerMethod handler = new HandlerMethod(c, method);
-        handlerMapping.registerMapping(
-                info, // 映射条件
-                handler.getBean(), // 处理对象
-                handler.getMethod() // 处理函数
-        );
+        Method m = AopUtils.isAopProxy(c) ? ClassUtils.getMostSpecificMethod(method, AopUtils.getTargetClass(c)) : method;
+        handlerMapping.registerMapping(info, c, m);
     }
 
     private static <C> Method getMethod(Class<C> controller) {
