@@ -90,6 +90,7 @@ public class ApiPrintAspect {
                 .setRequestHeaders(WebUtil.getCurrentHeaderMap())
                 .setRequestParams(args)
                 .setResponseParams(ApiAssist.getResponseParams(methodObj.getReturnType(), result))
+                .setResponseHeaders(WebUtil.getCurrentResponseHeaderMap())
                 .setResponseTime(TimeUtil.getCurrentDatetime())
                 .setElapsedTime(elapsedTime)
                 .setSite(site);

@@ -1009,6 +1009,21 @@ public class WebUtil {
         return reqHeaders;
     }
 
+    /**
+     * Gets header map.
+     *
+     * @param res the res
+     * @return the header map
+     */
+    public static Map<String, String> getHeaderMap(HttpServletResponse res) {
+        Map<String, String> reqHeaders = new HashMap(0);
+        if (res == null) {
+            return reqHeaders;
+        }
+        res.getHeaderNames().forEach(name -> reqHeaders.put(name, res.getHeader(name)));
+        return reqHeaders;
+    }
+
 
     /**
      * Gets current header map.
@@ -1019,6 +1034,19 @@ public class WebUtil {
         HttpServletRequest req = WebUtil.getRequest();
         if (req != null) {
             return getHeaderMap(req);
+        }
+        return new HashMap(0);
+    }
+
+    /**
+     * Gets current response header map.
+     *
+     * @return the current response header map
+     */
+    public static Map<String, String> getCurrentResponseHeaderMap() {
+        HttpServletResponse res = WebUtil.getResponse();
+        if (res != null) {
+            return getHeaderMap(res);
         }
         return new HashMap(0);
     }
