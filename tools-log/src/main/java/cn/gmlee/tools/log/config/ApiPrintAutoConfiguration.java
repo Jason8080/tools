@@ -13,9 +13,7 @@ public class ApiPrintAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(ApiPrintTrigger.class)
     public ApiPrintTrigger apiPrintTrigger(){
-        return (log, result, e) -> {
-            ApiPrintAutoConfiguration.log.info("临时日志...{}", log.site);
-        };
+        return (log, result, e) -> {};
     }
 
 }
