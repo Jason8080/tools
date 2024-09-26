@@ -690,12 +690,13 @@ public class ClassUtil {
      * @param obj      静态方法传 null 即可
      * @param method   方法摘要
      * @param jsonArgs 方法入参JSON字符串
+     * @param names    参数名称 (请注意泛型擦除)
      * @return r 调用结果
      */
-    public static <R> R callJsonArgs(Object obj, String method, String jsonArgs) {
+    public static <R> R callJsonArgs(Object obj, String method, String jsonArgs, String... names) {
         Method m = getMethod(method);
         AssertUtil.notNull(m, "摘要的方法不存在");
-        Object[] args = getArgs(m, jsonArgs);
+        Object[] args = getArgs(m, jsonArgs, names);
         return (R) ExceptionUtil.suppress(() -> m.invoke(obj, args));
     }
 
@@ -728,12 +729,13 @@ public class ClassUtil {
      * @param obj      调用对象 (非空)
      * @param method   简单方法名(非摘要): callSimple、callSimpleJsonArgs
      * @param jsonArgs 方法入参JSON字符串
+     * @param names    参数名称 (请注意泛型擦除)
      * @return r 返回对象
      */
-    public static <R> R callSimpleJsonArgs(Object obj, String method, String jsonArgs) {
+    public static <R> R callSimpleJsonArgs(Object obj, String method, String jsonArgs, String... names) {
         Method m = getMethodMap(obj).get(method);
         AssertUtil.notNull(m, "方法不存在");
-        Object[] args = getArgs(m, jsonArgs);
+        Object[] args = getArgs(m, jsonArgs, names);
         return (R) ExceptionUtil.suppress(() -> m.invoke(obj, args));
     }
 
@@ -744,24 +746,25 @@ public class ClassUtil {
      *
      * @param method   the method
      * @param jsonArgs the json args
+     * @param names    参数名称 (请注意泛型擦除)
      * @return the object [ ]
      */
-    public static Object[] getArgs(Method method, String jsonArgs) {
+    public static Object[] getArgs(Method method, String jsonArgs, String... names) {
         AssertUtil.notNull(method, "方法是空");
-        AssertUtil.isFalse(method.isVarArgs(), "暂不支持可变参数");
         Parameter[] parameters = method.getParameters();
+        AssertUtil.eq(names.length, parameters.length, "参数数量不符");
         if (parameters.length == 1) {
             return new Object[]{JsonUtil.toBean(jsonArgs, method.getParameterTypes()[0], true)};
         }
         Map map = JsonUtil.toBean(jsonArgs, Map.class);
         Object[] args = new Object[parameters.length];
-        if (BoolUtil.isEmpty(map)) {
+        if (parameters.length < 1 || BoolUtil.isEmpty(map)) {
             // 没有参数 或者 参数是null
             return args;
         }
         for (int i = 0; i < args.length; i++) {
             Parameter p = parameters[i];
-            Object o = map.get(p.getName());
+            Object o = map.get(names[i]);
             Object arg = o != null ? JsonUtil.convert(o, p.getType(), true) : null;
             args[i] = arg;
         }
