@@ -2,6 +2,7 @@ package cn.gmlee.tools.base.mod;
 
 import cn.gmlee.tools.base.util.CharUtil;
 import cn.gmlee.tools.base.util.JsonUtil;
+import cn.gmlee.tools.base.util.QuickUtil;
 
 import java.io.Serializable;
 
@@ -254,20 +255,34 @@ public class JsonLog implements Serializable {
      * @return the string
      */
     public String builder(int length) {
-        return builder(false, length);
+        return builder(true, false, length);
     }
 
     /**
      * Builder string.
      *
+     * @param isSimple 是否简单化打印
      * @param isFormat 是否格式化打印
      * @param length   打印的最大长度
      * @return the string
      */
-    public String builder(boolean isFormat, int length) {
-        String json = JsonUtil.toJson(this);
+    public String builder(boolean isSimple, boolean isFormat, int length) {
+        cleanSimple(isSimple, this);
+        String json = JsonUtil.toJson(this, false, isSimple);
         String format = isFormat ? JsonUtil.format(json) : json;
         return CharUtil.digest(format, length);
+    }
+
+    private static void cleanSimple(boolean isSimple, JsonLog log) {
+        QuickUtil.isTrue(isSimple, () -> log
+                .setType(null)
+                .setRequestIp(null)
+                .setRequestHeaders(null)
+                .setRequestTime(null)
+                .setResponseHeaders(null)
+                .setResponseTime(null)
+                .setSite(null)
+        );
     }
 
     @Override

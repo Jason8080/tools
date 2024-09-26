@@ -42,4 +42,10 @@ public @interface ApiPrint {
      * @return the boolean
      */
     boolean format() default false;
+
+    /**
+     * 是否简单化输出
+     * @return
+     */
+    boolean simple() default false;
 }
