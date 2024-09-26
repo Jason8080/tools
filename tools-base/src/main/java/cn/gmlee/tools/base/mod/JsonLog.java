@@ -276,6 +276,7 @@ public class JsonLog implements Serializable {
     private static void cleanSimple(boolean isSimple, JsonLog log) {
         QuickUtil.isTrue(isSimple, () -> log
                 .setType(null)
+                .setPrint(null)
                 .setRequestIp(null)
                 .setRequestHeaders(null)
                 .setRequestTime(null)
