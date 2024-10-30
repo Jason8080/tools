@@ -156,6 +156,21 @@ public class CollectionUtil {
     }
 
     /**
+     * 返回第1个值.
+     *
+     * @param <K> the type parameter
+     * @param <V> the type parameter
+     * @param map the map
+     * @return the v
+     */
+    public static <K, V> V first(Map<K, V> map){
+        if(BoolUtil.isEmpty(map)){
+            return null;
+        }
+        return map.values().stream().findFirst().get();
+    }
+
+    /**
      * 根据条件过滤键值对.
      *
      * @param <K> the type parameter
