@@ -279,7 +279,7 @@ public class ExcelUtil {
         HttpServletResponse response = WebUtil.getResponse();
         AssertUtil.notNull(response, "当前API仅在web场景下使用");
         response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-        String file = String.join("_", BoolUtil.isEmpty(filename) ? new String[]{ "export" } : filename);
+        String file = BoolUtil.isEmpty(filename) ? "export" : UrlUtil.encodeOnce(String.join("_", filename));
         response.setHeader(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=%s", file));
         workbook.write(response.getOutputStream());
         response.flushBuffer();
