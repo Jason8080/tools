@@ -3,7 +3,11 @@ package cn.gmlee.tools.base.util;
 import cn.gmlee.tools.base.define.Format;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -260,6 +264,25 @@ public class ExcelUtil {
             }
         }
         return wb;
+    }
+
+
+    /**
+     * Export.
+     *
+     * @param workbook the workbook
+     * @param filename the filename
+     * @throws IOException the io exception
+     */
+    public static void export(Workbook workbook, String... filename) throws IOException {
+        AssertUtil.notNull(workbook, "导出内容是空");
+        HttpServletResponse response = WebUtil.getResponse();
+        AssertUtil.notNull(response, "当前API仅在web场景下使用");
+        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        String file = String.join("_", BoolUtil.isEmpty(filename) ? new String[]{ "export" } : filename);
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=%s", file));
+        workbook.write(response.getOutputStream());
+        response.flushBuffer();
     }
 
     private static void createSheet(Workbook workbook, String name, Collection<Map<String, Object>> rows, String... columns) {
