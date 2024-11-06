@@ -64,21 +64,6 @@ public class WebUtil {
      */
     public static final String DOMAIN_SPLIT_CODE = "\\.";
 
-    /**
-     * The constant PARAM_START_CODE.
-     */
-    public static final String PARAM_START_CODE = "?";
-
-    /**
-     * URL参数连接符.
-     */
-    public static final String PARAM_SPLICE_CODE = "&";
-
-    /**
-     * URL参数赋值符.
-     */
-    public static final String PARAM_WITH_CODE = "=";
-
 
     /**
      * 全局获取请求对象 (注意: service另起线程获取不到).
@@ -949,7 +934,7 @@ public class WebUtil {
      * @return url parameter map
      */
     public static Map<String, Object> getUrlParameterMap(HttpServletRequest req) {
-        return getQueryString(req != null ? req.getQueryString() : null);
+        return UrlUtil.getParams(req != null ? req.getQueryString() : null);
     }
 
     /**
@@ -1072,41 +1057,7 @@ public class WebUtil {
      * @return 参数集 params
      */
     public static Map<String, Object> getParams(String url) {
-        if (!StringUtils.isEmpty(url)) {
-            String[] split = url.split(PARAM_SPLIT_CODE);
-            if (split.length > 1) {
-                return getQueryString(split[1]);
-            } else {
-                return getQueryString(split[0]);
-            }
-        }
-        return new HashMap(0);
-    }
-
-    private static Map<String, Object> getQueryString(String queryString) {
-        Map<String, Object> map = new HashMap(0);
-        String[] params = NullUtil.get(queryString).split(PARAM_SPLICE_CODE);
-        for (String str : params) {
-            String[] kv = str.split(PARAM_WITH_CODE);
-            // 提供自动解码
-            String val = kv.length > 1 ? UrlUtil.decode(kv[1]) : "";
-            if (BoolUtil.allNotEmpty(kv[0], val)) {
-                if (map.containsKey(kv[0])) {
-                    Object value = map.get(kv[0]);
-                    if (value instanceof Collection) {
-                        ((Collection) value).add(val);
-                    } else if (!Objects.isNull(value)) {
-                        List values = new ArrayList();
-                        values.add(val);
-                        values.add(value);
-                        map.put(UrlUtil.decode(kv[0]), values);
-                    }
-                } else {
-                    map.put(UrlUtil.decode(kv[0]), val);
-                }
-            }
-        }
-        return map;
+        return UrlUtil.getParams(url);
     }
 
     /**
@@ -1228,17 +1179,17 @@ public class WebUtil {
         url = NullUtil.get(url);
         StringBuilder sb = new StringBuilder(url);
         if (BoolUtil.allNotNull(key, value)) {
-            if (url.endsWith(PARAM_START_CODE)) {
+            if (url.endsWith(UrlUtil.PARAM_START_CODE)) {
                 sb.append(UrlUtil.encode(key));
-                sb.append(PARAM_WITH_CODE);
-            } else if (url.contains(PARAM_START_CODE)) {
-                sb.append(PARAM_SPLICE_CODE);
+                sb.append(UrlUtil.PARAM_WITH_CODE);
+            } else if (url.contains(UrlUtil.PARAM_START_CODE)) {
+                sb.append(UrlUtil.PARAM_SPLICE_CODE);
                 sb.append(UrlUtil.encode(key));
-                sb.append(PARAM_WITH_CODE);
+                sb.append(UrlUtil.PARAM_WITH_CODE);
             } else {
-                sb.append(PARAM_START_CODE);
+                sb.append(UrlUtil.PARAM_START_CODE);
                 sb.append(UrlUtil.encode(key));
-                sb.append(PARAM_WITH_CODE);
+                sb.append(UrlUtil.PARAM_WITH_CODE);
             }
             sb.append(UrlUtil.encode(value));
         }

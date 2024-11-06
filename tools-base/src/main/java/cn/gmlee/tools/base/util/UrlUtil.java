@@ -1,14 +1,14 @@
 package cn.gmlee.tools.base.util;
 
 import org.springframework.util.AntPathMatcher;
+import org.springframework.util.StringUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
-import java.util.Collection;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * 通用HTTP连接地址工具
@@ -24,6 +24,10 @@ public class UrlUtil {
      * The constant CHARSET.
      */
     public static final String CHARSET = "utf-8";
+    public static final String PARAM_SPLIT_CODE = "\\?";
+    public static final String PARAM_START_CODE = "?";
+    public static final String PARAM_SPLICE_CODE = "&";
+    public static final String PARAM_WITH_CODE = "=";
 
     /**
      * URL编码.
@@ -163,5 +167,51 @@ public class UrlUtil {
                 ExceptionUtil.suppress(in::close);
             }
         }
+    }
+
+
+    /**
+     * 获取URL指定参数
+     *
+     * @param url 请求
+     * @return 参数集 params
+     */
+    public static Map<String, Object> getParams(String url) {
+        if (!StringUtils.isEmpty(url)) {
+            String[] split = url.split(PARAM_SPLIT_CODE);
+            if (split.length > 1) {
+                return getQueryString(split[1]);
+            } else {
+                return getQueryString(split[0]);
+            }
+        }
+        return new HashMap(0);
+    }
+
+
+    private static Map<String, Object> getQueryString(String queryString) {
+        Map<String, Object> map = new HashMap(0);
+        String[] params = NullUtil.get(queryString).split(PARAM_SPLICE_CODE);
+        for (String str : params) {
+            String[] kv = str.split(PARAM_WITH_CODE);
+            // 提供自动解码
+            String val = kv.length > 1 ? UrlUtil.decode(kv[1]) : "";
+            if (BoolUtil.allNotEmpty(kv[0], val)) {
+                if (map.containsKey(kv[0])) {
+                    Object value = map.get(kv[0]);
+                    if (value instanceof Collection) {
+                        ((Collection) value).add(val);
+                    } else if (!Objects.isNull(value)) {
+                        List values = new ArrayList();
+                        values.add(val);
+                        values.add(value);
+                        map.put(UrlUtil.decode(kv[0]), values);
+                    }
+                } else {
+                    map.put(UrlUtil.decode(kv[0]), val);
+                }
+            }
+        }
+        return map;
     }
 }
