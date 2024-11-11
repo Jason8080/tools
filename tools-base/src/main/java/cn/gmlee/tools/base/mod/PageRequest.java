@@ -27,6 +27,11 @@ public class PageRequest implements Serializable {
         this.size = size;
     }
 
+    public PageRequest next(){
+        ++this.current;
+        return this;
+    }
+
     public static PageRequest of() {
         return new PageRequest();
     }

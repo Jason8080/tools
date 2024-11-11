@@ -4,6 +4,7 @@ import cn.gmlee.tools.base.enums.Function;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * 防止null异常工具
@@ -12,6 +13,57 @@ import java.util.Collection;
  * @date 2020 /9/28 (周一)
  */
 public class NullUtil {
+
+    /**
+     * First t.
+     *
+     * @param <T> the type parameter
+     * @param ts  the ts
+     * @return the t
+     */
+    public static <T> T first(T... ts){
+        for (int i = 0; i < ts.length; i++) {
+            T t = ts[0];
+            if(BoolUtil.notNull(t)){
+                return t;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * First t.
+     *
+     * @param <T> the type parameter
+     * @param ts  the ts
+     * @return the t
+     */
+    public static <T extends Collection> T first(T... ts){
+        for (int i = 0; i < ts.length; i++) {
+            T t = ts[0];
+            if(BoolUtil.notEmpty(t)){
+                return t;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * First t.
+     *
+     * @param <T> the type parameter
+     * @param ts  the ts
+     * @return the t
+     */
+    public static <T extends Map> T first(T... ts){
+        for (int i = 0; i < ts.length; i++) {
+            T t = ts[0];
+            if(BoolUtil.notEmpty(t)){
+                return t;
+            }
+        }
+        return null;
+    }
 
     /**
      * 捕捉空异常.

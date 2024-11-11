@@ -101,7 +101,7 @@ public interface Function {
          * Run boolean.
          *
          * @param os the os
-         * @return the boolean
+         * @return the r
          * @throws Throwable the throwable
          */
         R run(Object... os) throws Throwable;
