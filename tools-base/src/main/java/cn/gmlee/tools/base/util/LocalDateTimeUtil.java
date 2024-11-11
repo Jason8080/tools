@@ -2,6 +2,7 @@ package cn.gmlee.tools.base.util;
 
 import java.time.*;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjuster;
 import java.util.Date;
 import java.util.Objects;
 
@@ -113,7 +114,7 @@ public class LocalDateTimeUtil {
      * @param unit   the unit
      * @return the local date time
      */
-    private static LocalDateTime plus(LocalDateTime now, long offset, ChronoUnit unit){
+    private static LocalDateTime plus(LocalDateTime now, long offset, ChronoUnit unit) {
         return now.plus(offset, unit);
     }
 
@@ -218,4 +219,27 @@ public class LocalDateTimeUtil {
         LocalDateTime date = LocalDateTime.of(now.toLocalDate(), localTime);
         return toDate(date);
     }
+
+    /**
+     * 获取某个高光时刻.
+     *
+     * @param temporalAdjuster the temporal adjuster
+     * @return local date time
+     */
+    public static LocalDateTime momentCurrent(TemporalAdjuster temporalAdjuster) {
+        return LocalDateTime.now().with(temporalAdjuster);
+    }
+
+    /**
+     * 获取某个高光时刻.
+     *
+     * @param temporalAdjuster the temporal adjuster
+     * @param localTime        the local time
+     * @return local date time
+     */
+    public static LocalDateTime momentCurrent(TemporalAdjuster temporalAdjuster, LocalTime localTime) {
+        LocalDateTime localDateTime = LocalDateTime.now().with(temporalAdjuster);
+        return localDateTime.of(localDateTime.toLocalDate(), localTime);
+    }
+
 }
