@@ -244,6 +244,25 @@ public class CollectionUtil {
     }
 
     /**
+     * Merge map.
+     *
+     * @param <K>  the type parameter
+     * @param <V>  the type parameter
+     * @param maps the maps
+     * @return the map
+     */
+    public static <K,V> Map<K,V> merge(Map<K,V>... maps) {
+        Map<K,V> all = new HashMap<>();
+        if (BoolUtil.isEmpty(maps)) {
+            return all;
+        }
+        for (Map<K,V> map : maps) {
+            all.putAll(map);
+        }
+        return all;
+    }
+
+    /**
      * Merge collection.
      *
      * @param <T> the type parameter
