@@ -162,8 +162,8 @@ public class CollectionUtil {
      * @param map the map
      * @return the v
      */
-    public static <K, V> V first(Map<K, V> map){
-        if(BoolUtil.isEmpty(map)){
+    public static <K, V> V first(Map<K, V> map) {
+        if (BoolUtil.isEmpty(map)) {
             return null;
         }
         return map.values().stream().findFirst().get();
@@ -240,6 +240,42 @@ public class CollectionUtil {
                 all.put(k, null);
             }
         });
+        return all;
+    }
+
+    /**
+     * Merge collection.
+     *
+     * @param <T> the type parameter
+     * @param cs  the cs
+     * @return the collection
+     */
+    public static <T> Collection<T> merge(Collection<T>... cs) {
+        List<T> all = new ArrayList<>();
+        if (BoolUtil.isEmpty(cs)) {
+            return all;
+        }
+        for (Collection c : cs) {
+            all.addAll(c);
+        }
+        return all;
+    }
+
+    /**
+     * Merge collection.
+     *
+     * @param <T> the type parameter
+     * @param ts  the ts
+     * @return the collection
+     */
+    public static <T> Collection<T> merge(T[]... ts) {
+        List<T> all = new ArrayList<>();
+        if (BoolUtil.isEmpty(ts)) {
+            return all;
+        }
+        for (T[] t : ts) {
+            addAll(all, t);
+        }
         return all;
     }
 
@@ -343,10 +379,9 @@ public class CollectionUtil {
      *
      * @param <K> the type parameter
      * @param ks  the ks
-     *
      * @return set 返回每个集合中私有的元素 (即在其他集合中不存在).
      */
-    public static <K> Set<K> privateKeys(Collection<K>... ks){
+    public static <K> Set<K> privateKeys(Collection<K>... ks) {
         // 存储所有元素的集合
         Set<K> all = new HashSet<>();
 
@@ -386,7 +421,7 @@ public class CollectionUtil {
      * @param ks  the ks
      * @return set 返回每个集合中公有的元素 (即在其他集合中均存在).
      */
-    public static <K> Set<K> publicKeys(Collection<K>... ks){
+    public static <K> Set<K> publicKeys(Collection<K>... ks) {
         Set<K> sets = new HashSet<>(ks[0]);
 
         for (Collection<K> c : ks) {
