@@ -1,10 +1,8 @@
 package cn.gmlee.tools.base.util;
 
 import cn.gmlee.tools.base.enums.Function;
-import org.omg.CORBA.INTERNAL;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 集合工具
@@ -341,13 +339,14 @@ public class CollectionUtil {
     }
 
     /**
-     * 找独有元素.
+     * 找私有元素.
      *
      * @param <K> the type parameter
      * @param ks  the ks
-     * @return the set
+     *
+     * @return set 返回每个集合中私有的元素 (即在其他集合中不存在).
      */
-    public static <K> Set<K> uniqueKeys(Collection<K>... ks){
+    public static <K> Set<K> privateKeys(Collection<K>... ks){
         // 存储所有元素的集合
         Set<K> all = new HashSet<>();
 
@@ -381,13 +380,13 @@ public class CollectionUtil {
     }
 
     /**
-     * 找共有元素.
+     * 找公有元素.
      *
      * @param <K> the type parameter
      * @param ks  the ks
-     * @return the set
+     * @return set 返回每个集合中公有的元素 (即在其他集合中均存在).
      */
-    public static <K> Set<K> commonKeys(Collection<K>... ks){
+    public static <K> Set<K> publicKeys(Collection<K>... ks){
         Set<K> sets = new HashSet<>(ks[0]);
 
         for (Collection<K> c : ks) {
