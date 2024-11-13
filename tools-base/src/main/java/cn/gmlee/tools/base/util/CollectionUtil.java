@@ -1,6 +1,7 @@
 package cn.gmlee.tools.base.util;
 
 import cn.gmlee.tools.base.enums.Function;
+import org.omg.CORBA.INTERNAL;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -337,5 +338,62 @@ public class CollectionUtil {
             }
             map.put(k, val);
         }
+    }
+
+    /**
+     * 找出所有集合中相互不存在的元素.
+     *
+     * @param <K> the type parameter
+     * @param ks  the ks
+     * @return the set
+     */
+    public static <K> Set<K> diffKeys(Collection<K>... ks){
+        // 存储所有元素的集合
+        Set<K> all = new HashSet<>();
+
+        // 遍历所有集合并加入all
+        for (Collection<K> c : ks) {
+            all.addAll(c);
+        }
+
+        // 存储差集结果
+        Set<K> sets = new HashSet<>();
+
+        // 遍历每个集合，找出只在该集合中的元素
+        for (Collection<K> c : ks) {
+            for (K element : c) {
+                boolean isUnique = true;
+                // 检查该元素是否在其他集合中存在
+                for (Collection<K> other : ks) {
+                    if (other != c && other.contains(element)) {
+                        isUnique = false;
+                        break;
+                    }
+                }
+                // 如果该元素只在当前集合中，添加到结果集中
+                if (isUnique) {
+                    sets.add(element);
+                }
+            }
+        }
+
+        return sets;
+    }
+
+    /**
+     * 找出所有集合中共存的元素.
+     *
+     * @param <K> the type parameter
+     * @param ks  the ks
+     * @return the set
+     */
+    public static <K> Set<K> sameKeys(Collection<K>... ks){
+        Set<K> sets = new HashSet<>(ks[0]);
+
+        for (Collection<K> c : ks) {
+            sets.retainAll(c);
+        }
+
+        return sets;
     }
 }
