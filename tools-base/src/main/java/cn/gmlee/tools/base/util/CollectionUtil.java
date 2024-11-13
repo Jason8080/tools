@@ -341,13 +341,13 @@ public class CollectionUtil {
     }
 
     /**
-     * 找出所有集合中相互不存在的元素.
+     * 找独有元素.
      *
      * @param <K> the type parameter
      * @param ks  the ks
      * @return the set
      */
-    public static <K> Set<K> diffKeys(Collection<K>... ks){
+    public static <K> Set<K> uniqueKeys(Collection<K>... ks){
         // 存储所有元素的集合
         Set<K> all = new HashSet<>();
 
@@ -381,13 +381,13 @@ public class CollectionUtil {
     }
 
     /**
-     * 找出所有集合中共存的元素.
+     * 找共有元素.
      *
      * @param <K> the type parameter
      * @param ks  the ks
      * @return the set
      */
-    public static <K> Set<K> sameKeys(Collection<K>... ks){
+    public static <K> Set<K> commonKeys(Collection<K>... ks){
         Set<K> sets = new HashSet<>(ks[0]);
 
         for (Collection<K> c : ks) {
