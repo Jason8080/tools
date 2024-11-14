@@ -41,7 +41,7 @@ public class RsaCodecJsonDeserializer extends JsonDeserializer<String> implement
         if (p.getText() == null) {
             return null;
         }
-        return ExceptionUtil.sandbox(() -> decode(p.getText()), p.getText());
+        return ExceptionUtil.sandbox(() -> decode(p.getText()), e -> p.getText());
     }
 
     @Override

@@ -42,7 +42,7 @@ public class RsaCodecJsonSerializer extends JsonSerializer<String> implements Rs
             gen.writeNull();
             return;
         }
-        gen.writeString(ExceptionUtil.sandbox(() -> encode(value), value));
+        gen.writeString(ExceptionUtil.sandbox(() -> encode(value), e -> value));
     }
 
     @Override

@@ -254,13 +254,14 @@ public class ExceptionUtil {
      * @param def the def
      * @return the r
      */
-    public static <R> R sandbox(Function.Zero2r<R> fun, R def) {
-        try {
-            return fun.run();
-        } catch (Throwable e) {
-            return def;
-        }
-    }
+//    无法重载
+//    public static <R> R sandbox(Function.Zero2r<R> fun, R def) {
+//        try {
+//            return fun.run();
+//        } catch (Throwable e) {
+//            return def;
+//        }
+//    }
 
     /**
      * 沙箱执行 (默认函数可能抛出异常).
