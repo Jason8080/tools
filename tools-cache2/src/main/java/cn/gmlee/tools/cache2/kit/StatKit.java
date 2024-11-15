@@ -13,6 +13,7 @@ import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * 统计工具.
@@ -30,15 +31,15 @@ public class StatKit {
         /**
          * 缓存命中次数.
          */
-        public long hit;
+        public AtomicLong hit;
         /**
          * 缓存未命中次数.
          */
-        public long miss;
+        public AtomicLong miss;
         /**
          * 访问总次数
          */
-        public long total;
+        public AtomicLong total;
         /**
          * 命中率.
          */
@@ -76,29 +77,34 @@ public class StatKit {
         }
     }
 
-    private static synchronized Hit count(String key, Boolean val, long elapsedTime) {
+    private static Hit count(String key, Boolean val, long elapsedTime) {
         Hit hit = map.get(key);
         if (hit == null) {
-            hit = new Hit();
-            hit.elapsedTime = elapsedTime;
-            map.put(key, hit);
+            synchronized (map) {
+                hit = map.get(key);
+                if (hit == null) {
+                    hit = new Hit();
+                    hit.elapsedTime = elapsedTime;
+                    map.put(key, hit);
+                }
+            }
         }
-        hit.total++;
-        if (Boolean.TRUE.equals(val)) {
-            // 命中次数+1
-            hit.hit++;
-        } else {
-            // 未命中次数+1
-            hit.miss++;
+        synchronized (hit) {
+            hit.total.incrementAndGet();
+            if (Boolean.TRUE.equals(val)) {
+                hit.hit.incrementAndGet();
+            } else {
+                hit.miss.incrementAndGet();
+            }
+            hit.elapsedTime = (hit.elapsedTime + elapsedTime) / 2;
+            hit.rate = rate(hit);
         }
-        hit.elapsedTime = (hit.elapsedTime + elapsedTime) / 2;
-        hit.rate = rate(hit);
         return hit;
     }
 
     private static BigDecimal rate(Hit hit) {
-        BigDecimal current = new BigDecimal(hit.hit);
-        BigDecimal total = new BigDecimal(hit.total);
+        BigDecimal current = new BigDecimal(hit.hit.get());
+        BigDecimal total = new BigDecimal(hit.total.get());
         return current.divide(total, BigDecimalUtil.SCALE_4, RoundingMode.DOWN);
     }
 

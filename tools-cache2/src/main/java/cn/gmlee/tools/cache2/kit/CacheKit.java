@@ -22,7 +22,7 @@ public class CacheKit {
      * @param field
      * @return the string
      */
-    public static synchronized String generateKey(Cache cache, Object result, Field field) {
+    public static String generateKey(Cache cache, Object result, Field field) {
         Map<String, Object> obj = ClassKit.generateMapUseCache(result);
         String target = cache.target();
         String key = cache.key();
