@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 统计工具.
@@ -20,7 +21,7 @@ public class StatKit {
 
     private static final Logger log = LoggerFactory.getLogger(StatKit.class);
 
-    private static final Map<String, Hit> map = new HashMap();
+    private static final Map<String, Hit> map = new ConcurrentHashMap<>();
 
     /**
      * The type Hit.
@@ -75,7 +76,7 @@ public class StatKit {
         }
     }
 
-    private static Hit count(String key, Boolean val, long elapsedTime) {
+    private static synchronized Hit count(String key, Boolean val, long elapsedTime) {
         Hit hit = map.get(key);
         if (hit == null) {
             hit = new Hit();

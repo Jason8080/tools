@@ -4,14 +4,14 @@ import cn.gmlee.tools.base.enums.Int;
 import cn.gmlee.tools.cache2.anno.Cache;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 缓存降级工具.
  */
 public class DemoteKit {
-    private static final Map<String, Integer> DEMOTE_MAP = new HashMap();
+    private static final Map<String, Integer> DEMOTE_MAP = new ConcurrentHashMap<>();
 
     /**
      * 是否存在降级.
