@@ -31,15 +31,15 @@ public class StatKit {
         /**
          * 缓存命中次数.
          */
-        public AtomicLong hit;
+        public AtomicLong hit = new AtomicLong(0);
         /**
          * 缓存未命中次数.
          */
-        public AtomicLong miss;
+        public AtomicLong miss = new AtomicLong(0);
         /**
          * 访问总次数
          */
-        public AtomicLong total;
+        public AtomicLong total = new AtomicLong(0);
         /**
          * 命中率.
          */
