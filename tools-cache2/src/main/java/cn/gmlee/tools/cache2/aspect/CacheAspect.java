@@ -58,6 +58,7 @@ public class CacheAspect {
 
         // 全局关闭
         if(Boolean.FALSE.equals(conf.getEnable())){
+            QuickUtil.isTrue(conf.isLog(), () -> log.info("Cache2 is closed: {}", conf));
             return;
         }
 
