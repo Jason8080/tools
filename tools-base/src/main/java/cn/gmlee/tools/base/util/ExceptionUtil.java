@@ -97,7 +97,7 @@ public class ExceptionUtil {
         if (e instanceof RuntimeException) {
             throw (RuntimeException) e;
         }
-        throw new SkillException(XCode.FAIL.code, e);
+        throw new SkillException(XCode.FAIL.code, getOriginMsg(e), e);
     }
 
     /**
