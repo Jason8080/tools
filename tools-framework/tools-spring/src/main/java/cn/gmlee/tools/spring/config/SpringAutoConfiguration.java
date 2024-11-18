@@ -1,7 +1,7 @@
 package cn.gmlee.tools.spring.config;
 
-import cn.gmlee.tools.spring.util.IocUtil;
 import cn.gmlee.tools.spring.SpringInstanceProvider;
+import cn.gmlee.tools.spring.util.IocUtil;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,8 +11,7 @@ import org.springframework.context.annotation.Configuration;
  *
  * @author Jas°
  */
-@Configuration
-public class SpringConfig {
+public class SpringAutoConfiguration {
     /**
      * 初始化GM InstanceFactory.
      *
