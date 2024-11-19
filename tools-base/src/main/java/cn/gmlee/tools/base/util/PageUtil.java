@@ -34,7 +34,7 @@ public class PageUtil {
             ExceptionUtil.suppress(() -> handler.run(NullUtil.first(list, data, records)));
             // 自动翻页程序
             ClassUtil.setValue(r, "current", current + 1);
-            nextPage(page, handler);
+            ExceptionUtil.suppress(() -> handler.run(NullUtil.first(list, data, records)));
         }
     }
 }
