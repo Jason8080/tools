@@ -28,13 +28,14 @@ public class PageUtil {
         P list = (P) map.get("list");
         P data = (P) map.get("data");
         P records = (P) map.get("records");
-        while (!BoolUtil.allEmpty(list, data, records)) {
+        P p = NullUtil.first(list, data, records);
+        if (BoolUtil.notEmpty(p)) {
             // 执行处理程序
-            log.info("准备处理第{}页结果: {}", current, NullUtil.first(list, data, records));
-            ExceptionUtil.suppress(() -> handler.run(NullUtil.first(list, data, records)));
+            log.info("准备处理第{}页结果: {}", current, p);
+            ExceptionUtil.sandbox(() -> handler.run(p), () -> log.error("处理第{}页发生异常", current));
             // 自动翻页程序
             ClassUtil.setValue(r, "current", current + 1);
-            ExceptionUtil.suppress(() -> handler.run(NullUtil.first(list, data, records)));
+            nextPage(page, handler);
         }
     }
 }

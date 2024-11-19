@@ -175,6 +175,7 @@ public class ExceptionUtil {
         try {
             fun.run();
         } catch (Throwable e) {
+            logger.error("沙箱异常提示: ", e);
             suppress(def);
         }
     }
