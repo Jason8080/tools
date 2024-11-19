@@ -30,7 +30,7 @@ public class PageUtil {
         P records = (P) map.get("records");
         while (!BoolUtil.allEmpty(list, data, records)) {
             // 执行处理程序
-            log.info("准备处理第{}页结果: {}", current, r);
+            log.info("准备处理第{}页结果: {}", current, NullUtil.first(list, data, records));
             ExceptionUtil.suppress(() -> handler.run(NullUtil.first(list, data, records)));
             // 自动翻页程序
             ClassUtil.setValue(r, "current", current + 1);
