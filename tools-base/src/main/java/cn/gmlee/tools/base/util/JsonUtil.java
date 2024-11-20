@@ -1,7 +1,7 @@
 package cn.gmlee.tools.base.util;
 
-import cn.gmlee.tools.base.jackson.JacksonAssist;
 import cn.gmlee.tools.base.enums.XTime;
+import cn.gmlee.tools.base.jackson.JacksonAssist;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
@@ -19,14 +19,21 @@ import java.util.TimeZone;
  */
 public class JsonUtil {
 
-    private static final ObjectMapper objectMapper = jacksonObjectMapper();
+    private static final ObjectMapper objectMapper = newInstance();
+    private static final ObjectMapper objectMapperIncludeAlways = newInstance();
+    private static final ObjectMapper objectMapperSnakeCase = newInstance();
+
+    static {
+        objectMapperIncludeAlways.setSerializationInclusion(Include.ALWAYS);
+        objectMapperSnakeCase.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+    }
 
     /**
      * Jackson .
      *
      * @return the object mapper
      */
-    private static ObjectMapper jacksonObjectMapper() {
+    private static ObjectMapper newInstance() {
         ObjectMapper objectMapper = new ObjectMapper();
         // 默认注册: 保持与框架同步
         JacksonAssist.registerDefaultModule(objectMapper);
@@ -36,6 +43,7 @@ public class JsonUtil {
         JacksonAssist.registerTimeZoneModule(objectMapper, TimeZone.getTimeZone("GMT+8"), XTime.SECOND_MINUS_BLANK_COLON.pattern);
         return objectMapper;
     }
+
     /**
      * Gets instance.
      *
@@ -69,9 +77,8 @@ public class JsonUtil {
             return allowEx ? null : "";
         }
         ObjectMapper objectMapper = getInstance();
-        if (ignoreNull) {
-            objectMapper = jacksonObjectMapper();
-            objectMapper.setSerializationInclusion(Include.NON_NULL);
+        if (!ignoreNull) {
+            objectMapper = objectMapperIncludeAlways;
         }
         try {
             return objectMapper.writeValueAsString(obj);
@@ -230,8 +237,7 @@ public class JsonUtil {
         ObjectMapper objectMapper = getInstance();
         // 开启驼峰命名: json串中的hoMe 将 将无法再转到 属性中
         if (useSnake) {
-            objectMapper = jacksonObjectMapper();
-            objectMapper.setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE);
+            objectMapper = objectMapperSnakeCase;
         }
         try {
             return objectMapper.convertValue(obj, clazz);
