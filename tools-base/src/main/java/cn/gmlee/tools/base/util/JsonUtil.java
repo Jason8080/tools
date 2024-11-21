@@ -7,7 +7,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import org.springframework.util.StringUtils;
 
 import java.util.TimeZone;
 
@@ -339,7 +338,7 @@ public class JsonUtil {
      */
     public static byte[] toBytes(Object params) {
         String json = toJson(params);
-        if (!StringUtils.isEmpty(json)) {
+        if (!BoolUtil.isEmpty(json)) {
             return json.getBytes();
         }
         return null;
@@ -363,7 +362,7 @@ public class JsonUtil {
      * @return string string
      */
     public static String format(String json) {
-        if (StringUtils.isEmpty(json)) {
+        if (BoolUtil.isEmpty(json)) {
             return "";
         }
         StringBuilder sb = new StringBuilder();
