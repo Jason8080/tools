@@ -40,7 +40,7 @@ public class NullUtil {
      */
     public static <T extends Collection> T first(T... ts){
         for (int i = 0; i < ts.length; i++) {
-            T t = ts[0];
+            T t = ts[i];
             if(BoolUtil.notEmpty(t)){
                 return t;
             }

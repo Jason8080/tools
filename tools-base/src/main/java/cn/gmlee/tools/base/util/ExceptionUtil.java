@@ -97,7 +97,7 @@ public class ExceptionUtil {
         if (e instanceof RuntimeException) {
             throw (RuntimeException) e;
         }
-        throw new SkillException(XCode.FAIL.code, e);
+        throw new SkillException(XCode.FAIL.code, getOriginMsg(e), e);
     }
 
     /**
@@ -175,6 +175,7 @@ public class ExceptionUtil {
         try {
             fun.run();
         } catch (Throwable e) {
+            logger.error("沙箱异常提示: ", e);
             suppress(def);
         }
     }
