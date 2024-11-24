@@ -39,7 +39,7 @@ import java.util.List;
 public class MyBatisConfiguration {
 
     @Value("${tools.mysql.dynamic.mapperPackageName:mapper}")
-    private String mapperPackageName;
+    private String[] mapperPackageName;
 
     @javax.annotation.Resource
     private MybatisProperties mybatisProperties;
@@ -54,7 +54,7 @@ public class MyBatisConfiguration {
         SqlSessionFactoryBean sessionFactory = new SqlSessionFactoryBean();
         sessionFactory.setDataSource(dataSource);
         // 映射器
-        Resource[] resources = new PathMatchingResourcePatternResolver().getResources("classpath*:/**/" + mapperPackageName + "/**/*.xml");
+        Resource[] resources = LocalResourcesAssist.getPackagesResource(mapperPackageName);
         sessionFactory.setMapperLocations(LocalResourcesAssist.getFileSystemResource(resources));
         Configuration configuration = getMybatisConfigurationBoot(sessionFactory);
         // 注入mybatis拦截器(保证dataAuthInterceptor插件在前面执行: 所以需要确保分页插件在后面)
