@@ -240,6 +240,19 @@ public class BoolUtil {
      * @param o the o
      * @return the boolean
      */
+    public static boolean isTrue(Object o) {
+        if (!(o instanceof Boolean)) {
+            return false;
+        }
+        return (boolean) o;
+    }
+
+    /**
+     * 是真.
+     *
+     * @param o the o
+     * @return the boolean
+     */
     public static boolean isTrue(Boolean o) {
         if (o == null) {
             return false;
