@@ -23,6 +23,20 @@ public class LocalDateTimeUtil {
     private static final ZoneOffset utc = ZoneOffset.UTC;
 
     /**
+     * Between duration.
+     *
+     * @param start the start
+     * @param end   the end
+     * @return the duration
+     */
+    public static Duration between(String start, String end) {
+        if (BoolUtil.allNotNull(start, end)) {
+            return between(TimeUtil.parseTime(start), TimeUtil.parseTime(end));
+        }
+        return Duration.ZERO;
+    }
+
+    /**
      * 时间差.
      *
      * @param start the d 1
