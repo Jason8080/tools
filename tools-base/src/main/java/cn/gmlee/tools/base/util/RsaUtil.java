@@ -264,7 +264,7 @@ public class RsaUtil {
     private static String getContent(Sign sign) {
         Map<String, Object> map = ClassUtil.generateMap(sign);
         map.remove(SignUtil.getSignature());
-        TreeMap<String, Object> treeMap = CollectionUtil.keySort(map);
+        Map<String, Object> treeMap = CollectionUtil.keySort(map);
         StringBuilder sb = new StringBuilder();
         Iterator<Map.Entry<String, Object>> it = treeMap.entrySet().iterator();
         while (it.hasNext()) {
