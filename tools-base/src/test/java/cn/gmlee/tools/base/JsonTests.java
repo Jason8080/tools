@@ -14,8 +14,10 @@ import lombok.Getter;
 import lombok.Setter;
 import org.junit.Test;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class JsonTests {
 
@@ -40,8 +42,8 @@ public class JsonTests {
 
     @Test
     public void testSort2(){
-        String str = "{\"a2\":\"a2\",\"b1\":\"b1\",\"b2\":\"b2\",\"c1\":\"c1\",\"e1\":\"e1\",\"obj\":{\"e1\":\"e1\",\"b1\":\"b1\",\"b2\":\"b2\",\"c1\":\"c1\",\"obj\":null}}";
-        Map map = JsonUtil.toBean(str, Map.class);
+        String str = "{\"c1\":\"c1\",\"b1\":\"b1\",\"b2\":\"b2\",\"c1\":\"c1\",\"a2\":\"a2\",\"obj\":{\"e1\":\"e1\",\"b1\":\"b1\",\"b2\":\"b2\",\"c1\":\"c1\",\"obj\":null}}";
+        Map map = JsonUtil.toBean(str, TreeMap.class);
         map = CollectionUtil.keyReverseSort(map);
         String json = JsonUtil.toJson(map);
         System.out.println(json);
