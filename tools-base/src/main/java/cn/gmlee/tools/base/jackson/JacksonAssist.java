@@ -134,6 +134,7 @@ public class JacksonAssist {
         // 开启 json 格式化
 //        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
         // 开启 json 有序性
+        objectMapper.enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY);
         objectMapper.configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
     }
 

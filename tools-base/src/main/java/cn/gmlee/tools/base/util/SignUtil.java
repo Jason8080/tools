@@ -87,7 +87,7 @@ public class SignUtil {
      */
     @Deprecated
     public static <T> String signDeprecated(Map<String, T> map, String secretKey) {
-        TreeMap<String, T> treeMap = CollectionUtil.keySort(map);
+        Map<String, T> treeMap = CollectionUtil.keySort(map);
         treeMap.remove(getSignature());
         StringBuilder sb = new StringBuilder();
         Iterator<Map.Entry<String, T>> it = treeMap.entrySet().iterator();

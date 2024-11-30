@@ -207,7 +207,7 @@ public class BoolUtil {
      * @return the boolean
      */
     public static boolean isDigit(CharSequence cs) {
-        int strLen;
+        int strLen = 0;
         if (cs != null && (strLen = cs.length()) != 0) {
             for (int i = (cs.charAt(0) == '-') ? 1 : 0; i < strLen; ++i) {
                 if (!Character.isDigit(cs.charAt(i))) {
@@ -215,7 +215,7 @@ public class BoolUtil {
                 }
             }
         }
-        return true;
+        return strLen > 0;
     }
 
     /**

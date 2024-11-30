@@ -197,30 +197,40 @@ public class CollectionUtil {
      * @param <K> the type parameter
      * @param <V> the type parameter
      * @param map the map
-     * @return the tree map
+     * @return map map
      */
-    public static <K extends Comparable, V> TreeMap<K, V> keySort(Map<K, V> map) {
-        TreeMap<K, V> treeMap = new TreeMap<>();
-        if (BoolUtil.notEmpty(map)) {
-            treeMap.putAll(map);
-        }
-        return treeMap;
+    public static <K extends Comparable<? super K>, V> Map<K, V> keySort(Map<K, V> map) {
+        return keySort(map, Map.Entry.comparingByKey());
     }
 
     /**
-     * Key reverse sort tree map.
+     * 将Map按照Key倒序排序.
      *
      * @param <K> the type parameter
      * @param <V> the type parameter
      * @param map the map
      * @return the tree map
      */
-    public static <K extends Comparable, V> TreeMap<K, V> keyReverseSort(Map<K, V> map) {
-        TreeMap<K, V> treeMap = new TreeMap<>(Comparator.comparing((K k) -> k).reversed());
-        if (BoolUtil.notEmpty(map)) {
-            treeMap.putAll(map);
-        }
-        return treeMap;
+    public static <K extends Comparable, V> Map<K, V> keyReverseSort(Map<K, V> map) {
+        return keySort(map, Map.Entry.comparingByKey(Comparator.reverseOrder()));
+    }
+
+
+    private static <K extends Comparable<? super K>, V> Map<K, V> keySort(Map<K, V> map, Comparator<? super Map.Entry<K, V>> comparable) {
+        Map<K, V> sortedMap = new LinkedHashMap<>();
+        // 对map的key进行排序
+        map.entrySet().stream().sorted(comparable).forEach(entry -> {
+            V value = entry.getValue();
+            // 如果value也是一个Map，递归排序
+            if (value instanceof Map) {
+                // 递归调用时转换类型
+                Map<K, V> newValue = ExceptionUtil.sandbox(() -> (Map<K, V>) value, false);
+                sortedMap.put(entry.getKey(), newValue != null ? (V) keySort(newValue, comparable) : value);
+            } else {
+                sortedMap.put(entry.getKey(), value);
+            }
+        });
+        return sortedMap;
     }
 
     /**
@@ -251,12 +261,12 @@ public class CollectionUtil {
      * @param maps the maps
      * @return the map
      */
-    public static <K,V> Map<K,V> merge(Map<K,V>... maps) {
-        Map<K,V> all = new HashMap<>();
+    public static <K, V> Map<K, V> merge(Map<K, V>... maps) {
+        Map<K, V> all = new HashMap<>();
         if (BoolUtil.isEmpty(maps)) {
             return all;
         }
-        for (Map<K,V> map : maps) {
+        for (Map<K, V> map : maps) {
             all.putAll(map);
         }
         return all;

@@ -3,15 +3,21 @@ package cn.gmlee.tools.base;
 import cn.gmlee.tools.base.entity.Create;
 import cn.gmlee.tools.base.mod.ConfigInfo;
 import cn.gmlee.tools.base.mod.R;
+import cn.gmlee.tools.base.util.CollectionUtil;
 import cn.gmlee.tools.base.util.JsonUtil;
+import cn.gmlee.tools.base.util.Md5Util;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import lombok.Getter;
+import lombok.Setter;
 import org.junit.Test;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class JsonTests {
 
@@ -30,7 +36,19 @@ public class JsonTests {
     @Test
     public void testSort(){
         Aa obj = new Aa();
+        obj.setObj(new Aa());
         System.out.println(JsonUtil.toJson(obj));
+    }
+
+    @Test
+    public void testSort2(){
+        String str = "{\"c1\":\"c1\",\"b1\":\"b1\",\"b2\":\"b2\",\"c1\":\"c1\",\"a2\":\"a2\",\"obj\":{\"e1\":\"e1\",\"b1\":\"b1\",\"b2\":\"b2\",\"c1\":\"c1\",\"obj\":null}}";
+        Map map = JsonUtil.toBean(str, TreeMap.class);
+        map = CollectionUtil.keyReverseSort(map);
+        String json = JsonUtil.toJson(map);
+        System.out.println(json);
+        String md5 = Md5Util.encode(json);
+        System.out.println(md5);
     }
 
     @Getter
@@ -40,6 +58,8 @@ public class JsonTests {
         private String c1 = "c1";
         private String b2 = "b2";
         private String e1 = "e1";
+        @Setter
+        private Aa obj;
     }
 
 
