@@ -1,9 +1,12 @@
 package cn.gmlee.tools.base.util;
 
 import cn.gmlee.tools.base.enums.Function;
+import cn.gmlee.tools.base.enums.Int;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -14,8 +17,10 @@ public class PageUtil {
     /**
      * 自动翻页.
      *
-     * @param <R>  IPage mybatisPlus中的分页对象接口
-     * @param page 单页处理程序
+     * @param <R>     IPage mybatisPlus中的分页对象接口
+     * @param <P>     the type parameter
+     * @param page    单页处理程序
+     * @param handler the handler
      */
     public static <R, P extends Collection> void nextPage(Function.Zero2r<R> page, Function.One<P> handler) {
         // 获取 1 页
@@ -37,5 +42,32 @@ public class PageUtil {
             ClassUtil.setValue(r, "current", current + 1);
             nextPage(page, handler);
         }
+    }
+
+    /**
+     * 橫向码页.
+     *
+     * @param <T>  the type parameter
+     * @param ts   the ts
+     * @param size the size
+     * @return the list
+     */
+    public static <T> List<List<T>> splitPage(List<T> ts, int size) {
+        List<List<T>> page = new ArrayList<>(size);
+        if (size <= Int.ONE) {
+            page.add(ts);
+            return page;
+        }
+        for (int i = 0, j = 0; i < ts.size(); i++, j++) {
+            if (j >= size) {
+                j = 0;
+            }
+            if (page.size() < size) {
+                page.add(new ArrayList<>());
+            }
+            List<T> list = page.get(j);
+            list.add(ts.get(i));
+        }
+        return page;
     }
 }
