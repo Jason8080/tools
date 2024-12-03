@@ -45,29 +45,58 @@ public class PageUtil {
     }
 
     /**
-     * 橫向码页.
+     * 指定页数分页.
      *
      * @param <T>  the type parameter
      * @param ts   the ts
-     * @param size the size
-     * @return the list
+     * @param page 拆分页数
+     * @return list 返回确定的页数
      */
-    public static <T> List<List<T>> splitPage(List<T> ts, int size) {
-        List<List<T>> page = new ArrayList<>(size);
-        if (size <= Int.ONE) {
-            page.add(ts);
-            return page;
+    public static <T> List<List<T>> splitPage(List<T> ts, int page) {
+        List<List<T>> pages = new ArrayList<>(page);
+        if (BoolUtil.isEmpty(ts) || page <= Int.ONE) {
+            pages.add(ts);
+            return pages;
         }
         for (int i = 0, j = 0; i < ts.size(); i++, j++) {
-            if (j >= size) {
+            if (j >= page) {
                 j = 0;
             }
-            if (page.size() < size) {
-                page.add(new ArrayList<>());
+            if (pages.size() < page) {
+                pages.add(new ArrayList<>());
             }
-            List<T> list = page.get(j);
+            List<T> list = pages.get(j);
             list.add(ts.get(i));
         }
-        return page;
+        return pages;
+    }
+
+
+    /**
+     * 指定容量分页.
+     *
+     * @param <T>  the type parameter
+     * @param ts   the ts
+     * @param size 每页数量
+     * @return list 返回不确定的页数
+     */
+    public static <T> List<List<T>> splitSize(List<T> ts, int size) {
+        List<List<T>> pages = new ArrayList<>();
+        if (BoolUtil.isEmpty(ts) || size < Int.ONE) {
+            return pages;
+        }
+        int total = ts.size(); // 计算页数
+        int page = (int) Math.ceil(BigDecimalUtil.divide(total, size).doubleValue());
+        for (int i = 0, j = 0; i < total; i++, j++) {
+            if (j >= page) {
+                j = 0;
+            }
+            if (pages.size() < page) {
+                pages.add(new ArrayList<>(size));
+            }
+            List<T> list = pages.get(j);
+            list.add(ts.get(i));
+        }
+        return pages;
     }
 }
