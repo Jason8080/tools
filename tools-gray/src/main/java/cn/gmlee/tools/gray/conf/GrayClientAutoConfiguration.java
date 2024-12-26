@@ -73,7 +73,7 @@ public class GrayClientAutoConfiguration {
         if (v >= Long.MAX_VALUE) {
             return "0";
         }
-        if (index == 1) {
+        if (index == 0) {
             return String.valueOf(v + 1);
         }
         // 加入到最后1个版本集群
