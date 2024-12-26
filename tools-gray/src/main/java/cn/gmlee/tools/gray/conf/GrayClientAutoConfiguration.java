@@ -1,6 +1,7 @@
 package cn.gmlee.tools.gray.conf;
 
 import cn.gmlee.tools.base.util.BoolUtil;
+import cn.gmlee.tools.base.util.NullUtil;
 import cn.gmlee.tools.gray.balancer.GrayReactorServiceInstanceLoadBalancer;
 import cn.gmlee.tools.gray.server.GrayServer;
 import com.alibaba.cloud.nacos.NacosDiscoveryProperties;
@@ -68,7 +69,7 @@ public class GrayClientAutoConfiguration {
             vs.add(0L);
         }
         int index = vs.size() - 1;
-        Long v = vs.get(index);
+        Long v = NullUtil.get(vs.get(index), 0L);
         if (v >= Long.MAX_VALUE) {
             return "0";
         }
