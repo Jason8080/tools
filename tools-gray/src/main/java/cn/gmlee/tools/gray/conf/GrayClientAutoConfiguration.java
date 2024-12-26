@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 灰度客户端自动装配.
@@ -64,7 +65,11 @@ public class GrayClientAutoConfiguration {
             return "0";
         }
         Map<String, List<ServiceInstance>> instanceMap = instances.stream().collect(Collectors.groupingBy(x -> x.getMetadata().get(grayProperties.getHead())));
-        List<Long> vs = instanceMap.keySet().stream().filter(BoolUtil::isDigit).distinct().map(Long::getLong).sorted().collect(Collectors.toList());
+        Stream<String> stream = instanceMap.keySet().stream().filter(BoolUtil::isDigit);
+        if(stream.count() < 1){
+            return "0";
+        }
+        List<Long> vs = stream.distinct().map(Long::getLong).sorted().collect(Collectors.toList());
         if (vs.isEmpty()) {
             vs.add(0L);
         }
