@@ -64,7 +64,7 @@ public class GrayClientAutoConfiguration {
             return "0";
         }
         Map<String, List<ServiceInstance>> instanceMap = instances.stream().collect(Collectors.groupingBy(x -> x.getMetadata().get(grayProperties.getHead())));
-        List<Long> vs = instanceMap.keySet().stream().filter(BoolUtil::isDigit).map(Long::getLong).sorted().collect(Collectors.toList());
+        List<Long> vs = instanceMap.keySet().stream().filter(BoolUtil::isDigit).distinct().map(Long::getLong).sorted().collect(Collectors.toList());
         if (vs.isEmpty()) {
             vs.add(0L);
         }
