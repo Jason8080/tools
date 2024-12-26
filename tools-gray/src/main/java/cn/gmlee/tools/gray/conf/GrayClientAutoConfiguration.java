@@ -6,6 +6,7 @@ import cn.gmlee.tools.gray.balancer.GrayReactorServiceInstanceLoadBalancer;
 import cn.gmlee.tools.gray.server.GrayServer;
 import com.alibaba.cloud.nacos.NacosDiscoveryProperties;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -26,6 +27,7 @@ import java.util.stream.Stream;
 /**
  * 灰度客户端自动装配.
  */
+@Slf4j
 @EnableConfigurationProperties(GrayProperties.class)
 @LoadBalancerClients(defaultConfiguration = GrayClientAutoConfiguration.class)
 @ConditionalOnMissingClass({"org.springframework.cloud.gateway.filter.GlobalFilter"})
@@ -70,7 +72,8 @@ public class GrayClientAutoConfiguration {
         if(versions.isEmpty()){
             return "0";
         }
-        List<Long> vs = versions.stream().distinct().map(Long::getLong).sorted().collect(Collectors.toList());
+        log.info("服务[{}]已有版本: {}", serviceId, versions);
+        List<Long> vs = versions.stream().distinct().map(Long::valueOf).sorted().collect(Collectors.toList());
         if (vs.isEmpty()) {
             vs.add(0L);
         }
