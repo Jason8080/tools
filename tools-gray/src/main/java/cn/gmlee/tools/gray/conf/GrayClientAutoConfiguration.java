@@ -1,6 +1,7 @@
 package cn.gmlee.tools.gray.conf;
 
 import cn.gmlee.tools.base.util.BoolUtil;
+import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.NullUtil;
 import cn.gmlee.tools.gray.balancer.GrayReactorServiceInstanceLoadBalancer;
 import cn.gmlee.tools.gray.server.GrayServer;
@@ -58,7 +59,10 @@ public class GrayClientAutoConfiguration {
             metadata.put(grayProperties.getHead(), grayProperties.getVersion());
             return;
         }
-        metadata.put(grayProperties.getHead(), getNewestVersion(discoveryClient, grayProperties));
+        metadata.put(grayProperties.getHead(), ExceptionUtil.sandbox(() -> getNewestVersion(discoveryClient, grayProperties), e -> {
+            log.error("临时日志不影响任何业务", e);
+            return "0";
+        }));
     }
 
     private String getNewestVersion(DiscoveryClient discoveryClient, GrayProperties grayProperties) {
