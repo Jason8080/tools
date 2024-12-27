@@ -56,13 +56,11 @@ public class GrayClientAutoConfiguration {
         }
         // 设置版本
         if (BoolUtil.notEmpty(grayProperties.getVersion())) {
+            log.warn("服务[{}]指定版本: {}", serviceId, grayProperties.getVersion());
             metadata.put(grayProperties.getHead(), grayProperties.getVersion());
             return;
         }
-        metadata.put(grayProperties.getHead(), ExceptionUtil.sandbox(() -> getNewestVersion(discoveryClient, grayProperties), e -> {
-            log.error("临时日志不影响任何业务", e);
-            return "0";
-        }));
+        metadata.put(grayProperties.getHead(), ExceptionUtil.sandbox(() -> getNewestVersion(discoveryClient, grayProperties), e -> "0"));
     }
 
     private String getNewestVersion(DiscoveryClient discoveryClient, GrayProperties grayProperties) {
