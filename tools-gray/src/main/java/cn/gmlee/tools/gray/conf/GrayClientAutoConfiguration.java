@@ -45,7 +45,7 @@ public class GrayClientAutoConfiguration {
      * @param discoveryProperties the discovery properties
      * @param grayProperties      the gray properties
      */
-    public GrayClientAutoConfiguration(DiscoveryClient discoveryClient, NacosDiscoveryProperties discoveryProperties, GrayProperties grayProperties) {
+    public GrayClientAutoConfiguration(/*DiscoveryClient discoveryClient, */NacosDiscoveryProperties discoveryProperties, GrayProperties grayProperties) {
         // 获取服务
         serviceId = discoveryProperties.getService();
         // 获取原生
@@ -60,10 +60,13 @@ public class GrayClientAutoConfiguration {
             metadata.put(grayProperties.getHead(), grayProperties.getVersion());
             return;
         }
-        metadata.put(grayProperties.getHead(), ExceptionUtil.sandbox(() -> getNewestVersion(discoveryClient, grayProperties), e -> "0"));
+        metadata.put(grayProperties.getHead(), ExceptionUtil.sandbox(() -> getNewestVersion(null, grayProperties), e -> "0"));
     }
 
     private String getNewestVersion(DiscoveryClient discoveryClient, GrayProperties grayProperties) {
+        if (discoveryClient == null) {
+            return "-1";
+        }
         List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
         if (BoolUtil.isEmpty(instances)) {
             return "0";
@@ -71,7 +74,7 @@ public class GrayClientAutoConfiguration {
         Map<String, List<ServiceInstance>> instanceMap = instances.stream().collect(Collectors.groupingBy(x -> x.getMetadata().get(grayProperties.getHead())));
         Stream<String> stream = instanceMap.keySet().stream().filter(BoolUtil::isDigit);
         List<String> versions = stream.collect(Collectors.toList());
-        if(versions.isEmpty()){
+        if (versions.isEmpty()) {
             return "0";
         }
         log.info("服务[{}]已有版本: {}", serviceId, versions);
