@@ -2,7 +2,7 @@ package cn.gmlee.tools.gray.conf;
 
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
-import cn.gmlee.tools.base.util.NullUtil;
+import cn.gmlee.tools.gray.assist.VersionAssist;
 import cn.gmlee.tools.gray.balancer.GrayReactorServiceInstanceLoadBalancer;
 import cn.gmlee.tools.gray.server.GrayServer;
 import com.alibaba.cloud.nacos.NacosDiscoveryProperties;
@@ -13,17 +13,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cloud.client.ServiceInstance;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.loadbalancer.annotation.LoadBalancerClients;
 import org.springframework.cloud.loadbalancer.support.LoadBalancerClientFactory;
 import org.springframework.context.annotation.Bean;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * 灰度客户端自动装配.
@@ -45,7 +41,7 @@ public class GrayClientAutoConfiguration {
      * @param discoveryProperties the discovery properties
      * @param grayProperties      the gray properties
      */
-    public GrayClientAutoConfiguration(/*DiscoveryClient discoveryClient, */NacosDiscoveryProperties discoveryProperties, GrayProperties grayProperties) {
+    public GrayClientAutoConfiguration(DiscoveryClient discoveryClient, NacosDiscoveryProperties discoveryProperties, GrayProperties grayProperties) {
         // 获取服务
         serviceId = discoveryProperties.getService();
         // 获取原生
@@ -60,38 +56,7 @@ public class GrayClientAutoConfiguration {
             metadata.put(grayProperties.getHead(), grayProperties.getVersion());
             return;
         }
-        metadata.put(grayProperties.getHead(), ExceptionUtil.sandbox(() -> getNewestVersion(null, grayProperties), e -> "0"));
-    }
-
-    private String getNewestVersion(DiscoveryClient discoveryClient, GrayProperties grayProperties) {
-        if (discoveryClient == null) {
-            return "-1";
-        }
-        List<ServiceInstance> instances = discoveryClient.getInstances(serviceId);
-        if (BoolUtil.isEmpty(instances)) {
-            return "0";
-        }
-        Map<String, List<ServiceInstance>> instanceMap = instances.stream().collect(Collectors.groupingBy(x -> x.getMetadata().get(grayProperties.getHead())));
-        Stream<String> stream = instanceMap.keySet().stream().filter(BoolUtil::isDigit);
-        List<String> versions = stream.collect(Collectors.toList());
-        if (versions.isEmpty()) {
-            return "0";
-        }
-        log.info("服务[{}]已有版本: {}", serviceId, versions);
-        List<Long> vs = versions.stream().distinct().map(Long::valueOf).sorted().collect(Collectors.toList());
-        if (vs.isEmpty()) {
-            vs.add(0L);
-        }
-        int index = vs.size() - 1;
-        Long v = NullUtil.get(vs.get(index), 0L);
-        if (v >= Long.MAX_VALUE) {
-            return "0";
-        }
-        if (index == 0) {
-            return String.valueOf(v + 1);
-        }
-        // 加入到最后1个版本集群
-        return v.toString();
+        metadata.put(grayProperties.getHead(), ExceptionUtil.sandbox(() -> VersionAssist.getNewestVersion(discoveryClient, grayProperties, serviceId), e -> "0"));
     }
 
     /**
