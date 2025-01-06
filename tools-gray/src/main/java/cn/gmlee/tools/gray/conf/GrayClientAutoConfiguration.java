@@ -57,6 +57,7 @@ public class GrayClientAutoConfiguration {
             return;
         }
         metadata.put(grayProperties.getHead(), ExceptionUtil.sandbox(() -> VersionAssist.getNewestVersion(discoveryClient, grayProperties, serviceId), e -> "0"));
+        grayProperties.setVersion(metadata.get(grayProperties.getHead()));
     }
 
     /**
