@@ -851,7 +851,7 @@ public class BoolUtil {
         if (allNotNull(source, target)) {
             return source.compareTo(target) == Int.ZERO;
         }
-        return false;
+        return source == target;
     }
 
     /**
