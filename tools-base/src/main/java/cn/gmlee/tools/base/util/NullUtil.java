@@ -4,6 +4,7 @@ import cn.gmlee.tools.base.enums.Function;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -45,7 +46,7 @@ public class NullUtil {
                 return t;
             }
         }
-        return null;
+        return (T) new ArrayList();
     }
 
     /**
@@ -62,7 +63,7 @@ public class NullUtil {
                 return t;
             }
         }
-        return null;
+        return (T) new HashMap();
     }
 
     /**

@@ -207,10 +207,25 @@ public class BoolUtil {
      * @return the boolean
      */
     public static boolean isDigit(CharSequence cs) {
+        return isDigit(cs, false);
+    }
+
+    /**
+     * Is digit boolean.
+     *
+     * @param cs         the cs
+     * @param allowPoint the allow point
+     * @return the boolean
+     */
+    public static boolean isDigit(CharSequence cs, boolean allowPoint) {
         int strLen = 0;
         if (cs != null && (strLen = cs.length()) != 0) {
             for (int i = (cs.charAt(0) == '-') ? 1 : 0; i < strLen; ++i) {
-                if (!Character.isDigit(cs.charAt(i))) {
+                char c = cs.charAt(i);
+                if (allowPoint && !Character.isDigit(c) && c != '.') {
+                    return false;
+                }
+                if (!allowPoint && !Character.isDigit(c)) {
                     return false;
                 }
             }
@@ -836,7 +851,7 @@ public class BoolUtil {
         if (allNotNull(source, target)) {
             return source.compareTo(target) == Int.ZERO;
         }
-        return false;
+        return source == target;
     }
 
     /**

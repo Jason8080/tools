@@ -58,13 +58,15 @@ public class FeignLogger extends Logger {
         // 匹配上则排除: 不打印日志
         if(!print) {
 
-            log.info("[内网日志]\n{}\n=== 请求接口 ===: {}\n=== 请求地址 ===: {}\n=== 请求内容 ===: {}\n=== 响应代码 ===: {}\n=== 响应耗时 ===: {} (ms)\n=== 响应内容 ===: {}\n{}\n",
+            log.info("[内网日志]\n{}\n=== 请求接口 ===: {}\n=== 请求地址 ===: {}\n=== 请求头部 ===: {}\n=== 请求内容 ===: {}\n=== 响应代码 ===: {}\n=== 响应耗时 ===: {} (ms)\n=== 响应头部 ===: {}\n=== 响应内容 ===: {}\n{}\n",
                     "-----------------------------------------------",
                     configKey,
                     String.format("%s %s", response.request().httpMethod(), response.request().url()),
-                        BoolUtil.isEmpty(requestBody) ? "无" : CharUtil.digest(requestBody, properties.getFeignLog().maxlength),
+                    BoolUtil.isTrue(properties.getFeignLog().printHead) ? response.request().headers() : "默认关闭",
+                    BoolUtil.isEmpty(requestBody) ? "无" : CharUtil.digest(requestBody, properties.getFeignLog().maxlength),
                     status,
                     elapsedTime,
+                    BoolUtil.isTrue(properties.getFeignLog().printHead) ? response.headers() : "默认关闭",
                     BoolUtil.isEmpty(responseBody) ? "无" : CharUtil.digest(responseBody, properties.getFeignLog().maxlength),
                     "-----------------------------------------------"
             );
