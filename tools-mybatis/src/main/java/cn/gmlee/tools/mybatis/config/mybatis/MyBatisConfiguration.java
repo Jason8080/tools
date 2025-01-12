@@ -12,6 +12,7 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.mybatis.spring.boot.autoconfigure.MybatisProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -32,6 +33,7 @@ import java.util.List;
  * @author Jas°
  * @Date 2020 /8/20 16:12
  */
+@AutoConfigureAfter(MyBatisPlusConfiguration.class)
 @ConditionalOnMissingBean({MyBatisPlusConfiguration.class})
 @MapperScan({"**.dao.mapper.**"})
 @ConditionalOnClass({MybatisProperties.class})
