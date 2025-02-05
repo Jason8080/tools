@@ -1,10 +1,7 @@
 package cn.gmlee.tools.gray.balancer;
 
 import cn.gmlee.tools.base.enums.Int;
-import cn.gmlee.tools.base.util.BoolUtil;
-import cn.gmlee.tools.base.util.CollectionUtil;
-import cn.gmlee.tools.base.util.JsonUtil;
-import cn.gmlee.tools.base.util.QuickUtil;
+import cn.gmlee.tools.base.util.*;
 import cn.gmlee.tools.gray.assist.ExchangeAssist;
 import cn.gmlee.tools.gray.assist.HeaderAssist;
 import cn.gmlee.tools.gray.assist.InstanceAssist;
@@ -78,9 +75,12 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
         HttpHeaders headers = ExchangeAssist.getHeaders(exchange);
         Response<ServiceInstance> response = getResponse(serviceId, headers, all);
         // 添加版本透传
-        ServiceInstance instance = response.getServer();
         String head = grayServer.properties.getHead();
-        ExchangeAssist.addHeader(exchange, head, instance.getMetadata().get(head));
+        String externalVersion = NullUtil.get(HeaderAssist.getVersion(headers, grayServer.properties), "Gray");
+//        fix: 修复版本号重复灰度失效问题
+//        ServiceInstance instance = response.getServer();
+//        ExchangeAssist.addHeader(exchange, head, instance.getMetadata().get(head));
+        ExchangeAssist.addHeader(exchange, head, externalVersion);
         return response;
     }
 
