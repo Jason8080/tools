@@ -76,11 +76,10 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
         Response<ServiceInstance> response = getResponse(serviceId, headers, all);
         // 添加版本透传
         String head = grayServer.properties.getHead();
-        String externalVersion = NullUtil.get(HeaderAssist.getVersion(headers, grayServer.properties), "Gray");
-//        fix: 修复版本号重复灰度失效问题
-//        ServiceInstance instance = response.getServer();
-//        ExchangeAssist.addHeader(exchange, head, instance.getMetadata().get(head));
-        ExchangeAssist.addHeader(exchange, head, externalVersion);
+        String externalVersion = HeaderAssist.getVersion(headers, grayServer.properties);
+        QuickUtil.isTrue(grayServer.properties.getLog(), () -> log.debug("灰度服务: {} 外部指定: {} \r\n{}", serviceId, externalVersion, headers));
+        String version = NullUtil.get(externalVersion, "Gray");
+        ExchangeAssist.addHeader(exchange, head, version);
         return response;
     }
 
