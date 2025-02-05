@@ -161,7 +161,7 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
     }
 
     private static List<ServiceInstance> getNewest(GrayServer grayServer, Map<String, List<ServiceInstance>> candidateMap, String serviceId) {
-        Map.Entry<String, List<ServiceInstance>> newest = new TreeMap(candidateMap).firstEntry();
+        Map.Entry<String, List<ServiceInstance>> newest = new TreeMap(candidateMap).lastEntry();
         if (newest == null) {
             return Collections.emptyList();
         }
