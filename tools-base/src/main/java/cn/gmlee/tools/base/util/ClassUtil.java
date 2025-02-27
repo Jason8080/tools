@@ -831,5 +831,25 @@ public class ClassUtil {
                 .collect(Collectors.toMap(fun, x -> x, (k, v) -> v));
     }
 
+    /**
+     * Gets method.
+     *
+     * @param clazz  the clazz
+     * @param method 方法名(如: getKey、setVal)
+     * @return the method
+     */
+    public static Method getMethod(Class<?> clazz, String method) {
+        AssertUtil.notNull(clazz, "字节码是空");
+        Method[] methods = clazz.getMethods();
+        if (BoolUtil.isEmpty(methods)) {
+            return null;
+        }
+        Optional<Method> optional = Arrays.stream(methods)
+                .filter(Objects::nonNull)
+                .filter(m -> m.getName().contains(method))
+                .findFirst();
+        return optional.isPresent() ? optional.get() : null;
+    }
+
     // -----------------------------------------------------------------------------------------------------------------
 }
