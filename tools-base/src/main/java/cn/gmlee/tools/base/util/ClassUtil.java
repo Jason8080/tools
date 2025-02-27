@@ -633,6 +633,22 @@ public class ClassUtil {
     }
 
     /**
+     * Gets digest.
+     *
+     * @param simple  方法入参是否简签(非全限定类名)
+     * @param methods the methods
+     * @return the digest
+     */
+    public static Map<String, Method> getDigest(boolean simple, Method... methods) {
+        if (BoolUtil.isEmpty(methods)) {
+            return new HashMap<>();
+        }
+        return Arrays.stream(methods)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(m -> ClassUtil.getDigest(m, simple), x -> x));
+    }
+
+    /**
      * 根据方法摘要反射方法对象.
      * <p>可以不带(java.lang.String, int)字样</p>
      * <p>注意参数列表的类型是 simpleName 而非全限定路径 (参考示例) </p>
@@ -646,8 +662,9 @@ public class ClassUtil {
         String clazz = method.substring(0, method.indexOf("#"));
         Class c = ExceptionUtil.sandbox(() -> Class.forName(clazz), false);
         AssertUtil.notNull(c, "方法摘要的字节码不存在");
+        String m = method.substring(method.indexOf("#"));
+        Map<String, Method> methodMap = m.contains(".") ? getDigest(false, c.getMethods()) : getDigest(c.getMethods());
         String key = method.replaceAll("\\s", "");
-        Map<String, Method> methodMap = getDigest(c.getMethods());
         return methodMap.get(key);
     }
 
