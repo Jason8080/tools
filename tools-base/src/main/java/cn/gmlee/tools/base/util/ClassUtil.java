@@ -769,7 +769,6 @@ public class ClassUtil {
     public static Object[] getArgs(Method method, String jsonArgs, String... names) {
         AssertUtil.notNull(method, "方法是空");
         Parameter[] parameters = method.getParameters();
-        AssertUtil.eq(names.length, parameters.length, "参数数量不符");
         if (parameters.length == 1) {
             return new Object[]{JsonUtil.toBean(jsonArgs, method.getParameterTypes()[0], true)};
         }
@@ -779,6 +778,7 @@ public class ClassUtil {
             // 没有参数 或者 参数是null
             return args;
         }
+        AssertUtil.eq(names.length, parameters.length, "参数数量不符");
         for (int i = 0; i < args.length; i++) {
             Parameter p = parameters[i];
             Object o = map.get(names[i]);
