@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import javax.validation.constraints.NotEmpty;
 import java.io.Serializable;
 
 /**
@@ -19,6 +20,7 @@ public class Content extends Id implements Serializable {
     /**
      * 内容
      */
+    @NotEmpty(message = "内容是空")
     public String content;
 
     public Content() {
