@@ -869,7 +869,7 @@ public class ClassUtil {
      *
      * @param clazz  the clazz
      * @param method the method
-     * @param simple 形参类型是否简单摘要 (是否全限定类名)
+     * @param simple 形参类型是否简单摘要 (全限定类名之分)
      * @return the digest
      */
     public static String getDigest(Class<?> clazz, String method, boolean simple) {
