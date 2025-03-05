@@ -860,7 +860,7 @@ public class ClassUtil {
      */
     public static String getDigest(Class<?> clazz, String method) {
         Method m = getMethod(clazz, method);
-        AssertUtil.notNull(m, String.format("方法%s不存在于%s中", method, clazz));
+        AssertUtil.notNull(m, String.format("方法%s不存在于%s中", method, clazz.getName()));
         return getDigest(m);
     }
 
