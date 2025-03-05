@@ -851,5 +851,32 @@ public class ClassUtil {
         return optional.isPresent() ? optional.get() : null;
     }
 
+    /**
+     * Gets digest.
+     *
+     * @param clazz  the clazz
+     * @param method the method
+     * @return the digest
+     */
+    public static String getDigest(Class<?> clazz, String method) {
+        Method m = getMethod(clazz, method);
+        AssertUtil.notNull(m, String.format("方法%s不存在于%s中", method, clazz));
+        return getDigest(m);
+    }
+
+    /**
+     * Gets digest.
+     *
+     * @param clazz  the clazz
+     * @param method the method
+     * @param simple 形参类型是否简单摘要 (是否全限定类名)
+     * @return the digest
+     */
+    public static String getDigest(Class<?> clazz, String method, boolean simple) {
+        Method m = getMethod(clazz, method);
+        AssertUtil.notNull(m, String.format("方法%s不存在于%s中", method, clazz));
+        return getDigest(m, simple);
+    }
+
     // -----------------------------------------------------------------------------------------------------------------
 }
