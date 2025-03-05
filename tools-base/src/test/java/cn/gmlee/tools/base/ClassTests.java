@@ -30,6 +30,11 @@ public class ClassTests {
     }
 
     @Test
+    public void testDigest2() {
+        System.out.println(ClassUtil.getDigest(this.getClass(), "main"));
+    }
+
+    @Test
     public void testCall() {
         Object call1 = ClassUtil.callSimple(new JsonLog(), "log");
         Object call2 = ClassUtil.callSimple(call1, "setUrl", "https://www.baidu.com");
