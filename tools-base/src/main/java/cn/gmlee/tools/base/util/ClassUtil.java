@@ -700,6 +700,24 @@ public class ClassUtil {
         return (R) ExceptionUtil.suppress(() -> m.invoke(obj, args));
     }
 
+
+    /**
+     * 调用方法.
+     * <p>反射</p>
+     *
+     * @param <R>      返回类型泛型
+     * @param obj      静态方法传 null 即可
+     * @param method   示例: {@linkplain cn.gmlee.tools.base.util.LoginUtil#get(boolean)}}
+     * @param jsonArgs 方法入参JSON字符串
+     * @param names    参数名称 (请注意泛型擦除)
+     * @return r 调用结果
+     */
+    public static <R> R callJsonArgs(Object obj, Method method, String jsonArgs, String... names) {
+        AssertUtil.notNull(method, "方法是空");
+        Object[] args = getArgs(method, jsonArgs, names);
+        return (R) ExceptionUtil.suppress(() -> method.invoke(obj, args));
+    }
+
     /**
      * 调用方法.
      *
