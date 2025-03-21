@@ -10,8 +10,8 @@ import java.io.Serializable;
 /**
  * 通用主键实体
  *
- * @author Jas°
- * @date 2021/1/11 (周一)
+ * @author Jas °
+ * @date 2021 /1/11 (周一)
  */
 @Getter
 @Setter
@@ -22,4 +22,16 @@ public class Id implements Serializable {
      */
     @NotNull(message = "主键是空")
     public Long id;
+
+    /**
+     * Of id.
+     *
+     * @param id the id
+     * @return the id
+     */
+    public static Id of(Long id) {
+        Id entity = new Id();
+        entity.setId(id);
+        return entity;
+    }
 }

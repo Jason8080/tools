@@ -22,4 +22,16 @@ public class IdString implements Serializable {
      */
     @NotEmpty(message = "主键是空")
     public String id;
+
+    /**
+     * Of id.
+     *
+     * @param id the id
+     * @return the id
+     */
+    public static IdString of(String id) {
+        IdString entity = new IdString();
+        entity.setId(id);
+        return entity;
+    }
 }
