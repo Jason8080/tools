@@ -6,6 +6,7 @@ import org.springframework.beans.BeanUtils;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -104,9 +105,9 @@ public class BeanUtil<T> {
      * @param clazz the clazz
      * @return the list
      */
-    public static <T> List<T> convert(List<T> list, Class<T> clazz) {
+    public static <T> List<T> convert(List<?> list, Class<T> clazz) {
         if(BoolUtil.isEmpty(list)){
-            return list;
+            return Collections.emptyList();
         }
         return list.stream().map(item -> convert(item, clazz)).collect(Collectors.toList());
     }
