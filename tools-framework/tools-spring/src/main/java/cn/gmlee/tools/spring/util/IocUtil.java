@@ -6,6 +6,7 @@ import cn.gmlee.tools.spring.SpringInstanceProvider;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -75,8 +76,8 @@ public class IocUtil {
      * @param beanClass the bean class
      * @return the bean map
      */
-    public static <T> T getBeanMap(Class<T> beanClass) {
-        return (T) getInstanceProvider().getInterfaces(beanClass);
+    public static <T> Map<String, T> getBeanMap(Class<T> beanClass) {
+        return getInstanceProvider().getInterfaces(beanClass);
     }
 
     /**
