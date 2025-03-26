@@ -309,6 +309,25 @@ public class BoolUtil {
     }
 
     /**
+     * Any true boolean.
+     *
+     * @param o  the o
+     * @param os the os
+     * @return the boolean
+     */
+    public static boolean anyTrue(Boolean o, Boolean... os) {
+        if (isTrue(o)) {
+            return true;
+        }
+        for (int i = 0; i < os.length; i++) {
+            if (isTrue(os[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 全是假.
      *
      * @param o  the o
@@ -325,6 +344,25 @@ public class BoolUtil {
             }
         }
         return true;
+    }
+
+    /**
+     * Any false boolean.
+     *
+     * @param o  the o
+     * @param os the os
+     * @return the boolean
+     */
+    public static boolean anyFalse(Boolean o, Boolean... os) {
+        if (isFalse(o)) {
+            return true;
+        }
+        for (int i = 0; i < os.length; i++) {
+            if (isFalse(os[i])) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -441,6 +479,25 @@ public class BoolUtil {
     }
 
     /**
+     * Any empty boolean.
+     *
+     * @param o  the o
+     * @param os the os
+     * @return the boolean
+     */
+    public static boolean anyEmpty(Collection o, Collection... os) {
+        if (isEmpty(o)) {
+            return true;
+        }
+        for (int i = 0; i < os.length; i++) {
+            if (isEmpty(os[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 所有集合是空.
      *
      * @param o  the o
@@ -460,6 +517,25 @@ public class BoolUtil {
     }
 
     /**
+     * Any empty boolean.
+     *
+     * @param o  the o
+     * @param os the os
+     * @return the boolean
+     */
+    public static boolean anyEmpty(Map o, Map... os) {
+        if (isEmpty(o)) {
+            return true;
+        }
+        for (int i = 0; i < os.length; i++) {
+            if (isEmpty(os[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 所有集合是空.
      *
      * @param os  the os
@@ -476,6 +552,25 @@ public class BoolUtil {
             }
         }
         return true;
+    }
+
+    /**
+     * Any empty boolean.
+     *
+     * @param os  the os
+     * @param oss the oss
+     * @return the boolean
+     */
+    public static boolean anyEmpty(Collection[] os, Collection[]... oss) {
+        if (isEmpty(os)) {
+            return true;
+        }
+        for (int i = 0; i < oss.length; i++) {
+            if (!isEmpty(oss[i])) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -539,6 +634,25 @@ public class BoolUtil {
     }
 
     /**
+     * Any not empty boolean.
+     *
+     * @param o  the o
+     * @param os the os
+     * @return the boolean
+     */
+    public static boolean anyNotEmpty(Collection o, Collection... os) {
+        if (!isEmpty(o)) {
+            return true;
+        }
+        for (int i = 0; i < os.length; i++) {
+            if (!isEmpty(os[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 所有集合不是空.
      *
      * @param o  the o
@@ -558,6 +672,25 @@ public class BoolUtil {
     }
 
     /**
+     * Any not empty boolean.
+     *
+     * @param o  the o
+     * @param os the os
+     * @return the boolean
+     */
+    public static boolean anyNotEmpty(Map o, Map... os) {
+        if (!isEmpty(o)) {
+            return true;
+        }
+        for (int i = 0; i < os.length; i++) {
+            if (!isEmpty(os[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 所有集合不是空.
      *
      * @param os  the os
@@ -574,6 +707,25 @@ public class BoolUtil {
             }
         }
         return true;
+    }
+
+    /**
+     * Any not empty boolean.
+     *
+     * @param os  the os
+     * @param oss the oss
+     * @return the boolean
+     */
+    public static boolean anyNotEmpty(Collection[] os, Collection[]... oss) {
+        if (!isEmpty(os)) {
+            return true;
+        }
+        for (int i = 0; i < oss.length; i++) {
+            if (!isEmpty(oss[i])) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -609,6 +761,25 @@ public class BoolUtil {
     }
 
     /**
+     * Any empty boolean.
+     *
+     * @param os  the os
+     * @param oss the oss
+     * @return the boolean
+     */
+    public static boolean anyEmpty(Object[] os, Object[]... oss) {
+        if (isEmpty(os)) {
+            return true;
+        }
+        for (int i = 0; i < oss.length; i++) {
+            if (isEmpty(oss[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 数组不是空.
      *
      * @param os the os
@@ -638,6 +809,25 @@ public class BoolUtil {
             }
         }
         return true;
+    }
+
+    /**
+     * Any not empty boolean.
+     *
+     * @param os  the os
+     * @param oss the oss
+     * @return the boolean
+     */
+    public static boolean anyNotEmpty(Object[] os, Object[]... oss) {
+        if (!isEmpty(os)) {
+            return true;
+        }
+        for (int i = 0; i < oss.length; i++) {
+            if (!isEmpty(oss[i])) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -673,6 +863,25 @@ public class BoolUtil {
     }
 
     /**
+     * Any empty boolean.
+     *
+     * @param o  the o
+     * @param os the os
+     * @return the boolean
+     */
+    public static boolean anyEmpty(CharSequence o, CharSequence... os) {
+        if (isEmpty(o)) {
+            return true;
+        }
+        for (int i = 0; i < os.length; i++) {
+            if (isEmpty(os[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 判断字符串是否不为空.
      *
      * @param <O> the type parameter
@@ -703,6 +912,25 @@ public class BoolUtil {
             }
         }
         return true;
+    }
+
+    /**
+     * Any not empty boolean.
+     *
+     * @param o  the o
+     * @param os the os
+     * @return the boolean
+     */
+    public static boolean anyNotEmpty(CharSequence o, CharSequence... os) {
+        if (!isEmpty(o)) {
+            return true;
+        }
+        for (int i = 0; i < os.length; i++) {
+            if (!isEmpty(os[i])) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -752,6 +980,25 @@ public class BoolUtil {
     }
 
     /**
+     * Any null boolean.
+     *
+     * @param o  the o
+     * @param os the os
+     * @return the boolean
+     */
+    public static boolean anyNull(Object o, Object... os) {
+        if (isNull(o)) {
+            return true;
+        }
+        for (int i = 0; i < os.length; i++) {
+            if (isNull(os[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 判断对象是否不为空.
      *
      * @param o the o
@@ -781,6 +1028,25 @@ public class BoolUtil {
             }
         }
         return true;
+    }
+
+    /**
+     * Any not null boolean.
+     *
+     * @param o  the o
+     * @param os the os
+     * @return the boolean
+     */
+    public static boolean anyNotNull(Object o, Object... os) {
+        if (!isNull(o)) {
+            return true;
+        }
+        for (int i = 0; i < os.length; i++) {
+            if (!isNull(os[i])) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
@@ -888,6 +1154,23 @@ public class BoolUtil {
     }
 
     /**
+     * Any gt boolean.
+     *
+     * @param target  the target
+     * @param sources the sources
+     * @return the boolean
+     */
+    public static boolean anyGt(Comparable target, Comparable... sources) {
+        for (Comparable source : sources) {
+            boolean gt = gt(source, target);
+            if (gt) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 判断source是否大于等于target.
      *
      * @param source the source
@@ -917,6 +1200,23 @@ public class BoolUtil {
             }
         }
         return true;
+    }
+
+    /**
+     * Any gte boolean.
+     *
+     * @param target  the target
+     * @param sources the sources
+     * @return the boolean
+     */
+    public static boolean anyGte(Comparable target, Comparable... sources) {
+        for (Comparable source : sources) {
+            boolean gt = gte(source, target);
+            if (gt) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -952,6 +1252,23 @@ public class BoolUtil {
     }
 
     /**
+     * Any lt boolean.
+     *
+     * @param target  the target
+     * @param sources the sources
+     * @return the boolean
+     */
+    public static boolean anyLt(Comparable target, Comparable... sources) {
+        for (Comparable source : sources) {
+            boolean gt = lt(source, target);
+            if (gt) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * 判断source是否小于等于target.
      *
      * @param source the source
@@ -981,6 +1298,23 @@ public class BoolUtil {
             }
         }
         return true;
+    }
+
+    /**
+     * Any lte boolean.
+     *
+     * @param target  the target
+     * @param sources the sources
+     * @return the boolean
+     */
+    public static boolean anyLte(Comparable target, Comparable... sources) {
+        for (Comparable source : sources) {
+            boolean gt = lte(source, target);
+            if (gt) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
