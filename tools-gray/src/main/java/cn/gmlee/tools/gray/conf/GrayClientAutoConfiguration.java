@@ -7,6 +7,7 @@ import com.alibaba.cloud.nacos.NacosDiscoveryProperties;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingClass;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -20,6 +21,7 @@ import java.util.Map;
  */
 @Slf4j
 @EnableConfigurationProperties(GrayProperties.class)
+@ConditionalOnBean(NacosDiscoveryProperties.class)
 @ConditionalOnMissingClass({"org.springframework.cloud.gateway.filter.GlobalFilter"})
 @ConditionalOnClass(name = {"com.alibaba.cloud.nacos.discovery.NacosDiscoveryClientConfiguration"})
 @AutoConfigureBefore(name = {"com.alibaba.cloud.nacos.discovery.NacosDiscoveryClientConfiguration"})
