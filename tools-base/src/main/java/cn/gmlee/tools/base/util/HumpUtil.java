@@ -9,6 +9,7 @@ import java.util.*;
  * @date 2021 /11/3 (周三)
  */
 public class HumpUtil {
+    private static final String MINUS = "-";
     private static final String UNDERLINE = "_";
 
 
@@ -30,6 +31,23 @@ public class HumpUtil {
     }
 
     /**
+     * Minus 2 hump list.
+     *
+     * @param strings the strings
+     * @return the list
+     */
+    public static List<String> minus2hump(Collection<String> strings) {
+        if (BoolUtil.notEmpty(strings)) {
+            List<String> list = new ArrayList(strings.size());
+            for (String content : strings) {
+                list.add(minus2hump(content));
+            }
+            return list;
+        }
+        return Collections.emptyList();
+    }
+
+    /**
      * Underline 2 hump list.
      *
      * @param strings the strings
@@ -37,6 +55,16 @@ public class HumpUtil {
      */
     public static List<String> underline2hump(String... strings) {
         return underline2hump(Arrays.asList(strings));
+    }
+
+    /**
+     * Minus 2 hump list.
+     *
+     * @param strings the strings
+     * @return the list
+     */
+    public static List<String> minus2hump(String... strings) {
+        return minus2hump(Arrays.asList(strings));
     }
 
     /**
@@ -57,6 +85,23 @@ public class HumpUtil {
     }
 
     /**
+     * Hump 2 minus list.
+     *
+     * @param strings the strings
+     * @return the list
+     */
+    public static List<String> hump2minus(Collection<String> strings) {
+        if (BoolUtil.notEmpty(strings)) {
+            List<String> list = new ArrayList(strings.size());
+            for (String content : strings) {
+                list.add(hump2minus(content));
+            }
+            return list;
+        }
+        return Collections.emptyList();
+    }
+
+    /**
      * Hump 2 underline list.
      *
      * @param strings the strings
@@ -64,6 +109,17 @@ public class HumpUtil {
      */
     public static List<String> hump2underline(String... strings) {
         return hump2underline(Arrays.asList(strings));
+    }
+
+
+    /**
+     * Hump 2 minus list.
+     *
+     * @param strings the strings
+     * @return the list
+     */
+    public static List<String> hump2minus(String... strings) {
+        return hump2minus(Arrays.asList(strings));
     }
 
     /***
@@ -77,6 +133,30 @@ public class HumpUtil {
         String[] array = content.split(UNDERLINE);
         for (String initial : array) {
             if (!content.contains(UNDERLINE)) {
+                result.append(initial);
+                continue;
+            }
+            if (result.length() == 0) {
+                result.append(initial.toLowerCase());
+            } else {
+                result.append(initial.substring(0, 1).toUpperCase());
+                result.append(initial.substring(1).toLowerCase());
+            }
+        }
+        return result.toString();
+    }
+
+    /**
+     * Minus 2 hump string.
+     *
+     * @param content the content
+     * @return the string
+     */
+    public static String minus2hump(String content) {
+        StringBuilder result = new StringBuilder();
+        String[] array = content.split(MINUS);
+        for (String initial : array) {
+            if (!content.contains(MINUS)) {
                 result.append(initial);
                 continue;
             }
@@ -107,6 +187,28 @@ public class HumpUtil {
             for (int i = 0; i < content.length(); i++) {
                 if (Character.isUpperCase(content.charAt(i))) {
                     sb.insert(i + temp, UNDERLINE);
+                    temp += 1;
+                }
+            }
+        }
+        return sb.toString().toLowerCase();
+    }
+
+
+    /**
+     * Hump 2 minus string.
+     *
+     * @param content the content
+     * @return the string
+     */
+    public static String hump2minus(String content) {
+        StringBuilder sb = new StringBuilder(content);
+        //定位
+        int temp = 0;
+        if (!content.contains(MINUS)) {
+            for (int i = 0; i < content.length(); i++) {
+                if (Character.isUpperCase(content.charAt(i))) {
+                    sb.insert(i + temp, MINUS);
                     temp += 1;
                 }
             }
