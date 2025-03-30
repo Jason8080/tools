@@ -14,7 +14,7 @@ public @interface Cache {
     /**
      * 源数据.
      * <p>
-     * 也可能是API(GET)
+     * 也可能是API(GET)、ENUM
      * </p>
      *
      * @return 数据源 string

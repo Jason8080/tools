@@ -6,5 +6,6 @@ package cn.gmlee.tools.cache2.enums;
 public enum DataType {
     API,
     SQL,
+    ENUMS,
     ;
 }
