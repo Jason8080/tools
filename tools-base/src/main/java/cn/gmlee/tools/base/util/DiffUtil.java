@@ -33,22 +33,43 @@ public class DiffUtil {
     public static String comparativeReport(String primaryKey, List<Map<String, Object>> oldsData, Map<String, Object> newData, Map<String, String> fieldCommentMap) {
         StringBuilder sb = new StringBuilder();
         if (BoolUtil.notEmpty(newData) && BoolUtil.notEmpty(oldsData)) {
-            oldsData.forEach(oldData -> {
+            for (int i = 0; i < oldsData.size(); i++) {
+                Map<String, Object> oldData = oldsData.get(i);
+                if (BoolUtil.isEmpty(oldData)) {
+                    continue;
+                }
+                if (i != 0) {
+                    sb.append(",\r\n");
+                }
                 sb.append(String.format("(%s):\r\n", oldData.get(primaryKey)));
-                sb.append("{");
-                newData.forEach((key, value) -> {
-                    String replaceKey = key.replaceAll("`|'", "");
-                    // 减少不必要的内容输出
-                    if (BoolUtil.notNull(oldData.get(replaceKey)) && !BoolUtil.eq(oldData.get(replaceKey), value)) {
-                        sb.append("\r\n");
-                        sb.append("\t");
-                        sb.append(String.format("%s:[%s]->[%s] ",
-                                fieldCommentMap.get(replaceKey), oldData.get(replaceKey), value));
-                    }
-                });
-                sb.append("\r\n}");
-            });
+                sb.append(comparativeReport(oldData, newData, fieldCommentMap));
+            }
         }
+        return sb.toString();
+    }
+
+    /**
+     * 对比报告(描述).
+     *
+     * @param oldData         旧数据
+     * @param newData         新数据
+     * @param fieldCommentMap 字段描述
+     * @return string 对比报告
+     */
+    public static String comparativeReport(Map<String, Object> oldData, Map<String, Object> newData, Map<String, String> fieldCommentMap) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        newData.forEach((key, value) -> {
+            String replaceKey = key.replaceAll("`|'", "");
+            // 减少不必要的内容输出
+            if (BoolUtil.notNull(oldData.get(replaceKey)) && !BoolUtil.eq(oldData.get(replaceKey), value)) {
+                sb.append("\r\n");
+                sb.append("\t");
+                sb.append(String.format("%s:[%s]->[%s] ",
+                        fieldCommentMap.get(replaceKey), oldData.get(replaceKey), value));
+            }
+        });
+        sb.append("\r\n}");
         return sb.toString();
     }
 }
