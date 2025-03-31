@@ -1,6 +1,6 @@
 package cn.gmlee.tools.datalog.model;
 
-import cn.gmlee.tools.base.util.BoolUtil;
+import cn.gmlee.tools.base.util.DiffUtil;
 import cn.gmlee.tools.datalog.anno.Ignore;
 import lombok.Data;
 
@@ -53,24 +53,7 @@ public class Datalog extends LogUser {
      * @return
      */
     public String loadDatalog(String primaryKey, List<Map<String, Object>> oldsData, Map<String, Object> newData, Map<String, String> fieldCommentMap) {
-        StringBuilder sb = new StringBuilder();
-        if (BoolUtil.notEmpty(newData) && BoolUtil.notEmpty(oldsData)) {
-            oldsData.forEach(oldData -> {
-                sb.append(String.format("(%s):\r\n", oldData.get(primaryKey)));
-                sb.append("{");
-                newData.forEach((key, value) -> {
-                    String replaceKey = key.replaceAll("`|'", "");
-                    // 减少不必要的内容输出
-                    if (BoolUtil.notNull(oldData.get(replaceKey)) && !BoolUtil.eq(oldData.get(replaceKey), value)) {
-                        sb.append("\r\n");
-                        sb.append("\t");
-                        sb.append(String.format("%s:[%s]->[%s] ",
-                                fieldCommentMap.get(replaceKey), oldData.get(replaceKey), value));
-                    }
-                });
-                sb.append("\r\n}");
-            });
-        }
-        return this.dataLog = sb.toString();
+        String report = DiffUtil.comparativeReport(primaryKey, oldsData, newData, fieldCommentMap);
+        return this.dataLog = report;
     }
 }
