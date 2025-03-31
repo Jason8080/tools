@@ -73,7 +73,7 @@ public class DiffUtil {
             sb.append("\r\n");
             sb.append("\t");
             sb.append(String.format("%s:[%s]->[%s] ",
-                    fieldCommentMap.get(key), oldData.get(key), newData.get(key)));
+                    NullUtil.get(fieldCommentMap.get(key), key), oldData.get(key), newData.get(key)));
         }
         return sb.toString();
     }
