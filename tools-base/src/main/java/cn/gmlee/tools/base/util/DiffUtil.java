@@ -59,17 +59,22 @@ public class DiffUtil {
     public static String comparativeReport(Map<String, Object> oldData, Map<String, Object> newData, Map<String, String> fieldCommentMap) {
         StringBuilder sb = new StringBuilder();
         sb.append("{");
-        newData.forEach((key, value) -> {
-            String replaceKey = key.replaceAll("`|'", "");
-            // 减少不必要的内容输出
-            if (BoolUtil.notNull(oldData.get(replaceKey)) && !BoolUtil.eq(oldData.get(replaceKey), value)) {
-                sb.append("\r\n");
-                sb.append("\t");
-                sb.append(String.format("%s:[%s]->[%s] ",
-                        fieldCommentMap.get(replaceKey), oldData.get(replaceKey), value));
-            }
-        });
+        CollectionUtil.publicKeys(oldData.keySet(), newData.keySet())
+                .forEach(key -> sb.append(report(key.replaceAll("`|'", ""), oldData, newData, fieldCommentMap)));
+        CollectionUtil.privateKeys(oldData.keySet(), newData.keySet())
+                .forEach(key -> sb.append(report(key.replaceAll("`|'", ""), oldData, newData, fieldCommentMap)));
         sb.append("\r\n}");
+        return sb.toString();
+    }
+
+    private static String report(String key, Map<String, Object> oldData, Map<String, Object> newData, Map<String, String> fieldCommentMap) {
+        StringBuilder sb = new StringBuilder();
+        if (!BoolUtil.eq(oldData.get(key), newData.get(key))) {
+            sb.append("\r\n");
+            sb.append("\t");
+            sb.append(String.format("%s:[%s]->[%s] ",
+                    fieldCommentMap.get(key), oldData.get(key), newData.get(key)));
+        }
         return sb.toString();
     }
 }

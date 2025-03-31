@@ -20,14 +20,12 @@ public class DiffUtilTests {
         oldData.put("sex", "男");
         oldData.put("address", "北京");
         oldData.put("create_time", LocalDateTime.now());
-        oldData.put("update_time", new Date());
         Map<String, Object> newData = new HashMap<>();
         newData.put("id", 1);
         newData.put("name", "李四");
         newData.put("age", 19);
         newData.put("sex", "男");
         newData.put("address", "北京");
-        newData.put("create_time", LocalDateTime.now());
         newData.put("update_time", new Date());
         Map<String, String> fieldCommentMap = new HashMap<>();
         fieldCommentMap.put("id", "主键");
