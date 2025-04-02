@@ -55,6 +55,7 @@
 
     <modules>
         <module>tools-parent</module>
+        <module>tools-ai</module>
         <module>tools-framework</module>
         <module>tools-thirdParty</module>
         <!-- 临时注释 -->

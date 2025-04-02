@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>cn.gmlee.tools</groupId>
+        <artifactId>tools-ai</artifactId>
+        <version>5.5.0-SNAPSHOT</version>
+    </parent>
+
+    <groupId>cn.gmlee.tools</groupId>
+    <artifactId>tools-ali</artifactId>
+    <version>5.5.0-SNAPSHOT</version>
+
+    <packaging>jar</packaging>
+
+    <!--项目信息-->
+    <name>tools-ali</name>
+    <description>TOOLS-ALI: 阿里全模态AI集成</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-base</url>
+
+    <!--开源协议-->
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <!--托管平台的地址-->
+    <scm>
+        <connection>https://github.com/Jason8080/tools.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:Jason8080/tools.git</developerConnection>
+        <url>https://github.com/Jason8080/tools</url>
+    </scm>
+
+    <!--开发者信息-->
+    <developers>
+        <developer>
+            <id>J°杰森</id>
+            <name>J°杰森</name>
+            <email>xiaoku13141@163.com</email>
+            <roles>
+                <role>Project Manager</role>
+                <role>Architect</role>
+            </roles>
+            <timezone>+8</timezone>
+        </developer>
+    </developers>
+
+    <dependencies>
+        <!-- https://mvnrepository.com/artifact/com.alibaba/dashscope-sdk-java -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>dashscope-sdk-java</artifactId>
+            <version>2.19.0</version>
+        </dependency>
+    </dependencies>
+</project>
