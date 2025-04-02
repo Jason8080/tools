@@ -633,6 +633,22 @@ public class ClassUtil {
     }
 
     /**
+     * Gets digest.
+     *
+     * @param simple  方法入参是否简签(非全限定类名)
+     * @param methods the methods
+     * @return the digest
+     */
+    public static Map<String, Method> getDigest(boolean simple, Method... methods) {
+        if (BoolUtil.isEmpty(methods)) {
+            return new HashMap<>();
+        }
+        return Arrays.stream(methods)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(m -> ClassUtil.getDigest(m, simple), x -> x));
+    }
+
+    /**
      * 根据方法摘要反射方法对象.
      * <p>可以不带(java.lang.String, int)字样</p>
      * <p>注意参数列表的类型是 simpleName 而非全限定路径 (参考示例) </p>
@@ -646,8 +662,9 @@ public class ClassUtil {
         String clazz = method.substring(0, method.indexOf("#"));
         Class c = ExceptionUtil.sandbox(() -> Class.forName(clazz), false);
         AssertUtil.notNull(c, "方法摘要的字节码不存在");
+        String m = method.substring(method.indexOf("#"));
+        Map<String, Method> methodMap = m.contains(".") ? getDigest(false, c.getMethods()) : getDigest(c.getMethods());
         String key = method.replaceAll("\\s", "");
-        Map<String, Method> methodMap = getDigest(c.getMethods());
         return methodMap.get(key);
     }
 
@@ -681,6 +698,24 @@ public class ClassUtil {
         Method m = getMethod(method);
         AssertUtil.notNull(m, "摘要的方法不存在");
         return (R) ExceptionUtil.suppress(() -> m.invoke(obj, args));
+    }
+
+
+    /**
+     * 调用方法.
+     * <p>反射</p>
+     *
+     * @param <R>      返回类型泛型
+     * @param obj      静态方法传 null 即可
+     * @param method   示例: {@linkplain cn.gmlee.tools.base.util.LoginUtil#get(boolean)}}
+     * @param jsonArgs 方法入参JSON字符串
+     * @param names    参数名称 (请注意泛型擦除)
+     * @return r 调用结果
+     */
+    public static <R> R callJsonArgs(Object obj, Method method, String jsonArgs, String... names) {
+        AssertUtil.notNull(method, "方法是空");
+        Object[] args = getArgs(method, jsonArgs, names);
+        return (R) ExceptionUtil.suppress(() -> method.invoke(obj, args));
     }
 
     /**
@@ -752,7 +787,6 @@ public class ClassUtil {
     public static Object[] getArgs(Method method, String jsonArgs, String... names) {
         AssertUtil.notNull(method, "方法是空");
         Parameter[] parameters = method.getParameters();
-        AssertUtil.eq(names.length, parameters.length, "参数数量不符");
         if (parameters.length == 1) {
             return new Object[]{JsonUtil.toBean(jsonArgs, method.getParameterTypes()[0], true)};
         }
@@ -762,6 +796,7 @@ public class ClassUtil {
             // 没有参数 或者 参数是null
             return args;
         }
+        AssertUtil.eq(names.length, parameters.length, "参数数量不符");
         for (int i = 0; i < args.length; i++) {
             Parameter p = parameters[i];
             Object o = map.get(names[i]);
@@ -812,6 +847,53 @@ public class ClassUtil {
         return Arrays.stream(methods)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(fun, x -> x, (k, v) -> v));
+    }
+
+    /**
+     * Gets method.
+     *
+     * @param clazz  the clazz
+     * @param method 方法名(如: getKey、setVal)
+     * @return the method
+     */
+    public static Method getMethod(Class<?> clazz, String method) {
+        AssertUtil.notNull(clazz, "字节码是空");
+        Method[] methods = clazz.getMethods();
+        if (BoolUtil.isEmpty(methods)) {
+            return null;
+        }
+        Optional<Method> optional = Arrays.stream(methods)
+                .filter(Objects::nonNull)
+                .filter(m -> m.getName().contains(method))
+                .findFirst();
+        return optional.isPresent() ? optional.get() : null;
+    }
+
+    /**
+     * Gets digest.
+     *
+     * @param clazz  the clazz
+     * @param method the method
+     * @return the digest
+     */
+    public static String getDigest(Class<?> clazz, String method) {
+        Method m = getMethod(clazz, method);
+        AssertUtil.notNull(m, String.format("方法%s不存在于%s中", method, clazz.getName()));
+        return getDigest(m);
+    }
+
+    /**
+     * Gets digest.
+     *
+     * @param clazz  the clazz
+     * @param method the method
+     * @param simple 形参类型是否简单摘要 (全限定类名之分)
+     * @return the digest
+     */
+    public static String getDigest(Class<?> clazz, String method, boolean simple) {
+        Method m = getMethod(clazz, method);
+        AssertUtil.notNull(m, String.format("方法%s不存在于%s中", method, clazz));
+        return getDigest(m, simple);
     }
 
     // -----------------------------------------------------------------------------------------------------------------

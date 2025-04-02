@@ -1,10 +1,7 @@
 package cn.gmlee.tools.gray.balancer;
 
 import cn.gmlee.tools.base.enums.Int;
-import cn.gmlee.tools.base.util.BoolUtil;
-import cn.gmlee.tools.base.util.CollectionUtil;
-import cn.gmlee.tools.base.util.JsonUtil;
-import cn.gmlee.tools.base.util.QuickUtil;
+import cn.gmlee.tools.base.util.*;
 import cn.gmlee.tools.gray.assist.ExchangeAssist;
 import cn.gmlee.tools.gray.assist.HeaderAssist;
 import cn.gmlee.tools.gray.assist.InstanceAssist;
@@ -78,9 +75,11 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
         HttpHeaders headers = ExchangeAssist.getHeaders(exchange);
         Response<ServiceInstance> response = getResponse(serviceId, headers, all);
         // 添加版本透传
-        ServiceInstance instance = response.getServer();
         String head = grayServer.properties.getHead();
-        ExchangeAssist.addHeader(exchange, head, instance.getMetadata().get(head));
+        String externalVersion = HeaderAssist.getVersion(headers, grayServer.properties);
+        QuickUtil.isTrue(grayServer.properties.getLog(), () -> log.debug("灰度服务: {} 外部指定: {} 源头报文: \r\n{}", serviceId, externalVersion, headers));
+        String version = NullUtil.get(externalVersion, "Gray");
+        ExchangeAssist.addHeader(exchange, head, version);
         return response;
     }
 
@@ -161,7 +160,7 @@ public class GrayReactorServiceInstanceLoadBalancer implements ReactorServiceIns
     }
 
     private static List<ServiceInstance> getNewest(GrayServer grayServer, Map<String, List<ServiceInstance>> candidateMap, String serviceId) {
-        Map.Entry<String, List<ServiceInstance>> newest = new TreeMap(candidateMap).firstEntry();
+        Map.Entry<String, List<ServiceInstance>> newest = new TreeMap(candidateMap).lastEntry();
         if (newest == null) {
             return Collections.emptyList();
         }

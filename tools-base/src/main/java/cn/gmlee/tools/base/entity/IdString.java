@@ -4,24 +4,24 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotEmpty;
 import java.io.Serializable;
 
 /**
  * 通用主键实体
  *
- * @author Jas °
- * @date 2021 /1/11 (周一)
+ * @author Jas°
+ * @date 2021/1/11 (周一)
  */
 @Getter
 @Setter
 @ToString
-public class Id implements Serializable {
+public class IdString implements Serializable {
     /**
      * 主键
      */
-    @NotNull(message = "主键是空")
-    public Long id;
+    @NotEmpty(message = "主键是空")
+    public String id;
 
     /**
      * Of id.
@@ -29,8 +29,8 @@ public class Id implements Serializable {
      * @param id the id
      * @return the id
      */
-    public static Id of(Long id) {
-        Id entity = new Id();
+    public static IdString of(String id) {
+        IdString entity = new IdString();
         entity.setId(id);
         return entity;
     }

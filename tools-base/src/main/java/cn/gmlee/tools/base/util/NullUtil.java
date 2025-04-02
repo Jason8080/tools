@@ -24,7 +24,7 @@ public class NullUtil {
      */
     public static <T> T first(T... ts){
         for (int i = 0; i < ts.length; i++) {
-            T t = ts[0];
+            T t = ts[i];
             if(BoolUtil.notNull(t)){
                 return t;
             }
@@ -58,7 +58,7 @@ public class NullUtil {
      */
     public static <T extends Map> T first(T... ts){
         for (int i = 0; i < ts.length; i++) {
-            T t = ts[0];
+            T t = ts[i];
             if(BoolUtil.notEmpty(t)){
                 return t;
             }
