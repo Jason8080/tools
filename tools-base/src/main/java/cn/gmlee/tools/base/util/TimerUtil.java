@@ -23,7 +23,7 @@ public class TimerUtil {
         tips = BoolUtil.isEmpty(tips) ? new String[]{last.get() != null ? "耗时" : "校准"} : tips;
         long millis = System.currentTimeMillis();
         Long ms = NullUtil.get(last.get(), millis);
-        log.info("\r\n---------- 计时器提醒 ----------\r\n{}:\t{}/ms\r\n-----------------------------", String.join(" • ", tips), millis - ms);
+        log.info("\r\n---------- 计时器提醒 ----------\r\n{}:\t{}/ms\r\n-------------------------------", String.join(" • ", tips), millis - ms);
         last.set(System.currentTimeMillis());
     }
 }
