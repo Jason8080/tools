@@ -1,6 +1,5 @@
 package cn.gmlee.tools.base.util;
 
-import cn.gmlee.tools.base.enums.XTime;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -21,7 +20,7 @@ public class TimerUtil {
      */
     public static void start() {
         last.set(System.currentTimeMillis());
-        log.info("---------- 计时启动 ---------- {}", TimeUtil.getCurrentDatetime(XTime.MS_MINUS_BLANK_COLON_DOT));
+        print("计时开始");
     }
 
     /**
@@ -36,7 +35,7 @@ public class TimerUtil {
             return;
         }
         long millis = System.currentTimeMillis();
-        log.info("---------- 耗时提醒 ----------\r\n{}:\t{}/ms\r\n-----------------------------", msg, millis - ms);
+        log.info("---------- 计时器提醒 ----------\r\n{}:\t{}/ms\r\n-----------------------------", msg, millis - ms);
         last.set(millis);
     }
 
@@ -47,7 +46,7 @@ public class TimerUtil {
      * </p>
      */
     public static void close() {
+        print("计时结束");
         last.remove();
-        log.info("---------- 计时关闭 ---------- {}", TimeUtil.getCurrentDatetime(XTime.MS_MINUS_BLANK_COLON_DOT));
     }
 }
