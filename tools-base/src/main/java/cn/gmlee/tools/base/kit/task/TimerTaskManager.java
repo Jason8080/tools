@@ -167,4 +167,29 @@ public class TimerTaskManager implements TaskManager {
         }
         timer.purge();
     }
+
+
+    /**
+     * Run serializable.
+     *
+     * @param run the run
+     * @return the serializable
+     */
+    public static synchronized Serializable run(Runnable run) {
+        Serializable key = submit(run);
+        start(key);
+        return key;
+    }
+
+    /**
+     * Run serializable.
+     *
+     * @param task the task
+     * @return the serializable
+     */
+    public static synchronized Serializable run(TimerTask task) {
+        Serializable key = submit(task);
+        start(key);
+        return key;
+    }
 }
