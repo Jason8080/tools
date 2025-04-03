@@ -17,12 +17,13 @@ public class TimerUtil {
     /**
      * Print.
      *
-     * @param msg the msg
+     * @param tips the tips
      */
-    public static void print(String msg) {
+    public static void print(String... tips) {
+        tips = BoolUtil.isEmpty(tips) ? new String[]{last.get() != null ? "耗时" : "校准"} : tips;
         long millis = System.currentTimeMillis();
         Long ms = NullUtil.get(last.get(), millis);
-        log.info("---------- 计时器提醒 ----------\r\n{}:\t{}/ms\r\n-----------------------------", msg, millis - ms);
+        log.info("\r\n---------- 计时器提醒 ----------\r\n{}:\t{}/ms\r\n-----------------------------", String.join(" • ", tips), millis - ms);
         last.set(System.currentTimeMillis());
     }
 }
