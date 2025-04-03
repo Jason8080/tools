@@ -23,8 +23,6 @@ public class TimerUtil {
         long millis = System.currentTimeMillis();
         Long ms = NullUtil.get(last.get(), millis);
         log.info("---------- 计时器提醒 ----------\r\n{}:\t{}/ms\r\n-----------------------------", msg, millis - ms);
-        if (last.get() == null) {
-            last.set(System.currentTimeMillis());
-        }
+        last.set(System.currentTimeMillis());
     }
 }
