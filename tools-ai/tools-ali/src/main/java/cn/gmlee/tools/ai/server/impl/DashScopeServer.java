@@ -84,13 +84,14 @@ public class DashScopeServer {
     private static void logger(MultiModalConversationResult result) {
         String requestId = result.getRequestId();
         MultiModalConversationUsage usage = result.getUsage();
-        log.info("\r\n-------------------- {} --------------------\r\n", requestId);
-        log.info("\r\n消耗: {}/tokens; 输入: {}/tokens; 输出: {}/tokens\r\n",
+        StringBuffer sb = new StringBuffer("\r\n-------------------- {} --------------------");
+        sb.append("\r\n消耗: {}/tokens; \t输入: {}/tokens; \t输出: {}/tokens");
+        sb.append("\r\n图片: {}/tokens; \t音频: {}/tokens; \t视频: {}/tokens");
+        sb.append("\r\n");
+        log.info(sb.toString(), requestId,
                 NullUtil.get(usage.getTotalTokens(), 0),
                 NullUtil.get(usage.getInputTokens(), 0),
-                NullUtil.get(usage.getOutputTokens(), 0));
-        log.info("\r\n图片: {}/tokens; 音频: {}/tokens; 视频: {}/tokens\r\n",
-                requestId, usage.getTotalTokens(), usage.getInputTokens(), usage.getOutputTokens(),
+                NullUtil.get(usage.getOutputTokens(), 0),
                 NullUtil.get(usage.getImageTokens(), 0),
                 NullUtil.get(usage.getAudioTokens(), 0),
                 NullUtil.get(usage.getVideoTokens(), 0)
