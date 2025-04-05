@@ -33,34 +33,105 @@ public class DashScopeServer {
     /**
      * 询问.
      *
-     * @param sys  the sys msg
-     * @param user the u msg
-     * @return the generation result
+     * @param sys  系统定位
+     * @param user 用户输入
+     * @return flowable 输出内容
      */
     public Flowable<String> ask(String sys, String user) {
-        MultiModalMessage sysMessage = MultiModalMessage.builder()
-                .role(Role.SYSTEM.getValue())
-                .content(Arrays.asList(Collections.singletonMap("text", sys)))
-                .build();
+        MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
                 .content(Arrays.asList(Collections.singletonMap("text", user))
                 ).build();
-        MultiModalConversationParam param = ((MultiModalConversationParam.MultiModalConversationParamBuilder) MultiModalConversationParam
-                .builder().apiKey(aliAiProperties.getApiKey())
-                .message(sysMessage)
-                .message(userMessage)
-                .modalities(Arrays.asList("text"))
-                .audio(AudioParameters.builder().voice(AudioParameters.Voice.CHERRY).build())
-                .model(aliAiProperties.getAliModel()))
-                .build();
+        MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
         return flowable.map(this::convertText);
     }
 
+    /**
+     * 询问 (图片).
+     *
+     * @param sys    系统定位
+     * @param user   用户输入
+     * @param image 图片内容
+     * @return flowable 输出内容
+     */
+    public Flowable<String> askImage(String sys, String user, String image) {
+        MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
+        MultiModalMessage userMessage = MultiModalMessage.builder()
+                .role(Role.USER.getValue())
+                .content(Arrays.asList(Collections.singletonMap("image", image), Collections.singletonMap("text", user))
+                ).build();
+        MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
+        Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
+        return flowable.map(this::convertText);
+    }
 
+    /**
+     * 询问 (音频).
+     *
+     * @param sys   系统定位
+     * @param user  用户输入
+     * @param audio 音频内容
+     * @return flowable 输出内容
+     */
+    public Flowable<String> askAudio(String sys, String user, String audio) {
+        MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
+        MultiModalMessage userMessage = MultiModalMessage.builder()
+                .role(Role.USER.getValue())
+                .content(Arrays.asList(Collections.singletonMap("audio", audio), Collections.singletonMap("text", user))
+                ).build();
+        MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
+        Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
+        return flowable.map(this::convertText);
+    }
+
+    /**
+     * 询问 (视频).
+     *
+     * @param sys   系统定位
+     * @param user  用户输入
+     * @param video 视频内容
+     * @return flowable 输出内容
+     */
+    public Flowable<String> askVideo(String sys, String user, String video) {
+        MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
+        MultiModalMessage userMessage = MultiModalMessage.builder()
+                .role(Role.USER.getValue())
+                .content(Arrays.asList(Collections.singletonMap("video", video), Collections.singletonMap("text", user))
+                ).build();
+        MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
+        Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
+        return flowable.map(this::convertText);
+    }
+
+    private static MultiModalMessage getTextMultiModalMessage(Role role, String text) {
+        MultiModalMessage sysMessage = MultiModalMessage.builder()
+                .role(role.getValue())
+                .content(Arrays.asList(Collections.singletonMap("text", text)))
+                .build();
+        return sysMessage;
+    }
+
+    private MultiModalConversationParam getMultiModalConversationParam(MultiModalMessage sysMessage, MultiModalMessage userMessage, String... modalities) {
+        return ((MultiModalConversationParam.MultiModalConversationParamBuilder) MultiModalConversationParam.builder().apiKey(aliAiProperties.getApiKey())
+                .message(sysMessage)
+                .message(userMessage)
+                .modalities(Arrays.asList(modalities))
+                .audio(AudioParameters.builder().voice(AudioParameters.Voice.CHERRY).build())
+                .model(aliAiProperties.getAliModel()))
+                .build();
+    }
+
+
+    /**
+     * Convert text string.
+     *
+     * @param result the result
+     * @return the string
+     */
     public String convertText(MultiModalConversationResult result) {
-        ExceptionUtil.sandbox(() -> logger(result));
+//        ExceptionUtil.sandbox(() -> logger(result));
         MultiModalConversationOutput output = result.getOutput();
         List<MultiModalConversationOutput.Choice> choices = output.getChoices();
         if (BoolUtil.isEmpty(choices)) {
