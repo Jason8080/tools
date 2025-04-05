@@ -7,6 +7,10 @@ import cn.gmlee.tools.base.util.NullUtil;
 import com.alibaba.dashscope.aigc.multimodalconversation.*;
 import com.alibaba.dashscope.common.MultiModalMessage;
 import com.alibaba.dashscope.common.Role;
+import com.alibaba.dashscope.embeddings.MultiModalEmbedding;
+import com.alibaba.dashscope.embeddings.MultiModalEmbeddingItemImage;
+import com.alibaba.dashscope.embeddings.MultiModalEmbeddingItemText;
+import com.alibaba.dashscope.embeddings.MultiModalEmbeddingParam;
 import io.reactivex.Flowable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,8 +55,8 @@ public class DashScopeServer {
     /**
      * 询问 (图片).
      *
-     * @param sys    系统定位
-     * @param user   用户输入
+     * @param sys   系统定位
+     * @param user  用户输入
      * @param image 图片内容
      * @return flowable 输出内容
      */
@@ -63,6 +67,34 @@ public class DashScopeServer {
                 .content(Arrays.asList(Collections.singletonMap("image", image), Collections.singletonMap("text", user))
                 ).build();
         MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
+        Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
+        return flowable.map(this::convertText);
+    }
+
+    /**
+     * 询问 (图片).
+     *
+     * @param sys    系统定位
+     * @param user   用户输入
+     * @param images 图片内容
+     * @return flowable 输出内容
+     */
+    public Flowable<String> askImages(String sys, String user, String... images) {
+        MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
+        List<MultiModalMessageItemBase> contents = Arrays.stream(images).map(image -> MultiModalEmbeddingItemImage.builder().image(image).build()).collect(Collectors.toList());
+        contents.add(MultiModalEmbeddingItemText.builder().text(user).build());
+        MultiModalConversationMessage userMessage = MultiModalConversationMessage.builder()
+                .role(Role.USER.getValue())
+                .content(contents)
+                .build();
+        MultiModalConversationParam param = ((MultiModalConversationParam.MultiModalConversationParamBuilder) MultiModalConversationParam.builder()
+                .apiKey(aliAiProperties.getApiKey())
+                .message(sysMessage)
+                .message(userMessage)
+                .modalities(Arrays.asList("text"))
+                .audio(AudioParameters.builder().voice(AudioParameters.Voice.CHERRY).build())
+                .model(aliAiProperties.getAliModel()))
+                .build();;
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
         return flowable.map(this::convertText);
     }
