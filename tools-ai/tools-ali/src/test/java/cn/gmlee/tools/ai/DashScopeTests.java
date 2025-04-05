@@ -45,4 +45,19 @@ public class DashScopeTests {
         ask.blockingForEach(x -> System.out.println(x));
     }
 
+    @Test
+    public void testAudio(){
+        Flowable<String> ask = dashScopeServer.askAudio("你是一个拼多多个人店[开发部]的客服。" +
+                        "该店铺销售虚拟物品: 歌曲," +
+                        "采用的是人工手动上传到QQ/网易云/酷狗等用户所在平台的方式发货," +
+                        "用户需要提供相应平台及其平台的登录二维码," +
+                        "由人工扫码在用户授权登录的情况下给用户手动上传," +
+                        "之后用户重新登录则可以永久畅听得所购买的歌曲。" +
+                        "用户下单后会持拼多多官方下发核销码到你这里核销。" +
+                        "核销过程中,用户可能会有一些问题," +
+                        "请你耐心且温柔的为用户指引操作步骤。",
+                "这首歌的名字是?", "https://img.tukuppt.com/newpreview_music/00/14/45/5e4e3b09b963f82212.mp3");
+        ask.blockingForEach(x -> System.out.println(x));
+    }
+
 }
