@@ -37,7 +37,7 @@ public class DashScopeServer {
     /**
      * 询问.
      *
-     * @param sys  系统定位
+     * @param sys  系统角色
      * @param user 用户输入
      * @return flowable 输出内容
      */
@@ -55,7 +55,7 @@ public class DashScopeServer {
     /**
      * 询问 (图片).
      *
-     * @param sys   系统定位
+     * @param sys   系统角色
      * @param user  用户输入
      * @param image 图片内容
      * @return flowable 输出内容
@@ -74,7 +74,7 @@ public class DashScopeServer {
     /**
      * 询问 (图片).
      *
-     * @param sys    系统定位
+     * @param sys    系统角色
      * @param user   用户输入
      * @param images 图片内容
      * @return flowable 输出内容
@@ -95,7 +95,7 @@ public class DashScopeServer {
     /**
      * 询问 (音频).
      *
-     * @param sys   系统定位
+     * @param sys   系统角色
      * @param user  用户输入
      * @param audio 音频内容
      * @return flowable 输出内容
@@ -114,7 +114,7 @@ public class DashScopeServer {
     /**
      * 询问 (音频).
      *
-     * @param sys    系统定位
+     * @param sys    系统角色
      * @param user   用户输入
      * @param audios 音频内容
      * @return flowable 输出内容
@@ -135,7 +135,7 @@ public class DashScopeServer {
     /**
      * 询问 (视频).
      *
-     * @param sys   系统定位
+     * @param sys   系统角色
      * @param user  用户输入
      * @param video 视频内容
      * @return flowable 输出内容
@@ -155,7 +155,7 @@ public class DashScopeServer {
     /**
      * 询问 (视频).
      *
-     * @param sys    系统定位
+     * @param sys    系统角色
      * @param user   用户输入
      * @param videos 视频内容
      * @return flowable 输出内容
