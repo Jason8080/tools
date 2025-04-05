@@ -7,10 +7,10 @@ import cn.gmlee.tools.base.util.NullUtil;
 import com.alibaba.dashscope.aigc.multimodalconversation.*;
 import com.alibaba.dashscope.common.MultiModalMessage;
 import com.alibaba.dashscope.common.Role;
-import com.alibaba.dashscope.embeddings.MultiModalEmbedding;
+import com.alibaba.dashscope.embeddings.MultiModalEmbeddingItemAudio;
 import com.alibaba.dashscope.embeddings.MultiModalEmbeddingItemImage;
 import com.alibaba.dashscope.embeddings.MultiModalEmbeddingItemText;
-import com.alibaba.dashscope.embeddings.MultiModalEmbeddingParam;
+import com.alibaba.dashscope.embeddings.MultiModalEmbeddingItemVideo;
 import io.reactivex.Flowable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -87,14 +87,7 @@ public class DashScopeServer {
                 .role(Role.USER.getValue())
                 .content(contents)
                 .build();
-        MultiModalConversationParam param = ((MultiModalConversationParam.MultiModalConversationParamBuilder) MultiModalConversationParam.builder()
-                .apiKey(aliAiProperties.getApiKey())
-                .message(sysMessage)
-                .message(userMessage)
-                .modalities(Arrays.asList("text"))
-                .audio(AudioParameters.builder().voice(AudioParameters.Voice.CHERRY).build())
-                .model(aliAiProperties.getAliModel()))
-                .build();;
+        MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
         return flowable.map(this::convertText);
     }
@@ -119,6 +112,27 @@ public class DashScopeServer {
     }
 
     /**
+     * 询问 (音频).
+     *
+     * @param sys    系统定位
+     * @param user   用户输入
+     * @param audios 音频内容
+     * @return flowable 输出内容
+     */
+    public Flowable<String> askAudios(String sys, String user, String... audios) {
+        MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
+        List<MultiModalMessageItemBase> contents = Arrays.stream(audios).map(audio -> MultiModalEmbeddingItemAudio.builder().audio(audio).build()).collect(Collectors.toList());
+        contents.add(MultiModalEmbeddingItemText.builder().text(user).build());
+        MultiModalConversationMessage userMessage = MultiModalConversationMessage.builder()
+                .role(Role.USER.getValue())
+                .content(contents)
+                .build();
+        MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
+        Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
+        return flowable.map(this::convertText);
+    }
+
+    /**
      * 询问 (视频).
      *
      * @param sys   系统定位
@@ -137,6 +151,28 @@ public class DashScopeServer {
         return flowable.map(this::convertText);
     }
 
+
+    /**
+     * 询问 (视频).
+     *
+     * @param sys    系统定位
+     * @param user   用户输入
+     * @param videos 视频内容
+     * @return flowable 输出内容
+     */
+    public Flowable<String> askVideos(String sys, String user, String... videos) {
+        MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
+        List<MultiModalMessageItemBase> contents = Arrays.stream(videos).map(video -> MultiModalEmbeddingItemVideo.builder().video(video).build()).collect(Collectors.toList());
+        contents.add(MultiModalEmbeddingItemText.builder().text(user).build());
+        MultiModalConversationMessage userMessage = MultiModalConversationMessage.builder()
+                .role(Role.USER.getValue())
+                .content(contents)
+                .build();
+        MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
+        Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
+        return flowable.map(this::convertText);
+    }
+
     private static MultiModalMessage getTextMultiModalMessage(Role role, String text) {
         MultiModalMessage sysMessage = MultiModalMessage.builder()
                 .role(role.getValue())
@@ -145,7 +181,7 @@ public class DashScopeServer {
         return sysMessage;
     }
 
-    private MultiModalConversationParam getMultiModalConversationParam(MultiModalMessage sysMessage, MultiModalMessage userMessage, String... modalities) {
+    private MultiModalConversationParam getMultiModalConversationParam(Object sysMessage, Object userMessage, String... modalities) {
         return ((MultiModalConversationParam.MultiModalConversationParamBuilder) MultiModalConversationParam.builder().apiKey(aliAiProperties.getApiKey())
                 .message(sysMessage)
                 .message(userMessage)
@@ -155,14 +191,7 @@ public class DashScopeServer {
                 .build();
     }
 
-
-    /**
-     * Convert text string.
-     *
-     * @param result the result
-     * @return the string
-     */
-    public String convertText(MultiModalConversationResult result) {
+    private String convertText(MultiModalConversationResult result) {
 //        ExceptionUtil.sandbox(() -> logger(result));
         MultiModalConversationOutput output = result.getOutput();
         List<MultiModalConversationOutput.Choice> choices = output.getChoices();
