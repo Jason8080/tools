@@ -1,6 +1,7 @@
 package cn.gmlee.tools.ai;
 
 import cn.gmlee.tools.ai.server.impl.DashScopeServer;
+import io.reactivex.Flowable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,7 @@ public class DashScopeTests {
 
     @Test
     public void testDemo(){
-        dashScopeServer.ask("你是一个拼多多个人店[开发部]的客服。" +
+        Flowable<String> ask = dashScopeServer.ask("你是一个拼多多个人店[开发部]的客服。" +
                         "该店铺销售虚拟物品: 歌曲," +
                         "采用的是人工手动上传到QQ/网易云/酷狗等用户所在平台的方式发货," +
                         "用户需要提供相应平台及其平台的登录二维码," +
@@ -26,6 +27,7 @@ public class DashScopeTests {
                         "核销过程中,用户可能会有一些问题," +
                         "请你耐心且温柔的为用户指引操作步骤。",
                 "在吗?");
+        ask.blockingForEach(x -> System.out.println(x));
     }
 
 }

@@ -1,11 +1,10 @@
 package cn.gmlee.tools.ai.server.impl;
 
 import cn.gmlee.tools.ai.conf.AliAiProperties;
+import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
-import com.alibaba.dashscope.aigc.multimodalconversation.AudioParameters;
-import com.alibaba.dashscope.aigc.multimodalconversation.MultiModalConversation;
-import com.alibaba.dashscope.aigc.multimodalconversation.MultiModalConversationParam;
-import com.alibaba.dashscope.aigc.multimodalconversation.MultiModalConversationResult;
+import cn.gmlee.tools.base.util.NullUtil;
+import com.alibaba.dashscope.aigc.multimodalconversation.*;
 import com.alibaba.dashscope.common.MultiModalMessage;
 import com.alibaba.dashscope.common.Role;
 import io.reactivex.Flowable;
@@ -15,6 +14,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * 百联平台服务.
@@ -35,7 +37,7 @@ public class DashScopeServer {
      * @param user the u msg
      * @return the generation result
      */
-    public void ask(String sys, String user) {
+    public Flowable<String> ask(String sys, String user) {
         MultiModalMessage sysMessage = MultiModalMessage.builder()
                 .role(Role.SYSTEM.getValue())
                 .content(Arrays.asList(Collections.singletonMap("text", sys)))
@@ -44,7 +46,7 @@ public class DashScopeServer {
                 .role(Role.USER.getValue())
                 .content(Arrays.asList(Collections.singletonMap("text", user))
                 ).build();
-        MultiModalConversationParam param = ((MultiModalConversationParam.MultiModalConversationParamBuilder)MultiModalConversationParam
+        MultiModalConversationParam param = ((MultiModalConversationParam.MultiModalConversationParamBuilder) MultiModalConversationParam
                 .builder().apiKey(aliAiProperties.getApiKey())
                 .message(sysMessage)
                 .message(userMessage)
@@ -52,11 +54,46 @@ public class DashScopeServer {
                 .audio(AudioParameters.builder().voice(AudioParameters.Voice.CHERRY).build())
                 .model(aliAiProperties.getAliModel()))
                 .build();
-
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        flowable.blockingForEach((data) -> {
-            System.out.printf("output=%s\n", data.getOutput());
-            System.out.printf("usage=%s\n\n", data.getUsage());
-        });
+        return flowable.map(this::convertText);
+    }
+
+
+    public String convertText(MultiModalConversationResult result) {
+        ExceptionUtil.sandbox(() -> logger(result));
+        MultiModalConversationOutput output = result.getOutput();
+        List<MultiModalConversationOutput.Choice> choices = output.getChoices();
+        if (BoolUtil.isEmpty(choices)) {
+            return "";
+        }
+        List<String> texts = choices.stream()
+                .filter(Objects::nonNull)
+                .map(MultiModalConversationOutput.Choice::getMessage)
+                .filter(Objects::nonNull)
+                .map(MultiModalMessage::getContent)
+                .filter(BoolUtil::notEmpty)
+                .map(x -> x.stream()
+                        .map(entry -> entry.get("text"))
+                        .filter(o -> o instanceof String)
+                        .map(String::valueOf)
+                        .collect(Collectors.joining()))
+                .collect(Collectors.toList());
+        return texts.stream().collect(Collectors.joining());
+    }
+
+    private static void logger(MultiModalConversationResult result) {
+        String requestId = result.getRequestId();
+        MultiModalConversationUsage usage = result.getUsage();
+        log.info("\r\n-------------------- {} --------------------\r\n", requestId);
+        log.info("\r\n消耗: {}/tokens; 输入: {}/tokens; 输出: {}/tokens\r\n",
+                NullUtil.get(usage.getTotalTokens(), 0),
+                NullUtil.get(usage.getInputTokens(), 0),
+                NullUtil.get(usage.getOutputTokens(), 0));
+        log.info("\r\n图片: {}/tokens; 音频: {}/tokens; 视频: {}/tokens\r\n",
+                requestId, usage.getTotalTokens(), usage.getInputTokens(), usage.getOutputTokens(),
+                NullUtil.get(usage.getImageTokens(), 0),
+                NullUtil.get(usage.getAudioTokens(), 0),
+                NullUtil.get(usage.getVideoTokens(), 0)
+        );
     }
 }
