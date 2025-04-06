@@ -1,5 +1,6 @@
 package cn.gmlee.tools.ai.server.impl;
 
+import cn.gmlee.tools.ai.assist.MultiAssist;
 import cn.gmlee.tools.ai.conf.AliAiProperties;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
@@ -16,10 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -27,6 +25,7 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
+@SuppressWarnings("all")
 @RequiredArgsConstructor
 public class DashScopeServer {
 
@@ -74,6 +73,26 @@ public class DashScopeServer {
     /**
      * 询问 (图片).
      *
+     * @param sys   系统角色
+     * @param user  用户输入
+     * @param image 图片内容
+     * @return flowable 输出内容
+     */
+    public Flowable<String> askImage(String sys, String user, byte... image) {
+        MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
+        String content = MultiAssist.base64Image("png", image);
+        MultiModalMessage userMessage = MultiModalMessage.builder()
+                .role(Role.USER.getValue())
+                .content(Arrays.asList(Collections.singletonMap("image", content), Collections.singletonMap("text", user))
+                ).build();
+        MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
+        Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
+        return flowable.map(this::convertText);
+    }
+
+    /**
+     * 询问 (图片).
+     *
      * @param sys    系统角色
      * @param user   用户输入
      * @param images 图片内容
@@ -105,6 +124,27 @@ public class DashScopeServer {
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
                 .content(Arrays.asList(Collections.singletonMap("audio", audio), Collections.singletonMap("text", user))
+                ).build();
+        MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
+        Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
+        return flowable.map(this::convertText);
+    }
+
+
+    /**
+     * 询问 (音频).
+     *
+     * @param sys   系统角色
+     * @param user  用户输入
+     * @param audio 音频内容
+     * @return flowable 输出内容
+     */
+    public Flowable<String> askAudio(String sys, String user, byte... audio) {
+        MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
+        String content = MultiAssist.base64Audio("mp3", audio);
+        MultiModalMessage userMessage = MultiModalMessage.builder()
+                .role(Role.USER.getValue())
+                .content(Arrays.asList(Collections.singletonMap("audio", content), Collections.singletonMap("text", user))
                 ).build();
         MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
@@ -145,6 +185,26 @@ public class DashScopeServer {
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
                 .content(Arrays.asList(Collections.singletonMap("video", video), Collections.singletonMap("text", user))
+                ).build();
+        MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
+        Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
+        return flowable.map(this::convertText);
+    }
+
+    /**
+     * 询问 (视频).
+     *
+     * @param sys   系统角色
+     * @param user  用户输入
+     * @param video 视频内容
+     * @return flowable 输出内容
+     */
+    public Flowable<String> askVideo(String sys, String user, byte... video) {
+        MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
+        String content = MultiAssist.base64Video("mp4", video);
+        MultiModalMessage userMessage = MultiModalMessage.builder()
+                .role(Role.USER.getValue())
+                .content(Arrays.asList(Collections.singletonMap("video", content), Collections.singletonMap("text", user))
                 ).build();
         MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));

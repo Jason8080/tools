@@ -1,12 +1,15 @@
 package cn.gmlee.tools.ai;
 
 import cn.gmlee.tools.ai.server.impl.DashScopeServer;
+import cn.gmlee.tools.base.util.StreamUtil;
 import io.reactivex.Flowable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.io.FileInputStream;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = App.class)
@@ -42,6 +45,21 @@ public class DashScopeTests {
                         "核销过程中,用户可能会有一些问题," +
                         "请你耐心且温柔的为用户指引操作步骤。",
                 "这个怎么用?", "https://img2.baidu.com/it/u=4136464951,3224683733&fm=253&fmt=auto&app=138&f=JPEG?w=600&h=500");
+        ask.blockingForEach(x -> System.out.println(x));
+    }
+
+    @Test
+    public void testImageBytes() throws Exception {
+        Flowable<String> ask = dashScopeServer.askImage("你是一个拼多多个人店[开发部]的客服。" +
+                        "该店铺销售虚拟物品: 歌曲," +
+                        "采用的是人工手动上传到QQ/网易云/酷狗等用户所在平台的方式发货," +
+                        "用户需要提供相应平台及其平台的登录二维码," +
+                        "由人工扫码在用户授权登录的情况下给用户手动上传," +
+                        "之后用户重新登录则可以永久畅听得所购买的歌曲。" +
+                        "用户下单后会持拼多多官方下发核销码到你这里核销。" +
+                        "核销过程中,用户可能会有一些问题," +
+                        "请你耐心且温柔的为用户指引操作步骤。",
+                "你看到了什么", StreamUtil.toBytes(new FileInputStream("C:\\Users\\Jason°\\Pictures\\Camera Roll\\FM-LOGO260x260.png")));
         ask.blockingForEach(x -> System.out.println(x));
     }
 
