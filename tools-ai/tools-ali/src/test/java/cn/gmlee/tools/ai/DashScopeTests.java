@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = App.class)
@@ -97,6 +98,21 @@ public class DashScopeTests {
     }
 
     @Test
+    public void testAudioBytes() throws Exception {
+        Flowable<String> ask = dashScopeServer.askAudio("你是一个拼多多个人店[开发部]的客服。" +
+                        "该店铺销售虚拟物品: 歌曲," +
+                        "采用的是人工手动上传到QQ/网易云/酷狗等用户所在平台的方式发货," +
+                        "用户需要提供相应平台及其平台的登录二维码," +
+                        "由人工扫码在用户授权登录的情况下给用户手动上传," +
+                        "之后用户重新登录则可以永久畅听得所购买的歌曲。" +
+                        "用户下单后会持拼多多官方下发核销码到你这里核销。" +
+                        "核销过程中,用户可能会有一些问题," +
+                        "请你耐心且温柔的为用户指引操作步骤。",
+                "这首歌的名字是?", StreamUtil.toBytes(new FileInputStream("C:\\Users\\Jason°\\Music\\20250406.mp3")));
+        ask.blockingForEach(x -> System.out.println(x));
+    }
+
+    @Test
     public void testVideo(){
         Flowable<String> ask = dashScopeServer.askVideo("你是一个拼多多个人店[开发部]的客服。" +
                         "该店铺销售虚拟物品: 歌曲," +
@@ -108,6 +124,21 @@ public class DashScopeTests {
                         "核销过程中,用户可能会有一些问题," +
                         "请你耐心且温柔的为用户指引操作步骤。",
                 "你看到什么又听到什么?", "https://img.tukuppt.com/video_show/2418175/00/01/51/5b44e0e3ad42a.mp4");
+        ask.blockingForEach(x -> System.out.println(x));
+    }
+
+    @Test
+    public void testVideoBytes() throws Exception {
+        Flowable<String> ask = dashScopeServer.askVideo("你是一个拼多多个人店[开发部]的客服。" +
+                        "该店铺销售虚拟物品: 歌曲," +
+                        "采用的是人工手动上传到QQ/网易云/酷狗等用户所在平台的方式发货," +
+                        "用户需要提供相应平台及其平台的登录二维码," +
+                        "由人工扫码在用户授权登录的情况下给用户手动上传," +
+                        "之后用户重新登录则可以永久畅听得所购买的歌曲。" +
+                        "用户下单后会持拼多多官方下发核销码到你这里核销。" +
+                        "核销过程中,用户可能会有一些问题," +
+                        "请你耐心且温柔的为用户指引操作步骤。",
+                "你看到什么又听到什么?", StreamUtil.toBytes(new FileInputStream("C:\\Users\\Jason°\\Videos\\20250406.mp4")));
         ask.blockingForEach(x -> System.out.println(x));
     }
 
