@@ -1,6 +1,8 @@
 package cn.gmlee.tools.base.util;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 字符操作工具
@@ -8,6 +10,24 @@ import java.io.UnsupportedEncodingException;
  * @author Jas
  */
 public class CharUtil {
+    /**
+     * Split list.
+     *
+     * @param content the content
+     * @param symbol  the symbol
+     * @return the list
+     */
+    public static List<String> split(String content, String symbol){
+        List<String> list = new ArrayList<>();
+        if(BoolUtil.isEmpty(content)){
+            return list;
+        }
+        for (String c : content.split(symbol)){
+            list.add(c);
+        }
+        return list;
+    }
+
     /**
      * 摘要.
      *
