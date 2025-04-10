@@ -20,6 +20,13 @@ public class DashScopeTests {
     private DashScopeServer dashScopeServer;
 
     @Test
+    public void testEnableSearch(){
+        Flowable<String> ask = dashScopeServer.ask("你是妃盟资讯平台的智能客服,接下来用户可能会让你实时联网查询一些资讯,请直接了当的告诉用户你查询到的结果",
+                "现在上证指数多少点?");
+        ask.blockingForEach(x -> System.out.println(x));
+    }
+
+    @Test
     public void testText(){
         Flowable<String> ask = dashScopeServer.ask("你是一个拼多多个人店[开发部]的客服。" +
                         "该店铺销售虚拟物品: 歌曲," +

@@ -241,17 +241,19 @@ public class DashScopeServer {
     }
 
     private MultiModalConversationParam getMultiModalConversationParam(Object sysMessage, Object userMessage, String... modalities) {
-        return ((MultiModalConversationParam.MultiModalConversationParamBuilder) MultiModalConversationParam.builder().apiKey(aliAiProperties.getApiKey())
+        return ((MultiModalConversationParam.MultiModalConversationParamBuilder) MultiModalConversationParam.builder()
+                .apiKey(aliAiProperties.getApiKey())
                 .message(sysMessage)
                 .message(userMessage)
+                .enableSearch(aliAiProperties.getEnableSearch())
                 .modalities(Arrays.asList(modalities))
                 .audio(AudioParameters.builder().voice(AudioParameters.Voice.CHERRY).build())
-                .model(aliAiProperties.getAliModel()))
+                .model(aliAiProperties.getDefaultModel()))
                 .build();
     }
 
     private String convertText(MultiModalConversationResult result) {
-//        ExceptionUtil.sandbox(() -> logger(result));
+        ExceptionUtil.sandbox(() -> logger(result));
         MultiModalConversationOutput output = result.getOutput();
         List<MultiModalConversationOutput.Choice> choices = output.getChoices();
         if (BoolUtil.isEmpty(choices)) {
@@ -279,7 +281,7 @@ public class DashScopeServer {
         sb.append("\r\n消耗: {}/tokens; \t输入: {}/tokens; \t输出: {}/tokens");
         sb.append("\r\n图片: {}/tokens; \t音频: {}/tokens; \t视频: {}/tokens");
         sb.append("\r\n");
-        log.info(sb.toString(), requestId,
+        log.debug(sb.toString(), requestId,
                 NullUtil.get(usage.getTotalTokens(), 0),
                 NullUtil.get(usage.getInputTokens(), 0),
                 NullUtil.get(usage.getOutputTokens(), 0),
