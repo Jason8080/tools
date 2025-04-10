@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
  * 百联平台服务.
  */
 @Slf4j
-@Service
 @SuppressWarnings("all")
 @RequiredArgsConstructor
 public class DashScopeServer {
