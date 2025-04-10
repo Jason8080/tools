@@ -11,9 +11,21 @@ import java.math.RoundingMode;
  * @date 2021 /7/6 (周二)
  */
 public class BigDecimalUtil {
+    /**
+     * The constant SCALE_2.
+     */
     public static final int SCALE_2 = 2; // 金额
+    /**
+     * The constant SCALE_3.
+     */
     public static final int SCALE_3 = 3; // 吨数
+    /**
+     * The constant SCALE_4.
+     */
     public static final int SCALE_4 = 4; // 比例
+    /**
+     * The constant ONE_HUNDRED.
+     */
     public static final BigDecimal ONE_HUNDRED = BigDecimal.valueOf(100); // 100
 
     /**
@@ -41,6 +53,48 @@ public class BigDecimalUtil {
             }
         }
         return BigDecimal.ZERO;
+    }
+
+    /**
+     * 确保值在范围内.
+     *
+     * @param source  源值
+     * @param minimum 最小值: 如果目标值小于最小值则取最小值
+     * @param maximum 最大值: 如果目标值大于最大值则取最大值
+     * @return decimal 目标值
+     */
+    public static BigDecimal between(BigDecimal source, BigDecimal minimum, BigDecimal maximum) {
+        if (source == null) {
+            return BigDecimal.ZERO;
+        }
+        if (minimum != null && source.compareTo(minimum) < 0) {
+            return minimum;
+        } else if (maximum != null && source.compareTo(maximum) > 0) {
+            return maximum;
+        }
+        return source;
+    }
+
+    /**
+     * 返回最小值.
+     *
+     * @param source  the source
+     * @param minimum the minimum
+     * @return the big decimal
+     */
+    public static BigDecimal min(BigDecimal source, BigDecimal minimum) {
+        return between(source, null, minimum);
+    }
+
+    /**
+     * 返回最大值.
+     *
+     * @param source  the source
+     * @param maximum the maximum
+     * @return the big decimal
+     */
+    public static BigDecimal max(BigDecimal source, BigDecimal maximum) {
+        return between(source, maximum, null);
     }
 
     /**
@@ -458,7 +512,6 @@ public class BigDecimalUtil {
 
     /**
      * 除法.
-     *
      *
      * @param num  the num 1
      * @param nums the num 2
