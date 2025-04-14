@@ -71,6 +71,27 @@ public class DashScopeServer {
         return flowable.map(this::convertText);
     }
 
+
+    /**
+     * 询问 (图片).
+     *
+     * @param model 模型名称
+     * @param sys   系统角色
+     * @param user  用户输入
+     * @param image 图片内容
+     * @return flowable 输出内容
+     */
+    public Flowable<String> askImage(String model, String sys, String user, String image) {
+        MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
+        MultiModalMessage userMessage = MultiModalMessage.builder()
+                .role(Role.USER.getValue())
+                .content(Arrays.asList(Collections.singletonMap("image", image), Collections.singletonMap("text", user)))
+                .build();
+        MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
+        Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
+        return flowable.map(this::convertText);
+    }
+
     /**
      * 询问 (图片).
      *
@@ -238,6 +259,18 @@ public class DashScopeServer {
         return MultiModalMessage.builder()
                 .role(role.getValue())
                 .content(Arrays.asList(Collections.singletonMap("text", text)))
+                .build();
+    }
+
+    private MultiModalConversationParam getMultiModalConversationParam(String model, Object sysMessage, Object userMessage, String... modalities) {
+        return ((MultiModalConversationParam.MultiModalConversationParamBuilder) MultiModalConversationParam.builder()
+                .apiKey(aliAiProperties.getApiKey())
+                .message(sysMessage)
+                .message(userMessage)
+                .enableSearch(aliAiProperties.getEnableSearch())
+                .modalities(Arrays.asList(modalities))
+                .audio(AudioParameters.builder().voice(AudioParameters.Voice.CHERRY).build())
+                .model(model))
                 .build();
     }
 
