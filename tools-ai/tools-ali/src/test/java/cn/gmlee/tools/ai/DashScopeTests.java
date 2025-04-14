@@ -1,5 +1,6 @@
 package cn.gmlee.tools.ai;
 
+import cn.gmlee.tools.ai.conf.AliAiProperties;
 import cn.gmlee.tools.ai.server.impl.DashScopeServer;
 import cn.gmlee.tools.base.util.StreamUtil;
 import io.reactivex.Flowable;
@@ -18,6 +19,9 @@ public class DashScopeTests {
 
     @Autowired
     private DashScopeServer dashScopeServer;
+
+    @Autowired
+    private AliAiProperties aliAiProperties;
 
     @Test
     public void testEnableSearch(){
@@ -73,7 +77,7 @@ public class DashScopeTests {
 
     @Test
     public void testImages(){
-        Flowable<String> ask = dashScopeServer.askImages("你是一个拼多多个人店[开发部]的客服。" +
+        Flowable<String> ask = dashScopeServer.askImages(aliAiProperties.getDefaultModel(), "你是一个拼多多个人店[开发部]的客服。" +
                         "该店铺销售虚拟物品: 歌曲," +
                         "采用的是人工手动上传到QQ/网易云/酷狗等用户所在平台的方式发货," +
                         "用户需要提供相应平台及其平台的登录二维码," +

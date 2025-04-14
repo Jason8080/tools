@@ -63,6 +63,7 @@ public class GenerateServer {
      * @param image 图片内容
      * @return flowable 输出内容
      */
+    @Deprecated
     public Flowable<String> askImage(String sys, String user, String image) {
         MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
         MultiModalMessage userMessage = MultiModalMessage.builder()
