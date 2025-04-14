@@ -256,6 +256,9 @@ public class DashScopeServer {
     }
 
     private static MultiModalMessage getTextMultiModalMessage(Role role, String text) {
+        if(BoolUtil.isEmpty(text)){
+            return null;
+        }
         return MultiModalMessage.builder()
                 .role(role.getValue())
                 .content(Arrays.asList(Collections.singletonMap("text", text)))
@@ -275,14 +278,16 @@ public class DashScopeServer {
     }
 
     private MultiModalConversationParam getMultiModalConversationParam(Object sysMessage, Object userMessage, String... modalities) {
+        List<Object> messages = Arrays.asList(sysMessage, userMessage).stream().filter(Objects::nonNull).collect(Collectors.toList());
         return ((MultiModalConversationParam.MultiModalConversationParamBuilder) MultiModalConversationParam.builder()
                 .apiKey(aliAiProperties.getApiKey())
                 .model(aliAiProperties.getDefaultModel()))
-                .message(sysMessage)
-                .message(userMessage)
                 .enableSearch(aliAiProperties.getEnableSearch())
                 .modalities(Arrays.asList(modalities))
-                .audio(AudioParameters.builder().voice(AudioParameters.Voice.CHERRY).build())
+                .voice(AudioParameters.Voice.CHERRY)
+                .incrementalOutput(false)
+                .messages(messages)
+                .seed(0)
                 .build();
     }
 

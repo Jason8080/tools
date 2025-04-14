@@ -75,6 +75,9 @@ public class GenerateServer {
     }
 
     private static MultiModalMessage getTextMultiModalMessage(Role role, String text) {
+        if(BoolUtil.isEmpty(text)){
+            return null;
+        }
         return MultiModalMessage.builder()
                 .role(role.getValue())
                 .content(Arrays.asList(Collections.singletonMap("text", text)))
@@ -82,14 +85,16 @@ public class GenerateServer {
     }
 
     private MultiModalConversationParam getMultiModalConversationParam(Object sysMessage, Object userMessage, String... modalities) {
+        List<Object> messages = Arrays.asList(sysMessage, userMessage).stream().filter(Objects::nonNull).collect(Collectors.toList());
         return ((MultiModalConversationParam.MultiModalConversationParamBuilder) MultiModalConversationParam.builder()
                 .apiKey(aliAiProperties.getApiKey())
-                .message(sysMessage)
-                .message(userMessage)
+                .model(aliAiProperties.getDefaultModel()))
                 .enableSearch(aliAiProperties.getEnableSearch())
                 .modalities(Arrays.asList(modalities))
-                .audio(AudioParameters.builder().voice(AudioParameters.Voice.CHERRY).build())
-                .model(aliAiProperties.getDefaultModel()))
+                .voice(AudioParameters.Voice.CHERRY)
+                .incrementalOutput(false)
+                .messages(messages)
+                .seed(0)
                 .build();
     }
 
@@ -98,7 +103,7 @@ public class GenerateServer {
         GenerationOutput output = result.getOutput();
         List<GenerationOutput.Choice> choices = output.getChoices();
         if (BoolUtil.isEmpty(choices)) {
-            return output.getFinishReason().equalsIgnoreCase("stop") ? output.getText() : "";
+            return output.getText();
         }
         List<String> texts = choices.stream()
                 .filter(Objects::nonNull)
