@@ -31,7 +31,7 @@ public class DashScopeWlTests {
     public void testImage(){
         // 1911610483048722433
         Flowable<String> ask = dashScopeServer.askImage(sys, "请帮我计算出磅单中的净重(单位:吨),多张磅单再计算净重的总和返回,只要数字",
-                "https://prod-public-ldw.oss-cn-shenzhen.aliyuncs.com/20250414/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_202504140954571.png?Expires=1744598734&OSSAccessKeyId=LTAI5t6MaMnjGd7qKm9XjjbN&Signature=wMrXRkZ2PZP4OWD8LgsLnVDG%2BIw%3D");
+                "https://prod-public-ldw.oss-cn-shenzhen.aliyuncs.com/20250414/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_202504140954571.png?Expires=1744599697&OSSAccessKeyId=LTAI5t6MaMnjGd7qKm9XjjbN&Signature=ZMQo1bTrw5Jl9kU6T8ikSoG%2FFTQ%3D");
         StringBuilder sb = new StringBuilder();
         ask.blockingForEach(x -> sb.append(x));
         System.out.println(sb);
@@ -41,7 +41,7 @@ public class DashScopeWlTests {
     public void testImage2(){
         // 1911605536991227905
         Flowable<String> ask = dashScopeServer.askImage(sys, "请帮我计算出磅单中的净重(单位:吨),多张磅单再计算净重的总和返回,只要数字",
-                "https://prod-public-ldw.oss-cn-shenzhen.aliyuncs.com/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250414095502.png?Expires=1744598925&OSSAccessKeyId=LTAI5t6MaMnjGd7qKm9XjjbN&Signature=9i%2F8N12aawJLNVpdGCUs85NgDi8%3D");
+                "https://prod-public-ldw.oss-cn-shenzhen.aliyuncs.com/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250414095502.png?Expires=1744600028&OSSAccessKeyId=LTAI5t6MaMnjGd7qKm9XjjbN&Signature=Vx9k%2BW3x8R2q2%2BPfLf1uqtLX2Sw%3D");
         StringBuilder sb = new StringBuilder();
         ask.blockingForEach(x -> sb.append(x));
         System.out.println(sb);
