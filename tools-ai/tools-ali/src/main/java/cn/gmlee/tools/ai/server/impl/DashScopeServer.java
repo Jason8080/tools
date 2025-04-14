@@ -363,14 +363,16 @@ public class DashScopeServer {
     }
 
     private MultiModalConversationParam getMultiModalConversationParam(String model, Object sysMessage, Object userMessage, String... modalities) {
+        List<Object> messages = Arrays.asList(sysMessage, userMessage).stream().filter(Objects::nonNull).collect(Collectors.toList());
         return ((MultiModalConversationParam.MultiModalConversationParamBuilder) MultiModalConversationParam.builder()
                 .apiKey(aliAiProperties.getApiKey())
-                .message(sysMessage)
-                .message(userMessage)
+                .model(aliAiProperties.getDefaultModel()))
                 .enableSearch(aliAiProperties.getEnableSearch())
                 .modalities(Arrays.asList(modalities))
-                .audio(AudioParameters.builder().voice(AudioParameters.Voice.CHERRY).build())
-                .model(model))
+                .voice(AudioParameters.Voice.CHERRY)
+                .incrementalOutput(false)
+                .messages(messages)
+                .seed(0)
                 .build();
     }
 
