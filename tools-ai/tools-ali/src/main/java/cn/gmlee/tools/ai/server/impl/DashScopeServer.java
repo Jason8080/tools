@@ -366,25 +366,11 @@ public class DashScopeServer {
         List<Object> messages = Arrays.asList(sysMessage, userMessage).stream().filter(Objects::nonNull).collect(Collectors.toList());
         return ((MultiModalConversationParam.MultiModalConversationParamBuilder) MultiModalConversationParam.builder()
                 .apiKey(aliAiProperties.getApiKey())
-                .model(aliAiProperties.getDefaultModel()))
+                .model(model))
                 .enableSearch(aliAiProperties.getEnableSearch())
                 .modalities(Arrays.asList(modalities))
                 .voice(AudioParameters.Voice.CHERRY)
-                .incrementalOutput(false)
-                .messages(messages)
-                .seed(0)
-                .build();
-    }
-
-    private MultiModalConversationParam getMultiModalConversationParam(Object sysMessage, Object userMessage, String... modalities) {
-        List<Object> messages = Arrays.asList(sysMessage, userMessage).stream().filter(Objects::nonNull).collect(Collectors.toList());
-        return ((MultiModalConversationParam.MultiModalConversationParamBuilder) MultiModalConversationParam.builder()
-                .apiKey(aliAiProperties.getApiKey())
-                .model(aliAiProperties.getDefaultModel()))
-                .enableSearch(aliAiProperties.getEnableSearch())
-                .modalities(Arrays.asList(modalities))
-                .voice(AudioParameters.Voice.CHERRY)
-                .incrementalOutput(false)
+                .incrementalOutput(true)
                 .messages(messages)
                 .seed(0)
                 .build();

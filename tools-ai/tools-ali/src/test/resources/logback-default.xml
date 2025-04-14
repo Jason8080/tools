@@ -3,6 +3,4 @@
     <property name="CUSTOM_LOG_LEVEL" value="INFO"/>
     <property name="CUSTOM_SYS_PATH" value="/home/data/logs/"/>
     <property name="CUSTOM_SYS_NAME" value="tools-ali"/>
-    <property name="CUSTOM_BUG_PACKAGE" value="cn.gmlee.tools"/>
-    <property name="CUSTOM_SQL_PACKAGE" value="cn.gmlee.tools"/>
 </included>

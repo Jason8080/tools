@@ -45,12 +45,24 @@ public class GenerateServer {
      * @return flowable 输出内容
      */
     public Flowable<String> ask(String sys, String user) {
+        return ask(aliAiProperties.getDefaultModel(), sys, user);
+    }
+
+    /**
+     * 询问.
+     *
+     * @param model 模型名称
+     * @param sys   系统角色
+     * @param user  用户输入
+     * @return flowable 输出内容
+     */
+    public Flowable<String> ask(String model, String sys, String user) {
         MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
                 .content(Arrays.asList(Collections.singletonMap("text", user)))
                 .build();
-        MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
+        MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<GenerationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
         return flowable.map(this::convertText);
     }
@@ -65,12 +77,26 @@ public class GenerateServer {
      */
     @Deprecated
     public Flowable<String> askImage(String sys, String user, String image) {
+        return askImage(aliAiProperties.getDefaultModel(), sys, user, image);
+    }
+
+    /**
+     * 询问 (图片).
+     *
+     * @param model 模型名称
+     * @param sys   系统角色
+     * @param user  用户输入
+     * @param image 图片内容
+     * @return flowable 输出内容
+     */
+    @Deprecated
+    public Flowable<String> askImage(String model, String sys, String user, String image) {
         MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
                 .content(Arrays.asList(Collections.singletonMap("image", image), Collections.singletonMap("text", user)))
                 .build();
-        MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
+        MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<GenerationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
         return flowable.map(this::convertText);
     }
@@ -85,11 +111,11 @@ public class GenerateServer {
                 .build();
     }
 
-    private MultiModalConversationParam getMultiModalConversationParam(Object sysMessage, Object userMessage, String... modalities) {
+    private MultiModalConversationParam getMultiModalConversationParam(String model, Object sysMessage, Object userMessage, String... modalities) {
         List<Object> messages = Arrays.asList(sysMessage, userMessage).stream().filter(Objects::nonNull).collect(Collectors.toList());
         return ((MultiModalConversationParam.MultiModalConversationParamBuilder) MultiModalConversationParam.builder()
                 .apiKey(aliAiProperties.getApiKey())
-                .model(aliAiProperties.getDefaultModel()))
+                .model(model))
                 .enableSearch(aliAiProperties.getEnableSearch())
                 .modalities(Arrays.asList(modalities))
                 .voice(AudioParameters.Voice.CHERRY)
