@@ -1,15 +1,12 @@
 package cn.gmlee.tools.ai;
 
 import cn.gmlee.tools.ai.server.impl.DashScopeServer;
-import cn.gmlee.tools.base.util.StreamUtil;
 import io.reactivex.Flowable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import java.io.FileInputStream;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = App.class)
