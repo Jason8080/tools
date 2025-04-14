@@ -1,6 +1,8 @@
 package cn.gmlee.tools.ai;
 
 import cn.gmlee.tools.ai.server.impl.DashScopeServer;
+import cn.gmlee.tools.base.enums.Regex;
+import cn.gmlee.tools.base.util.RegexUtil;
 import cn.gmlee.tools.base.util.TimerUtil;
 import io.reactivex.Flowable;
 import org.junit.Test;
@@ -28,8 +30,8 @@ public class DashScopeWlTests {
     public void testImage(){
         // 1911610483048722433
         TimerUtil.print();
-        Flowable<String> ask = dashScopeServer.askImage(sys, "请帮我计算出磅单中的净重(单位:吨),多张磅单再计算净重的总和返回",
-                "https://prod-public-ldw.oss-cn-shenzhen.aliyuncs.com/20250414/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_202504140954571.png?Expires=1744602929&OSSAccessKeyId=LTAI5t6MaMnjGd7qKm9XjjbN&Signature=qa7J7qb8A5LcmnXM3lu4UnU0KKw%3D");
+        Flowable<String> ask = dashScopeServer.askImage("", "请帮我计算出磅单中的净重(单位:吨),多张磅单再计算净重的总和,最后的结果请转换成吨(1吨=1000KG)",
+                "https://prod-public-ldw.oss-cn-shenzhen.aliyuncs.com/20250414/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_202504140954571.png?Expires=11744617127&OSSAccessKeyId=LTAI5t6MaMnjGd7qKm9XjjbN&Signature=Q8WdJdlri8ldLDffmpeTKgoHyWU%3D");
         StringBuilder sb = new StringBuilder();
         ask.blockingForEach(x -> sb.append(x));
         System.out.println(sb);
@@ -40,11 +42,12 @@ public class DashScopeWlTests {
     public void testImage2(){
         // 1911605536991227905
         TimerUtil.print();
-        Flowable<String> ask = dashScopeServer.askImage(sys, "请帮我计算出磅单中的净重(单位:吨),多张磅单再计算净重的总和返回",
-                "https://prod-public-ldw.oss-cn-shenzhen.aliyuncs.com/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250414095502.png?Expires=1744608281&OSSAccessKeyId=LTAI5t6MaMnjGd7qKm9XjjbN&Signature=xMnNuQIJubjeDU4wBJJTzlSTbBI%3D");
+        Flowable<String> ask = dashScopeServer.askImage("",  "请帮我计算出磅单中的净重(单位:吨),多张磅单再计算净重的总和,最后的结果请转换成吨(1吨=1000KG)",
+                "https://prod-public-ldw.oss-cn-shenzhen.aliyuncs.com/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250414095502.png?Expires=11744617068&OSSAccessKeyId=LTAI5t6MaMnjGd7qKm9XjjbN&Signature=%2By4fyMAD%2BQ16uEvjKNv6j8oKWsk%3D");
         StringBuilder sb = new StringBuilder();
         ask.blockingForEach(x -> sb.append(x));
         System.out.println(sb);
+        System.out.println(RegexUtil.last(sb.toString(), Regex.NUMBER.regex, true));
         TimerUtil.print();
     }
 

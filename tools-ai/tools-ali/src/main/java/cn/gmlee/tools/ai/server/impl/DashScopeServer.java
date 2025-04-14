@@ -277,12 +277,12 @@ public class DashScopeServer {
     private MultiModalConversationParam getMultiModalConversationParam(Object sysMessage, Object userMessage, String... modalities) {
         return ((MultiModalConversationParam.MultiModalConversationParamBuilder) MultiModalConversationParam.builder()
                 .apiKey(aliAiProperties.getApiKey())
+                .model(aliAiProperties.getDefaultModel()))
                 .message(sysMessage)
                 .message(userMessage)
                 .enableSearch(aliAiProperties.getEnableSearch())
                 .modalities(Arrays.asList(modalities))
                 .audio(AudioParameters.builder().voice(AudioParameters.Voice.CHERRY).build())
-                .model(aliAiProperties.getDefaultModel()))
                 .build();
     }
 

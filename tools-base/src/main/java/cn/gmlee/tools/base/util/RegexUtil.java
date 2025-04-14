@@ -60,6 +60,25 @@ public class RegexUtil {
     }
 
     /**
+     * Last string.
+     *
+     * @param source  the source
+     * @param regex   the regex
+     * @param allowEx the allow ex
+     * @return the string
+     */
+    public static String last(String source, String regex, boolean allowEx) {
+        List<String> list = find(source, regex);
+        if (BoolUtil.notEmpty(list)) {
+            return list.get(list.size() - 1);
+        }
+        if (allowEx) {
+            return ExceptionUtil.cast(String.format("没有匹配到内容"));
+        }
+        return null;
+    }
+
+    /**
      * 判断字符串{source}是否符合{regex}正则规格
      * <p>
      * 内容是空一律返回 false(不匹配);

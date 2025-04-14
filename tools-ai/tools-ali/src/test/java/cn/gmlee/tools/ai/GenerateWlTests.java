@@ -35,4 +35,16 @@ public class GenerateWlTests {
         TimerUtil.print();
     }
 
+    @Test
+    public void testImage2(){
+        // 1911610483048722433
+        TimerUtil.print();
+        Flowable<String> ask = generateServer.askImage(sys, "请帮我计算出磅单中的净重(单位:吨),多张磅单再计算净重的总和返回",
+                "https://prod-public-ldw.oss-cn-shenzhen.aliyuncs.com/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250414095502.png?Expires=11744617068&OSSAccessKeyId=LTAI5t6MaMnjGd7qKm9XjjbN&Signature=%2By4fyMAD%2BQ16uEvjKNv6j8oKWsk%3D");
+        StringBuilder sb = new StringBuilder();
+        ask.blockingForEach(x -> sb.append(x));
+        System.out.println(sb);
+        TimerUtil.print();
+    }
+
 }
