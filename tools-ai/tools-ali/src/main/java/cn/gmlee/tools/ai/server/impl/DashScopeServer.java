@@ -15,9 +15,11 @@ import com.alibaba.dashscope.embeddings.MultiModalEmbeddingItemVideo;
 import io.reactivex.Flowable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -43,8 +45,8 @@ public class DashScopeServer {
         MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
-                .content(Arrays.asList(Collections.singletonMap("text", user))
-                ).build();
+                .content(Arrays.asList(Collections.singletonMap("text", user)))
+                .build();
         MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
         return flowable.map(this::convertText);
@@ -62,8 +64,8 @@ public class DashScopeServer {
         MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
-                .content(Arrays.asList(Collections.singletonMap("image", image), Collections.singletonMap("text", user))
-                ).build();
+                .content(Arrays.asList(Collections.singletonMap("image", image), Collections.singletonMap("text", user)))
+                .build();
         MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
         return flowable.map(this::convertText);
@@ -82,8 +84,8 @@ public class DashScopeServer {
         String content = MultiAssist.base64Image("png", image);
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
-                .content(Arrays.asList(Collections.singletonMap("image", content), Collections.singletonMap("text", user))
-                ).build();
+                .content(Arrays.asList(Collections.singletonMap("image", content), Collections.singletonMap("text", user)))
+                .build();
         MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
         return flowable.map(this::convertText);
@@ -122,8 +124,8 @@ public class DashScopeServer {
         MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
-                .content(Arrays.asList(Collections.singletonMap("audio", audio), Collections.singletonMap("text", user))
-                ).build();
+                .content(Arrays.asList(Collections.singletonMap("audio", audio), Collections.singletonMap("text", user)))
+                .build();
         MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
         return flowable.map(this::convertText);
@@ -143,8 +145,8 @@ public class DashScopeServer {
         String content = MultiAssist.base64Audio("mp3", audio);
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
-                .content(Arrays.asList(Collections.singletonMap("audio", content), Collections.singletonMap("text", user))
-                ).build();
+                .content(Arrays.asList(Collections.singletonMap("audio", content), Collections.singletonMap("text", user)))
+                .build();
         MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
         return flowable.map(this::convertText);
@@ -183,8 +185,8 @@ public class DashScopeServer {
         MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
-                .content(Arrays.asList(Collections.singletonMap("video", video), Collections.singletonMap("text", user))
-                ).build();
+                .content(Arrays.asList(Collections.singletonMap("video", video), Collections.singletonMap("text", user)))
+                .build();
         MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
         return flowable.map(this::convertText);
@@ -203,8 +205,8 @@ public class DashScopeServer {
         String content = MultiAssist.base64Video("mp4", video);
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
-                .content(Arrays.asList(Collections.singletonMap("video", content), Collections.singletonMap("text", user))
-                ).build();
+                .content(Arrays.asList(Collections.singletonMap("video", content), Collections.singletonMap("text", user)))
+                .build();
         MultiModalConversationParam param = getMultiModalConversationParam(sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
         return flowable.map(this::convertText);
@@ -233,11 +235,10 @@ public class DashScopeServer {
     }
 
     private static MultiModalMessage getTextMultiModalMessage(Role role, String text) {
-        MultiModalMessage sysMessage = MultiModalMessage.builder()
+        return MultiModalMessage.builder()
                 .role(role.getValue())
                 .content(Arrays.asList(Collections.singletonMap("text", text)))
                 .build();
-        return sysMessage;
     }
 
     private MultiModalConversationParam getMultiModalConversationParam(Object sysMessage, Object userMessage, String... modalities) {
