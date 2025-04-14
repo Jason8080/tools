@@ -41,7 +41,7 @@ public class DashScopeWlTests {
         // 1911605536991227905
         TimerUtil.print();
         Flowable<String> ask = dashScopeServer.askImage(sys, "请帮我计算出磅单中的净重(单位:吨),多张磅单再计算净重的总和返回",
-                "https://prod-public-ldw.oss-cn-shenzhen.aliyuncs.com/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250414095502.png?Expires=1744601611&OSSAccessKeyId=LTAI5t6MaMnjGd7qKm9XjjbN&Signature=vXceUD2nhZYxGhgQFCTyLvDrGpM%3D");
+                "https://prod-public-ldw.oss-cn-shenzhen.aliyuncs.com/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250414095502.png?Expires=1744603140&OSSAccessKeyId=LTAI5t6MaMnjGd7qKm9XjjbN&Signature=8kNANmsDYMWUZAjN490YDUbmdh4%3D");
         StringBuilder sb = new StringBuilder();
         ask.blockingForEach(x -> sb.append(x));
         System.out.println(sb);
