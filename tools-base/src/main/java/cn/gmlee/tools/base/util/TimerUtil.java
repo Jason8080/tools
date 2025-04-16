@@ -15,15 +15,28 @@ public class TimerUtil {
     private static ThreadLocal<Long> last = new AutoCleanThreadLocal<>();
 
     /**
-     * Print.
+     * 打印机.
      *
      * @param tips the tips
+     * @return the long
      */
-    public static void print(String... tips) {
+    public static long print(String... tips) {
         tips = BoolUtil.isEmpty(tips) ? new String[]{last.get() != null ? "耗时" : "校准"} : tips;
+        long timer = timer();
+        log.info("\r\n---------- 计时器提醒 ----------\r\n{}:\t{}/ms\r\n-------------------------------", String.join(" • ", tips), timer);
+        return timer;
+    }
+
+
+    /**
+     * 计时器.
+     *
+     * @return the long
+     */
+    public static long timer() {
         long millis = System.currentTimeMillis();
-        Long ms = NullUtil.get(last.get(), millis);
-        log.info("\r\n---------- 计时器提醒 ----------\r\n{}:\t{}/ms\r\n-------------------------------", String.join(" • ", tips), millis - ms);
+        long ms = NullUtil.get(last.get(), millis);
         last.set(System.currentTimeMillis());
+        return millis - ms;
     }
 }
