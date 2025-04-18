@@ -3,10 +3,10 @@ package cn.gmlee.tools.prevent.annotation;
 import java.lang.annotation.*;
 
 /**
- * @desc: 接口限流注解
+ * 接口限流注解
  *
- * @author: James
- * @date: 2023/7/27 18:44
+ * @author James
+ * @since 2023/7/27 18:44
  */
 @Documented
 @Target({ElementType.METHOD})
@@ -29,13 +29,11 @@ public @interface Limit {
 
     /**
      * 限制次数
-     * @return
      */
     long count() default 60;
 
     /**
      * 时间窗口大小(毫秒)
-     * @return
      */
     long timeWindow() default 60000;
 
