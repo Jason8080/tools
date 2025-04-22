@@ -11,6 +11,8 @@ import java.util.regex.Pattern;
 public enum Regex {
     // 数字
     NUMBER("-?\\d+(?:\\.\\d+)?"),
+    // 数字 (支持千位分隔符)
+    NUMBER_THOUSANDS_SEPARATOR("-?\\d+(?:,\\d{3})*(?:\\.\\d+)?"),
     // 手机
     MOBILE("(13[0-9]|14[5|7]|15[0|1|2|3|4|5|6|7|8|9]|18[0|1|2|3|5|6|7|8|9])\\d{8}"),
     // 邮箱
