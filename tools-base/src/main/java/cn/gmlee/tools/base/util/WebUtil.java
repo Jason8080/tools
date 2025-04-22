@@ -650,6 +650,21 @@ public class WebUtil {
     }
 
     /**
+     * Add current response header http servlet response.
+     *
+     * @param key the key
+     * @param val the val
+     * @return the http servlet response
+     */
+    public static HttpServletResponse addCurrentResponseHeader(String key, String val){
+        HttpServletResponse res = getResponse();
+        if (res != null) {
+            res.addHeader(key, val);
+        }
+        return res;
+    }
+
+    /**
      * 给当前响应追加Cookies.
      *
      * @param name  the name
