@@ -19,11 +19,6 @@ public class AliAiProperties {
     private String defaultModel = "qwen-omni-turbo";
     private Map<String, Mode> models = Collections.singletonMap(defaultModel, new Mode());
 
-    /**
-     * Gets enable search.
-     *
-     * @return the enable search
-     */
     public Boolean getEnableSearch() {
         Mode mode = models.get(defaultModel);
         if (mode == null) {
@@ -32,11 +27,20 @@ public class AliAiProperties {
         return mode.getEnableSearch();
     }
 
+    public Boolean getHasThoughts() {
+        Mode mode = models.get(defaultModel);
+        if (mode == null) {
+            return new Mode().getHasThoughts();
+        }
+        return mode.getHasThoughts();
+    }
+
     /**
      * The type Mode.
      */
     @Data
     public static class Mode {
-        private Boolean enableSearch = Boolean.FALSE;
+        private Boolean enableSearch = Boolean.FALSE; // 是否开启搜索
+        private Boolean hasThoughts = Boolean.FALSE; // 是否展示意图
     }
 }
