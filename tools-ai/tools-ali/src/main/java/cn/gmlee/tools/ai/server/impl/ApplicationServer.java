@@ -18,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
  * 百联平台服务.
  */
 @Slf4j
-@SuppressWarnings("all")
 @RequiredArgsConstructor
 public class ApplicationServer {
 
@@ -34,12 +33,12 @@ public class ApplicationServer {
      * @return flowable 输出内容
      */
     public Flowable<String> ask(String prompt, Kv... kvs) {
-        ApplicationParam param = getApplicationParamParam(prompt, kvs);
+        ApplicationParam param = getApplicationParam(prompt, kvs);
         Flowable<ApplicationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
         return flowable.map(this::convertText);
     }
 
-    private ApplicationParam getApplicationParamParam(String prompt, Kv... kvs) {
+    private ApplicationParam getApplicationParam(String prompt, Kv... kvs) {
         return ApplicationParam.builder()
                 .appId(aliAiProperties.getAppId())
                 .apiKey(aliAiProperties.getApiKey())

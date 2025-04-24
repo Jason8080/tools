@@ -1,9 +1,6 @@
 package cn.gmlee.tools.ai.conf;
 
-import cn.gmlee.tools.ai.server.impl.ApplicationServer;
-import cn.gmlee.tools.ai.server.impl.DashScopeServer;
-import cn.gmlee.tools.ai.server.impl.GenerateServer;
-import cn.gmlee.tools.ai.server.impl.MultiModalConversationServer;
+import cn.gmlee.tools.ai.server.impl.*;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,6 +8,11 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(AliAiProperties.class)
 public class AliAiAutoConfiguration {
+    @Bean
+    public RecordingServer recognitionServer(AliAiProperties aliAiProperties) {
+        return new RecordingServer(aliAiProperties);
+    }
+
     @Bean
     public ApplicationServer applicationServer(AliAiProperties aliAiProperties) {
         return new ApplicationServer(aliAiProperties);
