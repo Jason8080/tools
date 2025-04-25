@@ -1,6 +1,7 @@
 package cn.gmlee.tools.base.kit.sound;
 
 import cn.gmlee.tools.base.util.AssertUtil;
+import io.reactivex.Emitter;
 import io.reactivex.FlowableEmitter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -18,7 +19,7 @@ public class Microphone extends Thread implements Serializable {
 
     private long millis;
 
-    private FlowableEmitter<ByteBuffer> emitter;
+    private Emitter<ByteBuffer> emitter;
 
 
     /**
@@ -35,7 +36,7 @@ public class Microphone extends Thread implements Serializable {
      *
      * @param emitter the emitter
      */
-    public Microphone(FlowableEmitter<ByteBuffer> emitter) {
+    public Microphone(Emitter<ByteBuffer> emitter) {
         this(emitter, 3000);
     }
 
@@ -45,7 +46,7 @@ public class Microphone extends Thread implements Serializable {
      * @param emitter the emitter
      * @param millis  the millis
      */
-    public Microphone(FlowableEmitter<ByteBuffer> emitter, long millis) {
+    public Microphone(Emitter<ByteBuffer> emitter, long millis) {
         this.emitter = emitter;
         this.millis = System.currentTimeMillis() + millis;
     }

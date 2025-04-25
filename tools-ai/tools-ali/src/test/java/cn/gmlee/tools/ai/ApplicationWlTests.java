@@ -33,15 +33,19 @@ public class ApplicationWlTests {
     private static final String image3 =
             "https://prod-public-ldw.oss-cn-shenzhen.aliyuncs.com/%E5%8D%B8%E8%BD%A6%E7%A3%85%E5%8D%95_11.jpg?Expires=11745326657&OSSAccessKeyId=LTAI5t6MaMnjGd7qKm9XjjbN&Signature=8j1bfZ4fvT5e8LPPlKgsYPw6Eso%3D";
 
+    // 1915382288414683138
+    private static final String image4 =
+            "https://prod-public-ldw.oss-cn-shenzhen.aliyuncs.com/%E8%A3%85%E8%BD%A6%E7%A3%85%E5%8D%95.jpg?Expires=11745497704&OSSAccessKeyId=LTAI5t6MaMnjGd7qKm9XjjbN&Signature=MlvjjqRwgFp6ivbb6SYdnGSt5nY%3D";
+
 
     @Test
     public void testAsk(){
         TimerUtil.print();
-        Flowable<String> ask = applicationServer.ask(user, KvBuilder.array("image", image3));
+        Flowable<String> ask = applicationServer.ask(user, KvBuilder.array("image", image2));
         StringBuilder sb = new StringBuilder();
         ask.blockingForEach(x -> sb.append(x));
         System.out.println(sb);
-        System.out.println(RegexUtil.last(sb.toString(), Regex.NUMBER.regex, true));
+        System.out.println(RegexUtil.last(sb.toString(), Regex.NUMBER.regex, false));
         TimerUtil.print();
     }
 
