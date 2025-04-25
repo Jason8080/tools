@@ -6,6 +6,18 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import java.util.Collections;
 import java.util.Map;
 
+/**
+ * Ali Ai配置类.
+ *
+ * tools.ai.ali.defaultModel=qwen-omni-turbo-latest
+ * tools.ai.ali.defaultModel=qwen-vl-max-latest
+ * tools.ai.ali.defaultModel=llama-4-scout-17b-16e-instruct
+ * tools.ai.ali.defaultModel=qvq-max-latest
+ * tools.ai.ali.defaultModel=qwen-vl-ocr-latest
+ * tools.ai.ali.defaultModel=qwen2.5-omni-7b
+ * tools.ai.ali.defaultModel=qvq-72b-preview
+ * tools.ai.ali.defaultModel=qwen2.5-vl-72b-instruct
+ */
 @Data
 @ConfigurationProperties(prefix = "tools.ai.ali")
 public class AliAiProperties {
