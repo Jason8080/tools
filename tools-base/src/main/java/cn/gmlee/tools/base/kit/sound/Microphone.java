@@ -108,4 +108,7 @@ public class Microphone extends Thread implements Serializable {
     }
 
 
+    public synchronized void exit() {
+        this.millis = -1;
+    }
 }
