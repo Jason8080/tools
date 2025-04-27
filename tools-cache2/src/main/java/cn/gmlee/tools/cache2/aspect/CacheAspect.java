@@ -46,8 +46,7 @@ public class CacheAspect {
     @Pointcut("execution (* *..controller..*Controller..*(..)) || " +
             "execution (* *..api..*Api..*(..)) || " +
             "@within(org.springframework.stereotype.Controller) || " +
-            "@within(org.springframework.web.bind.annotation.RestController) || " +
-            "@annotation(org.springframework.web.bind.annotation.RestController)"
+            "@within(org.springframework.web.bind.annotation.RestController)"
     )
     public void pointcut() {
     }
