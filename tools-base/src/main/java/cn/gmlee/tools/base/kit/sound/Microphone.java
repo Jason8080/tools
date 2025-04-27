@@ -20,6 +20,8 @@ public class Microphone extends Thread implements Serializable {
 
     private volatile ByteBuffer buffer;
 
+    private final byte[] empty = new byte[0];
+
     /**
      * Instantiates a new Microphone.
      */
@@ -42,14 +44,19 @@ public class Microphone extends Thread implements Serializable {
         try {
             log.debug("microphone start...");
             while (buffer != null && !super.isInterrupted()) {
+                byte[] read = read();
                 // 发送: 将录音音频数据发送给流式识别服务
-                if (emitter != null) emitter.onNext(read());
+                if (emitter != null && read.length > 0) {
+                    emitter.onNext(ByteBuffer.wrap(read));
+                }
             }
             log.debug("microphone stop...");
-            if (emitter != null) emitter.onComplete();
+            emitter.onComplete();
         } catch (Exception e) {
-            log.debug("microphone error...");
-            if (emitter != null) emitter.onError(e);
+            log.debug("microphone error...", e);
+            emitter.onError(e);
+        } finally {
+            emitter = null;
         }
     }
 
@@ -77,16 +84,19 @@ public class Microphone extends Thread implements Serializable {
      *
      * @return the byte buffer
      */
-    private synchronized ByteBuffer read() {
-        while (buffer.position() <= 0 && !Thread.currentThread().isInterrupted()) {
+    private synchronized byte[] read() {
+        while (buffer != null && buffer.position() <= 0 && !Thread.currentThread().isInterrupted()) {
             // 限速: 录音速率有限，防止cpu占用过高，休眠一小会儿
             ExceptionUtil.suppress(() -> super.wait(10));
+        }
+        if (buffer == null) {
+            return empty;
         }
         buffer.flip(); // 切换读模式
         byte[] bytes = new byte[buffer.remaining()];
         buffer.get(bytes);
         buffer.clear(); // 切换写模式
-        return ByteBuffer.wrap(bytes);
+        return bytes;
     }
 
     /**
@@ -114,8 +124,6 @@ public class Microphone extends Thread implements Serializable {
             buffer.clear();
             buffer = null;
         }
-        // 防止内存泄漏
-        this.emitter = null;
         // 唤醒等待线程
         notifyAll();
     }
