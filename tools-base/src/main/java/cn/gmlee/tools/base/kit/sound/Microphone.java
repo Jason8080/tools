@@ -1,12 +1,12 @@
 package cn.gmlee.tools.base.kit.sound;
 
+import cn.gmlee.tools.base.kit.buffer.ByteBuffer;
 import cn.gmlee.tools.base.util.AssertUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import io.reactivex.Emitter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
-import java.nio.ByteBuffer;
 
 /**
  * The type Microphone.
@@ -16,13 +16,9 @@ public class Microphone extends Thread implements Serializable {
 
     private final int capacity = 1024;
 
-    private Emitter<ByteBuffer> emitter;
+    private Emitter<java.nio.ByteBuffer> emitter;
 
-    private volatile ByteBuffer buffer;
-
-    private final int wait = 10; // 10ms
-
-    private final byte[] empty = new byte[0];
+    private volatile ByteBuffer.Spin buffer;
 
     /**
      * Instantiates a new Microphone.
@@ -36,9 +32,9 @@ public class Microphone extends Thread implements Serializable {
      *
      * @param emitter the emitter
      */
-    public Microphone(Emitter<ByteBuffer> emitter) {
+    public Microphone(Emitter<java.nio.ByteBuffer> emitter) {
         this.emitter = emitter;
-        this.buffer = ByteBuffer.allocate(capacity);
+        this.buffer = new ByteBuffer.Spin(capacity);
     }
 
     @Override
@@ -46,10 +42,12 @@ public class Microphone extends Thread implements Serializable {
         try {
             log.debug("microphone start...");
             while (buffer != null && !super.isInterrupted()) {
-                byte[] read = read();
+                buffer.flip();
+                byte[] read = buffer.read(-1);
+                buffer.clear();
                 // 发送: 将录音音频数据发送给流式识别服务
                 if (emitter != null && read.length > 0) {
-                    emitter.onNext(ByteBuffer.wrap(read));
+                    emitter.onNext(java.nio.ByteBuffer.wrap(read));
                 }
             }
             log.debug("microphone stop...");
@@ -63,50 +61,11 @@ public class Microphone extends Thread implements Serializable {
     }
 
     /**
-     * 写入数据
-     *
-     * @param bytes the bytes
-     */
-    public synchronized void write(byte... bytes) {
-        if (buffer == null) {
-            return;
-        }
-        if (bytes == null || bytes.length < 1) {
-            return;
-        }
-        while (buffer.remaining() < bytes.length && !Thread.currentThread().isInterrupted()) {
-            // 限速: 录音速率有限，防止cpu占用过高，休眠一小会儿
-            ExceptionUtil.suppress(() -> super.wait(wait));
-        }
-        buffer.put(bytes);
-    }
-
-    /**
-     * 读取数据
-     *
-     * @return the byte buffer
-     */
-    private synchronized byte[] read() {
-        while (buffer != null && buffer.position() <= 0 && !Thread.currentThread().isInterrupted()) {
-            // 限速: 录音速率有限，防止cpu占用过高，休眠一小会儿
-            ExceptionUtil.suppress(() -> super.wait(wait));
-        }
-        if (buffer == null) {
-            return empty;
-        }
-        buffer.flip(); // 切换读模式
-        byte[] bytes = new byte[buffer.remaining()];
-        buffer.get(bytes);
-        buffer.clear(); // 切换写模式
-        return bytes;
-    }
-
-    /**
      * Start.
      *
      * @param emitter the emitter
      */
-    public void start(Emitter<ByteBuffer> emitter) {
+    public void start(Emitter<java.nio.ByteBuffer> emitter) {
         this.emitter = emitter;
         this.start();
     }
@@ -119,14 +78,19 @@ public class Microphone extends Thread implements Serializable {
 
 
     /**
+     * Write.
+     *
+     * @param bytes the bytes
+     */
+    public void write(byte... bytes) {
+        buffer.write(bytes);
+    }
+
+    /**
      * Exit.
      */
     public synchronized void exit() {
-        if (buffer != null) {
-            buffer.clear();
-            buffer = null;
-        }
-        // 唤醒等待线程
-        notifyAll();
+        buffer.close();
+        buffer = null;
     }
 }
