@@ -21,6 +21,13 @@ public class Microphone extends Thread implements Serializable {
 
     private Emitter<ByteBuffer> emitter;
 
+    /**
+     * Instantiates a new Microphone.
+     */
+    public Microphone() {
+        this(null, Long.MAX_VALUE);
+    }
+
 
     /**
      * Instantiates a new Microphone.
@@ -99,4 +106,6 @@ public class Microphone extends Thread implements Serializable {
         AssertUtil.notNull(emitter, "Microphone emitter is not exist");
         super.start();
     }
+
+
 }

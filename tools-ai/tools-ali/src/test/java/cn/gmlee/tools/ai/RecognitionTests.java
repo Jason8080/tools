@@ -20,7 +20,8 @@ public class RecognitionTests {
     @Test
     public void testAudio(){
         TimerUtil.print();
-        Flowable<String> ask = recordingServer.ask(new Microphone(5000));
+        Microphone microphone = new Microphone(5000);
+        Flowable<String> ask = recordingServer.ask(microphone);
         StringBuilder sb = new StringBuilder();
         ask.blockingForEach(x -> sb.append(x));
         System.out.println(sb);
