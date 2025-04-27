@@ -20,6 +20,8 @@ public class Microphone extends Thread implements Serializable {
 
     private volatile ByteBuffer buffer;
 
+    private final int wait = 10; // 10ms
+
     private final byte[] empty = new byte[0];
 
     /**
@@ -74,7 +76,7 @@ public class Microphone extends Thread implements Serializable {
         }
         while (buffer.remaining() < bytes.length && !Thread.currentThread().isInterrupted()) {
             // 限速: 录音速率有限，防止cpu占用过高，休眠一小会儿
-            ExceptionUtil.suppress(() -> super.wait(10));
+            ExceptionUtil.suppress(() -> super.wait(wait));
         }
         buffer.put(bytes);
     }
@@ -87,7 +89,7 @@ public class Microphone extends Thread implements Serializable {
     private synchronized byte[] read() {
         while (buffer != null && buffer.position() <= 0 && !Thread.currentThread().isInterrupted()) {
             // 限速: 录音速率有限，防止cpu占用过高，休眠一小会儿
-            ExceptionUtil.suppress(() -> super.wait(10));
+            ExceptionUtil.suppress(() -> super.wait(wait));
         }
         if (buffer == null) {
             return empty;
