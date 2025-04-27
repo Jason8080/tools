@@ -43,7 +43,12 @@ public class CacheAspect {
     /**
      * 切入点.
      */
-    @Pointcut("execution (* *..controller..*Controller..*(..)) || execution (* *..api..*Api..*(..))")
+    @Pointcut("execution (* *..controller..*Controller..*(..)) || " +
+            "execution (* *..api..*Api..*(..)) || " +
+            "@within(org.springframework.stereotype.Controller) || " +
+            "@within(org.springframework.web.bind.annotation.RestController) || " +
+            "@annotation(org.springframework.web.bind.annotation.RestController)"
+    )
     public void pointcut() {
     }
 
@@ -57,7 +62,7 @@ public class CacheAspect {
     public void processor(JoinPoint point, Object result) {
 
         // 全局关闭
-        if(Boolean.FALSE.equals(conf.getEnable())){
+        if (Boolean.FALSE.equals(conf.getEnable())) {
             QuickUtil.isTrue(conf.isLog(), () -> log.info("Cache2 is closed: {}", conf));
             return;
         }
