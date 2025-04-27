@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Configuration;
 @EnableConfigurationProperties(AliAiProperties.class)
 public class AliAiAutoConfiguration {
     @Bean
-    public RecordingServer recognitionServer(AliAiProperties aliAiProperties) {
-        return new RecordingServer(aliAiProperties);
+    public MicrophoneServer recognitionServer(AliAiProperties aliAiProperties) {
+        return new MicrophoneServer(aliAiProperties);
     }
 
     @Bean

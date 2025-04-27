@@ -1,6 +1,6 @@
 package cn.gmlee.tools.ai;
 
-import cn.gmlee.tools.ai.server.impl.RecordingServer;
+import cn.gmlee.tools.ai.server.impl.MicrophoneServer;
 import cn.gmlee.tools.base.kit.sound.Microphone;
 import cn.gmlee.tools.base.util.TimerUtil;
 import io.reactivex.Flowable;
@@ -15,13 +15,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class RecognitionTests {
 
     @Autowired
-    private RecordingServer recordingServer;
+    private MicrophoneServer microphoneServer;
 
     @Test
     public void testAudio(){
         TimerUtil.print();
-        Microphone microphone = new Microphone(5000);
-        Flowable<String> ask = recordingServer.ask(microphone);
+        Microphone microphone = new Microphone();
+        Flowable<String> ask = microphoneServer.ask(microphone);
         StringBuilder sb = new StringBuilder();
         ask.blockingForEach(x -> sb.append(x));
         System.out.println(sb);

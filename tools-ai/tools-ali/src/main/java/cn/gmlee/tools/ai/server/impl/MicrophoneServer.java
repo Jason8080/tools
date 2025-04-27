@@ -21,7 +21,7 @@ import java.nio.ByteBuffer;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class RecordingServer {
+public class MicrophoneServer {
 
     private final AliAiProperties aliAiProperties;
 

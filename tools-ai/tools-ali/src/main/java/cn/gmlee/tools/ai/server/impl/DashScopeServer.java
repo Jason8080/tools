@@ -23,7 +23,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
- * 百联平台服务.
+ * 百炼平台服务.
  */
 @Slf4j
 @SuppressWarnings("all")

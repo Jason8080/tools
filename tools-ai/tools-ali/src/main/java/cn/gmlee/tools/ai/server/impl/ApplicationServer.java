@@ -15,7 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * 百联平台服务.
+ * 百炼平台服务.
  */
 @Slf4j
 @RequiredArgsConstructor
