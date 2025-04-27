@@ -43,13 +43,13 @@ public class Microphone extends Thread implements Serializable {
             log.debug("microphone start...");
             while (buffer != null && !super.isInterrupted()) {
                 // 发送: 将录音音频数据发送给流式识别服务
-                emitter.onNext(read());
+                if (emitter != null) emitter.onNext(read());
             }
             log.debug("microphone stop...");
-            emitter.onComplete();
+            if (emitter != null) emitter.onComplete();
         } catch (Exception e) {
             log.debug("microphone error...");
-            emitter.onError(e);
+            if (emitter != null) emitter.onError(e);
         }
     }
 
