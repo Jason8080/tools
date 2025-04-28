@@ -35,4 +35,15 @@ public class Kv<K,V> extends HashMap<K,V> implements Serializable {
         this.key = key;
         this.val = val;
     }
+
+    @Override
+    public String toString() {
+        return "Kv{" +
+                "name='" + name + '\'' +
+                ", desc='" + desc + '\'' +
+                ", key=" + key +
+                ", val=" + val +
+                ", map=" + super.toString() +
+                '}';
+    }
 }

@@ -1,7 +1,8 @@
 package cn.gmlee.tools.ai;
 
-import cn.gmlee.tools.ai.server.impl.RecognitionServer;
+import cn.gmlee.tools.ai.server.impl.TranslationRecognizerRealtimeServer;
 import cn.gmlee.tools.base.kit.sound.Microphone;
+import cn.gmlee.tools.base.mod.Kv;
 import cn.gmlee.tools.base.util.TimerUtil;
 import io.reactivex.Flowable;
 import org.junit.Test;
@@ -14,23 +15,26 @@ import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.TargetDataLine;
 import java.util.Arrays;
+import java.util.Map;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = App.class)
-public class RecognitionTests {
+public class TranslationRecognizerRealtimeTests {
 
     @Autowired
-    private RecognitionServer recognitionServer;
+    private TranslationRecognizerRealtimeServer translationRecognizerRealtimeServer;
 
     @Test
     public void testAudio() throws Exception {
         TimerUtil.print();
         Microphone microphone = new Microphone();
-        Flowable<String> ask = recognitionServer.ask(microphone);
+        Flowable<Kv<String, Map<String, String>>> ask = translationRecognizerRealtimeServer.ask(microphone, "en");
         recoding(microphone);
-        StringBuilder sb = new StringBuilder();
-        ask.blockingForEach(x -> sb.append(x));
-        System.out.println(sb);
+        ask.blockingForEach(x -> {
+            System.out.println(x);
+            System.out.println(x.getKey());
+            System.out.println(x.getVal());
+        });
         TimerUtil.print();
     }
 
