@@ -57,6 +57,7 @@ public class Microphone extends Thread implements Serializable {
 
     @Override
     public void run() {
+        AssertUtil.notNull(emitter, "Microphone emitter is not exist");
         try {
             log.info("Microphone start...");
             while (!super.isInterrupted() && !buffer.isClosed()) {
