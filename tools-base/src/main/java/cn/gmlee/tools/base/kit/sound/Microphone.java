@@ -7,6 +7,7 @@ import io.reactivex.Emitter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 
 /**
  * The type Microphone.
@@ -14,7 +15,7 @@ import java.io.Serializable;
 @Slf4j
 public class Microphone extends Thread implements Serializable {
 
-    private Emitter<java.nio.ByteBuffer> emitter;
+    private Emitter<ByteBuffer> emitter;
 
     private volatile ConcurrentByteBuffer buffer;
 
@@ -39,7 +40,7 @@ public class Microphone extends Thread implements Serializable {
      *
      * @param emitter the emitter
      */
-    public Microphone(Emitter<java.nio.ByteBuffer> emitter) {
+    public Microphone(Emitter<ByteBuffer> emitter) {
         this(emitter, 1024);
     }
 
@@ -49,7 +50,7 @@ public class Microphone extends Thread implements Serializable {
      * @param emitter  the emitter
      * @param capacity the capacity
      */
-    public Microphone(Emitter<java.nio.ByteBuffer> emitter, int capacity) {
+    public Microphone(Emitter<ByteBuffer> emitter, int capacity) {
         this.emitter = emitter;
         this.buffer = new ConcurrentByteBuffer(capacity);
     }
@@ -63,7 +64,7 @@ public class Microphone extends Thread implements Serializable {
                 // 发送: 将录音音频数据发送给流式识别服务
                 if (emitter != null && read.length > 0) {
                     log.debug("Microphone send...");
-                    emitter.onNext(java.nio.ByteBuffer.wrap(read));
+                    emitter.onNext(ByteBuffer.wrap(read));
                 }
             }
             log.info("Microphone stop...");
@@ -81,7 +82,7 @@ public class Microphone extends Thread implements Serializable {
      *
      * @param emitter the emitter
      */
-    public void start(Emitter<java.nio.ByteBuffer> emitter) {
+    public void start(Emitter<ByteBuffer> emitter) {
         this.emitter = emitter;
         this.start();
     }
