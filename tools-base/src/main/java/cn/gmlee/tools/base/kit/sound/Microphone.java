@@ -40,19 +40,19 @@ public class Microphone extends Thread implements Serializable {
     @Override
     public void run() {
         try {
-            log.debug("microphone start...");
+            log.info("Microphone start...");
             while (!super.isInterrupted() && !buffer.isClosed()) {
                 byte[] read = this.read(-1);
                 // 发送: 将录音音频数据发送给流式识别服务
                 if (emitter != null && read.length > 0) {
-                    log.debug("microphone send...");
+                    log.debug("Microphone send...");
                     emitter.onNext(java.nio.ByteBuffer.wrap(read));
                 }
             }
-            log.debug("microphone stop...");
+            log.info("Microphone stop...");
             emitter.onComplete();
         } catch (Exception e) {
-            log.debug("microphone error...", e);
+            log.error("Microphone error...", e);
             emitter.onError(e);
         } finally {
             emitter = null;

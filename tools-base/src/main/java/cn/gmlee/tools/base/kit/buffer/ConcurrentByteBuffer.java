@@ -33,9 +33,9 @@ public class ConcurrentByteBuffer {
         lock.writeLock().lock();
         try {
             // 等待缓冲区有足够空间
-            log.debug("ConcurrentByteBuffer write start...");
+            log.trace("ConcurrentByteBuffer write start...");
             while (buffer.remaining() < bytes.length && !closed) {
-                log.info("write await...");
+                log.debug("ConcurrentByteBuffer write await...");
                 notFull.await();
             }
 
@@ -49,7 +49,7 @@ public class ConcurrentByteBuffer {
             notEmpty.signalAll();
         } finally {
             lock.writeLock().unlock();
-            log.debug("ConcurrentByteBuffer write end...");
+            log.trace("ConcurrentByteBuffer write end...");
         }
     }
 
@@ -65,9 +65,9 @@ public class ConcurrentByteBuffer {
         lock.writeLock().lock();
         try {
             // 等待有数据可读
-            log.debug("ConcurrentByteBuffer read start...");
+            log.trace("ConcurrentByteBuffer read start...");
             while (buffer.position() == 0 && !closed) {
-                log.info("read await...");
+                log.debug("ConcurrentByteBuffer read await...");
                 notEmpty.await();
             }
 
@@ -87,7 +87,7 @@ public class ConcurrentByteBuffer {
             }
         } finally {
             lock.writeLock().unlock();
-            log.debug("ConcurrentByteBuffer read end...");
+            log.trace("ConcurrentByteBuffer read end...");
         }
     }
 
