@@ -35,6 +35,7 @@ public class ConcurrentByteBuffer {
             // 等待缓冲区有足够空间
             log.debug("ConcurrentByteBuffer write start...");
             while (buffer.remaining() < bytes.length && !closed) {
+                log.info("write await...");
                 notFull.await();
             }
 
@@ -66,6 +67,7 @@ public class ConcurrentByteBuffer {
             // 等待有数据可读
             log.debug("ConcurrentByteBuffer read start...");
             while (buffer.position() == 0 && !closed) {
+                log.info("read await...");
                 notEmpty.await();
             }
 

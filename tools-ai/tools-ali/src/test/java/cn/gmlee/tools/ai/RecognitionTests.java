@@ -49,8 +49,6 @@ public class RecognitionTests {
             if(read > 0){
                 microphone.write(Arrays.copyOfRange(bytes, 0, read));
             }
-            // 录音速率有限，防止cpu占用过高，休眠一小会儿
-            Thread.sleep(5);
         }
         microphone.exit();
     }
