@@ -14,8 +14,6 @@ import java.io.Serializable;
 @Slf4j
 public class Microphone extends Thread implements Serializable {
 
-    private final int capacity = 1024;
-
     private Emitter<java.nio.ByteBuffer> emitter;
 
     private volatile ConcurrentByteBuffer buffer;
@@ -24,7 +22,16 @@ public class Microphone extends Thread implements Serializable {
      * Instantiates a new Microphone.
      */
     public Microphone() {
-        this(null);
+        this(null, 1024);
+    }
+
+    /**
+     * Instantiates a new Microphone.
+     *
+     * @param capacity the capacity
+     */
+    public Microphone(int capacity) {
+        this(null, capacity);
     }
 
     /**
@@ -33,6 +40,16 @@ public class Microphone extends Thread implements Serializable {
      * @param emitter the emitter
      */
     public Microphone(Emitter<java.nio.ByteBuffer> emitter) {
+        this(emitter, 1024);
+    }
+
+    /**
+     * Instantiates a new Microphone.
+     *
+     * @param emitter  the emitter
+     * @param capacity the capacity
+     */
+    public Microphone(Emitter<java.nio.ByteBuffer> emitter, int capacity) {
         this.emitter = emitter;
         this.buffer = new ConcurrentByteBuffer(capacity);
     }
