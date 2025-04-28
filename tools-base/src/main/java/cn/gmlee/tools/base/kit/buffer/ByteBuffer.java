@@ -2,10 +2,12 @@ package cn.gmlee.tools.base.kit.buffer;
 
 import cn.gmlee.tools.base.util.ByteUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 缓冲区操作对象.
  */
+@Slf4j
 public class ByteBuffer {
     /**
      * The Buffer.
@@ -51,6 +53,7 @@ public class ByteBuffer {
             if (buffer == null) {
                 return;
             }
+            log.debug("byte buffer clear...");
             buffer.clear();
         }
 
@@ -61,6 +64,7 @@ public class ByteBuffer {
             if (buffer == null) {
                 return;
             }
+            log.debug("byte buffer flip...");
             buffer.flip();
         }
 
@@ -70,18 +74,22 @@ public class ByteBuffer {
          * @param bytes the bytes
          */
         @Override
-        public synchronized void write(byte... bytes) {
-            if (buffer == null) {
-                return;
+        public void write(byte... bytes) {
+            synchronized (this) {
+                log.debug("byte buffer write start...");
+                if (buffer == null) {
+                    return;
+                }
+                if (bytes == null || bytes.length < 1) {
+                    return;
+                }
+                while (buffer != null && buffer.remaining() < bytes.length && !Thread.currentThread().isInterrupted()) {
+                    // 限速: 录音速率有限，防止cpu占用过高，休眠一小会儿
+                    ExceptionUtil.suppress(() -> super.wait(wait));
+                }
+                buffer.put(bytes);
+                log.debug("byte buffer write end...");
             }
-            if (bytes == null || bytes.length < 1) {
-                return;
-            }
-            while (buffer != null && buffer.remaining() < bytes.length && !Thread.currentThread().isInterrupted()) {
-                // 限速: 录音速率有限，防止cpu占用过高，休眠一小会儿
-                ExceptionUtil.suppress(() -> super.wait(wait));
-            }
-            buffer.put(bytes);
         }
 
         /**
@@ -90,20 +98,24 @@ public class ByteBuffer {
          * @return byte[] empty array
          */
         @Override
-        public synchronized byte[] read(int length) {
-            while (buffer != null && buffer.position() <= 0 && !Thread.currentThread().isInterrupted()) {
-                // 限速: 录音速率有限，防止cpu占用过高，休眠一小会儿
-                ExceptionUtil.suppress(() -> super.wait(wait));
+        public byte[] read(int length) {
+            synchronized (this) {
+                log.debug("byte buffer read start...");
+                while (buffer != null && buffer.position() <= 0 && !Thread.currentThread().isInterrupted()) {
+                    // 限速: 录音速率有限，防止cpu占用过高，休眠一小会儿
+                    ExceptionUtil.suppress(() -> super.wait(wait));
+                }
+                if (buffer == null || !buffer.hasRemaining()) {
+                    return ByteUtil.empty;
+                }
+                if (length == -1) {
+                    length = buffer.remaining();
+                }
+                byte[] bytes = new byte[buffer.remaining() < length ? buffer.remaining() : length];
+                buffer.get(bytes);
+                log.debug("byte buffer read end...");
+                return bytes;
             }
-            if (buffer == null || !buffer.hasRemaining()) {
-                return ByteUtil.empty;
-            }
-            if (length == -1) {
-                length = buffer.remaining();
-            }
-            byte[] bytes = new byte[buffer.remaining() < length ? buffer.remaining() : length];
-            buffer.get(bytes);
-            return bytes;
         }
 
 
@@ -115,6 +127,15 @@ public class ByteBuffer {
             super.close();
             super.notifyAll();
         }
+    }
+
+    /**
+     * Has remaining boolean.
+     *
+     * @return the boolean
+     */
+    public boolean hasRemaining() {
+        return this.buffer.hasRemaining();
     }
 
 

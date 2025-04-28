@@ -2,7 +2,6 @@ package cn.gmlee.tools.base.kit.sound;
 
 import cn.gmlee.tools.base.kit.buffer.ByteBuffer;
 import cn.gmlee.tools.base.util.AssertUtil;
-import cn.gmlee.tools.base.util.ExceptionUtil;
 import io.reactivex.Emitter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -42,11 +41,15 @@ public class Microphone extends Thread implements Serializable {
         try {
             log.debug("microphone start...");
             while (buffer != null && !super.isInterrupted()) {
+                if(!buffer.hasRemaining()){
+                    continue;
+                }
                 buffer.flip();
                 byte[] read = buffer.read(-1);
                 buffer.clear();
                 // 发送: 将录音音频数据发送给流式识别服务
                 if (emitter != null && read.length > 0) {
+                    log.debug("microphone send...");
                     emitter.onNext(java.nio.ByteBuffer.wrap(read));
                 }
             }
