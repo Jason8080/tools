@@ -60,11 +60,20 @@ public class AliAiProperties {
         return mode.getSpec();
     }
 
+    public Integer getDuration() {
+        Mode mode = models.get(defaultModel);
+        if (mode == null) {
+            return new Mode().getDuration();
+        }
+        return mode.getDuration();
+    }
+
     @Data
     public static class Mode {
         private Boolean enableSearch = Boolean.FALSE; // 是否开启搜索
         private Boolean hasThoughts = Boolean.FALSE; // 是否展示意图
         private String audioFormat = "pcm"; // 默认音频格式
-        private String spec = "1024*1024"; // 默认音频格式
+        private String spec = "1280*720"; // 默认分辨率
+        private Integer duration = 7; // 默认视频时长
     }
 }

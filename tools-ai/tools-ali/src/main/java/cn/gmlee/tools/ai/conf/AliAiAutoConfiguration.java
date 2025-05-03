@@ -1,6 +1,7 @@
 package cn.gmlee.tools.ai.conf;
 
 import cn.gmlee.tools.ai.server.async.ImageSynthesisServer;
+import cn.gmlee.tools.ai.server.async.VideoSynthesisServer;
 import cn.gmlee.tools.ai.server.stream.*;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -10,6 +11,12 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(AliAiProperties.class)
 public class AliAiAutoConfiguration {
+    @Bean
+    @ConditionalOnMissingBean(VideoSynthesisServer.class)
+    public VideoSynthesisServer videoSynthesisServer(AliAiProperties aliAiProperties) {
+        return new VideoSynthesisServer(aliAiProperties);
+    }
+
     @Bean
     @ConditionalOnMissingBean(ImageSynthesisServer.class)
     public ImageSynthesisServer imageSynthesisServer(AliAiProperties aliAiProperties) {
