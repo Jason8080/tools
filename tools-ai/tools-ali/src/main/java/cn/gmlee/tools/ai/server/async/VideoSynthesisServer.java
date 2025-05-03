@@ -31,12 +31,36 @@ public class VideoSynthesisServer {
     /**
      * 询问.
      *
+     * @param image  the image
+     * @param prompt the prompt
+     * @return flowable 输出内容
+     */
+    public VideoSynthesisOutput askImage(String image, String prompt) {
+        return askImage(aliAiProperties.getDefaultModel(), image, prompt);
+    }
+
+    /**
+     * 询问.
+     *
      * @param model  the model
      * @param prompt the prompt
      * @return flowable 输出内容
      */
     public VideoSynthesisOutput ask(String model, String prompt) {
         return ask(model, prompt, aliAiProperties.getSpec(), aliAiProperties.getDuration());
+    }
+
+
+    /**
+     * 询问.
+     *
+     * @param model  the model
+     * @param image  the image
+     * @param prompt the prompt
+     * @return flowable 输出内容
+     */
+    public VideoSynthesisOutput askImage(String model, String image, String prompt) {
+        return askImage(model, image, prompt, aliAiProperties.getSpec(), aliAiProperties.getDuration());
     }
 
     /**
@@ -50,6 +74,22 @@ public class VideoSynthesisServer {
      */
     public VideoSynthesisOutput ask(String model, String prompt, String spec, Integer duration) {
         VideoSynthesisParam param = getVideoSynthesisParam(model, prompt, spec, duration);
+        VideoSynthesisResult result = ExceptionUtil.suppress(() -> ali.asyncCall(param));
+        return result.getOutput();
+    }
+
+    /**
+     * 询问.
+     *
+     * @param model    the model
+     * @param image    the image
+     * @param prompt   the prompt
+     * @param spec     the spec
+     * @param duration the duration
+     * @return flowable 输出内容
+     */
+    public VideoSynthesisOutput askImage(String model, String image, String prompt, String spec, Integer duration) {
+        VideoSynthesisParam param = getVideoSynthesisParam(model, image, prompt, spec, duration);
         VideoSynthesisResult result = ExceptionUtil.suppress(() -> ali.asyncCall(param));
         return result.getOutput();
     }
@@ -77,12 +117,23 @@ public class VideoSynthesisServer {
         return ExceptionUtil.suppress(() -> ali.list(param));
     }
 
-
     private VideoSynthesisParam getVideoSynthesisParam(String model, String prompt, String spec, Integer duration) {
         return VideoSynthesisParam.builder()
                 .apiKey(aliAiProperties.getApiKey())
                 .model(model)
                 .prompt(prompt)
+                .seed(Integer.MAX_VALUE)
+                .size(spec)
+                .duration(duration)
+                .build();
+    }
+
+    private VideoSynthesisParam getVideoSynthesisParam(String model, String image, String prompt, String spec, Integer duration) {
+        return VideoSynthesisParam.builder()
+                .apiKey(aliAiProperties.getApiKey())
+                .model(model)
+                .prompt(prompt)
+                .imgUrl(image)
                 .seed(Integer.MAX_VALUE)
                 .size(spec)
                 .duration(duration)
