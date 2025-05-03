@@ -1,6 +1,6 @@
 package cn.gmlee.tools.ai;
 
-import cn.gmlee.tools.ai.server.impl.ApplicationServer;
+import cn.gmlee.tools.ai.server.stream.ApplicationServer;
 import cn.gmlee.tools.base.builder.KvBuilder;
 import cn.gmlee.tools.base.enums.Regex;
 import cn.gmlee.tools.base.util.RegexUtil;

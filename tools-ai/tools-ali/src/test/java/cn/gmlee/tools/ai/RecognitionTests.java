@@ -1,6 +1,6 @@
 package cn.gmlee.tools.ai;
 
-import cn.gmlee.tools.ai.server.impl.RecognitionServer;
+import cn.gmlee.tools.ai.server.stream.RecognitionServer;
 import cn.gmlee.tools.base.kit.sound.Microphone;
 import cn.gmlee.tools.base.util.TimerUtil;
 import io.reactivex.Flowable;

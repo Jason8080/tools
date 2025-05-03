@@ -1,6 +1,6 @@
 package cn.gmlee.tools.ai;
 
-import cn.gmlee.tools.ai.server.impl.DashScopeServer;
+import cn.gmlee.tools.ai.server.stream.DashScopeServer;
 import cn.gmlee.tools.base.enums.Regex;
 import cn.gmlee.tools.base.util.RegexUtil;
 import cn.gmlee.tools.base.util.TimerUtil;

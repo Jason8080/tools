@@ -1,4 +1,4 @@
-package cn.gmlee.tools.ai.server.impl;
+package cn.gmlee.tools.ai.server.stream;
 
 import cn.gmlee.tools.ai.conf.AliAiProperties;
 import cn.gmlee.tools.base.util.BoolUtil;

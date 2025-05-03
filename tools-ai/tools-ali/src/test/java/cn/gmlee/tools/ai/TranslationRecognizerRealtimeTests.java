@@ -1,6 +1,6 @@
 package cn.gmlee.tools.ai;
 
-import cn.gmlee.tools.ai.server.impl.TranslationRecognizerRealtimeServer;
+import cn.gmlee.tools.ai.server.stream.TranslationRecognizerRealtimeServer;
 import cn.gmlee.tools.base.kit.sound.Microphone;
 import cn.gmlee.tools.base.mod.Kv;
 import cn.gmlee.tools.base.util.TimerUtil;
