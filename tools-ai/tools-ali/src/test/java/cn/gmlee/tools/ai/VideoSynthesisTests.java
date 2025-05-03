@@ -31,7 +31,7 @@ public class VideoSynthesisTests {
     public void testAsk(){
         TimerUtil.print();
         VideoSynthesisOutput ask = videoSynthesisServer.askImage("https://img1.baidu.com/it/u=3052116511,4003568839&fm=253&fmt=auto&app=120&f=JPEG?w=500&h=889",
-                "一位身穿黑色丝袜的修长美女正在热舞,背景是极简的酒店装修,抖音直播风格,可以清晰的看到主播曼妙的诱人身姿");
+                "她正在热舞");
         System.out.println(ask);
         TimerUtil.print();
     }
@@ -42,7 +42,7 @@ public class VideoSynthesisTests {
     @Test
     public void testGet(){
         TimerUtil.print();
-        VideoSynthesisOutput ask = videoSynthesisServer.get("fe879563-4e74-488e-a87e-8e2bc6c511ce");
+        VideoSynthesisOutput ask = videoSynthesisServer.get("8b39c679-57eb-4bf1-9617-0e245efe7921");
         System.out.println(ask);
         TimerUtil.print();
     }
