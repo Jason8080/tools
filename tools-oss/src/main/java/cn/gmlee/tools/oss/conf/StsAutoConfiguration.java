@@ -1,5 +1,7 @@
 package cn.gmlee.tools.oss.conf;
 
+import cn.gmlee.tools.base.util.CharUtil;
+import cn.gmlee.tools.base.util.JsonUtil;
 import cn.gmlee.tools.base.util.ProxyUtil;
 import cn.gmlee.tools.oss.STS;
 import cn.gmlee.tools.oss.STSClient;
@@ -7,6 +9,7 @@ import com.alibaba.alicloud.context.oss.OssContextAutoConfiguration;
 import com.alibaba.alicloud.context.oss.OssProperties;
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.OSSClientBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -20,6 +23,7 @@ import org.springframework.util.StringUtils;
 import java.io.Serializable;
 import java.lang.reflect.Method;
 
+@Slf4j
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(name = {"com.alibaba.alicloud.oss.OssAutoConfiguration"})
 @ConditionalOnProperty(name = {"spring.cloud.alicloud.oss.enabled"}, matchIfMissing = true)
@@ -32,9 +36,10 @@ public class StsAutoConfiguration {
     @ConditionalOnProperty(value = "spring.cloud.alicloud.oss.authorization-mode", havingValue = "STS")
     public STS ossClient(OssProperties ossProperties, StsProperties stsProperties) {
         STS sts = new STSClient(build(ossProperties), stsProperties);
-        return ProxyUtil.JdkProxy(STSClient.class, (Object proxy, Method method, Object[] as) ->
-                method.invoke(sts.refresh(), as), Serializable.class
-        );
+        return ProxyUtil.JdkProxy(STSClient.class, (Object proxy, Method method, Object[] args) -> {
+            log.debug("OSS client action: {}\r\n{}", method, CharUtil.digest(JsonUtil.format(args), 10240, 1024));
+            return method.invoke(sts.refresh(), args);
+        }, Serializable.class);
     }
 
     private static OSSClient build(OssProperties ossProperties) {
