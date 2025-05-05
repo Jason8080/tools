@@ -59,8 +59,8 @@ public class STSClient extends OSSClient implements STS {
             AssumeRoleResponse response = acs.getAcsResponse(request);
             checkResponseAndResetExpire(response);
             ossClient = new OSSClient(ossClient.getEndpoint().toString(), new DefaultCredentialProvider(
-                    response.getCredentials().getAccessKeyId(),
-                    response.getCredentials().getAccessKeySecret(),
+                    ossClient.getCredentialsProvider().getCredentials().getAccessKeyId(),
+                    ossClient.getCredentialsProvider().getCredentials().getSecretAccessKey(),
                     response.getCredentials().getSecurityToken()
             ), ossClient.getClientConfiguration());
         }
