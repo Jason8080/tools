@@ -68,6 +68,7 @@
         <module>tools-es</module>
         <module>tools-jackson</module>
         <module>tools-overstep</module>
+        <module>tools-oss</module>
         <module>tools-log</module>
         <module>tools-logback</module>
         <module>tools-mybatis</module>
