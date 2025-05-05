@@ -5,7 +5,6 @@ import cn.gmlee.tools.oss.STS;
 import cn.gmlee.tools.oss.STSClient;
 import com.alibaba.alicloud.context.oss.OssContextAutoConfiguration;
 import com.alibaba.alicloud.context.oss.OssProperties;
-import com.aliyun.oss.OSS;
 import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.OSSClientBuilder;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -18,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
+import java.io.Serializable;
 import java.lang.reflect.Method;
 
 @Configuration(proxyBeanMethods = false)
@@ -30,10 +30,10 @@ public class StsAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnProperty(value = "spring.cloud.alicloud.oss.authorization-mode", havingValue = "STS")
-    public OSS ossClient(OssProperties ossProperties, StsProperties stsProperties) {
+    public STS ossClient(OssProperties ossProperties, StsProperties stsProperties) {
         STS sts = new STSClient(build(ossProperties), stsProperties);
-        return ProxyUtil.JdkProxy(OSSClient.class, (Object proxy, Method method, Object[] as) ->
-                method.invoke(sts.refresh(), as), STS.class
+        return ProxyUtil.JdkProxy(STSClient.class, (Object proxy, Method method, Object[] as) ->
+                method.invoke(sts.refresh(), as), Serializable.class
         );
     }
 
