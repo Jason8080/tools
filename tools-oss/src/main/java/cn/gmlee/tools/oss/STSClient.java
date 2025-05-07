@@ -6,6 +6,7 @@ import cn.gmlee.tools.base.util.NullUtil;
 import cn.gmlee.tools.base.util.TimeUtil;
 import cn.gmlee.tools.oss.conf.StsProperties;
 import com.aliyun.oss.OSSClient;
+import com.aliyun.oss.common.auth.Credentials;
 import com.aliyun.oss.common.auth.DefaultCredentialProvider;
 import com.aliyuncs.DefaultAcsClient;
 import com.aliyuncs.auth.sts.AssumeRoleRequest;
@@ -44,6 +45,11 @@ public class STSClient extends OSSClient implements STS {
     public OSSClient refresh() throws ClientException {
         doRefresh();
         return ossClient;
+    }
+
+    @Override
+    public Credentials cert() throws ClientException {
+        return refresh().getCredentialsProvider().getCredentials();
     }
 
     private void doRefresh() throws ClientException {
