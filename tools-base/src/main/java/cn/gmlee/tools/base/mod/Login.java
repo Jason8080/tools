@@ -1,7 +1,6 @@
 package cn.gmlee.tools.base.mod;
 
 import cn.gmlee.tools.base.define.Payload;
-import lombok.Builder;
 import lombok.Data;
 
 import java.io.Serializable;
