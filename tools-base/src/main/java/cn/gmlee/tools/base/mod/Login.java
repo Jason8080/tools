@@ -20,7 +20,6 @@ import java.util.Set;
  * @date 2020 /9/27 (周日)
  */
 @Data
-@Builder
 public class Login<U, S, D, C> implements Payload, Serializable {
     /**
      * The Login time.
