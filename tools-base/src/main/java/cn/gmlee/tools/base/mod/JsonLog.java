@@ -13,6 +13,10 @@ import java.io.Serializable;
  * @date 2020 /9/14 (周一)
  */
 public class JsonLog implements Serializable {
+    public JsonLog() {
+        System.out.println("xxxxxxxxxxxxxxxx");
+    }
+
     /**
      * Log json log.
      *
