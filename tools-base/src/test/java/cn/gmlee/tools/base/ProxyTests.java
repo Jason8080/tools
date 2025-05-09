@@ -32,17 +32,17 @@ public class ProxyTests {
 
     @Test
     public void testJdk(){
-        JsonLog log = ProxyUtil.JdkProxy(JsonLog.log(), Reflect.class);
-        log.setEx("异常");
+        Login log = ProxyUtil.JdkProxy(new Login<>(), Payload.class);
+        log.setToken("123");
         System.out.println(log);
     }
 
     @Test
     public void testJdk2(){
-        JsonLog log = ProxyUtil.JdkProxy(JsonLog.class, (Object proxy, Method method, Object[] args) -> {
+        Login log = ProxyUtil.JdkProxy(Login.class, (Object proxy, Method method, Object[] args) -> {
                 return method.invoke(proxy, args);
         });
-        log.setEx("异常");
+        log.setToken("123");
         System.out.println(log);
     }
 
