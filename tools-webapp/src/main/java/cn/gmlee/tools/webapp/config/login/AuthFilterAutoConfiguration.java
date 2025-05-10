@@ -1,6 +1,5 @@
 package cn.gmlee.tools.webapp.config.login;
 
-import cn.gmlee.tools.webapp.controller.AuthController;
 import cn.gmlee.tools.webapp.filter.AuthFilter;
 import cn.gmlee.tools.webapp.service.LoginServer;
 import cn.gmlee.tools.webapp.service.LoginService;
@@ -16,7 +15,6 @@ import org.springframework.context.annotation.Bean;
  * @author Jas °
  * @date 2020 /8/28 (周五)
  */
-@ConditionalOnMissingBean(AuthController.class)
 @EnableConfigurationProperties(LoginProperties.class)
 public class AuthFilterAutoConfiguration {
 
