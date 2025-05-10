@@ -4,6 +4,7 @@ import cn.gmlee.tools.base.define.Payload;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,7 +24,7 @@ public class Login<U, S, D, C> implements Payload, Serializable {
     /**
      * The Login time.
      */
-    protected Long loginTime = System.currentTimeMillis();
+    protected LocalDateTime loginTime = LocalDateTime.now();
     /**
      * The Identifier.
      */
@@ -35,7 +36,7 @@ public class Login<U, S, D, C> implements Payload, Serializable {
     /**
      * The Exp.
      */
-    protected Long exp;
+    protected LocalDateTime exp;
     /**
      * The Uid.
      */
