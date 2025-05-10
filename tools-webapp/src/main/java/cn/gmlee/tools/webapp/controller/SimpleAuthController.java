@@ -5,7 +5,7 @@ import cn.gmlee.tools.base.ex.SkillException;
 import cn.gmlee.tools.base.util.ClassUtil;
 import cn.gmlee.tools.base.util.JsonUtil;
 import cn.gmlee.tools.redis.util.RedisClient;
-import cn.gmlee.tools.webapp.service.LoginService;
+import cn.gmlee.tools.webapp.config.login.LoginProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -25,7 +25,7 @@ import java.util.Objects;
 @Validated
 public class SimpleAuthController<User> extends ParameterController {
     @Resource
-    protected LoginService loginService;
+    protected LoginProperties lp;
     @Autowired(required = false)
     protected RedisClient<String, User> rc;
 
@@ -60,6 +60,6 @@ public class SimpleAuthController<User> extends ParameterController {
     }
 
     public User getUser(String token) {
-        return rc.get(loginService.getTokenPrefix().concat(token));
+        return rc.get(lp.getTokenPrefix().concat(token));
     }
 }
