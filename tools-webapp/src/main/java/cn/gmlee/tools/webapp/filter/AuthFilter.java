@@ -6,7 +6,7 @@ import cn.gmlee.tools.base.mod.R;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.JsonUtil;
 import cn.gmlee.tools.base.util.LoginUtil;
-import cn.gmlee.tools.webapp.service.LoginService;
+import cn.gmlee.tools.webapp.service.LoginServer;
 import org.springframework.http.MediaType;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -28,18 +28,18 @@ public class AuthFilter extends OncePerRequestFilter {
 
     private static AntPathMatcher matcher = new AntPathMatcher();
 
-    private LoginService loginService;
+    private LoginServer loginServer;
 
     private String[] urlExcludes;
 
     /**
      * 登陆服务过滤器.
      *
-     * @param loginService 登陆服务
+     * @param loginServer 登录服务
      * @param urlExcludes 排除的接口
      */
-    public AuthFilter(LoginService loginService, String... urlExcludes) {
-        this.loginService = loginService;
+    public AuthFilter(LoginServer loginServer, String... urlExcludes) {
+        this.loginServer = loginServer;
         this.urlExcludes = urlExcludes;
     }
 
@@ -47,7 +47,7 @@ public class AuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
             if (!excludes(request, urlExcludes)) {
-                loginService.add(request);
+                loginServer.add(request);
             }
         } catch (SkillException e) {
             response.setCharacterEncoding(Charset.defaultCharset().name());

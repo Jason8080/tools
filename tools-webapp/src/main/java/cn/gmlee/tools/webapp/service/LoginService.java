@@ -8,14 +8,10 @@ import cn.gmlee.tools.base.ex.SkillException;
 import cn.gmlee.tools.base.mod.Login;
 import cn.gmlee.tools.base.util.*;
 import cn.gmlee.tools.redis.util.RedisClient;
+import cn.gmlee.tools.webapp.config.login.LoginProperties;
 import lombok.Data;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
@@ -33,52 +29,14 @@ import java.util.Collection;
  * @date 2021 /1/15 (周五)
  */
 @Data
-@Component
-@ConditionalOnClass(RedisClient.class)
-@ConditionalOnMissingBean(LoginService.OverrideLoginServiceConfiguration.class)
-public class LoginService<U, P, S, D, C> {
-
-    private static Logger logger = LoggerFactory.getLogger(LoginService.class);
-
-    /**
-     * 可用于覆盖.
-     */
-    public interface OverrideLoginServiceConfiguration {
-    }
-
-    /**
-     * 存储位置.
-     */
-    @Value("${tools.webapp.login.tokenPrefix:REDIS:AUTH:TOKEN_}")
-    protected String tokenPrefix;
-
-    /**
-     * 默认有效期、续期时间12小时.
-     * <p>
-     * 自动续期开启后: 低于12小时有效期将自动增加12小时的有效期;
-     * </p>
-     */
-    @Value("${tools.webapp.login.expire:43200000}")
-    protected Long expire;
-
-
-    /**
-     * 必须登陆?Y:N.
-     */
-    @Value("${tools.webapp.login.required:false}")
-    protected Boolean required;
-
-
-    /**
-     * 自动续期?Y:N.
-     */
-    @Value("${tools.webapp.login.renew:true}")
-    protected Boolean renew;
+@Slf4j
+public class LoginService<U, P, S, D, C> implements LoginServer<U, P, S, D, C> {
+    @Autowired
+    protected LoginProperties lp;
 
     /**
      * 注入RedisClient.
      */
-    @SuppressWarnings("all")
     @Autowired(required = false)
     protected RedisClient<String, Login<U, S, D, C>> rc;
 
@@ -100,7 +58,7 @@ public class LoginService<U, P, S, D, C> {
      */
     public void set(String token) throws SkillException {
         Login<U, S, D, C> login = getLogin(NullUtil.get(token));
-        if (required && login == null) {
+        if (lp.getRenew() && login == null) {
             ExceptionUtil.cast(XCode.LOGIN_TIMEOUT);
         } else if (login != null) {
             LoginUtil.set(login);
@@ -116,7 +74,7 @@ public class LoginService<U, P, S, D, C> {
     public Login<U, S, D, C> getLogin(String token) {
         // 自动续期
         ExceptionUtil.sandbox(() -> renew(token));
-        return rc.get(tokenPrefix.concat(token));
+        return rc.get(lp.getTokenPrefix().concat(token));
     }
 
     /**
@@ -125,17 +83,17 @@ public class LoginService<U, P, S, D, C> {
      * @param token the token
      */
     public void renew(String token) {
-        if (renew) {
-            Long old = rc.getExpire(tokenPrefix.concat(token));
+        if (lp.getRenew()) {
+            Long old = rc.getExpire(lp.getTokenPrefix().concat(token));
             // 时间充足将不续期
-            if(BoolUtil.gt(old, this.expire)){
+            if(BoolUtil.gt(old, lp.getExpire())){
                 return;
             }
             // 当过期时间为零则: 已过期;
             // 该方案有不断续期效果, 不会一次性续足; 缺点是不好计算剩余时间
             long newExpire = old * 2;
             // 该方案有一次续足效果, 优点是明确知道续期后的过期时间; long newExpire = (old * 1000) + expire;
-            rc.addExpire(tokenPrefix.concat(token), newExpire);
+            rc.addExpire(lp.getTokenPrefix().concat(token), newExpire);
         }
     }
 
@@ -149,7 +107,7 @@ public class LoginService<U, P, S, D, C> {
         for (int i = 0; i < Int.THREE; i++) {
             if (generate(login)) {
                 success(login, successful);
-                logger.debug("登录成功: {}", login);
+                log.debug("登录成功: {}", login);
                 return;
             }
         }
@@ -207,7 +165,7 @@ public class LoginService<U, P, S, D, C> {
      */
     public boolean generate(Login<U, S, D, C> login) {
         QuickUtil.isEmpty(login.getToken(), x -> login.setToken(generator(login)));
-        return rc.setNx(tokenPrefix.concat(login.getToken()), login, expire);
+        return rc.setNx(lp.getTokenPrefix().concat(login.getToken()), login, lp.getExpire());
     }
 
     /**
