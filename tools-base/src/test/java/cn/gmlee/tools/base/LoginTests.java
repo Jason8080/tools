@@ -6,6 +6,8 @@ import cn.gmlee.tools.base.mod.UserInfo;
 import cn.gmlee.tools.base.util.IdUtil;
 import cn.gmlee.tools.base.util.JsonUtil;
 
+import java.time.LocalDateTime;
+
 /**
  * .
  *
@@ -21,7 +23,7 @@ public class LoginTests {
         Login login = new Login();
         login.setToken(IdUtil.uuidReplaceUpperCase());
         login.setLoginIp("127.0.0.1");
-        login.setLoginTime(System.currentTimeMillis());
+        login.setLoginTime(LocalDateTime.now());
         login.setLoginUrl("https://oms.gmlee.com/login");
         login.setLon("114.067058");
         login.setLat("22.574195");
