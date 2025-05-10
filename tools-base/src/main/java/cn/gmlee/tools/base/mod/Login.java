@@ -97,17 +97,17 @@ public class Login<U, S, D, C> implements Payload, Serializable {
     /**
      * 唯一用户信息: 用户在本次登录中的用户信息
      */
-    private U user;
+    protected U user;
     /**
      * 去重用户设置: 用户在本次登录中的临时设置信息
      */
-    private Map<String, S> settings;
+    protected Map<String, S> settings;
     /**
      * 无序用户数据: 用户在本次登陆产生的缓存数据 (用于不需要存储但需要登陆查看的信息)
      */
-    private Set<D> data;
+    protected Set<D> data;
     /**
      * 有序系统配置: 用户在本次登陆应用的系统配置信息 (用于系统配置变更后不能影响登陆中的用户)
      */
-    private List<C> configs;
+    protected List<C> configs;
 }
