@@ -36,7 +36,7 @@ public class Login<U, S, D, C> implements Payload, Serializable {
     /**
      * The Exp.
      */
-    protected LocalDateTime exp;
+    protected Long exp;
     /**
      * The Uid.
      */
