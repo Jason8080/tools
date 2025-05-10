@@ -190,6 +190,34 @@ public class AssertUtil {
     }
 
     /**
+     * Any true.
+     *
+     * @param msg the msg
+     * @param o   the o
+     * @param os  the os
+     */
+    public static void anyTrue(String msg, Boolean o, Boolean... os) {
+        boolean anyTrue = BoolUtil.anyTrue(o, os);
+        if (!anyTrue) {
+            throw new AssertException(msg);
+        }
+    }
+
+    /**
+     * Any false.
+     *
+     * @param msg the msg
+     * @param o   the o
+     * @param os  the os
+     */
+    public static void anyFalse(String msg, Boolean o, Boolean... os) {
+        boolean anyFalse = BoolUtil.anyFalse(o, os);
+        if (!anyFalse) {
+            throw new AssertException(msg);
+        }
+    }
+
+    /**
      * Is empty.
      *
      * @param <X>      the type parameter
