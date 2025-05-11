@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 @ConfigurationProperties("tools.oss.sts")
 public class StsProperties {
+    private String endpoint = "sts.cn-shenzhen.aliyuncs.com";
     private String roleArn = "acs:ram::1136911228867966:role/oss";
     private String roleSessionName = "TOOLS-OSS-STS";
     private Long duration = 900L; // 阿里: 最大15分钟

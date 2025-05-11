@@ -9,19 +9,17 @@ import com.aliyun.oss.OSSClient;
 import com.aliyun.oss.common.auth.Credentials;
 import com.aliyun.oss.common.auth.DefaultCredentialProvider;
 import com.aliyuncs.DefaultAcsClient;
+import com.aliyuncs.IAcsClient;
 import com.aliyuncs.auth.sts.AssumeRoleRequest;
 import com.aliyuncs.auth.sts.AssumeRoleResponse;
 import com.aliyuncs.exceptions.ClientException;
 import com.aliyuncs.http.MethodType;
 import com.aliyuncs.profile.DefaultProfile;
-import com.aliyuncs.profile.IClientProfile;
-import com.aliyuncs.regions.Endpoint;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.List;
 
 /**
  * 使用STS临时访问凭证访问OSS.
@@ -32,6 +30,21 @@ public class STSClient extends OSSClient implements STS {
     private OSSClient ossClient;
 
     private StsProperties stsProperties;
+
+    private IAcsClient acs;
+
+    private IAcsClient getAcs(Credentials credentials) throws ClientException {
+        if (acs != null) {
+            return acs;
+        }
+        String regionId = "";
+        String endpointName = "STS专用端点";
+        String product = "Sts";
+        DefaultProfile.addEndpoint(endpointName, regionId, product, stsProperties.getEndpoint());
+        DefaultProfile profile = DefaultProfile.getProfile(regionId, credentials.getAccessKeyId(), credentials.getSecretAccessKey());
+        return new DefaultAcsClient(profile);
+    }
+
 
     /**
      * Instantiates a new Sts client.
@@ -60,22 +73,17 @@ public class STSClient extends OSSClient implements STS {
         Long expire = stsProperties.getExpire();
         long current = System.currentTimeMillis();
         if (current > expire) {
-            DefaultProfile.addEndpoint(ossClient.getEndpoint().toString(), "", "Sts", ossClient.getEndpoint().getHost());
-            IClientProfile profile = DefaultProfile.getProfile("",
-                    ossClient.getCredentialsProvider().getCredentials().getAccessKeyId(),
-                    ossClient.getCredentialsProvider().getCredentials().getSecretAccessKey()
-            );
-            DefaultAcsClient acs = new DefaultAcsClient(profile);
             AssumeRoleRequest request = new AssumeRoleRequest();
             request.setMethod(MethodType.POST);
             request.setRoleArn(stsProperties.getRoleArn());
             request.setRoleSessionName(stsProperties.getRoleSessionName());
             request.setDurationSeconds(stsProperties.getDuration());
+            IAcsClient acs = getAcs(ossClient.getCredentialsProvider().getCredentials());
             AssumeRoleResponse response = acs.getAcsResponse(request);
             checkResponseAndResetExpire(response);
             ossClient = new OSSClient(ossClient.getEndpoint().toString(), new DefaultCredentialProvider(
-                    ossClient.getCredentialsProvider().getCredentials().getAccessKeyId(),
-                    ossClient.getCredentialsProvider().getCredentials().getSecretAccessKey(),
+                    response.getCredentials().getAccessKeyId(),
+                    response.getCredentials().getAccessKeySecret(),
                     response.getCredentials().getSecurityToken()
             ), ossClient.getClientConfiguration());
         }
