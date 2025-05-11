@@ -30,6 +30,16 @@ public class OssUrl {
         return oss.generatePresignedUrl(bucketName, objectName, date, HttpMethod.PUT);
     }
 
+    /**
+     * 文件上传链接.
+     *
+     * @param oss        客户端
+     * @param bucketName 对象桶
+     * @param objectName 路径名 (填写Object完整路径,不能包含Bucket名称)
+     * @param duration   有效期
+     * @param headers    请求头
+     * @return string 上传链接
+     */
     public static URL upload(OSS oss, String bucketName, String objectName, int duration, String... headers) {
         Date date = LocalDateTimeUtil.offsetCurrent(duration, ChronoUnit.SECONDS);
         GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucketName, objectName, HttpMethod.PUT);
