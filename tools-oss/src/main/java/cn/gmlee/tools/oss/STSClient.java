@@ -42,7 +42,7 @@ public class STSClient extends OSSClient implements STS {
         String product = "Sts";
         DefaultProfile.addEndpoint(endpointName, regionId, product, stsProperties.getEndpoint());
         DefaultProfile profile = DefaultProfile.getProfile(regionId, credentials.getAccessKeyId(), credentials.getSecretAccessKey());
-        return new DefaultAcsClient(profile);
+        return acs = new DefaultAcsClient(profile);
     }
 
 
