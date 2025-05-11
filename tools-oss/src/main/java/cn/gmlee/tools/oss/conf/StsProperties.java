@@ -8,7 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class StsProperties {
     private String roleArn = "acs:ram::1136911228867966:role/oss";
     private String roleSessionName = "TOOLS-OSS-STS";
-    private Long duration = 3600 * 1000L;
+    private Long duration = 900L; // 阿里: 最大15分钟
     private Integer redundancy = 60 * 1000;;
     private Long expire = System.currentTimeMillis();
 }

@@ -20,7 +20,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 
-import java.io.Serializable;
 import java.lang.reflect.Method;
 
 @Slf4j
@@ -36,10 +35,10 @@ public class StsAutoConfiguration {
     @ConditionalOnProperty(value = "spring.cloud.alicloud.oss.authorization-mode", havingValue = "STS")
     public STS ossClient(OssProperties ossProperties, StsProperties stsProperties) {
         STS sts = new STSClient(build(ossProperties), stsProperties);
-        return ProxyUtil.JdkProxy(STSClient.class, (Object proxy, Method method, Object[] args) -> {
+        return ProxyUtil.JdkProxy(OSSClient.class, (Object proxy, Method method, Object[] args) -> {
             log.debug("OSS client action: {}\r\n{}", method, CharUtil.digest(JsonUtil.format(args), 10240, 1024));
             return method.invoke(sts.refresh(), args);
-        }, Serializable.class);
+        }, STS.class);
     }
 
     private static OSSClient build(OssProperties ossProperties) {

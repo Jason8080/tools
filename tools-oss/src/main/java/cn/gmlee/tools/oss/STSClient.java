@@ -13,11 +13,15 @@ import com.aliyuncs.auth.sts.AssumeRoleRequest;
 import com.aliyuncs.auth.sts.AssumeRoleResponse;
 import com.aliyuncs.exceptions.ClientException;
 import com.aliyuncs.http.MethodType;
+import com.aliyuncs.profile.DefaultProfile;
+import com.aliyuncs.profile.IClientProfile;
+import com.aliyuncs.regions.Endpoint;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 使用STS临时访问凭证访问OSS.
@@ -56,7 +60,12 @@ public class STSClient extends OSSClient implements STS {
         Long expire = stsProperties.getExpire();
         long current = System.currentTimeMillis();
         if (current > expire) {
-            DefaultAcsClient acs = new DefaultAcsClient();
+            DefaultProfile.addEndpoint(ossClient.getEndpoint().toString(), "", "Sts", ossClient.getEndpoint().getHost());
+            IClientProfile profile = DefaultProfile.getProfile("",
+                    ossClient.getCredentialsProvider().getCredentials().getAccessKeyId(),
+                    ossClient.getCredentialsProvider().getCredentials().getSecretAccessKey()
+            );
+            DefaultAcsClient acs = new DefaultAcsClient(profile);
             AssumeRoleRequest request = new AssumeRoleRequest();
             request.setMethod(MethodType.POST);
             request.setRoleArn(stsProperties.getRoleArn());
