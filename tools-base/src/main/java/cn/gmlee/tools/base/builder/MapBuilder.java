@@ -4,6 +4,7 @@ import cn.gmlee.tools.base.util.AssertUtil;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.QuickUtil;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -14,6 +15,12 @@ import java.util.HashMap;
  * @author Jas
  */
 public class MapBuilder<K, V> extends HashMap<K, V> {
+    /**
+     * Instantiates a new Map builder.
+     */
+    public MapBuilder() {
+        super();
+    }
 
     /**
      * Instantiates a new Map builder.
@@ -55,6 +62,21 @@ public class MapBuilder<K, V> extends HashMap<K, V> {
      */
     public static <V, K> MapBuilder<K, V> of(K k, V v) {
         return new MapBuilder(k, v);
+    }
+
+    /**
+     * Of map builder.
+     *
+     * @param <O> the type parameter
+     * @param os  the os
+     * @return the map builder
+     */
+    public static <O> MapBuilder<O, O> of(O... os) {
+        if(BoolUtil.isEmpty(os)){
+            return new MapBuilder<>();
+        }
+        AssertUtil.eq(os.length % 2, 0, "请检查入参数量(键值成对)");
+        return MapBuilder.build(os[0], os[1], Arrays.copyOfRange(os, 2, os.length));
     }
 
     /**
