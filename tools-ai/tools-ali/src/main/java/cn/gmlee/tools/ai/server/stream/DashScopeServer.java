@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
  * 百炼平台服务.
  */
 @Slf4j
+@Deprecated
 @SuppressWarnings("all")
 @RequiredArgsConstructor
 public class DashScopeServer {
