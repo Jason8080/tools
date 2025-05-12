@@ -83,7 +83,7 @@ public class OssUrl {
             return Collections.emptyList();
         }
         return objectNames.parallelStream().map(objectName -> ExceptionUtil.sandbox(
-                () -> download(oss, bucketName, objectName, duration, headers)
+                () -> download(oss, bucketName, objectName, duration, headers), true
         )).collect(Collectors.toList());
     }
 }
