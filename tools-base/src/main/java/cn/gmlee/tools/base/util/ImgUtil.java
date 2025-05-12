@@ -9,7 +9,9 @@ import java.awt.image.RenderedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -19,6 +21,12 @@ import java.util.Random;
  * @date 2020 /10/10 (周六)
  */
 public class ImgUtil {
+    /**
+     * 默认的图片类型
+     */
+    public static final List<String> suffix =
+            Arrays.asList(".png",".jpg",".jpeg",".gif",".bmp",".tif",".tiff");
+
     private static final Random random = new Random();
 
     /**
