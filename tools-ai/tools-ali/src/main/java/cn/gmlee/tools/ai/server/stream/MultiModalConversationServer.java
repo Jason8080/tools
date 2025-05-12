@@ -353,7 +353,7 @@ public class MultiModalConversationServer {
     }
 
     private static MultiModalMessage getTextMultiModalMessage(Role role, String text) {
-        if(BoolUtil.isEmpty(text)){
+        if (BoolUtil.isEmpty(text)) {
             return null;
         }
         return MultiModalMessage.builder()
@@ -363,9 +363,23 @@ public class MultiModalConversationServer {
     }
 
     private MultiModalConversationParam getMultiModalConversationParam(String model, Object sysMessage, Object userMessage, String... modalities) {
+        if (sysMessage == null) {
+            return getMultiModalConversationParam(model, userMessage, modalities);
+        }
         return ((MultiModalConversationParam.MultiModalConversationParamBuilder) MultiModalConversationParam.builder()
                 .apiKey(aliAiProperties.getApiKey())
                 .message(sysMessage)
+                .message(userMessage)
+                .enableSearch(aliAiProperties.getEnableSearch())
+                .modalities(Arrays.asList(modalities))
+                .audio(AudioParameters.builder().voice(AudioParameters.Voice.CHERRY).build())
+                .model(model))
+                .build();
+    }
+
+    private MultiModalConversationParam getMultiModalConversationParam(String model, Object userMessage, String... modalities) {
+        return ((MultiModalConversationParam.MultiModalConversationParamBuilder) MultiModalConversationParam.builder()
+                .apiKey(aliAiProperties.getApiKey())
                 .message(userMessage)
                 .enableSearch(aliAiProperties.getEnableSearch())
                 .modalities(Arrays.asList(modalities))
