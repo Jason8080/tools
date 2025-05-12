@@ -44,7 +44,7 @@ public class ApplicationServer {
                 .apiKey(aliAiProperties.getApiKey())
                 .hasThoughts(aliAiProperties.getHasThoughts())
                 .bizParams(JsonUtils.toJsonObject(KvBuilder.map(kvs)))
-                .incrementalOutput(false)
+                .incrementalOutput(true)
                 .prompt(prompt)
                 .seed(0)
                 .build();

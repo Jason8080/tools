@@ -373,6 +373,7 @@ public class MultiModalConversationServer {
                 .enableSearch(aliAiProperties.getEnableSearch())
                 .modalities(Arrays.asList(modalities))
                 .audio(AudioParameters.builder().voice(AudioParameters.Voice.CHERRY).build())
+                .incrementalOutput(true)
                 .model(model))
                 .build();
     }
@@ -384,6 +385,7 @@ public class MultiModalConversationServer {
                 .enableSearch(aliAiProperties.getEnableSearch())
                 .modalities(Arrays.asList(modalities))
                 .audio(AudioParameters.builder().voice(AudioParameters.Voice.CHERRY).build())
+                .incrementalOutput(true)
                 .model(model))
                 .build();
     }
@@ -396,7 +398,7 @@ public class MultiModalConversationServer {
                 .enableSearch(aliAiProperties.getEnableSearch())
                 .modalities(Arrays.asList(modalities))
                 .voice(AudioParameters.Voice.CHERRY)
-                .incrementalOutput(false)
+                .incrementalOutput(true)
                 .messages(messages)
                 .seed(0)
                 .build();

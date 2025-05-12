@@ -118,7 +118,7 @@ public class GenerateServer {
                 .enableSearch(aliAiProperties.getEnableSearch())
                 .modalities(Arrays.asList(modalities))
                 .voice(AudioParameters.Voice.CHERRY)
-                .incrementalOutput(false)
+                .incrementalOutput(true)
                 .messages(messages)
                 .seed(0)
                 .build();
