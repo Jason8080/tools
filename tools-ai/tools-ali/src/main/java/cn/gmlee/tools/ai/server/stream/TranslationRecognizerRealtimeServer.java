@@ -45,6 +45,20 @@ public class TranslationRecognizerRealtimeServer {
         return flowable.map(this::convertText);
     }
 
+
+    /**
+     * 询问.
+     *
+     * @param audioSource 音频传输
+     * @param languages   目标语种
+     * @return flowable 输出内容 key原文、val<语种,译文>
+     */
+    public Flowable<Kv<String, Map<String, String>>> ask(Flowable<ByteBuffer> audioSource, String... languages) {
+        TranslationRecognizerParam param = getTranslationRecognizerParam(aliAiProperties.getDefaultModel(), languages);
+        Flowable<TranslationRecognizerResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param, audioSource));
+        return flowable.map(this::convertText);
+    }
+
     /**
      * 询问.
      *
@@ -56,6 +70,20 @@ public class TranslationRecognizerRealtimeServer {
     public Flowable<Kv<String, Map<String, String>>> ask(String model, Microphone microphone, String... languages) {
         TranslationRecognizerParam param = getTranslationRecognizerParam(model, languages);
         Flowable<ByteBuffer> audioSource = Flowable.create(emitter -> microphone.start(emitter), BackpressureStrategy.BUFFER);
+        Flowable<TranslationRecognizerResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param, audioSource));
+        return flowable.map(this::convertText);
+    }
+
+    /**
+     * 询问.
+     *
+     * @param model       模型
+     * @param audioSource 音频传输
+     * @param languages   目标语种
+     * @return flowable 输出内容 key原文、val<语种,译文>
+     */
+    public Flowable<Kv<String, Map<String, String>>> ask(String model, Flowable<ByteBuffer> audioSource, String... languages) {
+        TranslationRecognizerParam param = getTranslationRecognizerParam(model, languages);
         Flowable<TranslationRecognizerResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param, audioSource));
         return flowable.map(this::convertText);
     }

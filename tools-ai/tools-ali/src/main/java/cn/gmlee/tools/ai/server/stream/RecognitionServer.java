@@ -34,10 +34,23 @@ public class RecognitionServer {
         return flowable.map(this::convertText);
     }
 
+    public Flowable<String> ask(Flowable<ByteBuffer> audioSource) {
+        RecognitionParam param = getRecognitionParam(aliAiProperties.getDefaultModel());
+        Flowable<RecognitionResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param, audioSource));
+        return flowable.map(this::convertText);
+    }
+
 
     public Flowable<String> ask(String model, Microphone microphone) {
         RecognitionParam param = getRecognitionParam(model);
         Flowable<ByteBuffer> audioSource = Flowable.create(emitter -> microphone.start(emitter), BackpressureStrategy.BUFFER);
+        Flowable<RecognitionResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param, audioSource));
+        return flowable.map(this::convertText);
+    }
+
+
+    public Flowable<String> ask(String model, Flowable<ByteBuffer> audioSource) {
+        RecognitionParam param = getRecognitionParam(model);
         Flowable<RecognitionResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param, audioSource));
         return flowable.map(this::convertText);
     }
