@@ -3,22 +3,22 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>tools</artifactId>
+        <artifactId>tools-framework</artifactId>
         <groupId>cn.gmlee.tools</groupId>
         <version>5.5.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cn.gmlee.tools</groupId>
-    <artifactId>tools-framework</artifactId>
+    <artifactId>tools-microphone</artifactId>
     <version>5.5.0-SNAPSHOT</version>
 
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
     <!--项目信息-->
-    <name>tools-framework</name>
-    <description>TOOLS(图尔斯): 是一款Java开发库, 包含但不限于: 基础工具包, 解决方案, 微架构等</description>
-    <url>https://github.com/Jason8080/tools/tree/master/tools-framework</url>
+    <name>tools-microphone</name>
+    <description>TOOLS-MICROPHONE: 基于RSocket协议实现的全双工流式传输框架</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-microphone</url>
 
     <!--开源协议-->
     <licenses>
@@ -49,15 +49,20 @@
         </developer>
     </developers>
 
-    <modules>
-        <!-- 临时注释 -->
-        <module>tools-seata</module>
-        <module>tools-sharding</module>
-        <module>tools-spring</module>
-        <module>tools-swagger</module>
-        <module>tools-dt</module>
-        <module>tools-microphone</module>
-    </modules>
-
-
+    <dependencies>
+        <!-- ============================================================ -->
+        <dependency>
+            <groupId>cn.gmlee.tools</groupId>
+            <artifactId>tools-base</artifactId>
+            <version>5.5.0-SNAPSHOT</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <!-- ============================================================ -->
+        <!-- RSocket with WebSocket support -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-rsocket</artifactId>
+        </dependency>
+    </dependencies>
 </project>

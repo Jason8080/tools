@@ -30,23 +30,23 @@ public class R<T> implements Serializable {
     /**
      * 响应码: 系统返回的响应码值; 必填
      */
-    private Integer code;
+    protected Integer code;
     /**
      * 提示语: 系统返回的提示信息; 必填; 一般展示
      */
-    private String msg;
+    protected String msg;
     /**
      * 自述文: 系统返回的详细说明; 非必填; 一般不展示
      */
-    private String desc;
+    protected String desc;
     /**
      * 数据值: 系统返回的数据对象; 非必填
      */
-    private T data;
+    protected T data;
     /**
      * 响应时: 系统处理完成的时间戳; 必填
      */
-    private Long responseTime = System.currentTimeMillis();
+    protected Long timestamp = System.currentTimeMillis();
 
     /**
      * Instantiates a new Json result.
