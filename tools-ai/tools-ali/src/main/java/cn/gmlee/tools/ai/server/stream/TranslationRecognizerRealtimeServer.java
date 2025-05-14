@@ -3,6 +3,7 @@ package cn.gmlee.tools.ai.server.stream;
 import cn.gmlee.tools.ai.conf.AliAiProperties;
 import cn.gmlee.tools.base.kit.sound.Microphone;
 import cn.gmlee.tools.base.mod.Kv;
+import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.NullUtil;
 import com.alibaba.dashscope.audio.asr.translation.TranslationRecognizerParam;
@@ -89,6 +90,17 @@ public class TranslationRecognizerRealtimeServer {
     }
 
     private TranslationRecognizerParam getTranslationRecognizerParam(String model, String... languages) {
+        if(BoolUtil.isEmpty(languages)){
+            return TranslationRecognizerParam.builder()
+                    .apiKey(aliAiProperties.getApiKey())
+                    .format(aliAiProperties.getAudioFormat())
+                    .model(model)
+                    .sampleRate(16000) // 设置待识别音频采样率（单位Hz）。支持16000Hz及以上采样率。
+                    .transcriptionEnabled(true) // 设置是否开启实时识别
+                    .sourceLanguage("auto") // 设置源语言（待识别/翻译语言）代码
+                    .translationEnabled(false) // 设置是否开启实时翻译
+                    .build();
+        }
         return TranslationRecognizerParam.builder()
                 .apiKey(aliAiProperties.getApiKey())
                 .format(aliAiProperties.getAudioFormat())
