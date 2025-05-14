@@ -4,6 +4,7 @@ import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.rsocket.annotation.ConnectMapping;
+import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -12,10 +13,9 @@ import java.util.Map;
 
 /**
  * 麦克风接口.
- *
- * @param <T> the type parameter
  */
-public interface MicrophoneController<R> {
+@Controller
+public interface MicrophoneController {
     /**
      * 连接处理器.
      *
@@ -31,6 +31,7 @@ public interface MicrophoneController<R> {
     /**
      * 心跳处理器.
      *
+     * @param headers the headers
      * @return the mono
      */
     @MessageMapping("/microphone/heartbeat")
@@ -41,10 +42,12 @@ public interface MicrophoneController<R> {
     /**
      * 双工处理器.
      *
-     * @param headers the headers
-     * @param flux    the flux
-     * @return the flux
+     * @param <B>     请求体
+     * @param <D>     响应体
+     * @param headers 请求头
+     * @param flux    输入流
+     * @return flux 输出流
      */
     @MessageMapping("/microphone/channel")
-    Flux<R> channel(@Headers Map<String, Object> headers, @Validated @Payload Flux<R> flux);
+    <B, D> Flux<D> channel(@Headers Map<String, Object> headers, @Validated @Payload Flux<B> flux);
 }
