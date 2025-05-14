@@ -13,9 +13,12 @@ import java.util.Map;
 
 /**
  * 麦克风接口.
+ *
+ * @param <B>     请求体
+ * @param <D>     响应体
  */
 @Controller
-public interface MicrophoneController {
+public interface MicrophoneController<B, D> {
     /**
      * 连接处理器.
      *
@@ -42,12 +45,10 @@ public interface MicrophoneController {
     /**
      * 双工处理器.
      *
-     * @param <B>     请求体
-     * @param <D>     响应体
      * @param headers 请求头
      * @param flux    输入流
      * @return flux 输出流
      */
     @MessageMapping("/microphone/channel")
-    <B, D> Flux<D> channel(@Headers Map<String, Object> headers, @Validated @Payload Flux<B> flux);
+    Flux<D> channel(@Headers Map<String, Object> headers, @Validated @Payload Flux<B> flux);
 }
