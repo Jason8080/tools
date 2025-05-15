@@ -4,7 +4,6 @@ import cn.gmlee.tools.webapp.filter.AuthFilter;
 import cn.gmlee.tools.webapp.service.LoginServer;
 import cn.gmlee.tools.webapp.service.LoginService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
