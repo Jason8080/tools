@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Bean;
  * @date 2020 /8/28 (周五)
  */
 @EnableConfigurationProperties(LoginProperties.class)
-public class AuthFilterAutoConfiguration {
+public class LoginAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(LoginServer.class)

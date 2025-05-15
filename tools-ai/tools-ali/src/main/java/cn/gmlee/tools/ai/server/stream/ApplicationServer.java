@@ -15,6 +15,8 @@ import io.reactivex.Flowable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.List;
+
 /**
  * 百炼平台服务.
  */
@@ -46,10 +48,9 @@ public class ApplicationServer {
      * @param kvs    参数集
      * @return flowable 输出内容
      */
-    public Flowable<String> ask(String sessionId, String prompt, Kv... kvs) {
+    public Flowable<ApplicationResult> ask(String sessionId, String prompt, Kv... kvs) {
         ApplicationParam param = getApplicationParam(sessionId, prompt, kvs);
-        Flowable<ApplicationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return ExceptionUtil.suppress(() -> ali.streamCall(param));
     }
 
     private ApplicationParam getApplicationParam(String sessionId, String prompt, Kv... kvs) {

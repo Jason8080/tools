@@ -1,5 +1,5 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
   cn.gmlee.tools.webapp.config.cors.CorsAutoConfiguration,\
   cn.gmlee.tools.webapp.config.disk.DiskWebMvcAutoConfiguration,\
-  cn.gmlee.tools.webapp.config.login.AuthFilterAutoConfiguration,\
+  cn.gmlee.tools.webapp.config.login.LoginAutoConfiguration,\
   cn.gmlee.tools.webapp.config.vc.VcAutoConfiguration
