@@ -4,6 +4,7 @@ import cn.gmlee.tools.webapp.filter.AuthFilter;
 import cn.gmlee.tools.webapp.service.LoginServer;
 import cn.gmlee.tools.webapp.service.LoginService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -20,6 +21,7 @@ public class LoginAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean(LoginServer.class)
+    @ConditionalOnBean(type = "cn.gmlee.tools.redis.util.RedisClient")
     public LoginServer loginServer(){
         return new LoginService();
     }
