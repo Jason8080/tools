@@ -106,8 +106,7 @@ public class CacheAspect {
         }
         for (Field field : fieldsMap.values()) {
             boolean old = field.isAccessible();
-            int modifiers = field.getModifiers();
-            QuickUtil.isTrue(!old && !Modifier.isFinal(modifiers), () -> field.setAccessible(true));
+            QuickUtil.isFalse(old, () -> field.setAccessible(true));
             try {
                 Object ret = ExceptionUtil.sandbox(() -> field.get(result));
                 if(ret == null) {
@@ -133,7 +132,7 @@ public class CacheAspect {
                 }
                 QuickUtil.isTrue(depth > 0, () -> kvs.addAll(getFields(conf, ret, depth - 1)));
             } finally {
-                QuickUtil.isTrue(!old && !Modifier.isFinal(modifiers), () -> field.setAccessible(false));
+                QuickUtil.isFalse(old, () -> field.setAccessible(false));
             }
         }
         return kvs;
