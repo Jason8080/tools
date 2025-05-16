@@ -17,12 +17,12 @@ public class CharUtil {
      * @param symbol  the symbol
      * @return the list
      */
-    public static List<String> split(String content, String symbol){
+    public static List<String> split(String content, String symbol) {
         List<String> list = new ArrayList<>();
-        if(BoolUtil.isEmpty(content)){
+        if (BoolUtil.isEmpty(content)) {
             return list;
         }
-        for (String c : content.split(symbol)){
+        for (String c : content.split(symbol)) {
             list.add(c);
         }
         return list;
@@ -52,13 +52,29 @@ public class CharUtil {
      * @return string 摘要内容
      */
     public static String digest(String content, int maxlength, int show) {
-        if (maxlength == -1 || content.length() < maxlength) {
+        if (maxlength == -1 || NullUtil.get(content).length() < maxlength) {
             return content;
         }
         int start = show / 2;
-        return content.substring(0, start) +
+        return NullUtil.get(content).substring(0, start) +
                 "\t 内容过长 \t" +
-                content.substring(content.length() - start);
+                NullUtil.get(content).substring(NullUtil.get(content).length() - start);
+    }
+
+    /**
+     * 截取.
+     *
+     * <p>内容超出最大长度后,直接丢弃</p>
+     *
+     * @param content
+     * @param maxlength
+     * @return
+     */
+    public static String cut(String content, int maxlength) {
+        if (maxlength == -1 || NullUtil.get(content).length() < maxlength) {
+            return content;
+        }
+        return NullUtil.get(content).substring(0, maxlength);
     }
 
     /**

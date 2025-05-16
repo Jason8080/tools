@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -105,9 +106,13 @@ public class CacheAspect {
         }
         for (Field field : fieldsMap.values()) {
             boolean old = field.isAccessible();
-            QuickUtil.isFalse(old, () -> field.setAccessible(true));
+            int modifiers = field.getModifiers();
+            QuickUtil.isFalse(old && Modifier.isFinal(modifiers), () -> field.setAccessible(true));
             try {
-                Object ret = ExceptionUtil.suppress(() -> field.get(result));
+                Object ret = ExceptionUtil.sandbox(() -> field.get(result));
+                if(ret == null) {
+                    continue;
+                }
                 if (ret instanceof Collection) {
                     for (Object obj : (Collection) ret) {
                         QuickUtil.isTrue(depth > 0, () -> kvs.addAll(getFields(conf, obj, depth - 1)));
@@ -128,7 +133,7 @@ public class CacheAspect {
                 }
                 QuickUtil.isTrue(depth > 0, () -> kvs.addAll(getFields(conf, ret, depth - 1)));
             } finally {
-                QuickUtil.isFalse(old, () -> field.setAccessible(false));
+                QuickUtil.isFalse(old && Modifier.isFinal(modifiers), () -> field.setAccessible(false));
             }
         }
         return kvs;
