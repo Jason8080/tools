@@ -108,10 +108,7 @@ public class CacheAspect {
             boolean old = field.isAccessible();
             QuickUtil.isFalse(old, () -> field.setAccessible(true));
             try {
-                Object ret = ExceptionUtil.sandbox(() -> field.get(result), false);
-                if(ret == null) {
-                    continue;
-                }
+                Object ret = ExceptionUtil.suppress(() -> field.get(result));
                 if (ret instanceof Collection) {
                     for (Object obj : (Collection) ret) {
                         QuickUtil.isTrue(depth > 0, () -> kvs.addAll(getFields(conf, obj, depth - 1)));
