@@ -108,7 +108,7 @@ public class CacheAspect {
             boolean old = field.isAccessible();
             QuickUtil.isFalse(old, () -> field.setAccessible(true));
             try {
-                Object ret = ExceptionUtil.sandbox(() -> field.get(result));
+                Object ret = ExceptionUtil.sandbox(() -> field.get(result), false);
                 if(ret == null) {
                     continue;
                 }
