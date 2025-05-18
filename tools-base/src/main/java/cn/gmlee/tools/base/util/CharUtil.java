@@ -126,7 +126,7 @@ public class CharUtil {
      */
     public static <C extends CharSequence, O> C join(C c, Collection<O> os) {
         if (BoolUtil.isEmpty(os)) {
-            return c;
+            return (C) "";
         }
         return (C) os.stream().filter(Objects::nonNull).map(Objects::toString)
                 .collect(Collectors.joining(BoolUtil.isEmpty(c) ? "" : c.toString()));
