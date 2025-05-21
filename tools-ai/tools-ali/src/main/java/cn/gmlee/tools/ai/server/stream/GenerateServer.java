@@ -1,15 +1,13 @@
 package cn.gmlee.tools.ai.server.stream;
 
 import cn.gmlee.tools.ai.conf.AliAiProperties;
+import cn.gmlee.tools.base.mod.Kv;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.NullUtil;
 import com.alibaba.dashscope.aigc.completion.ChatCompletionChunk;
 import com.alibaba.dashscope.aigc.completion.ChatCompletionUsage;
-import com.alibaba.dashscope.aigc.generation.Generation;
-import com.alibaba.dashscope.aigc.generation.GenerationOutput;
-import com.alibaba.dashscope.aigc.generation.GenerationResult;
-import com.alibaba.dashscope.aigc.generation.GenerationUsage;
+import com.alibaba.dashscope.aigc.generation.*;
 import com.alibaba.dashscope.aigc.multimodalconversation.AudioParameters;
 import com.alibaba.dashscope.aigc.multimodalconversation.MultiModalConversationParam;
 import com.alibaba.dashscope.common.Message;
@@ -66,6 +64,37 @@ public class GenerateServer {
         return flowable.map(this::convertText);
     }
 
+
+    /**
+     * 询问 (思考要求).
+     *
+     * @param sys   系统角色
+     * @param user  用户输入
+     * @return flowable 输出内容
+     */
+    public Flowable<Kv<String,String>> askThinking(String sys, String user) {
+        return askThinking(aliAiProperties.getDefaultModel(), sys, user);
+    }
+
+    /**
+     * 询问 (思考要求).
+     *
+     * @param model 模型名称
+     * @param sys   系统角色
+     * @param user  用户输入
+     * @return flowable 输出内容
+     */
+    public Flowable<Kv<String,String>> askThinking(String model, String sys, String user) {
+        Message sysMessage = getTextMessage(Role.SYSTEM, sys);
+        Message userMessage = Message.builder()
+                .role(Role.USER.getValue())
+                .content(user)
+                .build();
+        GenerationParam param = getGenerationParam(model, sysMessage, userMessage);
+        Flowable<GenerationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
+        return flowable.map(this::convertKvText);
+    }
+
     /**
      * 询问 (图片).
      *
@@ -100,8 +129,18 @@ public class GenerateServer {
         return flowable.map(this::convertText);
     }
 
+    private static Message getTextMessage(Role role, String text) {
+        if (BoolUtil.isEmpty(text)) {
+            return null;
+        }
+        return Message.builder()
+                .role(role.getValue())
+                .content(text)
+                .build();
+    }
+
     private static MultiModalMessage getTextMultiModalMessage(Role role, String text) {
-        if(BoolUtil.isEmpty(text)){
+        if (BoolUtil.isEmpty(text)) {
             return null;
         }
         return MultiModalMessage.builder()
@@ -110,9 +149,23 @@ public class GenerateServer {
                 .build();
     }
 
+    private GenerationParam getGenerationParam(String model, Message sysMessage, Message userMessage) {
+        List<Message> messages = Arrays.asList(sysMessage, userMessage).stream().filter(Objects::nonNull).collect(Collectors.toList());
+        return GenerationParam.builder()
+                .apiKey(aliAiProperties.getApiKey())
+                .model(model)
+                .enableSearch(aliAiProperties.getEnableSearch())
+                .enableThinking(aliAiProperties.getEnableThinking())
+                .incrementalOutput(true)
+                .messages(messages)
+                .resultFormat(GenerationParam.ResultFormat.MESSAGE)
+                .seed(0)
+                .build();
+    }
+
     private MultiModalConversationParam getMultiModalConversationParam(String model, Object sysMessage, Object userMessage, String... modalities) {
         List<Object> messages = Arrays.asList(sysMessage, userMessage).stream().filter(Objects::nonNull).collect(Collectors.toList());
-        return ((MultiModalConversationParam.MultiModalConversationParamBuilder) MultiModalConversationParam.builder()
+        MultiModalConversationParam param = ((MultiModalConversationParam.MultiModalConversationParamBuilder) MultiModalConversationParam.builder()
                 .apiKey(aliAiProperties.getApiKey())
                 .model(model))
                 .enableSearch(aliAiProperties.getEnableSearch())
@@ -122,6 +175,8 @@ public class GenerateServer {
                 .messages(messages)
                 .seed(0)
                 .build();
+        param.getParameters().put("enableThinking", aliAiProperties.getEnableThinking());
+        return param;
     }
 
     private String convertText(GenerationResult result) {
@@ -139,6 +194,30 @@ public class GenerateServer {
                 .filter(BoolUtil::notEmpty)
                 .collect(Collectors.toList());
         return texts.stream().collect(Collectors.joining());
+    }
+
+    private Kv<String, String> convertKvText(GenerationResult result) {
+        ExceptionUtil.sandbox(() -> logger(result));
+        GenerationOutput output = result.getOutput();
+        List<GenerationOutput.Choice> choices = output.getChoices();
+        if (BoolUtil.isEmpty(choices)) {
+            return new Kv<>(null, output.getText(), null, null);
+        }
+        List<String> val = choices.stream()
+                .filter(Objects::nonNull)
+                .map(GenerationOutput.Choice::getMessage)
+                .filter(Objects::nonNull)
+                .map(Message::getContent)
+                .filter(BoolUtil::notEmpty)
+                .collect(Collectors.toList());
+        List<String> desc = choices.stream()
+                .filter(Objects::nonNull)
+                .map(GenerationOutput.Choice::getMessage)
+                .filter(Objects::nonNull)
+                .map(Message::getReasoningContent)
+                .filter(BoolUtil::notEmpty)
+                .collect(Collectors.toList());
+        return new Kv<>(null, val.stream().collect(Collectors.joining()), null, desc.stream().collect(Collectors.joining()));
     }
 
     private static void logger(GenerationResult result) {

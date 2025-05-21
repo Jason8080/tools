@@ -36,6 +36,14 @@ public class AliAiProperties {
         return mode.getEnableSearch();
     }
 
+    public Boolean getEnableThinking() {
+        Mode mode = models.get(defaultModel);
+        if (mode == null) {
+            return new Mode().getEnableThinking();
+        }
+        return mode.getEnableThinking();
+    }
+
     public Boolean getHasThoughts() {
         Mode mode = models.get(defaultModel);
         if (mode == null) {
@@ -71,6 +79,7 @@ public class AliAiProperties {
     @Data
     public static class Mode {
         private Boolean enableSearch = Boolean.FALSE; // 是否开启搜索
+        private Boolean enableThinking = Boolean.FALSE; // 是否开启思考
         private Boolean hasThoughts = Boolean.FALSE; // 是否展示意图
         private String audioFormat = "pcm"; // 默认音频格式
         private String spec = "1280*720"; // 默认分辨率
