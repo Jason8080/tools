@@ -76,14 +76,18 @@ public class CharUtil {
      * <p>只使用指定的字符生成</p>
      *
      * @param length 指定长度
-     * @param cs     可用字符
+     * @param css    可用字符
      * @return string 字符串
      */
-    public static String randomString(int length, CharSequence cs) {
-        if (length < 1) {
+    public static String randomString(int length, CharSequence... css) {
+        if (length < 1 || BoolUtil.isEmpty(css)) {
             return "";
         }
-        CharSequence charSequence = NullUtil.get(cs, DEFAULT_CHARACTERS);
+        StringBuilder sb = new StringBuilder();
+        for (CharSequence cs : css) {
+            QuickUtil.isTrue(cs.length() > 0, () -> sb.append(cs));
+        }
+        CharSequence charSequence = sb.length() < 1 ? DEFAULT_CHARACTERS : sb;
         return IntStream.range(0, length).map(i -> RANDOM.nextInt(charSequence.length())).mapToObj(charSequence::charAt)
                 .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append).toString();
     }
