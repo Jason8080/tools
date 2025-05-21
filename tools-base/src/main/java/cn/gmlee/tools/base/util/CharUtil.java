@@ -1,8 +1,8 @@
 package cn.gmlee.tools.base.util;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 字符操作工具
@@ -66,15 +66,70 @@ public class CharUtil {
      *
      * <p>内容超出最大长度后,直接丢弃</p>
      *
-     * @param content
-     * @param maxlength
-     * @return
+     * @param content   the content
+     * @param maxlength the maxlength
+     * @return string
      */
     public static String cut(String content, int maxlength) {
         if (maxlength == -1 || NullUtil.get(content).length() < maxlength) {
             return content;
         }
         return NullUtil.get(content).substring(0, maxlength);
+    }
+
+
+    /**
+     * Join c.
+     *
+     * @param <C> the type parameter
+     * @param <O> the type parameter
+     * @param os  the os
+     * @return the c
+     */
+    public static <C extends CharSequence, O> C join(O... os) {
+        return join(null, Arrays.asList(os));
+    }
+
+    /**
+     * Join c.
+     *
+     * @param <C> the type parameter
+     * @param <O> the type parameter
+     * @param os  the os
+     * @return the c
+     */
+    public static <C extends CharSequence, O> C join(Collection<O> os) {
+        return join(null, Arrays.asList(os));
+    }
+
+    /**
+     * Join c.
+     *
+     * @param <C> the type parameter
+     * @param <O> the type parameter
+     * @param c   the c
+     * @param os  the os
+     * @return the c
+     */
+    public static <C extends CharSequence, O> C join(C c, O... os) {
+        return join(c, Arrays.asList(os));
+    }
+
+    /**
+     * Join c.
+     *
+     * @param <C> the type parameter
+     * @param <O> the type parameter
+     * @param c   the c
+     * @param os  the os
+     * @return the c
+     */
+    public static <C extends CharSequence, O> C join(C c, Collection<O> os) {
+        if (BoolUtil.isEmpty(os)) {
+            return (C) "";
+        }
+        return (C) os.stream().filter(Objects::nonNull).map(Objects::toString)
+                .collect(Collectors.joining(BoolUtil.isEmpty(c) ? "" : c.toString()));
     }
 
     /**
