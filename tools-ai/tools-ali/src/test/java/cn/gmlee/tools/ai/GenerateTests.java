@@ -18,7 +18,7 @@ public class GenerateTests {
     private GenerateServer generateServer;
 
     @Test
-    public void testAsk(){
+    public void testAskThinking(){
         TimerUtil.print();
         Flowable<Kv<String,String>> ask = generateServer.askThinking(null, "我是谁?");
         // 思考
