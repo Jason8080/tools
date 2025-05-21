@@ -3,6 +3,7 @@ package cn.gmlee.tools.base.util;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * 字符操作工具
@@ -10,6 +11,83 @@ import java.util.stream.Collectors;
  * @author Jas
  */
 public class CharUtil {
+    /**
+     * 小写字母
+     */
+    public static final String LOWERCASE = "abcdefghijklmnopqrstuvwxyz";
+    /**
+     * 大写字母
+     */
+    public static final String UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    /**
+     * 大小写字母
+     */
+    public static final String ALPHABET = LOWERCASE + UPPERCASE;
+    /**
+     * 数字
+     */
+    public static final String DIGITS = "0123456789";
+    /**
+     * 符号
+     */
+    public static final String SYMBOL = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
+    /**
+     * 字母+数字+符号
+     */
+    public static final String DEFAULT_CHARACTERS = ALPHABET + DIGITS + SYMBOL;
+    /**
+     * 特殊字符
+     */
+    public static final String SPECIAL_CHARACTER = getSpecialCharacter();
+
+    private static final Random RANDOM = new Random();
+
+    /**
+     * 获取Unicode中可打印的特殊字符
+     *
+     * @return special character
+     */
+    public static String getSpecialCharacter() {
+        // 基本拉丁字符
+        IntStream base = IntStream.rangeClosed(0x0020, 0x007E).filter(c -> !Character.isLetterOrDigit(c));
+        // 补充拉丁字符
+        IntStream supplement = IntStream.rangeClosed(0x00A0, 0x00FF).filter(c -> !Character.isLetterOrDigit(c));
+        // 常用标点字符
+        IntStream punctuation = IntStream.rangeClosed(0x2000, 0x206F).filter(c -> !Character.isLetterOrDigit(c));
+        // 常见拉丁字符 = 基本拉丁字符 + 补充拉丁字符
+        IntStream latin = IntStream.concat(base, supplement);
+        return IntStream.concat(latin, punctuation).mapToObj(c -> String.valueOf((char) c))
+                .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append).toString();
+    }
+
+    /**
+     * 随机生成字符串.
+     *
+     * @param length 指定长度
+     * @return string 字符串
+     */
+    public static String randomString(int length) {
+        return randomString(length, DEFAULT_CHARACTERS);
+    }
+
+    /**
+     * 随机生成字符串 (限定符).
+     *
+     * <p>只使用指定的字符生成</p>
+     *
+     * @param length 指定长度
+     * @param cs     可用字符
+     * @return string 字符串
+     */
+    public static String randomString(int length, CharSequence cs) {
+        if (length < 1) {
+            return "";
+        }
+        CharSequence charSequence = NullUtil.get(cs, DEFAULT_CHARACTERS);
+        return IntStream.range(0, length).map(i -> RANDOM.nextInt(charSequence.length())).mapToObj(charSequence::charAt)
+                .collect(StringBuilder::new, StringBuilder::append, StringBuilder::append).toString();
+    }
+
     /**
      * Split list.
      *
@@ -68,7 +146,7 @@ public class CharUtil {
      *
      * @param content   the content
      * @param maxlength the maxlength
-     * @return string
+     * @return string string
      */
     public static String cut(String content, int maxlength) {
         if (maxlength == -1 || NullUtil.get(content).length() < maxlength) {
