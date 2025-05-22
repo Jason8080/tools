@@ -953,7 +953,7 @@ public class WebUtil {
     }
 
     /**
-     * Has header boolean.
+     * 有指定头 (忽略大小写).
      *
      * @param name the name
      * @return the boolean
@@ -974,7 +974,7 @@ public class WebUtil {
     }
 
     /**
-     * Has header boolean.
+     * 有指定头 (忽略大小写).
      *
      * @param name  the name
      * @param value the value
@@ -991,7 +991,7 @@ public class WebUtil {
 
 
     /**
-     * Gets header.
+     * 获取请求头 (忽略大小写).
      *
      * @param req  the req
      * @param name the name
@@ -1012,7 +1012,7 @@ public class WebUtil {
     }
 
     /**
-     * Gets current header.
+     * 获取请求头 (忽略大小写).
      *
      * @param name the name
      * @return current header
