@@ -974,7 +974,7 @@ public class WebUtil {
     }
 
     /**
-     * Has current header boolean.
+     * Has header boolean.
      *
      * @param name  the name
      * @param value the value
