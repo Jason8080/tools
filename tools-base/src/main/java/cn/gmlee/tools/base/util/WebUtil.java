@@ -953,12 +953,12 @@ public class WebUtil {
     }
 
     /**
-     * Check current header boolean.
+     * Has header boolean.
      *
      * @param name the name
      * @return the boolean
      */
-    public static boolean checkCurrentHeader(String name) {
+    public static boolean hasHeader(String name) {
         HttpServletRequest req = getRequest();
         if (req == null) {
             return false;
@@ -974,13 +974,13 @@ public class WebUtil {
     }
 
     /**
-     * Check current header boolean.
+     * Has current header boolean.
      *
      * @param name  the name
      * @param value the value
      * @return the boolean
      */
-    public static boolean checkCurrentHeader(String name, String value) {
+    public static boolean hasHeader(String name, String value) {
         String head = getCurrentHeader(name);
         return BoolUtil.equalsIgnoreCase(head, value);
     }
