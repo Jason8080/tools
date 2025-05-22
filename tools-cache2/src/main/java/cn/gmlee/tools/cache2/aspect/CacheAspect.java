@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -42,12 +41,31 @@ public class CacheAspect {
     private Cache2Conf conf;
 
     /**
+     * 相同对象: 1个线程只处理1次
+     */
+    private final ThreadLocal<List> results = new InheritableThreadLocal<>();
+
+    private boolean ignoringDuplicates(Object result) {
+        List list = results.get();
+        if(list == null) {
+            list = new ArrayList();
+            results.set(list);
+        }
+        if(list.contains(result)) {
+            return true;
+        }
+        list.add(result);
+        return false;
+    }
+
+    /**
      * 切入点.
      */
     @Pointcut("execution (* *..controller..*Controller..*(..)) || " +
             "execution (* *..api..*Api..*(..)) || " +
             "@within(org.springframework.stereotype.Controller) || " +
-            "@within(org.springframework.web.bind.annotation.RestController)"
+            "@within(org.springframework.web.bind.annotation.RestController) ||" +
+            "@annotation(cn.gmlee.tools.cache2.anno.Cached)"
     )
     public void pointcut() {
     }
@@ -64,6 +82,12 @@ public class CacheAspect {
         // 全局关闭
         if (Boolean.FALSE.equals(conf.getEnable())) {
             QuickUtil.isTrue(conf.isLog(), () -> log.info("Cache2 is closed: {}", conf));
+            return;
+        }
+
+        // 忽略重复
+        if(ignoringDuplicates(result)) {
+            QuickUtil.isTrue(conf.isLog(), () -> log.info("Cache2 is finished: {}", conf));
             return;
         }
 
@@ -88,6 +112,8 @@ public class CacheAspect {
             log.warn("字典翻译异常", e);
 
         } finally {
+
+            results.remove();
 
             ClassKit.clear();
 
