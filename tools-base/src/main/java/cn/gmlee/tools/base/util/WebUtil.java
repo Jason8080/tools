@@ -953,6 +953,39 @@ public class WebUtil {
     }
 
     /**
+     * Check current header boolean.
+     *
+     * @param name the name
+     * @return the boolean
+     */
+    public static boolean checkCurrentHeader(String name) {
+        HttpServletRequest req = getRequest();
+        if (req == null) {
+            return false;
+        }
+        Enumeration<String> names = req.getHeaderNames();
+        while (names.hasMoreElements()) {
+            String head = names.nextElement();
+            if (BoolUtil.equalsIgnoreCase(head, name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check current header boolean.
+     *
+     * @param name  the name
+     * @param value the value
+     * @return the boolean
+     */
+    public static boolean checkCurrentHeader(String name, String value) {
+        String head = getCurrentHeader(name);
+        return BoolUtil.equalsIgnoreCase(head, value);
+    }
+
+    /**
      * Gets current header.
      *
      * @param name the name
