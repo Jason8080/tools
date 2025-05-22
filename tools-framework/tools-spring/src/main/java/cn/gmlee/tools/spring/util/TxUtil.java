@@ -5,6 +5,7 @@ import cn.gmlee.tools.base.util.AssertUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.NullUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -62,5 +63,16 @@ public class TxUtil {
             }
             return result;
         });
+    }
+
+    /**
+     * 回滚当前事务
+     *
+     * @param condition 回滚条件
+     */
+    public static void rollback(boolean condition) {
+        if (condition) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+        }
     }
 }
