@@ -981,8 +981,34 @@ public class WebUtil {
      * @return the boolean
      */
     public static boolean hasHeader(String name, String value) {
-        String head = getCurrentHeader(name);
-        return BoolUtil.equalsIgnoreCase(head, value);
+        HttpServletRequest req = getRequest();
+        if (req == null) {
+            return false;
+        }
+        String header = getHeader(req, name);
+        return BoolUtil.equalsIgnoreCase(header, value);
+    }
+
+
+    /**
+     * Gets header.
+     *
+     * @param req  the req
+     * @param name the name
+     * @return the header
+     */
+    public static String getHeader(HttpServletRequest req, String name) {
+        if (req == null) {
+            return null;
+        }
+        Enumeration<String> names = req.getHeaderNames();
+        while (names.hasMoreElements()) {
+            String head = names.nextElement();
+            if (BoolUtil.equalsIgnoreCase(head, name)) {
+                return req.getHeader(head);
+            }
+        }
+        return null;
     }
 
     /**
@@ -992,11 +1018,7 @@ public class WebUtil {
      * @return current header
      */
     public static String getCurrentHeader(String name) {
-        HttpServletRequest req = WebUtil.getRequest();
-        if (req != null) {
-            return req.getHeader(name);
-        }
-        return null;
+        return getHeader(getRequest(), name);
     }
 
     /**
