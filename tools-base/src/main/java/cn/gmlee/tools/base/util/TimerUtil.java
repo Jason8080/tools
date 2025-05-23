@@ -19,9 +19,9 @@ public class TimerUtil {
 
     private static String group(String... tips) {
         if (BoolUtil.isEmpty(tips)) {
-            return "default";
+            return Thread.currentThread().getName();
         }
-        return String.join(" • ", tips);
+        return String.join(" • ", tips) + "_" + Thread.currentThread().getId();
     }
 
     private static Long get(String... tips) {
