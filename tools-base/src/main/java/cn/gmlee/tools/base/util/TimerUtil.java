@@ -1,10 +1,9 @@
 package cn.gmlee.tools.base.util;
 
-import cn.gmlee.tools.base.kit.thread.AutoCleanThreadLocal;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 计时器工具
@@ -15,7 +14,7 @@ import java.util.Map;
 @Slf4j
 public class TimerUtil {
 
-    private static ThreadLocal<Map<String, Long>> last = new AutoCleanThreadLocal<>();
+    private final static Map<String, Long> map = new ConcurrentHashMap<>();
 
     private static String group(String... tips) {
         if (BoolUtil.isEmpty(tips)) {
@@ -26,17 +25,11 @@ public class TimerUtil {
 
     private static Long get(String... tips) {
         String group = group(tips);
-        Map<String, Long> map = last.get();
-        return map != null ? map.get(group) : null;
+        return map.get(group);
     }
 
     private static void set(Long millis, String... tips) {
         String group = group(tips);
-        Map<String, Long> map = last.get();
-        if (map == null) {
-            map = new HashMap<>();
-            last.set(map);
-        }
         map.put(group, millis);
     }
 
@@ -54,10 +47,14 @@ public class TimerUtil {
      * @return the long
      */
     public static long timer(String... tips) {
+        Long last = get(tips);
         long millis = System.currentTimeMillis();
-        long ms = NullUtil.get(get(tips), millis);
+        if (last != null) {
+            map.remove(group(tips));
+            return millis - last;
+        }
         set(System.currentTimeMillis(), tips);
-        return millis - ms;
+        return 0;
     }
 
     /**
