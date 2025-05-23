@@ -85,7 +85,7 @@ public class TimerUtil {
      * @param groups 统计组(2次调用名称需要保持一致)
      * @return long 耗时统计
      */
-    public static long groupPrintf(String... groups) {
+    public static long info(String... groups) {
         return log(state(groups), msg(groups), timer(groups));
     }
 
@@ -94,7 +94,7 @@ public class TimerUtil {
      *
      * @param words 关键字
      */
-    public static void printf(String... words) {
+    public static void print(String... words) {
         log(state("default"), msg(words), timer("default"));
     }
 

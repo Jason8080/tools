@@ -24,14 +24,14 @@ public class RecognitionTests {
 
     @Test
     public void testAudio() throws Exception {
-        TimerUtil.printf();
+        TimerUtil.print();
         Microphone microphone = new Microphone();
         Flowable<String> ask = recognitionServer.ask(microphone);
         recoding(microphone);
         StringBuilder sb = new StringBuilder();
         ask.blockingForEach(x -> sb.append(x));
         System.out.println(sb);
-        TimerUtil.printf();
+        TimerUtil.print();
     }
 
     private void recoding(Microphone microphone) throws Exception {

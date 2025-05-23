@@ -26,11 +26,11 @@ public class VideoSynthesisTests {
      */
     @Test
     public void testAsk(){
-        TimerUtil.printf();
+        TimerUtil.print();
         VideoSynthesisOutput ask = videoSynthesisServer.askImage("https://img1.baidu.com/it/u=3052116511,4003568839&fm=253&fmt=auto&app=120&f=JPEG?w=500&h=889",
                 "她正在热舞");
         System.out.println(ask);
-        TimerUtil.printf();
+        TimerUtil.print();
     }
 
     /**
@@ -38,10 +38,10 @@ public class VideoSynthesisTests {
      */
     @Test
     public void testGet(){
-        TimerUtil.printf();
+        TimerUtil.print();
         VideoSynthesisOutput ask = videoSynthesisServer.get("8b39c679-57eb-4bf1-9617-0e245efe7921");
         System.out.println(ask);
-        TimerUtil.printf();
+        TimerUtil.print();
     }
 
     /**
@@ -49,10 +49,10 @@ public class VideoSynthesisTests {
      */
     @Test
     public void testPage(){
-        TimerUtil.printf();
+        TimerUtil.print();
         VideoSynthesisListResult page = videoSynthesisServer.page();
         System.out.println(JsonUtils.toJson(page));
-        TimerUtil.printf();
+        TimerUtil.print();
     }
 
 }
