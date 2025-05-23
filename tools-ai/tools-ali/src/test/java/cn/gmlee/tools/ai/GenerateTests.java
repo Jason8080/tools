@@ -19,14 +19,14 @@ public class GenerateTests {
 
     @Test
     public void testAskThinking(){
-        TimerUtil.print();
+        TimerUtil.println();
         Flowable<Kv<String,String>> ask = generateServer.askThinking(null, "我是谁?");
         // 思考
         ask.blockingForEach(kv -> System.out.println(kv.getDesc()));
         System.out.println("-----------------------------------------------");
         // 回答
         ask.blockingForEach(kv -> System.out.println(kv.getVal()));
-        TimerUtil.print();
+        TimerUtil.println();
     }
 
 }

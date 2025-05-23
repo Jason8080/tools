@@ -1,10 +1,7 @@
 package cn.gmlee.tools.ai;
 
-import cn.gmlee.tools.ai.server.async.ImageSynthesisServer;
 import cn.gmlee.tools.ai.server.async.VideoSynthesisServer;
 import cn.gmlee.tools.base.util.TimerUtil;
-import com.alibaba.dashscope.aigc.imagesynthesis.ImageSynthesisListResult;
-import com.alibaba.dashscope.aigc.imagesynthesis.ImageSynthesisOutput;
 import com.alibaba.dashscope.aigc.videosynthesis.VideoSynthesisListResult;
 import com.alibaba.dashscope.aigc.videosynthesis.VideoSynthesisOutput;
 import com.alibaba.dashscope.utils.JsonUtils;
@@ -29,11 +26,11 @@ public class VideoSynthesisTests {
      */
     @Test
     public void testAsk(){
-        TimerUtil.print();
+        TimerUtil.println();
         VideoSynthesisOutput ask = videoSynthesisServer.askImage("https://img1.baidu.com/it/u=3052116511,4003568839&fm=253&fmt=auto&app=120&f=JPEG?w=500&h=889",
                 "她正在热舞");
         System.out.println(ask);
-        TimerUtil.print();
+        TimerUtil.println();
     }
 
     /**
@@ -41,10 +38,10 @@ public class VideoSynthesisTests {
      */
     @Test
     public void testGet(){
-        TimerUtil.print();
+        TimerUtil.println();
         VideoSynthesisOutput ask = videoSynthesisServer.get("8b39c679-57eb-4bf1-9617-0e245efe7921");
         System.out.println(ask);
-        TimerUtil.print();
+        TimerUtil.println();
     }
 
     /**
@@ -52,10 +49,10 @@ public class VideoSynthesisTests {
      */
     @Test
     public void testPage(){
-        TimerUtil.print();
+        TimerUtil.println();
         VideoSynthesisListResult page = videoSynthesisServer.page();
         System.out.println(JsonUtils.toJson(page));
-        TimerUtil.print();
+        TimerUtil.println();
     }
 
 }

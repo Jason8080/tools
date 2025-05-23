@@ -29,21 +29,21 @@ public class DashScopeWlTests {
     @Test
     public void testImage(){
         // 1911610483048722433
-        TimerUtil.print();
+        TimerUtil.println();
         Flowable<String> ask = dashScopeServer.askImage("", "计算磅单中的净重,单位转换成吨(1吨=1000KG),多张磅单则求和,只要数字",
                 "https://prod-public-ldw.oss-cn-shenzhen.aliyuncs.com/20250414/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_202504140954571.png?Expires=11744617127&OSSAccessKeyId=LTAI5t6MaMnjGd7qKm9XjjbN&Signature=Q8WdJdlri8ldLDffmpeTKgoHyWU%3D");
         StringBuilder sb = new StringBuilder();
         ask.blockingForEach(x -> sb.append(x));
         System.out.println(sb);
         System.out.println(RegexUtil.last(sb.toString(), Regex.NUMBER.regex, true));
-        TimerUtil.print();
+        TimerUtil.println();
     }
 
     @Test
     public void testImage2(){
         // 1911605536991227905
         // 1914264723835596802 错行
-        TimerUtil.print();
+        TimerUtil.println();
         Flowable<String> ask = dashScopeServer.askImage("",
                 "请分析图片磅单中的净重",
                 "https://prod-public-ldw.oss-cn-shenzhen.aliyuncs.com/%E6%A8%AA%E5%90%91%E9%94%99%E8%A1%8C%E7%A3%85%E5%8D%951.png?Expires=11745231268&OSSAccessKeyId=LTAI5t6MaMnjGd7qKm9XjjbN&Signature=vv4Zt%2BzO9L2oWJ%2BAbs%2BkIECQBcQ%3D"
@@ -52,7 +52,7 @@ public class DashScopeWlTests {
         ask.blockingForEach(x -> sb.append(x));
         System.out.println(sb);
         System.out.println(RegexUtil.last(sb.toString(), Regex.NUMBER.regex, true));
-        TimerUtil.print();
+        TimerUtil.println();
     }
 
 
