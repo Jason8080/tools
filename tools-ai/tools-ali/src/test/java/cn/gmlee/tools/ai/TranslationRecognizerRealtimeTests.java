@@ -26,7 +26,7 @@ public class TranslationRecognizerRealtimeTests {
 
     @Test
     public void testAudio() throws Exception {
-        TimerUtil.println();
+        TimerUtil.printf();
         Microphone microphone = new Microphone();
         Flowable<Kv<String, Map<String, String>>> ask = translationRecognizerRealtimeServer.ask(microphone, "en");
         recoding(microphone);
@@ -35,7 +35,7 @@ public class TranslationRecognizerRealtimeTests {
             System.out.println(x.getKey());
             System.out.println(x.getVal());
         });
-        TimerUtil.println();
+        TimerUtil.printf();
     }
 
     private void recoding(Microphone microphone) throws Exception {

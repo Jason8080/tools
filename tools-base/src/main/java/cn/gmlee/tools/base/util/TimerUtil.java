@@ -1,8 +1,11 @@
 package cn.gmlee.tools.base.util;
 
+import cn.gmlee.tools.base.kit.task.TimerTask;
+import cn.gmlee.tools.base.kit.task.TimerTaskManager;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -15,6 +18,23 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TimerUtil {
 
     private final static Map<String, Long> map = new ConcurrentHashMap<>();
+    private final static int period = 3600 * 1000; // 1小时毫秒数
+
+    static {
+        TimerTaskManager.run(new TimerTask(1000, period){
+            @Override
+            public void run() {
+                long current = System.currentTimeMillis();
+                Set<String> groups = map.keySet();
+                for (String group : groups) {
+                    Long millis = NullUtil.get(map.get(group), 0L);
+                    if (current - millis > 24 * TimerUtil.period) {
+                        map.remove(group); // 清理1天以上的计数数据
+                    }
+                }
+            }
+        });
+    }
 
     private static String group(String... groups) {
         if (BoolUtil.isEmpty(groups)) {
@@ -60,29 +80,25 @@ public class TimerUtil {
     }
 
     /**
-     * 打印机 (分组统计).
+     * 格式化打印 (分组).
      *
      * @param groups 统计组(2次调用名称需要保持一致)
      * @return long 耗时统计
      */
-    public static long printer(String... groups) {
-        String state = state(groups);
-        long timer = timer(groups);
-        String msg = msg(groups);
-        log.info("\r\n---------- 计时{} ----------\r\n{}:\t{}/ms\r\n-------------------------------", state, msg, timer);
-        return timer;
+    public static long groupPrintf(String... groups) {
+        return log(state(groups), msg(groups), timer(groups));
     }
 
     /**
-     * 打印.
+     * 格式化打印.
      *
      * @param words 关键字
-     * @return long 耗时统计
      */
-    public static long println(String... words) {
-        String state = state("default");
-        long timer = timer("default");
-        String msg = msg(words);
+    public static void printf(String... words) {
+        log(state("default"), msg(words), timer("default"));
+    }
+
+    private static long log(String state, String msg, long timer) {
         log.info("\r\n---------- 计时{} ----------\r\n{}:\t{}/ms\r\n-------------------------------", state, msg, timer);
         return timer;
     }

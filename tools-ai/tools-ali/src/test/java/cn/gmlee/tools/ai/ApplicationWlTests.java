@@ -40,13 +40,13 @@ public class ApplicationWlTests {
 
     @Test
     public void testAsk(){
-        TimerUtil.println();
+        TimerUtil.printf();
         Flowable<String> ask = applicationServer.ask(user, KvBuilder.array("image", image2));
         StringBuilder sb = new StringBuilder();
         ask.blockingForEach(x -> sb.append(x));
         System.out.println(sb);
         System.out.println(RegexUtil.last(sb.toString(), Regex.NUMBER.regex, false));
-        TimerUtil.println();
+        TimerUtil.printf();
     }
 
 }

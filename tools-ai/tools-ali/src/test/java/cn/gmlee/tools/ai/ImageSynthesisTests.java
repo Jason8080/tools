@@ -26,10 +26,10 @@ public class ImageSynthesisTests {
      */
     @Test
     public void testAsk(){
-        TimerUtil.println();
+        TimerUtil.printf();
         ImageSynthesisOutput ask = imageSynthesisServer.ask("一位身穿黑色丝袜的修长美女正在热舞,背景是极简的酒店装修,抖音直播风格,可以清晰的看到主播曼妙的诱人身姿");
         System.out.println(ask);
-        TimerUtil.println();
+        TimerUtil.printf();
     }
 
     /**
@@ -37,10 +37,10 @@ public class ImageSynthesisTests {
      */
     @Test
     public void testGet(){
-        TimerUtil.println();
+        TimerUtil.printf();
         ImageSynthesisOutput ask = imageSynthesisServer.get("23ae4211-1838-4cca-9745-f82c35020d8b");
         System.out.println(ask);
-        TimerUtil.println();
+        TimerUtil.printf();
     }
 
     /**
@@ -48,10 +48,10 @@ public class ImageSynthesisTests {
      */
     @Test
     public void testPage(){
-        TimerUtil.println();
+        TimerUtil.printf();
         ImageSynthesisListResult page = imageSynthesisServer.page();
         System.out.println(JsonUtils.toJson(page));
-        TimerUtil.println();
+        TimerUtil.printf();
     }
 
 }
