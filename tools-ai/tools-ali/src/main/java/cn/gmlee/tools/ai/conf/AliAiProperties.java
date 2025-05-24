@@ -82,7 +82,7 @@ public class AliAiProperties {
         private Boolean enableThinking = Boolean.FALSE; // 是否开启思考
         private Boolean hasThoughts = Boolean.FALSE; // 是否展示意图
         private String audioFormat = "pcm"; // 默认音频格式
-        private String spec = "1280*720"; // 默认分辨率
+        private String spec = "720*1280"; // 默认分辨率
         private Integer duration = 5; // 默认视频时长
     }
 }
