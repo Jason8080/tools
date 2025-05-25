@@ -62,7 +62,7 @@ public class MultiModalConversationServer {
                 .build();
         MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
     }
 
     /**
@@ -95,7 +95,7 @@ public class MultiModalConversationServer {
                 .build();
         MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
     }
 
     /**
@@ -128,7 +128,7 @@ public class MultiModalConversationServer {
                 .build();
         MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
     }
 
     /**
@@ -150,7 +150,7 @@ public class MultiModalConversationServer {
                 .build();
         MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
     }
 
     /**
@@ -182,7 +182,7 @@ public class MultiModalConversationServer {
                 .build();
         MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
     }
 
 
@@ -216,7 +216,7 @@ public class MultiModalConversationServer {
                 .build();
         MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
     }
 
     /**
@@ -250,7 +250,7 @@ public class MultiModalConversationServer {
                 .build();
         MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
     }
 
     /**
@@ -282,7 +282,7 @@ public class MultiModalConversationServer {
                 .build();
         MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
     }
 
     /**
@@ -315,7 +315,7 @@ public class MultiModalConversationServer {
                 .build();
         MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
     }
 
 
@@ -350,7 +350,7 @@ public class MultiModalConversationServer {
                 .build();
         MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
     }
 
     private static MultiModalMessage getTextMultiModalMessage(Role role, String text) {
@@ -405,7 +405,7 @@ public class MultiModalConversationServer {
                 .build();
     }
 
-    private Ask convertText(MultiModalConversationResult result) {
+    private Ask convertAsk(MultiModalConversationResult result) {
 //        ExceptionUtil.sandbox(() -> logger(result));
         MultiModalConversationOutput output = result.getOutput();
         List<MultiModalConversationOutput.Choice> choices = output.getChoices();
@@ -417,6 +417,7 @@ public class MultiModalConversationServer {
                 .map(MultiModalConversationOutput.Choice::getMessage)
                 .filter(Objects::nonNull)
                 .map(Ask::new)
+                .filter(Ask::notEmpty)
                 .collect(Collectors.toList());
         return new Ask(asks);
     }

@@ -1,6 +1,8 @@
 package cn.gmlee.tools.ai.mod;
 
 import cn.gmlee.tools.base.util.BoolUtil;
+import cn.gmlee.tools.base.util.NullUtil;
+import com.alibaba.dashscope.common.Message;
 import com.alibaba.dashscope.common.MultiModalMessage;
 import lombok.Data;
 
@@ -8,8 +10,12 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
+/**
+ * The type Ask.
+ */
 @Data
 public class Ask implements Serializable {
     /**
@@ -38,14 +44,35 @@ public class Ask implements Serializable {
      */
     private String reply;
 
+    /**
+     * Instantiates a new Ask.
+     */
     public Ask() {
+        this.think = "";
+        this.reply = "";
     }
 
+    /**
+     * Instantiates a new Ask.
+     *
+     * @param reply the reply
+     */
+    public Ask(String reply) {
+        this();
+        this.reply = NullUtil.get(reply);
+    }
+
+    /**
+     * Instantiates a new Ask.
+     *
+     * @param mmm the mmm
+     */
     public Ask(MultiModalMessage mmm) {
-        this.think = mmm.getReasoningContent();
+        this();
+        this.think = NullUtil.get(mmm.getReasoningContent());
         List<Map<String, Object>> contents = mmm.getContent();
         if (BoolUtil.isEmpty(contents)) {
-            this.reply = "";
+            return;
         }
         this.reply = contents.stream()
                 .map(entry -> entry.get("text"))
@@ -54,10 +81,29 @@ public class Ask implements Serializable {
                 .collect(Collectors.joining());
     }
 
+    /**
+     * Instantiates a new Ask.
+     *
+     * @param message the message
+     */
+    public Ask(Message message) {
+        this();
+        this.think = NullUtil.get(message.getReasoningContent());
+        this.reply = NullUtil.get(message.getContent());
+    }
+
+    /**
+     * Instantiates a new Ask.
+     *
+     * @param asks the asks
+     */
     public Ask(List<Ask> asks) {
+        this();
         if (BoolUtil.isEmpty(asks)) {
             return;
         }
+        this.think = asks.stream().filter(Objects::nonNull).filter(Ask::notEmpty).map(Ask::getThink).collect(Collectors.joining());
+        this.reply = asks.stream().filter(Objects::nonNull).filter(Ask::notEmpty).map(Ask::getReply).collect(Collectors.joining());
         for (Ask ask : asks) {
             if (BoolUtil.isEmpty(this.systemPrompt)) {
                 this.systemPrompt = ask.systemPrompt;
@@ -68,9 +114,27 @@ public class Ask implements Serializable {
             if (BoolUtil.isEmpty(this.sessionId)) {
                 this.sessionId = ask.sessionId;
             }
-            this.think += ask.think;
-            this.reply += ask.reply;
-            this.files.addAll(ask.files);
+            if (BoolUtil.isEmpty(this.files)) {
+                this.files = ask.files;
+            }
         }
+    }
+
+    /**
+     * Is empty boolean.
+     *
+     * @return the boolean
+     */
+    public boolean isEmpty(){
+        return BoolUtil.allEmpty(this.think, this.reply);
+    }
+
+    /**
+     * Not empty boolean.
+     *
+     * @return the boolean
+     */
+    public boolean notEmpty(){
+        return !isEmpty();
     }
 }
