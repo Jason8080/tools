@@ -180,7 +180,7 @@ public class GenerateServer {
     }
 
     private String convertText(GenerationResult result) {
-        ExceptionUtil.sandbox(() -> logger(result));
+//        ExceptionUtil.sandbox(() -> logger(result));
         GenerationOutput output = result.getOutput();
         List<GenerationOutput.Choice> choices = output.getChoices();
         if (BoolUtil.isEmpty(choices)) {
