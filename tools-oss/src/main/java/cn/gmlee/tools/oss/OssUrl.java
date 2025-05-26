@@ -124,4 +124,24 @@ public class OssUrl {
                 () -> download(oss, bucketName, objectName, duration, headers), true
         )).collect(Collectors.toList());
     }
+
+
+    /**
+     * 文件下载链接.
+     *
+     * @param oss         客户端
+     * @param bucketName  对象桶
+     * @param objectNames 路径名 (填写Object完整路径,不能包含Bucket名称)
+     * @param duration    有效期
+     * @param headers     请求头
+     * @return string 下载链接
+     */
+    public static List<URL> download(OSS oss, String bucketName, List<String> objectNames, int duration, Map<String, String> headers) {
+        if (BoolUtil.isEmpty(objectNames)) {
+            return Collections.emptyList();
+        }
+        return objectNames.parallelStream().map(objectName -> ExceptionUtil.sandbox(
+                () -> download(oss, bucketName, objectName, duration, headers), true
+        )).collect(Collectors.toList());
+    }
 }
