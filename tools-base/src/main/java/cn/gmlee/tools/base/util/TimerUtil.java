@@ -4,8 +4,8 @@ import cn.gmlee.tools.base.kit.task.TimerTask;
 import cn.gmlee.tools.base.kit.task.TimerTaskManager;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -25,11 +25,12 @@ public class TimerUtil {
             @Override
             public void run() {
                 long current = System.currentTimeMillis();
-                Set<String> groups = map.keySet();
-                for (String group : groups) {
-                    Long millis = NullUtil.get(map.get(group), 0L);
-                    if (current - millis > 24 * TimerUtil.period) {
-                        map.remove(group); // 清理1天以上的计数数据
+                Iterator<Map.Entry<String, Long>> it = map.entrySet().iterator();
+                while (it.hasNext()) {
+                    Map.Entry<String, Long> entry = it.next();
+                    Long millis = entry.getValue(); // 直接获取值，避免二次查询
+                    if (millis == null || current - millis > 24 * TimerUtil.period) {
+                        it.remove(); // 使用 Iterator.remove() 原子删除
                     }
                 }
             }
@@ -48,11 +49,6 @@ public class TimerUtil {
         return map.get(group);
     }
 
-    private static void set(Long millis, String... groups) {
-        String group = group(groups);
-        map.put(group, millis);
-    }
-
     private static String msg(String... groups) {
         if (BoolUtil.isEmpty(groups)) {
             return get(groups) != null ? "耗时" : "校准";
@@ -69,14 +65,13 @@ public class TimerUtil {
     }
 
     private static long timer(String... groups) {
-        Long last = get(groups); // 先获取
-        set(System.currentTimeMillis(), groups); // 再设置
-        long millis = System.currentTimeMillis();
+        long current = System.currentTimeMillis();
+        Long last = map.putIfAbsent(group(groups), current);
         if (last != null) {
             map.remove(group(groups));
-            return millis - last;
+            return current - last;
         }
-        return get(groups) - millis; // 起到校准作用
+        return get(groups) - current; // 起到校准作用
     }
 
     /**
