@@ -1,5 +1,6 @@
 package cn.gmlee.tools.ai;
 
+import cn.gmlee.tools.ai.mod.Ask;
 import cn.gmlee.tools.ai.server.stream.GenerateServer;
 import cn.gmlee.tools.base.enums.Regex;
 import cn.gmlee.tools.base.util.RegexUtil;
@@ -30,22 +31,9 @@ public class GenerateWlTests {
     public void testAsk(){
         // 1911610483048722433
         TimerUtil.print();
-        Flowable<String> ask = generateServer.ask(sys, "计算磅单中的净重,单位转换成吨(1吨=1000KG),多张磅单则求和,只要数字");
+        Flowable<Ask> ask = generateServer.ask(sys, "计算磅单中的净重,单位转换成吨(1吨=1000KG),多张磅单则求和,只要数字");
         StringBuilder sb = new StringBuilder();
-        ask.blockingForEach(x -> sb.append(x));
-        System.out.println(sb);
-        System.out.println(RegexUtil.last(sb.toString(), Regex.NUMBER.regex, true));
-        TimerUtil.print();
-    }
-
-    @Test
-    public void testImage2(){
-        // 1911610483048722433
-        TimerUtil.print();
-        Flowable<String> ask = generateServer.askImage(sys, "计算磅单中的净重,单位转换成吨(1吨=1000KG),多张磅单则求和,只要数字",
-                "https://prod-public-ldw.oss-cn-shenzhen.aliyuncs.com/%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250414095502.png?Expires=11744617068&OSSAccessKeyId=LTAI5t6MaMnjGd7qKm9XjjbN&Signature=%2By4fyMAD%2BQ16uEvjKNv6j8oKWsk%3D");
-        StringBuilder sb = new StringBuilder();
-        ask.blockingForEach(x -> sb.append(x));
+        ask.blockingForEach(x -> sb.append(x.getReply()));
         System.out.println(sb);
         System.out.println(RegexUtil.last(sb.toString(), Regex.NUMBER.regex, true));
         TimerUtil.print();

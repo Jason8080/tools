@@ -2,6 +2,7 @@ package cn.gmlee.tools.ai.server.stream;
 
 import cn.gmlee.tools.ai.assist.MultiAssist;
 import cn.gmlee.tools.ai.conf.AliAiProperties;
+import cn.gmlee.tools.ai.mod.Ask;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.NullUtil;
@@ -41,7 +42,7 @@ public class MultiModalConversationServer {
      * @param user 用户输入
      * @return flowable 输出内容
      */
-    public Flowable<String> ask(String sys, String user) {
+    public Flowable<Ask> ask(String sys, String user) {
         return ask(aliAiProperties.getDefaultModel(), sys, user);
     }
 
@@ -53,7 +54,7 @@ public class MultiModalConversationServer {
      * @param user  用户输入
      * @return flowable 输出内容
      */
-    public Flowable<String> ask(String model, String sys, String user) {
+    public Flowable<Ask> ask(String model, String sys, String user) {
         MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
@@ -61,7 +62,7 @@ public class MultiModalConversationServer {
                 .build();
         MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
     }
 
     /**
@@ -72,7 +73,7 @@ public class MultiModalConversationServer {
      * @param image 图片内容
      * @return flowable 输出内容
      */
-    public Flowable<String> askImage(String sys, String user, String image) {
+    public Flowable<Ask> askImage(String sys, String user, String image) {
         return askImage(aliAiProperties.getDefaultModel(), sys, user, image);
     }
 
@@ -86,7 +87,7 @@ public class MultiModalConversationServer {
      * @param image 图片内容
      * @return flowable 输出内容
      */
-    public Flowable<String> askImage(String model, String sys, String user, String image) {
+    public Flowable<Ask> askImage(String model, String sys, String user, String image) {
         MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
@@ -94,7 +95,7 @@ public class MultiModalConversationServer {
                 .build();
         MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
     }
 
     /**
@@ -105,7 +106,7 @@ public class MultiModalConversationServer {
      * @param image 图片内容
      * @return flowable 输出内容
      */
-    public Flowable<String> askImage(String sys, String user, byte... image) {
+    public Flowable<Ask> askImage(String sys, String user, byte... image) {
         return askImage(aliAiProperties.getDefaultModel(), sys, user, image);
     }
 
@@ -118,7 +119,7 @@ public class MultiModalConversationServer {
      * @param image 图片内容
      * @return flowable 输出内容
      */
-    public Flowable<String> askImage(String model, String sys, String user, byte... image) {
+    public Flowable<Ask> askImage(String model, String sys, String user, byte... image) {
         MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
         String content = MultiAssist.base64Image("png", image);
         MultiModalMessage userMessage = MultiModalMessage.builder()
@@ -127,7 +128,7 @@ public class MultiModalConversationServer {
                 .build();
         MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
     }
 
     /**
@@ -139,7 +140,7 @@ public class MultiModalConversationServer {
      * @param images 图片内容
      * @return flowable 输出内容
      */
-    public Flowable<String> askImages(String model, String sys, String user, String... images) {
+    public Flowable<Ask> askImages(String model, String sys, String user, String... images) {
         MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
         List<MultiModalMessageItemBase> contents = Arrays.stream(images).map(image -> MultiModalEmbeddingItemImage.builder().image(image).build()).collect(Collectors.toList());
         contents.add(MultiModalEmbeddingItemText.builder().text(user).build());
@@ -149,7 +150,7 @@ public class MultiModalConversationServer {
                 .build();
         MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
     }
 
     /**
@@ -160,7 +161,7 @@ public class MultiModalConversationServer {
      * @param audio 音频内容
      * @return flowable 输出内容
      */
-    public Flowable<String> askAudio(String sys, String user, String audio) {
+    public Flowable<Ask> askAudio(String sys, String user, String audio) {
         return askAudio(aliAiProperties.getDefaultModel(), sys, user, audio);
     }
 
@@ -173,7 +174,7 @@ public class MultiModalConversationServer {
      * @param audio 音频内容
      * @return flowable 输出内容
      */
-    public Flowable<String> askAudio(String model, String sys, String user, String audio) {
+    public Flowable<Ask> askAudio(String model, String sys, String user, String audio) {
         MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
@@ -181,7 +182,7 @@ public class MultiModalConversationServer {
                 .build();
         MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
     }
 
 
@@ -193,7 +194,7 @@ public class MultiModalConversationServer {
      * @param audio 音频内容
      * @return flowable 输出内容
      */
-    public Flowable<String> askAudio(String sys, String user, byte... audio) {
+    public Flowable<Ask> askAudio(String sys, String user, byte... audio) {
         return askAudio(aliAiProperties.getDefaultModel(), sys, user, audio);
     }
 
@@ -206,7 +207,7 @@ public class MultiModalConversationServer {
      * @param audio 音频内容
      * @return flowable 输出内容
      */
-    public Flowable<String> askAudio(String model, String sys, String user, byte... audio) {
+    public Flowable<Ask> askAudio(String model, String sys, String user, byte... audio) {
         MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
         String content = MultiAssist.base64Audio("mp3", audio);
         MultiModalMessage userMessage = MultiModalMessage.builder()
@@ -215,7 +216,7 @@ public class MultiModalConversationServer {
                 .build();
         MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
     }
 
     /**
@@ -226,7 +227,7 @@ public class MultiModalConversationServer {
      * @param audios 音频内容
      * @return flowable 输出内容
      */
-    public Flowable<String> askAudios(String sys, String user, String... audios) {
+    public Flowable<Ask> askAudios(String sys, String user, String... audios) {
         return askAudios(aliAiProperties.getDefaultModel(), sys, user, audios);
     }
 
@@ -239,7 +240,7 @@ public class MultiModalConversationServer {
      * @param audios 音频内容
      * @return flowable 输出内容
      */
-    public Flowable<String> askAudios(String model, String sys, String user, String... audios) {
+    public Flowable<Ask> askAudios(String model, String sys, String user, String... audios) {
         MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
         List<MultiModalMessageItemBase> contents = Arrays.stream(audios).map(audio -> MultiModalEmbeddingItemAudio.builder().audio(audio).build()).collect(Collectors.toList());
         contents.add(MultiModalEmbeddingItemText.builder().text(user).build());
@@ -249,7 +250,7 @@ public class MultiModalConversationServer {
                 .build();
         MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
     }
 
     /**
@@ -260,7 +261,7 @@ public class MultiModalConversationServer {
      * @param video 视频内容
      * @return flowable 输出内容
      */
-    public Flowable<String> askVideo(String sys, String user, String video) {
+    public Flowable<Ask> askVideo(String sys, String user, String video) {
         return askVideo(aliAiProperties.getDefaultModel(), sys, user, video);
     }
 
@@ -273,7 +274,7 @@ public class MultiModalConversationServer {
      * @param video 视频内容
      * @return flowable 输出内容
      */
-    public Flowable<String> askVideo(String model, String sys, String user, String video) {
+    public Flowable<Ask> askVideo(String model, String sys, String user, String video) {
         MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
@@ -281,7 +282,7 @@ public class MultiModalConversationServer {
                 .build();
         MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
     }
 
     /**
@@ -292,7 +293,7 @@ public class MultiModalConversationServer {
      * @param video 视频内容
      * @return flowable 输出内容
      */
-    public Flowable<String> askVideo(String sys, String user, byte... video) {
+    public Flowable<Ask> askVideo(String sys, String user, byte... video) {
         return askVideo(aliAiProperties.getDefaultModel(), sys, user, video);
     }
 
@@ -305,7 +306,7 @@ public class MultiModalConversationServer {
      * @param video 视频内容
      * @return flowable 输出内容
      */
-    public Flowable<String> askVideo(String model, String sys, String user, byte... video) {
+    public Flowable<Ask> askVideo(String model, String sys, String user, byte... video) {
         MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
         String content = MultiAssist.base64Video("mp4", video);
         MultiModalMessage userMessage = MultiModalMessage.builder()
@@ -314,7 +315,7 @@ public class MultiModalConversationServer {
                 .build();
         MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
     }
 
 
@@ -326,7 +327,7 @@ public class MultiModalConversationServer {
      * @param videos 视频内容
      * @return flowable 输出内容
      */
-    public Flowable<String> askVideos(String sys, String user, String... videos) {
+    public Flowable<Ask> askVideos(String sys, String user, String... videos) {
         return askVideos(aliAiProperties.getDefaultModel(), sys, user, videos);
     }
 
@@ -339,7 +340,7 @@ public class MultiModalConversationServer {
      * @param videos 视频内容
      * @return flowable 输出内容
      */
-    public Flowable<String> askVideos(String model, String sys, String user, String... videos) {
+    public Flowable<Ask> askVideos(String model, String sys, String user, String... videos) {
         MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
         List<MultiModalMessageItemBase> contents = Arrays.stream(videos).map(video -> MultiModalEmbeddingItemVideo.builder().video(video).build()).collect(Collectors.toList());
         contents.add(MultiModalEmbeddingItemText.builder().text(user).build());
@@ -349,7 +350,7 @@ public class MultiModalConversationServer {
                 .build();
         MultiModalConversationParam param = getMultiModalConversationParam(model, sysMessage, userMessage, "text");
         Flowable<MultiModalConversationResult> flowable = ExceptionUtil.suppress(() -> ali.streamCall(param));
-        return flowable.map(this::convertText);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
     }
 
     private static MultiModalMessage getTextMultiModalMessage(Role role, String text) {
@@ -404,26 +405,21 @@ public class MultiModalConversationServer {
                 .build();
     }
 
-    private String convertText(MultiModalConversationResult result) {
-        ExceptionUtil.sandbox(() -> logger(result));
+    private Ask convertAsk(MultiModalConversationResult result) {
+//        ExceptionUtil.sandbox(() -> logger(result));
         MultiModalConversationOutput output = result.getOutput();
         List<MultiModalConversationOutput.Choice> choices = output.getChoices();
         if (BoolUtil.isEmpty(choices)) {
-            return "";
+            return new Ask();
         }
-        List<String> texts = choices.stream()
+        List<Ask> asks = choices.stream()
                 .filter(Objects::nonNull)
                 .map(MultiModalConversationOutput.Choice::getMessage)
                 .filter(Objects::nonNull)
-                .map(MultiModalMessage::getContent)
-                .filter(BoolUtil::notEmpty)
-                .map(x -> x.stream()
-                        .map(entry -> entry.get("text"))
-                        .filter(o -> o instanceof String)
-                        .map(String::valueOf)
-                        .collect(Collectors.joining()))
+                .map(Ask::new)
+                .filter(Ask::notEmpty)
                 .collect(Collectors.toList());
-        return texts.stream().collect(Collectors.joining());
+        return new Ask(asks);
     }
 
     private static void logger(MultiModalConversationResult result) {
