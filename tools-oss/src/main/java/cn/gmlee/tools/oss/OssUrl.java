@@ -13,6 +13,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -48,6 +49,43 @@ public class OssUrl {
         request.setHeaders(MapBuilder.of(headers));
         return oss.generatePresignedUrl(request);
     }
+
+    /**
+     * 文件上传链接.
+     *
+     * @param oss        客户端
+     * @param bucketName 对象桶
+     * @param objectName 路径名 (填写Object完整路径,不能包含Bucket名称)
+     * @param duration   有效期
+     * @param headers    请求头
+     * @return string 上传链接
+     */
+    public static URL upload(OSS oss, String bucketName, String objectName, int duration, Map<String, String> headers) {
+        Date date = LocalDateTimeUtil.offsetCurrent(duration, ChronoUnit.SECONDS);
+        GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucketName, objectName, HttpMethod.PUT);
+        request.setExpiration(date);
+        request.setHeaders(headers);
+        return oss.generatePresignedUrl(request);
+    }
+
+    /**
+     * 文件下载链接.
+     *
+     * @param oss        客户端
+     * @param bucketName 对象桶
+     * @param objectName 路径名 (填写Object完整路径,不能包含Bucket名称)
+     * @param duration   有效期
+     * @param headers    请求头
+     * @return string 下载链接
+     */
+    public static URL download(OSS oss, String bucketName, String objectName, int duration, Map<String, String> headers) {
+        Date date = LocalDateTimeUtil.offsetCurrent(duration, ChronoUnit.SECONDS);
+        GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucketName, objectName, HttpMethod.GET);
+        request.setExpiration(date);
+        request.setHeaders(headers);
+        return oss.generatePresignedUrl(request);
+    }
+
 
     /**
      * 文件下载链接.
