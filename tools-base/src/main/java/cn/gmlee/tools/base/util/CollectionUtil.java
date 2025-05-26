@@ -155,6 +155,23 @@ public class CollectionUtil {
     }
 
     /**
+     * Gets ignore case.
+     *
+     * @param headers the headers
+     * @param key     the key
+     * @return the ignore case
+     */
+    public static String getIgnoreCase(Map<String, String> headers, String key) {
+        Set<Map.Entry<String, String>> entries = headers.entrySet();
+        for (Map.Entry<String, String> entry : entries) {
+            if(BoolUtil.equalsIgnoreCase(key, entry.getKey())) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    /**
      * 返回第1个值.
      *
      * @param <K> the type parameter

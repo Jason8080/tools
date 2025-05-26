@@ -1014,6 +1014,27 @@ public class WebUtil {
     /**
      * 获取请求头 (忽略大小写).
      *
+     * @param headers the headers
+     * @param name    the name
+     * @return the header
+     */
+    public static String getHeader(Map<String, String> headers, String name) {
+        if (BoolUtil.isEmpty(headers)) {
+            return null;
+        }
+        Set<Map.Entry<String, String>> entries = headers.entrySet();
+        for (Map.Entry<String, String> entry : entries) {
+            String key = entry.getKey();
+            if(BoolUtil.equalsIgnoreCase(key, name)) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 获取请求头 (忽略大小写).
+     *
      * @param name the name
      * @return current header
      */

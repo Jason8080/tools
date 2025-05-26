@@ -1,9 +1,7 @@
 package cn.gmlee.tools.oss;
 
 import cn.gmlee.tools.base.builder.MapBuilder;
-import cn.gmlee.tools.base.util.BoolUtil;
-import cn.gmlee.tools.base.util.ExceptionUtil;
-import cn.gmlee.tools.base.util.LocalDateTimeUtil;
+import cn.gmlee.tools.base.util.*;
 import com.aliyun.oss.HttpMethod;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.model.GeneratePresignedUrlRequest;
@@ -65,6 +63,7 @@ public class OssUrl {
         GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucketName, objectName, HttpMethod.PUT);
         request.setExpiration(date);
         request.setHeaders(headers);
+        request.setContentType(CollectionUtil.getIgnoreCase(headers, HttpUtil.CONTENT_TYPE));
         return oss.generatePresignedUrl(request);
     }
 
@@ -83,6 +82,7 @@ public class OssUrl {
         GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucketName, objectName, HttpMethod.GET);
         request.setExpiration(date);
         request.setHeaders(headers);
+        request.setContentType(CollectionUtil.getIgnoreCase(headers, HttpUtil.CONTENT_TYPE));
         return oss.generatePresignedUrl(request);
     }
 
