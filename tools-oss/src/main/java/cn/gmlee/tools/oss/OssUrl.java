@@ -75,9 +75,9 @@ public class OssUrl {
      * @return string 下载链接
      */
     public static URL download(OSS oss, String bucketName, String objectName, int duration, Map<String, String> headers) {
-        if (!exist(oss, bucketName, objectName)) {
-            return null;
-        }
+//        if (!exist(oss, bucketName, objectName)) {
+//            return null;
+//        }
         Date date = LocalDateTimeUtil.offsetCurrent(duration, ChronoUnit.SECONDS);
         GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucketName, objectName, HttpMethod.GET);
         request.setExpiration(date);
@@ -98,9 +98,9 @@ public class OssUrl {
      * @return string 下载链接
      */
     public static URL download(OSS oss, String bucketName, String objectName, int duration, String... headers) {
-        if (!exist(oss, bucketName, objectName)) {
-            return null;
-        }
+//        if (!exist(oss, bucketName, objectName)) {
+//            return null;
+//        }
         Date date = LocalDateTimeUtil.offsetCurrent(duration, ChronoUnit.SECONDS);
         GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucketName, objectName, HttpMethod.GET);
         request.setExpiration(date);
