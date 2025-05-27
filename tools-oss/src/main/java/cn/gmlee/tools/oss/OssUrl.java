@@ -8,10 +8,7 @@ import com.aliyun.oss.model.GeneratePresignedUrlRequest;
 
 import java.net.URL;
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -78,6 +75,9 @@ public class OssUrl {
      * @return string 下载链接
      */
     public static URL download(OSS oss, String bucketName, String objectName, int duration, Map<String, String> headers) {
+        if (!exist(oss, bucketName, objectName)) {
+            return null;
+        }
         Date date = LocalDateTimeUtil.offsetCurrent(duration, ChronoUnit.SECONDS);
         GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucketName, objectName, HttpMethod.GET);
         request.setExpiration(date);
@@ -98,6 +98,9 @@ public class OssUrl {
      * @return string 下载链接
      */
     public static URL download(OSS oss, String bucketName, String objectName, int duration, String... headers) {
+        if (!exist(oss, bucketName, objectName)) {
+            return null;
+        }
         Date date = LocalDateTimeUtil.offsetCurrent(duration, ChronoUnit.SECONDS);
         GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(bucketName, objectName, HttpMethod.GET);
         request.setExpiration(date);
@@ -120,9 +123,10 @@ public class OssUrl {
         if (BoolUtil.isEmpty(objectNames)) {
             return Collections.emptyList();
         }
-        return objectNames.parallelStream().map(objectName -> ExceptionUtil.sandbox(
-                () -> download(oss, bucketName, objectName, duration, headers), true
-        )).collect(Collectors.toList());
+        return objectNames.parallelStream().filter(Objects::nonNull)
+                .map(objectName ->
+                        ExceptionUtil.sandbox(() -> download(oss, bucketName, objectName, duration, headers), true))
+                .filter(Objects::nonNull).collect(Collectors.toList());
     }
 
 
@@ -140,8 +144,21 @@ public class OssUrl {
         if (BoolUtil.isEmpty(objectNames)) {
             return Collections.emptyList();
         }
-        return objectNames.parallelStream().map(objectName -> ExceptionUtil.sandbox(
-                () -> download(oss, bucketName, objectName, duration, headers), true
-        )).collect(Collectors.toList());
+        return objectNames.parallelStream().filter(Objects::nonNull)
+                .map(objectName ->
+                        ExceptionUtil.sandbox(() -> download(oss, bucketName, objectName, duration, headers), true))
+                .filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    /**
+     * Exist boolean.
+     *
+     * @param oss        the oss
+     * @param bucketName the bucket name
+     * @param objectName the object name
+     * @return the boolean
+     */
+    public static boolean exist(OSS oss, String bucketName, String objectName) {
+        return oss.doesObjectExist(bucketName, objectName);
     }
 }
