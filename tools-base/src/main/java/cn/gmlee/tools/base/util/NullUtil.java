@@ -160,6 +160,20 @@ public class NullUtil {
     }
 
     /**
+     * Get t.
+     *
+     * @param <T>    the type parameter
+     * @param source the source
+     * @return the t
+     */
+    public static <T extends Map> T get(T source) {
+        if (source == null) {
+            return (T) new HashMap(0);
+        }
+        return source;
+    }
+
+    /**
      * Get t [ ].
      *
      * @param <T>    the type parameter
