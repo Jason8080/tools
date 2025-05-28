@@ -1,12 +1,12 @@
 package cn.gmlee.tools.microphone.controller;
 
+import org.reactivestreams.Publisher;
 import org.springframework.messaging.handler.annotation.Headers;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.rsocket.annotation.ConnectMapping;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
@@ -50,5 +50,5 @@ public interface MicrophoneController<B, D> {
      * @return flux 输出流
      */
     @MessageMapping("/microphone/channel")
-    Flux<D> channel(@Headers Map<String, Object> headers, @Validated @Payload Flux<B> flux);
+    Publisher<D> channel(@Headers Map<String, Object> headers, @Validated @Payload Publisher<B> flux);
 }
