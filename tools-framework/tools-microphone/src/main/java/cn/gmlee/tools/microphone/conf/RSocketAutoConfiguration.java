@@ -1,11 +1,13 @@
 package cn.gmlee.tools.microphone.conf;
 
-import io.rsocket.AbstractRSocket;
-import org.springframework.boot.rsocket.server.RSocketServerCustomizer;
+import org.springframework.boot.rsocket.messaging.RSocketStrategiesCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import reactor.core.publisher.Mono;
+import org.springframework.core.codec.ByteBufferDecoder;
+import org.springframework.core.codec.ByteBufferEncoder;
+import org.springframework.http.codec.json.Jackson2JsonDecoder;
+import org.springframework.http.codec.json.Jackson2JsonEncoder;
 
 /**
  * RSocket自动装配.
@@ -15,7 +17,11 @@ import reactor.core.publisher.Mono;
 public class RSocketAutoConfiguration {
 
     @Bean
-    public RSocketServerCustomizer rSocketServerCustomizer() {
-        return server -> server.acceptor((setup, sendingSocket) -> Mono.just(new AbstractRSocket() {}));
+    public RSocketStrategiesCustomizer strategiesCustomizer() {
+        return strategies -> strategies
+                .decoder(new Jackson2JsonDecoder()) // 处理String部分
+                .decoder(new ByteBufferDecoder())   // 处理byte[]部分
+                .encoder(new Jackson2JsonEncoder()) // 处理String部分
+                .encoder(new ByteBufferEncoder());  // 处理byte[]部分
     }
 }
