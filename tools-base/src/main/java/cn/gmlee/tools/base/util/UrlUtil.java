@@ -188,6 +188,23 @@ public class UrlUtil {
     }
 
     /**
+     * Match first string.
+     *
+     * @param pattern the pattern
+     * @param urls    the urls
+     * @return the string
+     */
+    public static String matchFirst(String pattern, Collection<String> urls) {
+        AssertUtil.notEmpty(pattern, String.format("匹配规则是空"));
+        for (String url : NullUtil.get(urls)) {
+            if (urlMatcher.match(pattern, url)) {
+                return url;
+            }
+        }
+        return null;
+    }
+
+    /**
      * URL文件下载.
      *
      * @param url the url
