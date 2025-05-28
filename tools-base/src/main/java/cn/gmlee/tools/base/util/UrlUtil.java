@@ -24,9 +24,21 @@ public class UrlUtil {
      * The constant CHARSET.
      */
     public static final String CHARSET = "utf-8";
+    /**
+     * The constant PARAM_SPLIT_CODE.
+     */
     public static final String PARAM_SPLIT_CODE = "\\?";
+    /**
+     * The constant PARAM_START_CODE.
+     */
     public static final String PARAM_START_CODE = "?";
+    /**
+     * The constant PARAM_SPLICE_CODE.
+     */
     public static final String PARAM_SPLICE_CODE = "&";
+    /**
+     * The constant PARAM_WITH_CODE.
+     */
     public static final String PARAM_WITH_CODE = "=";
 
     /**
@@ -122,6 +134,24 @@ public class UrlUtil {
         return false;
     }
 
+    /**
+     * Match first string.
+     *
+     * @param patterns the patterns
+     * @param urls     the urls
+     * @return the string
+     */
+    public static String matchFirst(Collection<String> patterns, String... urls) {
+        AssertUtil.notNull(patterns, String.format("匹配规则是空"));
+        for (String url : NullUtil.get(urls, new String[0])) {
+            Optional<String> optional = patterns.stream().filter(pattern -> urlMatcher.match(pattern, url)).findFirst();
+            if (optional.isPresent()) {
+                return optional.get();
+            }
+        }
+        return null;
+    }
+
 
     /**
      * 匹配1个url.
@@ -138,6 +168,23 @@ public class UrlUtil {
             }
         }
         return false;
+    }
+
+    /**
+     * Match first string.
+     *
+     * @param pattern the pattern
+     * @param urls    the urls
+     * @return the string
+     */
+    public static String matchFirst(String pattern, String... urls) {
+        AssertUtil.notEmpty(pattern, String.format("匹配规则是空"));
+        for (String url : NullUtil.get(urls, new String[0])) {
+            if (urlMatcher.match(pattern, url)) {
+                return url;
+            }
+        }
+        return null;
     }
 
     /**
