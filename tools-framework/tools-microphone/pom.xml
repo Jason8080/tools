@@ -59,6 +59,11 @@
             <optional>true</optional>
         </dependency>
         <!-- ============================================================ -->
+        <dependency>
+            <groupId>io.reactivex.rxjava2</groupId>
+            <artifactId>rxjava</artifactId>
+        </dependency>
+        <!-- ============================================================ -->
         <!-- RSocket with WebSocket support -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -67,6 +72,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+        <!-- ============================================================ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

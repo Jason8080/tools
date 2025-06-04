@@ -1,7 +1,7 @@
 package cn.gmlee.tools.microphone.controller;
 
 import org.reactivestreams.Publisher;
-import org.springframework.messaging.handler.annotation.Headers;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.rsocket.annotation.ConnectMapping;
@@ -26,7 +26,7 @@ public interface MicrophoneController<B, D> {
      * @return the mono
      */
     @ConnectMapping("/microphone/connection")
-    default Mono<Void> connection(@Headers Map<String, Object> headers) {
+    default Mono<Void> connection(@Header Map<String, Object> headers) {
         return Mono.empty();
     }
 
@@ -38,7 +38,7 @@ public interface MicrophoneController<B, D> {
      * @return the mono
      */
     @MessageMapping("/microphone/heartbeat")
-    default Mono<Void> heartbeat(@Headers Map<String, Object> headers) {
+    default Mono<Void> heartbeat(@Header Map<String, Object> headers) {
         return Mono.empty();
     }
     /**
@@ -49,5 +49,5 @@ public interface MicrophoneController<B, D> {
      * @return publisher 输出流
      */
     @MessageMapping("/microphone")
-    Publisher<D> channel(@Headers Map<String, Object> headers, @Validated @Payload Publisher<B> publisher);
+    Publisher<D> channel(@Header Map<String, Object> headers, @Validated @Payload Publisher<B> publisher);
 }
