@@ -14,6 +14,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.cbor.Jackson2CborDecoder;
 import org.springframework.http.codec.cbor.Jackson2CborEncoder;
+import org.springframework.http.codec.json.Jackson2JsonDecoder;
+import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MimeType;
@@ -26,20 +28,18 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.TargetDataLine;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.Map;
 
 @Configuration
 public class RSocketClientConfig {
 
-    // 配置RSocket连接器 (WebSocket协议)
     @Bean
     public Mono<RSocketRequester> rSocketRequester(RSocketRequester.Builder builder) {
         return builder
             .rsocketStrategies(strategies -> strategies
-                .encoder(new Jackson2CborEncoder())
-                .decoder(new Jackson2CborDecoder())
+                .encoder(new Jackson2JsonEncoder(), new Jackson2CborEncoder())
+                .decoder(new Jackson2JsonDecoder(), new Jackson2CborDecoder())
             )
             .setupRoute("/microphone/ai_translator/connection")
             .setupMetadata(MapBuilder.of("token","4F3F170F4E8241629B27FE849FFABE1C", "language", "en"), MediaType.APPLICATION_JSON)
@@ -47,7 +47,6 @@ public class RSocketClientConfig {
             .connectWebSocket(URI.create("wss://ai.gmlee.cn/rsocket")); // WebSocket端点
     }
 
-    // 语音客户端服务
     @Component
     public static class SpeechClient {
         
@@ -79,8 +78,8 @@ public class RSocketClientConfig {
             String authToken = "your-auth-token";
             String language = "en";
             Microphone microphone = new Microphone();
-            ThreadUtil.execute(() -> ExceptionUtil.suppress(() -> recoding(microphone)));
             // 模拟音频流 (每20ms发送一个区块)
+            ThreadUtil.execute(() -> ExceptionUtil.suppress(() -> recoding(microphone)));
             Flowable<ByteBuffer> audioSource = Flowable.create(emitter -> microphone.start(emitter), BackpressureStrategy.BUFFER);
             // 发送请求并处理响应
             streamSpeech(authToken, language, Flux.from(audioSource).map(byteBuffer -> byteBuffer.array()))
@@ -88,7 +87,8 @@ public class RSocketClientConfig {
                 .doOnNext(json -> System.out.println("实时结果: " + json))
                 .doOnError(e -> System.err.println("识别错误: " + e.getMessage()))
                 .doOnComplete(() -> System.out.println("识别完成"))
-                .blockLast(); // 阻塞等待完成 (测试用)
+                .blockLast() // 阻塞等待完成 (测试用)
+            ;
         }
 
         private void recoding(Microphone microphone) throws Exception {

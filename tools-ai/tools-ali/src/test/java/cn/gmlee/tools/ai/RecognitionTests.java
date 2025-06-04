@@ -2,6 +2,8 @@ package cn.gmlee.tools.ai;
 
 import cn.gmlee.tools.ai.server.stream.RecognitionServer;
 import cn.gmlee.tools.base.kit.sound.Microphone;
+import cn.gmlee.tools.base.util.ExceptionUtil;
+import cn.gmlee.tools.base.util.ThreadUtil;
 import cn.gmlee.tools.base.util.TimerUtil;
 import io.reactivex.Flowable;
 import org.junit.Test;
@@ -26,8 +28,8 @@ public class RecognitionTests {
     public void testAudio() throws Exception {
         TimerUtil.print();
         Microphone microphone = new Microphone();
+        ThreadUtil.execute(() -> ExceptionUtil.suppress(() -> recoding(microphone)));
         Flowable<String> ask = recognitionServer.ask(microphone);
-        recoding(microphone);
         StringBuilder sb = new StringBuilder();
         ask.blockingForEach(x -> sb.append(x));
         System.out.println(sb);

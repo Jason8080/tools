@@ -3,6 +3,8 @@ package cn.gmlee.tools.ai;
 import cn.gmlee.tools.ai.server.stream.TranslationRecognizerRealtimeServer;
 import cn.gmlee.tools.base.kit.sound.Microphone;
 import cn.gmlee.tools.base.mod.Kv;
+import cn.gmlee.tools.base.util.ExceptionUtil;
+import cn.gmlee.tools.base.util.ThreadUtil;
 import cn.gmlee.tools.base.util.TimerUtil;
 import io.reactivex.Flowable;
 import org.junit.Test;
@@ -28,8 +30,8 @@ public class TranslationRecognizerRealtimeTests {
     public void testAudio() throws Exception {
         TimerUtil.print();
         Microphone microphone = new Microphone();
+        ThreadUtil.execute(() -> ExceptionUtil.suppress(() -> recoding(microphone)));
         Flowable<Kv<String, Map<String, String>>> ask = translationRecognizerRealtimeServer.ask(microphone, "en");
-        recoding(microphone);
         ask.blockingForEach(x -> {
             System.out.println(x);
             System.out.println(x.getKey());
@@ -53,6 +55,7 @@ public class TranslationRecognizerRealtimeTests {
             if(read > 0){
                 microphone.write(Arrays.copyOfRange(bytes, 0, read));
             }
+            Thread.sleep(20);
         }
         microphone.exit();
     }

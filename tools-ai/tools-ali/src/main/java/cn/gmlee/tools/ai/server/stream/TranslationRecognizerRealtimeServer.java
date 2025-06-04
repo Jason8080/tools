@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.ByteBuffer;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -118,7 +119,7 @@ public class TranslationRecognizerRealtimeServer {
         TranslationResult output = result.getTranslationResult(); // 获取输出内容
         Kv<String, Map<String, String>> kv = new Kv();
         kv.setKey(input.isSentenceEnd() ? NullUtil.get(input.getText()) : ""); // 收集输入内容
-        Map<String, Translation> translationMap = output.getTranslations();
+        Map<String, Translation> translationMap = output != null ? output.getTranslations() : Collections.EMPTY_MAP;
         Map<String, String> outputMap = new HashMap<>(translationMap.size()); // 收集输出内容
         for (Map.Entry<String, Translation> entry : translationMap.entrySet()) {
             String key = entry.getKey(); // 输出语言
