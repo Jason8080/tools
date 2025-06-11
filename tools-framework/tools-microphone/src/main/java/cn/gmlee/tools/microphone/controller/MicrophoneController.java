@@ -15,7 +15,7 @@ import java.util.Map;
  * 麦克风接口.
  *
  * @param <B> 请求体
- * @param <D> 响应体
+ * @param <D> 响应体 如需JSON响应 @Controller -> @RestController
  */
 @Controller
 public interface MicrophoneController<B, D> {

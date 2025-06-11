@@ -21,12 +21,14 @@ public class Kv<K,V> extends HashMap<K,V> implements Serializable {
     public Kv(K key, V val) {
         this.key = key;
         this.val = val;
+        super.put(key, val);
     }
 
     public Kv(String name, K key, V val) {
         this.name = name;
         this.key = key;
         this.val = val;
+        super.put(key, val);
     }
 
     public Kv(String name, String desc, K key, V val) {
@@ -34,6 +36,7 @@ public class Kv<K,V> extends HashMap<K,V> implements Serializable {
         this.desc = desc;
         this.key = key;
         this.val = val;
+        super.put(key, val);
     }
 
     @Override
