@@ -2,6 +2,7 @@ package cn.gmlee.tools.microphone.conf;
 
 import cn.gmlee.tools.base.builder.MapBuilder;
 import cn.gmlee.tools.base.kit.sound.Microphone;
+import cn.gmlee.tools.base.mod.Kv;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.ThreadUtil;
 import io.reactivex.BackpressureStrategy;
@@ -42,7 +43,7 @@ public class RSocketClientConfig {
                 .decoder(new Jackson2JsonDecoder(), new Jackson2CborDecoder())
             )
             .setupRoute("/microphone/ai_translator/connection")
-            .setupMetadata(MapBuilder.of("token","4F3F170F4E8241629B27FE849FFABE1C", "language", "en"), MediaType.APPLICATION_JSON)
+            .setupMetadata(MapBuilder.of("token","13041D164A1F40D2AAC081564B3C118A", "language", "en"), MediaType.APPLICATION_JSON)
             .dataMimeType(MediaType.APPLICATION_OCTET_STREAM)
             .connectWebSocket(URI.create("wss://ai.gmlee.cn/rsocket")); // WebSocket端点
     }
@@ -63,7 +64,7 @@ public class RSocketClientConfig {
             // 创建元数据MimeType
             MimeType metadataMimeType = MimeTypeUtils.APPLICATION_JSON;
             
-            return requesterMono.flatMapMany(requester -> 
+            return requesterMono.flatMapMany(requester ->
                 requester
                     .route("/microphone/ai_translator")
                     .metadata(metadata, metadataMimeType) // JSON元数据
@@ -75,7 +76,7 @@ public class RSocketClientConfig {
         // 测试方法
         public void testSpeechStream() throws Exception {
             // 测试元数据
-            String authToken = "your-auth-token";
+            String authToken = "13041D164A1F40D2AAC081564B3C118A";
             String language = "en";
             Microphone microphone = new Microphone();
             // 模拟音频流 (每20ms发送一个区块)
