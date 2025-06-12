@@ -56,7 +56,7 @@ public class RSocketClientConfig {
             this.requesterMono = requesterMono;
         }
 
-        public Flux<String> streamSpeech(String token, String language, Flux<byte[]> audioStream) {
+        public Flux<Map> streamSpeech(String token, String language, Flux<byte[]> audioStream) {
             // 创建元数据
             Map<String, String> metadata = MapBuilder.of("token",token, "language", language);
             
@@ -68,7 +68,7 @@ public class RSocketClientConfig {
                     .route("/microphone/ai_translator")
                     .metadata(metadata, metadataMimeType) // JSON元数据
                     .data(audioStream) // 直接发送字节数组流
-                    .retrieveFlux(String.class)
+                    .retrieveFlux(Map.class)
             );
         }
 
