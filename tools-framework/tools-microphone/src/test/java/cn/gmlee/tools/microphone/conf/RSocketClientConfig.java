@@ -2,7 +2,6 @@ package cn.gmlee.tools.microphone.conf;
 
 import cn.gmlee.tools.base.builder.MapBuilder;
 import cn.gmlee.tools.base.kit.sound.Microphone;
-import cn.gmlee.tools.base.mod.Kv;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.ThreadUtil;
 import io.reactivex.BackpressureStrategy;
@@ -12,9 +11,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.codec.ByteArrayDecoder;
+import org.springframework.core.codec.ByteArrayEncoder;
 import org.springframework.http.MediaType;
-import org.springframework.http.codec.cbor.Jackson2CborDecoder;
-import org.springframework.http.codec.cbor.Jackson2CborEncoder;
 import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.messaging.rsocket.RSocketRequester;
@@ -39,12 +38,12 @@ public class RSocketClientConfig {
     public Mono<RSocketRequester> rSocketRequester(RSocketRequester.Builder builder) {
         return builder
             .rsocketStrategies(strategies -> strategies
-                .encoder(new Jackson2JsonEncoder(), new Jackson2CborEncoder())
-                .decoder(new Jackson2JsonDecoder(), new Jackson2CborDecoder())
+                .encoder(new Jackson2JsonEncoder(), new ByteArrayEncoder())
+                .decoder(new Jackson2JsonDecoder(), new ByteArrayDecoder())
             )
             .setupRoute("/microphone/ai_translator/connection")
-            .setupMetadata(MapBuilder.of("token","13041D164A1F40D2AAC081564B3C118A", "language", "en"), MediaType.APPLICATION_JSON)
-            .dataMimeType(MediaType.APPLICATION_OCTET_STREAM)
+            .setupMetadata(MapBuilder.of("token","4BC6EACA0429421CBBFAE48FA4E506A3", "language", "en"), MediaType.APPLICATION_JSON)
+            .dataMimeType(MediaType.APPLICATION_STREAM_JSON)
             .connectWebSocket(URI.create("wss://ai.gmlee.cn/rsocket")); // WebSocket端点
     }
 
@@ -76,7 +75,7 @@ public class RSocketClientConfig {
         // 测试方法
         public void testSpeechStream() throws Exception {
             // 测试元数据
-            String authToken = "13041D164A1F40D2AAC081564B3C118A";
+            String authToken = "4BC6EACA0429421CBBFAE48FA4E506A3";
             String language = "en";
             Microphone microphone = new Microphone();
             // 模拟音频流 (每20ms发送一个区块)
@@ -109,6 +108,7 @@ public class RSocketClientConfig {
                 }
             }
             microphone.exit();
+            targetDataLine.close();
         }
     }
 

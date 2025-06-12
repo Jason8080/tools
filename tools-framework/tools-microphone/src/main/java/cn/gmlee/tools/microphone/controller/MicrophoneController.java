@@ -15,7 +15,7 @@ import java.util.Map;
  * 麦克风接口.
  *
  * @param <B> 请求体
- * @param <D> 响应体 如需JSON响应 @Controller -> @RestController
+ * @param <D> 响应体
  */
 @Controller
 public interface MicrophoneController<B, D> {
@@ -43,6 +43,8 @@ public interface MicrophoneController<B, D> {
     }
     /**
      * 双工处理器.
+     *
+     * <p>输出JSON的dataMimeType: application/stream+json</p>
      *
      * @param headers   请求头
      * @param publisher 输入流
