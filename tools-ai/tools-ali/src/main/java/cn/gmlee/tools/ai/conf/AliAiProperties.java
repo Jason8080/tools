@@ -76,6 +76,22 @@ public class AliAiProperties {
         return mode.getDuration();
     }
 
+    public Integer getNum() {
+        Mode mode = models.get(defaultModel);
+        if (mode == null) {
+            return new Mode().getNum();
+        }
+        return mode.getNum();
+    }
+
+    public Integer getSeed() {
+        Mode mode = models.get(defaultModel);
+        if (mode == null) {
+            return new Mode().getSeed();
+        }
+        return mode.getSeed();
+    }
+
     @Data
     public static class Mode {
         private Boolean enableSearch = Boolean.FALSE; // 是否开启搜索
@@ -84,5 +100,7 @@ public class AliAiProperties {
         private String audioFormat = "pcm"; // 默认音频格式
         private String spec = "720*1280"; // 默认分辨率
         private Integer duration = 5; // 默认视频时长
+        private Integer num = 1; // 默认图片数量
+        private Integer seed = Integer.MAX_VALUE; // 默认随机数
     }
 }

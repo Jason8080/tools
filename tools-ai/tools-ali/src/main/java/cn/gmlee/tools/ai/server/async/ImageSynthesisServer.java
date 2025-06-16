@@ -82,9 +82,9 @@ public class ImageSynthesisServer {
                 .apiKey(aliAiProperties.getApiKey())
                 .model(model)
                 .prompt(prompt)
-                .seed(Integer.MAX_VALUE)
+                .seed(aliAiProperties.getSeed())
+                .n(aliAiProperties.getNum())
                 .size(spec)
-                .n(1)
                 .build();
     }
 }
