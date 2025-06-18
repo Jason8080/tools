@@ -10,15 +10,15 @@
     </parent>
 
     <groupId>cn.gmlee.tools</groupId>
-    <artifactId>tools-ali</artifactId>
+    <artifactId>tools-bit</artifactId>
     <version>5.5.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
     <!--项目信息-->
-    <name>tools-ali</name>
-    <description>TOOLS-ALI: 阿里全模态AI集成</description>
-    <url>https://github.com/Jason8080/tools/tree/master/tools-ali</url>
+    <name>tools-bit</name>
+    <description>TOOLS-BIT: 字节全模态AI集成</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-bit</url>
 
     <!--开源协议-->
     <licenses>
@@ -66,27 +66,11 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.alibaba/dashscope-sdk-java -->
+        <!-- https://mvnrepository.com/artifact/com.volcengine/volcengine-java-sdk-ark-runtime -->
         <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>dashscope-sdk-java</artifactId>
-            <version>2.20.1</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>com.google.code.gson</groupId>
-                    <artifactId>gson</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-simple</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.10.1</version> <!-- 可以使用最新版本 -->
+            <groupId>com.volcengine</groupId>
+            <artifactId>volcengine-java-sdk-ark-runtime</artifactId>
+            <version>0.2.17</version>
         </dependency>
 
         <dependency>
@@ -100,4 +84,5 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
 </project>
