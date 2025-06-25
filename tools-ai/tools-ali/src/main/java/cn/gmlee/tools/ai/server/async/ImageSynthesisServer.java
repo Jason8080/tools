@@ -31,6 +31,17 @@ public class ImageSynthesisServer {
     /**
      * 询问.
      *
+     * @param prompt the prompt
+     * @param num    the num
+     * @return flowable 输出内容
+     */
+    public ImageSynthesisOutput ask(String prompt, Integer num) {
+        return ask(aliAiProperties.getDefaultModel(), prompt, aliAiProperties.getSpec(),  num);
+    }
+
+    /**
+     * 询问.
+     *
      * @param model  the model
      * @param prompt the prompt
      * @return flowable 输出内容
@@ -48,7 +59,22 @@ public class ImageSynthesisServer {
      * @return flowable 输出内容
      */
     public ImageSynthesisOutput ask(String model, String prompt, String spec) {
-        ImageSynthesisParam param = getImageSynthesisParam(model, prompt, spec);
+        ImageSynthesisParam param = getImageSynthesisParam(model, prompt, spec, aliAiProperties.getNum());
+        ImageSynthesisResult result = ExceptionUtil.suppress(() -> ali.asyncCall(param));
+        return result.getOutput();
+    }
+
+    /**
+     * 询问.
+     *
+     * @param model  the model
+     * @param prompt the prompt
+     * @param spec   the spec
+     * @param num    the num
+     * @return flowable 输出内容
+     */
+    public ImageSynthesisOutput ask(String model, String prompt, String spec, Integer num) {
+        ImageSynthesisParam param = getImageSynthesisParam(model, prompt, spec, num);
         ImageSynthesisResult result = ExceptionUtil.suppress(() -> ali.asyncCall(param));
         return result.getOutput();
     }
@@ -77,13 +103,13 @@ public class ImageSynthesisServer {
     }
 
 
-    private ImageSynthesisParam getImageSynthesisParam(String model, String prompt, String spec) {
+    private ImageSynthesisParam getImageSynthesisParam(String model, String prompt, String spec, Integer num) {
         return ImageSynthesisParam.builder()
                 .apiKey(aliAiProperties.getApiKey())
+                .seed(aliAiProperties.getSeed())
                 .model(model)
                 .prompt(prompt)
-                .seed(aliAiProperties.getSeed())
-                .n(aliAiProperties.getNum())
+                .n(num)
                 .size(spec)
                 .build();
     }
