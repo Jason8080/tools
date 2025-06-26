@@ -67,6 +67,20 @@ public class ImageSynthesisServer {
     /**
      * 询问.
      *
+     * @param prompt the prompt
+     * @param spec   the spec
+     * @param num    the num
+     * @return the image synthesis output
+     */
+    public ImageSynthesisOutput ask(String prompt, String spec, Integer  num) {
+        ImageSynthesisParam param = getImageSynthesisParam(aliAiProperties.getDefaultModel(), prompt, spec, num);
+        ImageSynthesisResult result = ExceptionUtil.suppress(() -> ali.asyncCall(param));
+        return result.getOutput();
+    }
+
+    /**
+     * 询问.
+     *
      * @param model  the model
      * @param prompt the prompt
      * @param spec   the spec
