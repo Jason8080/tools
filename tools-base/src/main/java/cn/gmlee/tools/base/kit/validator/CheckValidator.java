@@ -10,6 +10,7 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.lang.reflect.Field;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
 
@@ -52,7 +53,7 @@ public class CheckValidator implements ConstraintValidator<Check, Object> {
         if (BoolUtil.isEmpty(expressions)) {
             return true;
         }
-        for (String condition : expressions) {
+        for (String expression : expressions) {
             // 处理空符
             CollectionUtil.valReplace(valuesMap, (k, v) -> {
                 // 因为script会忽略空白符; 所以需要将空内容替换成带引号的空内容
@@ -68,11 +69,11 @@ public class CheckValidator implements ConstraintValidator<Check, Object> {
                 return v.toString();
             });
             // 参数替换
-            condition = PlaceholderHelper.replace(condition, valuesMap);
-            // 参数替换
-            condition = replace(condition, valuesMap);
+            String condition = PlaceholderHelper.replace(expression, valuesMap);
+            // 参数替换: 如果没有占位符参数, 则启用无占位符替换
+            condition = Objects.equals(expression, condition) ? replace(condition, valuesMap) : condition;
             // 脚本执行
-            Object ok = ScriptUtil.eval(condition);
+            Object ok = ScriptUtil.eval(expression);
             log.info("CheckValidator {} result: {} ", condition, ok);
             // 执行结果
             if (ok instanceof Boolean && !(Boolean) ok) {
