@@ -69,15 +69,32 @@ public class CheckValidator implements ConstraintValidator<Check, Object> {
             });
             // 参数替换
             condition = PlaceholderHelper.replace(condition, valuesMap);
+            // 参数替换
+            condition = replace(condition, valuesMap);
             // 脚本执行
             Object ok = ScriptUtil.eval(condition);
-            log.info("cn.gmlee.tools.base.kit.validator.CheckValidator#execute\r\n\tcondition:{}:{}", ok, condition);
+            log.info("CheckValidator {} result: {} ", condition, ok);
             // 执行结果
             if (ok instanceof Boolean && !(Boolean) ok) {
                 return false;
             }
         }
         return true;
+    }
+
+
+    private static String replace(String content, Map map) {
+        if (BoolUtil.isEmpty(content) || BoolUtil.isEmpty(map)) {
+            return content;
+        }
+        for (Object key : map.keySet()) {
+            Object val = map.get(key);
+            // 特殊处理: 支持无占位符替换字段
+            if(BoolUtil.allNotNull(key, val)){
+                content = content.replace(key.toString(), val.toString());
+            }
+        }
+        return content;
     }
 
     private boolean checkFields(ConstraintValidatorContext context, Map<String, Object> valuesMap, Field... fields) {
@@ -131,10 +148,6 @@ public class CheckValidator implements ConstraintValidator<Check, Object> {
                     Object val = map.get(key);
                     if (val == null) {
                         map.put(key, "");
-                    }
-                    // 特殊处理: 支持无占位符替换字段
-                    if(BoolUtil.allNotNull(key, val)){
-                        content = content.replace(key.toString(), val.toString());
                     }
                 }
                 properties.putAll(map);
