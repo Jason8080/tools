@@ -73,7 +73,7 @@ public class CheckValidator implements ConstraintValidator<Check, Object> {
             // 参数替换: 如果没有占位符参数, 则启用无占位符替换
             condition = Objects.equals(expression, condition) ? replace(condition, valuesMap) : condition;
             // 脚本执行
-            Object ok = ScriptUtil.eval(expression);
+            Object ok = ScriptUtil.eval(condition);
             log.info("CheckValidator {} result: {} ", condition, ok);
             // 执行结果
             if (ok instanceof Boolean && !(Boolean) ok) {
