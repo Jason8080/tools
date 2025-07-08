@@ -132,6 +132,10 @@ public class CheckValidator implements ConstraintValidator<Check, Object> {
                     if (val == null) {
                         map.put(key, "");
                     }
+                    // 特殊处理: 支持无占位符替换字段
+                    if(BoolUtil.allNotNull(key, val)){
+                        content = content.replace(key.toString(), val.toString());
+                    }
                 }
                 properties.putAll(map);
             }
