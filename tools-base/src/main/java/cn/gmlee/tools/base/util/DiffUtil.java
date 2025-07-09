@@ -17,7 +17,7 @@ public class DiffUtil {
      * @return the list
      */
     public static <T> List<Diff> get(T source, T target) {
-        return get(source, target, 3);
+        return get("", source, target, 3);
     }
 
     /**
@@ -30,6 +30,20 @@ public class DiffUtil {
      * @return the list
      */
     public static <T> List<Diff> get(T source, T target, int deep) {
+        return get("", source, target, deep);
+    }
+
+    /**
+     * 获取差异列表.
+     *
+     * @param <T>    the type parameter
+     * @param item   the item
+     * @param source the source
+     * @param target the target
+     * @param deep   the deep
+     * @return the list
+     */
+    public static <T> List<Diff> get(String item, T source, T target, int deep) {
         // 数据准备
         List<Diff> diffs = new ArrayList<>();
         if (BoolUtil.allNull(source, target)) {
@@ -37,81 +51,93 @@ public class DiffUtil {
         }
         // 数据分类
         T t = NullUtil.first(source, target);
-        if (t instanceof Collection){
-            diffs.addAll(getCompareList(NullUtil.get((Collection) source), NullUtil.get((Collection) target), --deep));
-        }else if (t instanceof Map) {
-            diffs.addAll(getRecursionMap(NullUtil.get((Map) source), NullUtil.get((Map) target), --deep));
+        if (t instanceof Collection) {
+            diffs.addAll(getCompareList(item, NullUtil.get((Collection) source), NullUtil.get((Collection) target), --deep));
+        } else if (t instanceof Map) {
+            diffs.addAll(getRecursionMap(item, NullUtil.get((Map) source), NullUtil.get((Map) target), --deep));
         } else if (BoolUtil.isBean(t, Comparable.class)) {
-            diffs.addAll(getRecursionMap(ClassUtil.generateMap(source), ClassUtil.generateMap(target), --deep));
+            diffs.addAll(getRecursionMap(item, ClassUtil.generateMap(source), ClassUtil.generateMap(target), --deep));
         }
         return diffs;
     }
 
     /**
-     * 扁平化获取所有层级的差异列表，并将已提取的 subset 置空.
+     * 扁平化所有层级的 Diff.
      *
      * @param diffs 原始差异列表
-     * @return 扁平化后的列表，包含所有层级的内容，且原列表中的 subset 已被清空
+     * @return 扁平化后的列表 ，item 按层级拼接，且 subset 已置空
      */
     public static List<Diff> get(List<Diff> diffs) {
         if (diffs == null) {
             return Collections.emptyList();
         }
 
-        List<Diff> allDiffs = new ArrayList<>();
+        List<Diff> result = new ArrayList<>();
 
-        collectAndClearDiffs(diffs, allDiffs);
+        flattenWithParentItem(diffs, result, null);
 
-        return allDiffs;
+        return result;
     }
 
     /**
-     * 递归收集 Diff 并清空 subset.
+     * 递归处理 Diff，拼接 item 并清空 subset.
      *
      * @param currentLevel 当前层级的 Diff 列表
-     * @param result 收集结果的列表
+     * @param result       结果收集列表
+     * @param parentItem   父层级的 item（用于拼接）
      */
-    private static void collectAndClearDiffs(List<Diff> currentLevel, List<Diff> result) {
+    private static void flattenWithParentItem(List<Diff> currentLevel, List<Diff> result, String parentItem) {
+
         if (currentLevel == null || currentLevel.isEmpty()) {
             return;
         }
 
         for (Diff diff : currentLevel) {
-            // 先添加到结果列表
+            // 拼接当前 item
+            String currentItem = (parentItem == null) ? diff.getItem() : parentItem + ">" + diff.getItem();
+
+            diff.setItem(currentItem);
+
+            // 添加到结果
             result.add(diff);
 
-            // 递归处理子集（在清空前获取）
+            // 递归处理子集（传入当前拼接后的 item）
             List<Diff> subset = diff.getSubset();
+
             if (subset != null) {
-                collectAndClearDiffs(subset, result);
+
+                flattenWithParentItem(subset, result, currentItem);
+
                 // 清空 subset
                 diff.setSubset(null);
             }
         }
     }
 
-    private static Collection<Diff> getCompareList(Collection source, Collection target, int deep) {
+
+    private static Collection<Diff> getCompareList(String item, Collection source, Collection target, int deep) {
         List<Diff> diffs = new ArrayList<>();
-        if(BoolUtil.allEmpty(source, target)){
+        if (BoolUtil.allEmpty(source, target)) {
             return diffs;
         }
         // 对齐所有元素
         List sourceList = new ArrayList(NullUtil.get(source));
         List targetList = new ArrayList(NullUtil.get(target));
         int size = Math.max(sourceList.size(), targetList.size());
-        for (int i = 0; i < size; i++){
+        for (int i = 0; i < size; i++) {
             Object sv = i < sourceList.size() ? sourceList.get(i) : null;
             Object tv = i < targetList.size() ? targetList.get(i) : null;
-            Diff diff = new Diff(i, sv, tv);
+            Diff diff = new Diff(String.valueOf(i), sv, tv); // 使用原生item
+//            Diff diff = new Diff(BoolUtil.isEmpty(item) ? String.valueOf(i) : item+">"+i, sv, tv);
             if (deep >= 0) {
-                diff.setSubset(get(sv, tv, deep));
+                diff.setSubset(get(diff.getItem(), sv, tv, deep));
             }
             diffs.add(diff);
         }
         return diffs;
     }
 
-    private static Collection<Diff> getRecursionMap(Map source, Map target, int deep) {
+    private static Collection<Diff> getRecursionMap(String item, Map source, Map target, int deep) {
         List<Diff> diffs = new ArrayList<>();
         if (BoolUtil.allEmpty(source, target)) {
             return diffs;
@@ -119,11 +145,15 @@ public class DiffUtil {
         // 获取所有字段
         Collection keys = CollectionUtil.merge(source.keySet(), target.keySet());
         for (Object key : new HashSet(keys)) {
+            if (key == null) {
+                continue;
+            }
             Object sv = source.get(key);
             Object tv = target.get(key);
-            Diff diff = new Diff(key, sv, tv);
+            Diff diff = new Diff(key.toString(), sv, tv); // 使用原生item
+//            Diff diff = new Diff(BoolUtil.isEmpty(item) ? key.toString() : item+">"+key, sv, tv);
             if (deep >= 0) {
-                diff.setSubset(get(sv, tv, deep));
+                diff.setSubset(get(diff.getItem(), sv, tv, deep));
             }
             diffs.add(diff);
         }

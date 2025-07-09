@@ -1,16 +1,13 @@
 package cn.gmlee.tools.base;
 
-import cn.gmlee.tools.base.mod.*;
-import cn.gmlee.tools.base.util.BoolUtil;
+import cn.gmlee.tools.base.mod.ConfigInfo;
+import cn.gmlee.tools.base.mod.Diff;
 import cn.gmlee.tools.base.util.DiffUtil;
 import cn.gmlee.tools.base.util.JsonUtil;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class DiffTests {
 

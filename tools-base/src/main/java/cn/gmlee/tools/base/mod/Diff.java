@@ -42,9 +42,9 @@ public class Diff<T> implements Serializable {
     }
 
     /**
-     * 一般是String类型的key
+     * key
      */
-    private Object item;
+    private String item;
     /**
      * The Source.
      */
@@ -65,7 +65,7 @@ public class Diff<T> implements Serializable {
      * @param source the source
      * @param target the target
      */
-    public Diff(Object item, T source, T target) {
+    public Diff(String item, T source, T target) {
         this.item = item;
         this.source = source;
         this.target = target;
