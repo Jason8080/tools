@@ -22,7 +22,23 @@ public class DiffTests {
         target.setCode(null);
         target.setName("n2");
         target.setValue(null);
-        List<Diff> diffs = DiffUtil.get(Arrays.asList(source, target), Arrays.asList(target, source), 1);
+        List<Diff> diffs = DiffUtil.get(source, target, 10);
+        System.out.println(JsonUtil.format(diffs));
+    }
+
+    @Test
+    public void testDiffList() {
+        ConfigInfo source = new ConfigInfo();
+        source.setId(1L);
+        source.setCode("c1");
+        source.setName(null);
+        source.setValue(null);
+        ConfigInfo target = new ConfigInfo();
+        target.setId(1L);
+        target.setCode(null);
+        target.setName("n2");
+        target.setValue(null);
+        List<Diff> diffs = DiffUtil.get(Arrays.asList(source, target), Arrays.asList(target), 1);
         System.out.println(JsonUtil.format(diffs));
     }
 }
