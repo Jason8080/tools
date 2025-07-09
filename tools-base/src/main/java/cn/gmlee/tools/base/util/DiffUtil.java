@@ -3,6 +3,7 @@ package cn.gmlee.tools.base.util;
 import cn.gmlee.tools.base.mod.Diff;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 差异对比工具.
@@ -33,7 +34,6 @@ public class DiffUtil {
         // 数据准备
         List<Diff> diffs = new ArrayList<>();
         if (BoolUtil.allNull(source, target)) {
-            diffs.add(new Diff(source, target));
             return diffs;
         }
         // 数据分类
@@ -48,6 +48,18 @@ public class DiffUtil {
         return diffs;
     }
 
+    /**
+     * 扁平化获取差异列表.
+     *
+     * @param diffs the diffs
+     * @return list
+     */
+    public static List<Diff> get(List<Diff> diffs) {
+        return (List<Diff>) Optional.ofNullable(diffs).orElseGet(Collections::emptyList).stream()
+                .flatMap(diff -> Optional.ofNullable(diff.getSubset()).orElseGet(Collections::emptyList).stream())
+                .collect(Collectors.toList());
+    }
+
     private static Collection<Diff> getCompareList(Collection source, Collection target, int deep) {
         List<Diff> diffs = new ArrayList<>();
         if(BoolUtil.allEmpty(source, target)){
@@ -60,7 +72,7 @@ public class DiffUtil {
         for (int i = 0; i < size; i++){
             Object sv = i < sourceList.size() ? sourceList.get(i) : null;
             Object tv = i < targetList.size() ? targetList.get(i) : null;
-            Diff diff = new Diff(sv, tv);
+            Diff diff = new Diff(i, sv, tv);
             if (deep >= 0) {
                 diff.setSubset(get(sv, tv, deep));
             }

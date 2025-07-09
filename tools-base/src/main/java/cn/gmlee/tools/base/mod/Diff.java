@@ -1,6 +1,5 @@
 package cn.gmlee.tools.base.mod;
 
-import cn.gmlee.tools.base.util.BoolUtil;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -41,7 +40,9 @@ public class Diff<T> implements Serializable {
         SAME,
     }
 
-    // 一般是String类型的key
+    /**
+     * 一般是String类型的key
+     */
     private Object item;
     /**
      * The Source.
@@ -55,17 +56,6 @@ public class Diff<T> implements Serializable {
      *
      */
     private List<Diff> subset;
-
-    /**
-     * Instantiates a new Diff.
-     *
-     * @param source the source
-     * @param target the target
-     */
-    public Diff(T source, T target) {
-        this.source = source;
-        this.target = target;
-    }
 
     /**
      * Instantiates a new Diff.
