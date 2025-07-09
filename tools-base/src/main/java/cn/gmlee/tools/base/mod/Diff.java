@@ -1,5 +1,6 @@
 package cn.gmlee.tools.base.mod;
 
+import cn.gmlee.tools.base.util.BoolUtil;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -78,6 +79,15 @@ public class Diff<T> implements Serializable {
      */
     public boolean isSame() {
         return Objects.equals(source, target);
+    }
+
+    /**
+     * Is basic boolean.
+     *
+     * @return boolean
+     */
+    public boolean isBasic() {
+        return BoolUtil.isBaseClass(source, String.class, Number.class) && BoolUtil.isBaseClass(target, String.class, Number.class);
     }
 
     /**

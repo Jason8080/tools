@@ -3,7 +3,6 @@ package cn.gmlee.tools.base.util;
 import cn.gmlee.tools.base.mod.Diff;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 差异对比工具.
@@ -49,15 +48,46 @@ public class DiffUtil {
     }
 
     /**
-     * 扁平化获取差异列表.
+     * 扁平化获取所有层级的差异列表，并将已提取的 subset 置空.
      *
-     * @param diffs the diffs
-     * @return list
+     * @param diffs 原始差异列表
+     * @return 扁平化后的列表，包含所有层级的内容，且原列表中的 subset 已被清空
      */
     public static List<Diff> get(List<Diff> diffs) {
-        return (List<Diff>) Optional.ofNullable(diffs).orElseGet(Collections::emptyList).stream()
-                .flatMap(diff -> Optional.ofNullable(diff.getSubset()).orElseGet(Collections::emptyList).stream())
-                .collect(Collectors.toList());
+        if (diffs == null) {
+            return Collections.emptyList();
+        }
+
+        List<Diff> allDiffs = new ArrayList<>();
+
+        collectAndClearDiffs(diffs, allDiffs);
+
+        return allDiffs;
+    }
+
+    /**
+     * 递归收集 Diff 并清空 subset.
+     *
+     * @param currentLevel 当前层级的 Diff 列表
+     * @param result 收集结果的列表
+     */
+    private static void collectAndClearDiffs(List<Diff> currentLevel, List<Diff> result) {
+        if (currentLevel == null || currentLevel.isEmpty()) {
+            return;
+        }
+
+        for (Diff diff : currentLevel) {
+            // 先添加到结果列表
+            result.add(diff);
+
+            // 递归处理子集（在清空前获取）
+            List<Diff> subset = diff.getSubset();
+            if (subset != null) {
+                collectAndClearDiffs(subset, result);
+                // 清空 subset
+                diff.setSubset(null); // 或 Collections.emptyList()，取决于你的需求
+            }
+        }
     }
 
     private static Collection<Diff> getCompareList(Collection source, Collection target, int deep) {
