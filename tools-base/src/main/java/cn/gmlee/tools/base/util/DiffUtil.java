@@ -55,13 +55,11 @@ public class DiffUtil {
         }
         // 对齐所有元素
         int size = Math.max(source.size(), target.size());
-        List sourceList = new ArrayList(size);
-        List targetList = new ArrayList(size);
-        sourceList.addAll(source);
-        targetList.addAll(target);
+        List sourceList = new ArrayList(source);
+        List targetList = new ArrayList(target);
         for (int i = 0; i < size; i++){
-            Object sv = sourceList.get(i);
-            Object tv = targetList.get(i);
+            Object sv = i < sourceList.size() ? sourceList.get(i) : null;
+            Object tv = i < targetList.size() ? targetList.get(i) : null;
             Diff diff = new Diff(sv, tv);
             if (deep >= 0) {
                 diff.setSubset(get(sv, tv, deep));
