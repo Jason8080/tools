@@ -85,7 +85,7 @@ public class DiffUtil {
             if (subset != null) {
                 collectAndClearDiffs(subset, result);
                 // 清空 subset
-                diff.setSubset(null); // 或 Collections.emptyList()，取决于你的需求
+                diff.setSubset(null);
             }
         }
     }
