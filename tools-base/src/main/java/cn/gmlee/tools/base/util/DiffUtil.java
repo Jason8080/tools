@@ -1,12 +1,70 @@
 package cn.gmlee.tools.base.util;
 
-import java.util.List;
-import java.util.Map;
+import cn.gmlee.tools.base.mod.Diff;
+
+import java.util.*;
 
 /**
  * 差异对比工具.
  */
 public class DiffUtil {
+    /**
+     * Get list.
+     *
+     * @param <T>    the type parameter
+     * @param source the source
+     * @param target the target
+     * @return the list
+     */
+    public static <T> List<Diff> get(T source, T target) {
+        return get(source, target, 3);
+    }
+
+    /**
+     * 获取差异列表.
+     *
+     * @param <T>    the type parameter
+     * @param source the source
+     * @param target the target
+     * @param deep   the deep
+     * @return the list
+     */
+    public static <T> List<Diff> get(T source, T target, int deep) {
+        // 数据准备
+        List<Diff> diffs = new ArrayList<>();
+        if (BoolUtil.allNull(source, target)) {
+            diffs.add(new Diff(source, target));
+            return diffs;
+        }
+        // 数据分类
+        T t = NullUtil.first(source, target);
+        if (BoolUtil.isBean(t, Comparable.class, Map.class)) {
+            diffs.addAll(getRecursionMap(ClassUtil.generateMap(source), ClassUtil.generateMap(target), --deep));
+        } else if (t instanceof Map) {
+            diffs.addAll(getRecursionMap(NullUtil.get((Map) source), NullUtil.get((Map) target), --deep));
+        }
+        return diffs;
+    }
+
+    private static Collection<Diff> getRecursionMap(Map source, Map target, int deep) {
+        List<Diff> diffs = new ArrayList<>();
+        if (BoolUtil.allEmpty(source, target)) {
+            return diffs;
+        }
+        // 获取所有字段
+        Collection keys = CollectionUtil.merge(source.keySet(), target.keySet());
+        for (Object key : new HashSet(keys)) {
+            Object sv = source.get(key);
+            Object tv = target.get(key);
+            Diff diff = new Diff(key, sv, tv);
+            if (deep >= 0) {
+                diff.setSubset(get(sv, tv, deep));
+            }
+            diffs.add(diff);
+        }
+        return diffs;
+    }
+
     /**
      * 对比报告(描述).
      * (10542):

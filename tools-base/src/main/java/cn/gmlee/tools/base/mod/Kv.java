@@ -31,11 +31,11 @@ public class Kv<K,V> extends HashMap<K,V> implements Serializable {
         super.put(key, val);
     }
 
-    public Kv(String name, String desc, K key, V val) {
-        this.name = name;
-        this.desc = desc;
+    public Kv(K key, V val, String name, String desc) {
         this.key = key;
         this.val = val;
+        this.name = name;
+        this.desc = desc;
         super.put(key, val);
     }
 

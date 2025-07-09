@@ -347,27 +347,6 @@ public class CollectionUtil {
     }
 
     /**
-     * 合并集合.
-     *
-     * @param <T> the type parameter
-     * @param t   the t
-     * @param ts  the ts
-     * @return 返回新集合 ; 可能返回null (t 或 ts为空时)
-     */
-    public static <T> Collection<T> merge(Collection<T> t, T... ts) {
-        if (BoolUtil.isEmpty(t)) {
-            return Arrays.asList(ts);
-        }
-        if (BoolUtil.isEmpty(ts)) {
-            return t;
-        }
-        List<T> newTs = new ArrayList<>(t.size() + ts.length);
-        newTs.addAll(t);
-        newTs.addAll(Arrays.asList(ts));
-        return newTs;
-    }
-
-    /**
      * 替换键.
      *
      * @param <K> the type parameter
@@ -428,11 +407,15 @@ public class CollectionUtil {
      * @return set 返回每个集合中私有的元素 (即在其他集合中不存在).
      */
     public static <K> Set<K> privateKeys(Collection<K>... ks) {
+        ks = ks == null ? new Collection[0] : ks;
         // 存储所有元素的集合
         Set<K> all = new HashSet<>();
 
         // 遍历所有集合并加入all
         for (Collection<K> c : ks) {
+            if(BoolUtil.isEmpty(c)){
+                continue;
+            }
             all.addAll(c);
         }
 
@@ -441,6 +424,9 @@ public class CollectionUtil {
 
         // 遍历每个集合，找出只在该集合中的元素
         for (Collection<K> c : ks) {
+            if(BoolUtil.isEmpty(c)){
+                continue;
+            }
             for (K element : c) {
                 boolean isUnique = true;
                 // 检查该元素是否在其他集合中存在
