@@ -5,6 +5,7 @@ import cn.gmlee.tools.base.util.DiffUtil;
 import cn.gmlee.tools.base.util.JsonUtil;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class DiffTests {
@@ -21,7 +22,7 @@ public class DiffTests {
         target.setCode(null);
         target.setName("n2");
         target.setValue(null);
-        List<Diff> diffs = DiffUtil.get(source, target, 0);
+        List<Diff> diffs = DiffUtil.get(Arrays.asList(source, target), Arrays.asList(target, source), 1);
         System.out.println(JsonUtil.format(diffs));
     }
 }

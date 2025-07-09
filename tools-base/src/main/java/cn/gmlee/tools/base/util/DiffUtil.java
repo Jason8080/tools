@@ -38,10 +38,35 @@ public class DiffUtil {
         }
         // 数据分类
         T t = NullUtil.first(source, target);
-        if (BoolUtil.isBean(t, Comparable.class, Map.class)) {
-            diffs.addAll(getRecursionMap(ClassUtil.generateMap(source), ClassUtil.generateMap(target), --deep));
-        } else if (t instanceof Map) {
+        if (t instanceof Collection){
+            diffs.addAll(getCompareList(NullUtil.get((Collection) source), NullUtil.get((Collection) target), --deep));
+        }else if (t instanceof Map) {
             diffs.addAll(getRecursionMap(NullUtil.get((Map) source), NullUtil.get((Map) target), --deep));
+        } else if (BoolUtil.isBean(t, Comparable.class)) {
+            diffs.addAll(getRecursionMap(ClassUtil.generateMap(source), ClassUtil.generateMap(target), --deep));
+        }
+        return diffs;
+    }
+
+    private static Collection<Diff> getCompareList(Collection source, Collection target, int deep) {
+        List<Diff> diffs = new ArrayList<>();
+        if(BoolUtil.allEmpty(source, target)){
+            return diffs;
+        }
+        // 对齐所有元素
+        int size = Math.max(source.size(), target.size());
+        List sourceList = new ArrayList(size);
+        List targetList = new ArrayList(size);
+        sourceList.addAll(source);
+        targetList.addAll(target);
+        for (int i = 0; i < size; i++){
+            Object sv = sourceList.get(i);
+            Object tv = targetList.get(i);
+            Diff diff = new Diff(sv, tv);
+            if (deep >= 0) {
+                diff.setSubset(get(sv, tv, deep));
+            }
+            diffs.add(diff);
         }
         return diffs;
     }
