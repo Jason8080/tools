@@ -54,9 +54,9 @@ public class DiffUtil {
             return diffs;
         }
         // 对齐所有元素
+        List sourceList = new ArrayList(NullUtil.get(source));
+        List targetList = new ArrayList(NullUtil.get(target));
         int size = Math.max(source.size(), target.size());
-        List sourceList = new ArrayList(source);
-        List targetList = new ArrayList(target);
         for (int i = 0; i < size; i++){
             Object sv = i < sourceList.size() ? sourceList.get(i) : null;
             Object tv = i < targetList.size() ? targetList.get(i) : null;
