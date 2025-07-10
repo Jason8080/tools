@@ -41,10 +41,14 @@ public class Diff<T> implements Serializable {
         SAME,
     }
 
-    /**
-     * key
-     */
     private String item;
+
+    private Boolean same;
+
+    private Boolean basic;
+
+    private Enums enums;
+
     /**
      * The Source.
      */
@@ -69,36 +73,8 @@ public class Diff<T> implements Serializable {
         this.item = item;
         this.source = source;
         this.target = target;
-    }
-
-
-    /**
-     * Is same boolean.
-     *
-     * @return the boolean
-     */
-    public boolean isSame() {
-        return Objects.equals(source, target);
-    }
-
-    /**
-     * Is basic boolean.
-     *
-     * @return boolean
-     */
-    public boolean isBasic() {
-        return BoolUtil.isBaseClass(source, String.class, Number.class) && BoolUtil.isBaseClass(target, String.class, Number.class);
-    }
-
-    /**
-     * Gets enums.
-     *
-     * @return the enums
-     */
-    public Enums getEnums() {
-        if(isSame()){
-            return Enums.SAME;
-        }
-        return source == null ? Enums.ADD : target == null ? Enums.DEL : Enums.UPD;
+        this.same = Objects.equals(source, target);
+        this.basic = BoolUtil.isBaseClass(source, String.class, Number.class) && BoolUtil.isBaseClass(target, String.class, Number.class);
+        this.enums = this.same? Enums.SAME : (source == null ? Enums.ADD : target == null ? Enums.DEL : Enums.UPD);
     }
 }
