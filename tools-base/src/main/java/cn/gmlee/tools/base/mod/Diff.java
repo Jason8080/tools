@@ -74,7 +74,8 @@ public class Diff<T> implements Serializable {
         this.source = source;
         this.target = target;
         this.same = Objects.equals(source, target);
-        this.basic = BoolUtil.isBaseClass(source, String.class, Number.class) && BoolUtil.isBaseClass(target, String.class, Number.class);
-        this.enums = this.same? Enums.SAME : (source == null ? Enums.ADD : target == null ? Enums.DEL : Enums.UPD);
+        this.basic = (source == null || BoolUtil.isBaseClass(source, String.class, Number.class)) &&
+                (target == null || BoolUtil.isBaseClass(target, String.class, Number.class));
+        this.enums = this.same ? Enums.SAME : (source == null ? Enums.ADD : target == null ? Enums.DEL : Enums.UPD);
     }
 }
