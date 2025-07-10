@@ -15,6 +15,16 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Column {
     /**
+     * 序列化接口 (默认值: 表示不进行序列化).
+     */
+    interface Serializer {}
+
+    /**
+     * 序列化成JSON.
+     */
+    class JsonSerializer implements Serializer {}
+
+    /**
      * 描述.
      *
      * @return the string
@@ -29,14 +39,14 @@ public @interface Column {
     boolean hide() default false;
 
     /**
-     * 是否使用JSON序列化.
+     * 是否序列化.
      * <p>
-     *     优先级高于dateFormat (当此项启用则dateFormat失效)
+     * 优先级高于dateFormat (当此项启用则dateFormat失效)
      * </p>
      *
      * @return the boolean
      */
-    boolean serializer() default false;
+    Class<?> serializer() default Serializer.class;
 
     /**
      * 日期格式化.

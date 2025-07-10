@@ -239,9 +239,12 @@ public class ClassUtil {
                 try {
                     Object value = field.get(source);
                     if (column != null) {
+                        Class<?> serializer = column.serializer();
                         // 是否序列化
-                        if (column.serializer()) {
+                        if(Column.JsonSerializer.class.equals(serializer)){
                             value = JsonUtil.toJson(value);
+                        } else if (serializer.isEnum()){
+                            value = EnumUtil.value(value, (Class<Enum>) serializer);
                         } else {
                             // 格式化
                             if (value instanceof Date) {
