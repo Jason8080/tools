@@ -1,5 +1,6 @@
 package cn.gmlee.tools.base.anno;
 
+import cn.gmlee.tools.base.enums.Mark;
 import cn.gmlee.tools.base.enums.XTime;
 
 import java.lang.annotation.*;
@@ -15,16 +16,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Column {
     /**
-     * 序列化接口 (默认值: 表示不进行序列化).
-     */
-    interface Serializer {}
-
-    /**
-     * 序列化成JSON.
-     */
-    class JsonSerializer implements Serializer {}
-
-    /**
      * 描述.
      *
      * @return the string
@@ -37,6 +28,13 @@ public @interface Column {
      * @return the boolean
      */
     boolean hide() default false;
+
+    /**
+     * Mark mark.
+     *
+     * @return the mark
+     */
+    Mark mark() default Mark.NON;
 
     /**
      * 是否序列化.
@@ -54,4 +52,15 @@ public @interface Column {
      * @return the x time
      */
     XTime dateFormat() default XTime.SECOND_MINUS_BLANK_COLON;
+
+
+    /**
+     * 序列化接口 (默认值: 表示不进行序列化).
+     */
+    interface Serializer {}
+
+    /**
+     * 序列化成JSON.
+     */
+    class JsonSerializer implements Serializer {}
 }
