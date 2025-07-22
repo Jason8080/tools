@@ -38,12 +38,18 @@ public class CollectionUtil {
      * @param newVal the new val
      * @return the t [ ]
      */
-    public static <T> Collection<T> replace(Collection<T> ts, T oldVal, T newVal) {
+    public static <T> List<T> replace(Collection<T> ts, T oldVal, T newVal) {
+        List<T> newTs = new ArrayList<>();
         if (BoolUtil.notEmpty(ts)) {
-            ts.remove(oldVal);
-            ts.add(newVal);
+            for (T t : ts) {
+                if (BoolUtil.eq(t, oldVal)) {
+                    newTs.add(newVal);
+                } else {
+                    newTs.add(t);
+                }
+            }
         }
-        return ts;
+        return newTs;
     }
 
     /**
@@ -59,17 +65,45 @@ public class CollectionUtil {
      * @return the t [ ]
      */
     public static <T> List<T> replace(T[] ts, T oldVal, T newVal) {
-        List<T> newTs = new ArrayList<>();
-        if (BoolUtil.notEmpty(ts)) {
-            for (int i = 0; i < ts.length; i++) {
-                if (BoolUtil.eq(ts[i], oldVal)) {
+        return replace(Arrays.asList(ts), oldVal, newVal);
+    }
+
+    /**
+     * Convert list.
+     *
+     * @param <S>    the type parameter
+     * @param <T>    the type parameter
+     * @param c      the c
+     * @param oldVal the old val
+     * @param newVal the new val
+     * @return the list
+     */
+    public static <S, T> List<Object> convert(Collection c, S oldVal, T newVal) {
+        List<Object> newTs = new ArrayList<>();
+        if (BoolUtil.notEmpty(c)) {
+            for (Object o : c) {
+                if (BoolUtil.eq(o, oldVal)) {
                     newTs.add(newVal);
                 } else {
-                    newTs.add(ts[i]);
+                    newTs.add(o);
                 }
             }
         }
         return newTs;
+    }
+
+    /**
+     * Convert list.
+     *
+     * @param <S>    the type parameter
+     * @param <T>    the type parameter
+     * @param os     the os
+     * @param oldVal the old val
+     * @param newVal the new val
+     * @return the list
+     */
+    public static <S, T> List<Object> convert(Object[] os, S oldVal, T newVal) {
+        return convert(Arrays.asList(os), oldVal, newVal);
     }
 
     /**
