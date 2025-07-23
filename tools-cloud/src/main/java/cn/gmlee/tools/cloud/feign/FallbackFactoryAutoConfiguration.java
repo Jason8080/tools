@@ -4,7 +4,7 @@ import cn.gmlee.tools.cloud.fallback.ApiFallbackFactory;
 import org.springframework.context.annotation.Bean;
 
 /**
- * The type Fallback factory auto configuration.
+ * The type Fallback factory autoconfiguration.
  */
 public class FallbackFactoryAutoConfiguration {
     /**
