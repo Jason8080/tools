@@ -7,8 +7,8 @@ import cn.gmlee.tools.base.util.JsonUtil;
 import cn.gmlee.tools.base.util.NullUtil;
 import feign.FeignException;
 import feign.hystrix.FallbackFactory;
+import lombok.Data;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -18,19 +18,32 @@ import java.lang.reflect.Proxy;
  *
  * @param <T> the type parameter
  */
-@Component
+@Data
 public class ApiFallbackFactory<T> implements FallbackFactory<T> {
+
+    private Class<?> feignClient;
 
     @Override
     public T create(Throwable cause) {
         return (T) Proxy.newProxyInstance(
-            getClass().getClassLoader(),
-            new Class<?>[] { getFeignInterface(cause) },
-            (proxy, method, args) -> handleFallback(method, args, cause)
+                getClass().getClassLoader(),
+                new Class<?>[]{getFeignInterface(cause)},
+                (proxy, method, args) -> handleFallback(method, args, cause)
         );
     }
 
     private Class<?> getFeignInterface(Throwable cause) {
+        if (feignClient != null) {
+            return feignClient;
+        }
+        // 从Feign异常中解析出接口
+        if (cause instanceof FeignException) {
+            try {
+                return ((FeignException) cause).request().requestTemplate().feignTarget().type();
+            } catch (Exception e) {
+                throw new IllegalStateException("Feign target 解析异常");
+            }
+        }
         // 从异常堆栈中解析出Feign接口
         StackTraceElement[] stackTrace = cause.getStackTrace();
         for (StackTraceElement element : stackTrace) {
@@ -39,9 +52,10 @@ public class ApiFallbackFactory<T> implements FallbackFactory<T> {
                 if (clazz.isInterface() && clazz.getAnnotation(FeignClient.class) != null) {
                     return clazz;
                 }
-            } catch (ClassNotFoundException ignored) {}
+            } catch (ClassNotFoundException ignored) {
+            }
         }
-        throw new IllegalStateException("Cannot determine Feign client interface from exception");
+        throw new IllegalStateException("Feign client 解析异常");
     }
 
     private Object handleFallback(Method method, Object[] args, Throwable cause) {
