@@ -20,6 +20,6 @@ public class ApiFallback {
      * @return 响应实体
      */
     public R defaultFallback() {
-        return R.FAIL.newly(XCode.IM_CONNECT);
+        return R.FAIL.newly(XCode.THIRD_PARTY_FAIL);
     }
 }
