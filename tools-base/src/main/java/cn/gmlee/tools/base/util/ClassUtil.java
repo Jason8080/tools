@@ -1,6 +1,7 @@
 package cn.gmlee.tools.base.util;
 
 import cn.gmlee.tools.base.anno.Column;
+import cn.gmlee.tools.base.enums.Mark;
 import cn.gmlee.tools.base.mod.Kv;
 import com.alibaba.fastjson.util.ParameterizedTypeImpl;
 import org.slf4j.Logger;
@@ -406,7 +407,7 @@ public class ClassUtil {
      * @param value  the value
      */
     public static void setValue(Object source, Field field, Object value) {
-        if (!Modifier.isFinal(field.getModifiers())) {
+        if (field!=null && !Modifier.isFinal(field.getModifiers())) {
             boolean ok = field.isAccessible();
             QuickUtil.isFalse(ok, () -> field.setAccessible(true));
             ExceptionUtil.suppress(() -> field.set(source, value));
@@ -899,5 +900,62 @@ public class ClassUtil {
         return getDigest(m, simple);
     }
 
+    /**
+     * Group by map.
+     *
+     * @param c    the c
+     * @param mark 可以标记多个字段
+     * @return the map
+     */
+    public static Map<String, Map<String, Object>> groupBy(Collection c, Mark mark) {
+        if (BoolUtil.isEmpty(c)) {
+            return Collections.emptyMap();
+        }
+        Map<String, Map<String, Object>> map = new HashMap<>();
+        for (Object obj : c) {
+            Map<String, Field> fieldsMap = getFieldsMap(obj);
+            Map<String, Object> marksMap = getColumnMarks(obj, fieldsMap, mark);
+            Map<String, Object> linkMap = CollectionUtil.keySort(marksMap);
+            // 通过字段排序+拼接对齐
+            map.put(String.join("_", linkMap.keySet()), linkMap);
+        }
+        return map;
+    }
+
+    /**
+     * Sort by list.
+     *
+     * @param c    the c
+     * @param mark 只能标记1个字段
+     * @return the list
+     */
+    public static List sortBy(Collection c, Mark mark) {
+        if (BoolUtil.isEmpty(c)) {
+            return Collections.emptyList();
+        }
+        Map<Object, Object> map = new HashMap<>();
+        for (Object obj : c) {
+            Map<String, Field> fieldsMap = getFieldsMap(obj);
+            Map<String, Object> marksMap = getColumnMarks(obj, fieldsMap, mark);
+            Map<String, Object> linkMap = CollectionUtil.keySort(marksMap);
+            // 通过首个标记字段进行排序, 没有标记则保持顺序不变。
+            map.put(obj, linkMap.values().stream().findFirst().orElse(null));
+        }
+        Map<Object, Object> sortMap = CollectionUtil.valObjectSort(map);
+        return new ArrayList<>(sortMap.keySet());
+
+    }
+
+    private static Map<String, Object> getColumnMarks(Object obj, Map<String, Field> fieldsMap, Mark... any) {
+        Map<String, Object> map = new HashMap<>();
+        fieldsMap.forEach((name,field) -> {
+            Column column = field.getAnnotation(Column.class);
+            if(column!=null && BoolUtil.containOne(column.mark(), any)){
+                Object value = ClassUtil.getValue(obj, field);
+                map.put(name, value);
+            }
+        });
+        return map;
+    }
     // -----------------------------------------------------------------------------------------------------------------
 }

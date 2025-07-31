@@ -3,6 +3,7 @@ package cn.gmlee.tools.base.util;
 import cn.gmlee.tools.base.enums.Function;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 集合工具
@@ -255,6 +256,65 @@ public class CollectionUtil {
     }
 
     /**
+     * Key object sort map.
+     *
+     * @param <K> the type parameter
+     * @param <V> the type parameter
+     * @param map the map
+     * @return the map
+     */
+    public static <K, V> Map<K, V> keyObjectSort(Map<K, V> map) {
+        if(BoolUtil.isEmpty(map)) {
+            return map;
+        }
+        Comparator<? super Map.Entry<?, ?>> comparator = (e1, e2) -> {
+            Object k1 = e1.getKey();
+            Object k2 = e2.getKey();
+            if (k1 instanceof Comparable && k2 instanceof Comparable) {
+                return ((Comparable) k1).compareTo(k2);
+            }
+            return 0;
+        };
+        return keySort(map, comparator);
+    }
+
+    /**
+     * Val sort map.
+     *
+     * @param <K> the type parameter
+     * @param <V> the type parameter
+     * @param map the map
+     * @return the map
+     */
+    public static <K, V extends Comparable<? super V>> Map<K, V> valSort(Map<K, V> map) {
+        return valSort(map, Map.Entry.comparingByValue());
+    }
+
+
+    /**
+     * Val object sort map.
+     *
+     * @param <K> the type parameter
+     * @param <V> the type parameter
+     * @param map the map
+     * @return the map
+     */
+    public static <K, V> Map<K, V> valObjectSort(Map<K, V> map) {
+        if(BoolUtil.isEmpty(map)) {
+            return map;
+        }
+        Comparator<? super Map.Entry<?, ?>> comparator = (e1, e2) -> {
+            Object v1 = e1.getValue();
+            Object v2 = e2.getValue();
+            if (v1 instanceof Comparable && v2 instanceof Comparable) {
+                return ((Comparable) v1).compareTo(v2);
+            }
+            return 0; // 无法比较保持原位置
+        };
+        return valSort(map, comparator);
+    }
+
+    /**
      * 将Map按照Key倒序排序.
      *
      * @param <K> the type parameter
@@ -266,22 +326,84 @@ public class CollectionUtil {
         return keySort(map, Map.Entry.comparingByKey(Comparator.reverseOrder()));
     }
 
+    /**
+     * Val reverse sort map.
+     *
+     * @param <K> the type parameter
+     * @param <V> the type parameter
+     * @param map the map
+     * @return the map
+     */
+    public static <K, V extends Comparable<? super V>> Map<K, V> valReverseSort(Map<K, V> map) {
+        return valSort(map, Map.Entry.comparingByValue(Comparator.reverseOrder()));
+    }
 
-    private static <K extends Comparable<? super K>, V> Map<K, V> keySort(Map<K, V> map, Comparator<? super Map.Entry<K, V>> comparable) {
-        Map<K, V> sortedMap = new LinkedHashMap<>();
-        // 对map的key进行排序
-        map.entrySet().stream().sorted(comparable).forEach(entry -> {
-            V value = entry.getValue();
-            // 如果value也是一个Map，递归排序
-            if (value instanceof Map) {
-                // 递归调用时转换类型
-                Map<K, V> newValue = ExceptionUtil.sandbox(() -> (Map<K, V>) value, false);
-                sortedMap.put(entry.getKey(), newValue != null ? (V) keySort(newValue, comparable) : value);
-            } else {
-                sortedMap.put(entry.getKey(), value);
-            }
-        });
-        return sortedMap;
+
+    private static <K, V> Map<K, V> keySort(Map<K, V> map, Comparator<? super Map.Entry<K, V>> comparable) {
+        if(BoolUtil.isEmpty(map)){
+            return Collections.emptyMap();
+        }
+        return map.entrySet().stream().filter(entry -> entry.getValue() instanceof Comparable)
+                .sorted(comparable)
+                .peek(entry -> {
+                    // 如果 value 是 Map，则递归排序
+                    if (entry.getValue() instanceof Map) {
+                        Map nestedMap = (Map) entry.getValue();
+                        Map sortedNestedMap = keySort(nestedMap, comparable);
+                        map.put(entry.getKey(), (V) sortedNestedMap);
+                    }
+                })
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (e1, e2) -> e1,
+                        LinkedHashMap::new
+                ));
+    }
+
+
+    private static <K, V> Map<K, V> valSort(Map<K, V> map, Comparator<? super Map.Entry<K, V>> comparable) {
+        if(BoolUtil.isEmpty(map)){
+            return Collections.emptyMap();
+        }
+        return map.entrySet().stream().filter(entry -> entry.getValue() instanceof Comparable)
+                .sorted(comparable)
+                .peek(entry -> {
+                    // 如果 value 是 Map，则递归排序
+                    if (entry.getValue() instanceof Map) {
+                        Map nestedMap = (Map) entry.getValue();
+                        Map sortedNestedMap = valSort(nestedMap, comparable);
+                        map.put(entry.getKey(), (V) sortedNestedMap);
+                    }
+                })
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (e1, e2) -> e1,
+                        LinkedHashMap::new
+                ));
+    }
+
+    /**
+     * Add value boolean.
+     *
+     * @param <C>   the type parameter
+     * @param map   the map
+     * @param key   the key
+     * @param value the value
+     * @return the boolean
+     */
+    public static <C extends Collection> boolean addValue(Map<String, C> map, String key, Object value) {
+        if(map == null) {
+            return false;
+        }
+        C collection = map.get(key);
+        if(collection == null) {
+            collection = (C) new ArrayList();
+            map.put(key, collection);
+        }
+        collection.add(value);
+        return true;
     }
 
     /**

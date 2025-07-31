@@ -34,7 +34,7 @@ public @interface Column {
      *
      * @return the mark
      */
-    Mark mark() default Mark.NON;
+    Mark[] mark() default Mark.NON;
 
     /**
      * 是否序列化.

@@ -1,5 +1,6 @@
 package cn.gmlee.tools.base.util;
 
+import cn.gmlee.tools.base.enums.Mark;
 import cn.gmlee.tools.base.mod.Diff;
 
 import java.util.*;
@@ -114,8 +115,39 @@ public class DiffUtil {
         }
     }
 
-
     private static Collection<Diff> getCompareList(String item, Collection source, Collection target, int deep) {
+        List<Diff> diffs = new ArrayList<>();
+        if (BoolUtil.allEmpty(source, target)) {
+            return diffs;
+        }
+        // 对齐处理
+        alignmentProcessing(item, source, target, deep, diffs);
+        // 排序处理
+        sortProcessing(item, source, target, deep, diffs);
+        return diffs;
+    }
+
+    private static void sortProcessing(String item, Collection source, Collection target, int deep, List<Diff> diffs) {
+        // 排序所有元素
+        List sourceList = ClassUtil.sortBy(source, Mark.SORT);
+        List targetList = ClassUtil.sortBy(source, Mark.SORT);
+        // 对比元素差异
+        diffs.addAll(getCompareByList(item, sourceList, targetList, deep));
+    }
+
+    private static void alignmentProcessing(String item, Collection source, Collection target, int deep, List<Diff> diffs) {
+        // 对齐所有元素
+        Map<String, Map<String, Object>> sourceMap = ClassUtil.groupBy(source, Mark.ID);
+        Map<String, Map<String, Object>> targetMap = ClassUtil.groupBy(target, Mark.ID);
+        // 对齐元素差异
+        Set<String> publicKeys = CollectionUtil.publicKeys(sourceMap.keySet(), targetMap.keySet());
+        getCompareByKeys(item, deep, publicKeys, sourceMap, targetMap, diffs);
+        // 私有元素差异
+        Set<String> privateKeys = CollectionUtil.privateKeys(sourceMap.keySet(), targetMap.keySet());
+        getCompareByKeys(item, deep, privateKeys, sourceMap, targetMap, diffs);
+    }
+
+    private static Collection<Diff> getCompareByList(String item, Collection source, Collection target, int deep) {
         List<Diff> diffs = new ArrayList<>();
         if (BoolUtil.allEmpty(source, target)) {
             return diffs;
@@ -128,13 +160,26 @@ public class DiffUtil {
             Object sv = i < sourceList.size() ? sourceList.get(i) : null;
             Object tv = i < targetList.size() ? targetList.get(i) : null;
             Diff diff = new Diff(String.valueOf(i), sv, tv); // 使用原生item
-//            Diff diff = new Diff(BoolUtil.isEmpty(item) ? String.valueOf(i) : item+">"+i, sv, tv);
             if (deep >= 0) {
                 diff.setSubset(get(diff.getItem(), sv, tv, deep));
             }
             diffs.add(diff);
         }
         return diffs;
+    }
+
+    private static void getCompareByKeys(String item, int deep, Set<String> keys, Map<String, Map<String, Object>> sourceMap, Map<String, Map<String, Object>> targetMap, List<Diff> diffs) {
+        if (BoolUtil.isEmpty(keys)) {
+            return;
+        }
+        for (String key : keys) {
+            Map<String, Object> source = NullUtil.get(sourceMap.get(key));
+            Map<String, Object> target = NullUtil.get(targetMap.get(key));
+            if(BoolUtil.allEmpty(source, target)) {
+                continue;
+            }
+            diffs.addAll(getRecursionMap(item, source, target, deep));
+        }
     }
 
     private static Collection<Diff> getRecursionMap(String item, Map source, Map target, int deep) {
@@ -151,7 +196,6 @@ public class DiffUtil {
             Object sv = source.get(key);
             Object tv = target.get(key);
             Diff diff = new Diff(key.toString(), sv, tv); // 使用原生item
-//            Diff diff = new Diff(BoolUtil.isEmpty(item) ? key.toString() : item+">"+key, sv, tv);
             if (deep >= 0) {
                 diff.setSubset(get(diff.getItem(), sv, tv, deep));
             }
