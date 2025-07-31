@@ -343,7 +343,7 @@ public class CollectionUtil {
         if(BoolUtil.isEmpty(map)){
             return Collections.emptyMap();
         }
-        return map.entrySet().stream().filter(entry -> entry.getValue() instanceof Comparable)
+        return map.entrySet().stream().filter(entry -> entry.getKey() instanceof Comparable)
                 .sorted(comparable)
                 .peek(entry -> {
                     // 如果 value 是 Map，则递归排序
