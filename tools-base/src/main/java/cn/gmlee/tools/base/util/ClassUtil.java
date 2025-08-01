@@ -917,7 +917,7 @@ public class ClassUtil {
             Map<String, Object> marksMap = getColumnMarks(obj, fieldsMap, mark);
             Map<String, Object> linkMap = CollectionUtil.keySort(marksMap);
             // 通过字段排序+拼接对齐
-            map.put(String.join("_", linkMap.keySet()), linkMap);
+            map.put(String.join("_", linkMap.keySet()), marksMap);
         }
         return map;
     }
