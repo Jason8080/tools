@@ -917,7 +917,7 @@ public class ClassUtil {
             Map<String, Object> marksMap = getColumnMarks(obj, fieldsMap, mark);
             Map<String, Object> linkMap = CollectionUtil.keySort(marksMap);
             // 通过字段排序+拼接对齐
-            map.put(String.join("_", linkMap.keySet()), marksMap);
+            map.put(String.join("_", linkMap.keySet()), getValue(obj, fieldsMap));
         }
         return map;
     }
@@ -939,11 +939,20 @@ public class ClassUtil {
             Map<String, Object> marksMap = getColumnMarks(obj, fieldsMap, mark);
             Map<String, Object> linkMap = CollectionUtil.keySort(marksMap);
             // 通过首个标记字段进行排序, 没有标记则保持顺序不变。
-            map.put(obj, linkMap.values().stream().findFirst().orElse(null));
+            map.put(obj, linkMap.values().stream().filter(Objects::nonNull).findFirst().orElse(null));
         }
         Map<Object, Object> sortMap = CollectionUtil.valObjectSort(map);
         return new ArrayList<>(sortMap.keySet());
 
+    }
+
+    private static Map<String, Object> getValue(Object obj, Map<String, Field> fieldsMap) {
+        Map<String, Object> map = new HashMap<>();
+        if(BoolUtil.isNull(obj) || BoolUtil.isEmpty(fieldsMap)){
+            return map;
+        }
+        fieldsMap.forEach((name,field) -> map.put(name, ClassUtil.getValue(obj, field)));
+        return map;
     }
 
     private static Map<String, Object> getColumnMarks(Object obj, Map<String, Field> fieldsMap, Mark... any) {

@@ -3,7 +3,6 @@ package cn.gmlee.tools.base.util;
 import cn.gmlee.tools.base.enums.Function;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 集合工具
@@ -199,7 +198,7 @@ public class CollectionUtil {
     public static String getIgnoreCase(Map<String, String> headers, String key) {
         Set<Map.Entry<String, String>> entries = headers.entrySet();
         for (Map.Entry<String, String> entry : entries) {
-            if(BoolUtil.equalsIgnoreCase(key, entry.getKey())) {
+            if (BoolUtil.equalsIgnoreCase(key, entry.getKey())) {
                 return entry.getValue();
             }
         }
@@ -264,7 +263,7 @@ public class CollectionUtil {
      * @return the map
      */
     public static <K, V> Map<K, V> keyObjectSort(Map<K, V> map) {
-        if(BoolUtil.isEmpty(map)) {
+        if (BoolUtil.isEmpty(map)) {
             return map;
         }
         Comparator<? super Map.Entry<?, ?>> comparator = (e1, e2) -> {
@@ -300,7 +299,7 @@ public class CollectionUtil {
      * @return the map
      */
     public static <K, V> Map<K, V> valObjectSort(Map<K, V> map) {
-        if(BoolUtil.isEmpty(map)) {
+        if (BoolUtil.isEmpty(map)) {
             return map;
         }
         Comparator<? super Map.Entry<?, ?>> comparator = (e1, e2) -> {
@@ -340,10 +339,11 @@ public class CollectionUtil {
 
 
     private static <K, V> Map<K, V> keySort(Map<K, V> map, Comparator<? super Map.Entry<K, V>> comparable) {
-        if(BoolUtil.isEmpty(map)){
+        if (BoolUtil.isEmpty(map)) {
             return Collections.emptyMap();
         }
-        return map.entrySet().stream().filter(entry -> entry.getKey() instanceof Comparable)
+        Map<K, V> result = new LinkedHashMap<>();
+        map.entrySet().stream().filter(entry -> entry.getKey() instanceof Comparable)
                 .sorted(comparable)
                 .peek(entry -> {
                     // 如果 value 是 Map，则递归排序
@@ -352,21 +352,17 @@ public class CollectionUtil {
                         Map sortedNestedMap = keySort(nestedMap, comparable);
                         map.put(entry.getKey(), (V) sortedNestedMap);
                     }
-                })
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (e1, e2) -> e1,
-                        LinkedHashMap::new
-                ));
+                }).forEach(entry -> result.putIfAbsent(entry.getKey(), entry.getValue()));
+        return result;
     }
 
 
     private static <K, V> Map<K, V> valSort(Map<K, V> map, Comparator<? super Map.Entry<K, V>> comparable) {
-        if(BoolUtil.isEmpty(map)){
+        if (BoolUtil.isEmpty(map)) {
             return Collections.emptyMap();
         }
-        return map.entrySet().stream().filter(entry -> entry.getValue() instanceof Comparable)
+        Map<K, V> result = new LinkedHashMap<>();
+        map.entrySet().stream().filter(entry -> entry.getValue() instanceof Comparable)
                 .sorted(comparable)
                 .peek(entry -> {
                     // 如果 value 是 Map，则递归排序
@@ -375,13 +371,8 @@ public class CollectionUtil {
                         Map sortedNestedMap = valSort(nestedMap, comparable);
                         map.put(entry.getKey(), (V) sortedNestedMap);
                     }
-                })
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (e1, e2) -> e1,
-                        LinkedHashMap::new
-                ));
+                }).forEach(entry -> result.putIfAbsent(entry.getKey(), entry.getValue()));
+        return result;
     }
 
     /**
@@ -394,11 +385,11 @@ public class CollectionUtil {
      * @return the boolean
      */
     public static <C extends Collection> boolean addValue(Map<String, C> map, String key, Object value) {
-        if(map == null) {
+        if (map == null) {
             return false;
         }
         C collection = map.get(key);
-        if(collection == null) {
+        if (collection == null) {
             collection = (C) new ArrayList();
             map.put(key, collection);
         }
@@ -569,7 +560,7 @@ public class CollectionUtil {
 
         // 遍历所有集合并加入all
         for (Collection<K> c : ks) {
-            if(BoolUtil.isEmpty(c)){
+            if (BoolUtil.isEmpty(c)) {
                 continue;
             }
             all.addAll(c);
@@ -580,7 +571,7 @@ public class CollectionUtil {
 
         // 遍历每个集合，找出只在该集合中的元素
         for (Collection<K> c : ks) {
-            if(BoolUtil.isEmpty(c)){
+            if (BoolUtil.isEmpty(c)) {
                 continue;
             }
             for (K element : c) {
