@@ -240,21 +240,7 @@ public class ClassUtil {
                 try {
                     Object value = field.get(source);
                     if (column != null) {
-                        Class<?> serializer = column.serializer();
-                        // 是否序列化
-                        if(Column.JsonSerializer.class.equals(serializer)){
-                            value = JsonUtil.toJson(value);
-                        } else if (serializer.isEnum()){
-                            value = EnumUtil.value(value, (Class<Enum>) serializer);
-                        } else {
-                            // 格式化
-                            if (value instanceof Date) {
-                                value = TimeUtil.format((Date) value, column.dateFormat());
-                            }
-                            if (value instanceof LocalDateTime) {
-                                value = TimeUtil.format((LocalDateTime) value, column.dateFormat());
-                            }
-                        }
+                        value = getValue(column, value);
                     }
                     if (!ignoreNull) {
                         map.put(name, (V) value);
@@ -269,6 +255,25 @@ public class ClassUtil {
             }
         }
         return map;
+    }
+
+    private static Object getValue(Column column, Object value) {
+        Class<?> serializer = column.serializer();
+        // 是否序列化
+        if(Column.JsonSerializer.class.equals(serializer)){
+            value = JsonUtil.toJson(value);
+        } else if (serializer.isEnum()){
+            value = EnumUtil.value(value, (Class<Enum>) serializer);
+        } else {
+            // 格式化
+            if (value instanceof Date) {
+                value = TimeUtil.format((Date) value, column.dateFormat());
+            }
+            if (value instanceof LocalDateTime) {
+                value = TimeUtil.format((LocalDateTime) value, column.dateFormat());
+            }
+        }
+        return value;
     }
 
     /**
@@ -916,8 +921,12 @@ public class ClassUtil {
             Map<String, Field> fieldsMap = getFieldsMap(obj);
             Map<String, Object> marksMap = getColumnMarks(obj, fieldsMap, mark);
             Map<String, Object> linkMap = CollectionUtil.keySort(marksMap);
+            if(marksMap.isEmpty()){
+                continue;
+            }
             // 通过字段排序+拼接对齐
-            map.put(String.join("_", linkMap.keySet()), getValue(obj, fieldsMap));
+            String key = String.format("%s=%s", linkMap.keySet(), linkMap.values());
+            map.put(key, getValue(obj, fieldsMap));
         }
         return map;
     }
@@ -938,6 +947,9 @@ public class ClassUtil {
             Map<String, Field> fieldsMap = getFieldsMap(obj);
             Map<String, Object> marksMap = getColumnMarks(obj, fieldsMap, mark);
             Map<String, Object> linkMap = CollectionUtil.keySort(marksMap);
+            if(marksMap.isEmpty()){
+                continue;
+            }
             // 通过首个标记字段进行排序, 没有标记则保持顺序不变。
             map.put(obj, linkMap.values().stream().filter(Objects::nonNull).findFirst().orElse(null));
         }
@@ -961,7 +973,7 @@ public class ClassUtil {
             Column column = field.getAnnotation(Column.class);
             if(column!=null && BoolUtil.containOne(column.mark(), any)){
                 Object value = ClassUtil.getValue(obj, field);
-                map.put(name, value);
+                map.put(name, getValue(column, value));
             }
         });
         return map;
