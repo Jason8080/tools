@@ -926,7 +926,7 @@ public class ClassUtil {
             }
             // 通过字段排序+拼接对齐
             String key = String.format("%s=%s", linkMap.keySet(), linkMap.values());
-            map.put(key, getValue(obj, fieldsMap));
+            map.put(key, generateMap(obj));
         }
         return map;
     }
