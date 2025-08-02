@@ -240,7 +240,7 @@ public class ClassUtil {
                 try {
                     Object value = field.get(source);
                     if (column != null) {
-                        value = getValue(column, value);
+                        value = serializer(column, value);
                     }
                     if (!ignoreNull) {
                         map.put(name, (V) value);
@@ -255,25 +255,6 @@ public class ClassUtil {
             }
         }
         return map;
-    }
-
-    private static Object getValue(Column column, Object value) {
-        Class<?> serializer = column.serializer();
-        // 是否序列化
-        if(Column.JsonSerializer.class.equals(serializer)){
-            value = JsonUtil.toJson(value);
-        } else if (serializer.isEnum()){
-            value = EnumUtil.value(value, (Class<Enum>) serializer);
-        } else {
-            // 格式化
-            if (value instanceof Date) {
-                value = TimeUtil.format((Date) value, column.dateFormat());
-            }
-            if (value instanceof LocalDateTime) {
-                value = TimeUtil.format((LocalDateTime) value, column.dateFormat());
-            }
-        }
-        return value;
     }
 
     /**
@@ -973,10 +954,29 @@ public class ClassUtil {
             Column column = field.getAnnotation(Column.class);
             if(column!=null && BoolUtil.containOne(column.mark(), any)){
                 Object value = ClassUtil.getValue(obj, field);
-                map.put(name, getValue(column, value));
+                map.put(name, serializer(column, value));
             }
         });
         return map;
+    }
+
+    private static Object serializer(Column column, Object value) {
+        Class<?> serializer = column.serializer();
+        // 是否序列化
+        if(Column.JsonSerializer.class.equals(serializer)){
+            value = JsonUtil.toJson(value);
+        } else if (serializer.isEnum()){
+            value = EnumUtil.value(value, (Class<Enum>) serializer);
+        } else {
+            // 格式化
+            if (value instanceof Date) {
+                value = TimeUtil.format((Date) value, column.dateFormat());
+            }
+            if (value instanceof LocalDateTime) {
+                value = TimeUtil.format((LocalDateTime) value, column.dateFormat());
+            }
+        }
+        return value;
     }
     // -----------------------------------------------------------------------------------------------------------------
 }
