@@ -893,11 +893,11 @@ public class ClassUtil {
      * @param mark 可以标记多个字段
      * @return the map
      */
-    public static Map<String, Map<String, Object>> groupBy(Collection c, Mark mark) {
+    public static Map<String, Object> groupBy(Collection c, Mark mark) {
         if (BoolUtil.isEmpty(c)) {
             return Collections.emptyMap();
         }
-        Map<String, Map<String, Object>> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>();
         for (Object obj : c) {
             Map<String, Field> fieldsMap = getFieldsMap(obj);
             Map<String, Object> marksMap = getColumnMarks(obj, fieldsMap, mark);
@@ -907,7 +907,7 @@ public class ClassUtil {
             }
             // 通过字段排序+拼接对齐
             String key = String.format("%s=%s", linkMap.keySet(), linkMap.values());
-            map.put(key, generateMap(obj));
+            map.put(key, obj);
         }
         return map;
     }

@@ -137,14 +137,14 @@ public class DiffUtil {
 
     private static void alignmentProcessing(String item, Collection source, Collection target, int deep, List<Diff> diffs) {
         // 对齐所有元素
-        Map<String, Map<String, Object>> sourceMap = ClassUtil.groupBy(source, Mark.ID);
-        Map<String, Map<String, Object>> targetMap = ClassUtil.groupBy(target, Mark.ID);
+        Map<String, Object> sourceMap = ClassUtil.groupBy(source, Mark.ID);
+        Map<String, Object> targetMap = ClassUtil.groupBy(target, Mark.ID);
         // 对齐元素差异
         Set<String> publicKeys = CollectionUtil.publicKeys(sourceMap.keySet(), targetMap.keySet());
-        getCompareByKeys(item, deep, publicKeys, sourceMap, targetMap, diffs);
+        getCompareByKeys(item, source, target, publicKeys, sourceMap, targetMap, diffs, deep);
         // 私有元素差异
         Set<String> privateKeys = CollectionUtil.privateKeys(sourceMap.keySet(), targetMap.keySet());
-        getCompareByKeys(item, deep, privateKeys, sourceMap, targetMap, diffs);
+        getCompareByKeys(item, source, target, privateKeys, sourceMap, targetMap, diffs, deep);
     }
 
     private static Collection<Diff> getCompareByList(String item, Collection source, Collection target, int deep) {
@@ -168,17 +168,16 @@ public class DiffUtil {
         return diffs;
     }
 
-    private static void getCompareByKeys(String item, int deep, Set<String> keys, Map<String, Map<String, Object>> sourceMap, Map<String, Map<String, Object>> targetMap, List<Diff> diffs) {
+    private static void getCompareByKeys(String item, Collection source, Collection target, Set<String> keys, Map<String, Object> sourceMap, Map<String, Object> targetMap, List<Diff> diffs, int deep) {
         if (BoolUtil.isEmpty(keys)) {
             return;
         }
         for (String key : keys) {
-            Map<String, Object> source = NullUtil.get(sourceMap.get(key));
-            Map<String, Object> target = NullUtil.get(targetMap.get(key));
-            if(BoolUtil.allEmpty(source, target)) {
-                continue;
-            }
-            diffs.addAll(getRecursionMap(item, source, target, deep));
+            Object s = sourceMap.get(key);
+            Object t = targetMap.get(key);
+            QuickUtil.notNull(s, source::remove);
+            QuickUtil.notNull(t, target::remove);
+            diffs.addAll(getRecursionMap(item, ClassUtil.generateMap(s), ClassUtil.generateMap(t), deep));
         }
     }
 
