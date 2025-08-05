@@ -130,7 +130,7 @@ public class DiffUtil {
     private static void sortProcessing(String item, Collection source, Collection target, int deep, List<Diff> diffs) {
         // 排序所有元素
         List sourceList = ClassUtil.sortBy(source, Mark.SORT);
-        List targetList = ClassUtil.sortBy(source, Mark.SORT);
+        List targetList = ClassUtil.sortBy(target, Mark.SORT);
         // 对比元素差异
         diffs.addAll(getCompareByList(item, sourceList, targetList, deep));
     }
