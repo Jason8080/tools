@@ -130,22 +130,7 @@ public class DiffUtil {
     }
 
     private static void originalProcessing(String item, Collection source, Collection target, int deep, List<Diff> diffs) {
-        if(BoolUtil.allEmpty(source, target)){
-            return;
-        }
-        // 对齐所有元素
-        List sourceList = new ArrayList(NullUtil.get(source));
-        List targetList = new ArrayList(NullUtil.get(target));
-        int size = Math.max(sourceList.size(), targetList.size());
-        for (int i = 0; i < size; i++){
-            Object sv = i < sourceList.size() ? sourceList.get(i) : null;
-            Object tv = i < targetList.size() ? targetList.get(i) : null;
-            Diff diff = new Diff(String.valueOf(i), sv, tv);
-            if (deep >= 0) {
-                diff.setSubset(get(sv, tv, deep));
-            }
-            diffs.add(diff);
-        }
+        diffs.addAll(getCompareByList(item, source, target, deep));
     }
 
     private static void sortProcessing(String item, Collection source, Collection target, int deep, List<Diff> diffs) {
