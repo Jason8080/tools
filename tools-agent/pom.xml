@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>cn.gmlee.tools</groupId>
+        <artifactId>tools</artifactId>
+        <version>5.5.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>cn.gmlee.tools</groupId>
+    <artifactId>tools-agent</artifactId>
+    <version>5.5.0-SNAPSHOT</version>
+
+    <packaging>jar</packaging>
+
+    <!--项目信息-->
+    <name>tools-agent</name>
+    <description>tools-agent: 基于byte-buddy的动态字节码增强工具!</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-agent</url>
+
+    <!--开源协议-->
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <!--托管平台的地址-->
+    <scm>
+        <connection>https://github.com/Jason8080/tools.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:Jason8080/tools.git</developerConnection>
+        <url>https://github.com/Jason8080/tools</url>
+    </scm>
+
+    <!--开发者信息-->
+    <developers>
+        <developer>
+            <id>J°杰森</id>
+            <name>J°杰森</name>
+            <email>xiaoku13141@163.com</email>
+            <roles>
+                <role>Project Manager</role>
+                <role>Architect</role>
+            </roles>
+            <timezone>+8</timezone>
+        </developer>
+    </developers>
+
+    <dependencies>
+        <dependency>
+            <groupId>cn.gmlee.tools</groupId>
+            <artifactId>tools-base</artifactId>
+            <version>5.5.0-SNAPSHOT</version>
+        </dependency>
+        <!-- ======================================================================================================= -->
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>1.17.5</version>
+        </dependency>
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy-agent</artifactId>
+            <version>1.17.5</version>
+        </dependency>
+        <!-- ======================================================================================================= -->
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <version>2.3.4.RELEASE</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <!-- ======================================================================================================= -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
+</project>

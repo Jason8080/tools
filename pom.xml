@@ -61,6 +61,7 @@
         <!-- 临时注释 -->
         <module>tools-api</module>
         <module>tools-base</module>
+        <module>tools-agent</module>
         <module>tools-cloud</module>
         <module>tools-mail</module>
         <module>tools-code</module>
