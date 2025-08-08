@@ -64,7 +64,7 @@ public class MonitorMethodTimingAutoConfiguration {
         }
 
         new AgentBuilder.Default()
-                .ignore(matcher(monitorMethodProperties.getIgnorePackages(), ElementMatchers.nameStartsWith("net.bytebuddy."), ElementMatchers::not, ElementMatcher.Junction::and))
+                .ignore(matcher(monitorMethodProperties.getIgnorePackages(), ElementMatchers.nameStartsWith("net.bytebuddy."), ElementMatchers::is, ElementMatcher.Junction::or))
                 .type(matcher(monitorMethodProperties.getPackages(), ElementMatchers.nameStartsWith("cn.gmlee."), ElementMatchers::is, ElementMatcher.Junction::or))
                 .transform((builder, typeDescription, classLoader, module) ->
                         builder.visit(Advice.to(TimingAdvice.class).on(ElementMatchers.isMethod()
