@@ -11,8 +11,8 @@ import java.util.List;
  * 监控配置.
  */
 @Data
-@ConfigurationProperties(prefix = "tools.agent.monitor")
-public class MonitorProperties {
+@ConfigurationProperties(prefix = "tools.agent.monitor.method")
+public class MonitorMethodProperties {
     private Boolean enable = Boolean.TRUE;
     private List<String> packages = Collections.singletonList("*");
 }

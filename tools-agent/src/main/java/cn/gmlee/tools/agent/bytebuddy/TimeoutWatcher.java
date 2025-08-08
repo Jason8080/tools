@@ -1,36 +1,42 @@
 package cn.gmlee.tools.agent.bytebuddy;
 
-import cn.gmlee.tools.agent.conf.MonitorProperties;
-import cn.gmlee.tools.agent.mod.MethodClock;
-import cn.gmlee.tools.base.anno.Monitor;
+import cn.gmlee.tools.agent.conf.MonitorMethodProperties;
+import cn.gmlee.tools.agent.mod.Monitor;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
+import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @RequiredArgsConstructor
 public class TimeoutWatcher {
 
-    private final ApplicationContext applicationContext;
+    private final ApplicationContext ctx;
 
-    private final MonitorProperties monitorProperties;
+    private final MonitorMethodProperties props;
 
     private static final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
     @PostConstruct
-    public void start() {
+    public void init() {
         executor.scheduleAtFixedRate(() -> {
-            long now = System.currentTimeMillis();
-            for (MethodClock info : MethodMonitorRegistry.all()) {
-                long elapsed = now - info.startTime;
-                Monitor annotation = info.method.getAnnotation(Monitor.class);
+            for (Monitor clock : MethodMonitorRegistry.all()) {
+                long elapsed = clock.elapsedMillis();
+                cn.gmlee.tools.base.anno.Monitor annotation = clock.getMethod().getAnnotation(cn.gmlee.tools.base.anno.Monitor.class);
                 long timeout = annotation != null ? annotation.timeout() : 3000;
                 if (elapsed > timeout) {
-                    System.err.printf("[ALERT] 方法 [%s] 在线程 [%s] 执行超时：%d ms (阈值：%d ms)%n",
-                            info.method.getName(), info.thread.getName(), elapsed, timeout);
+                    log.error("【Tools Watcher】[{}] ({}ms)\r\n{}#{}({})",
+                            clock.getThread().getName(),
+                            clock.elapsedMillis(),
+                            clock.getObj().getClass().getName(),
+                            clock.getMethod().getName(),
+                            Arrays.toString(clock.getArgs())
+                    );
                 }
             }
         }, 1000, 1000, TimeUnit.MILLISECONDS);

@@ -1,34 +1,29 @@
 package cn.gmlee.tools.agent.bytebuddy;
 
-import cn.gmlee.tools.agent.mod.MethodClock;
+import cn.gmlee.tools.agent.mod.Monitor;
+import lombok.extern.slf4j.Slf4j;
 
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.*;
 
+@Slf4j
 public class MethodMonitorRegistry {
 
-    private static final ThreadLocal<Deque<MethodClock>> executionStack = ThreadLocal.withInitial(ArrayDeque::new);
-    private static final Set<MethodClock> allRunningMethods = ConcurrentHashMap.newKeySet();
+    private static final Set<Monitor> allRunningMethods = ConcurrentHashMap.newKeySet();
 
-    public static void start(Method method) {
-        MethodClock info = new MethodClock(method);
-        executionStack.get().push(info);
-        allRunningMethods.add(info);
-    }
-
-    public static void end() {
-        Deque<MethodClock> stack = executionStack.get();
-        if (!stack.isEmpty()) {
-            MethodClock info = stack.pop();
-            allRunningMethods.remove(info);
-        }
-        if (stack.isEmpty()) {
-            executionStack.remove();
-        }
-    }
-
-    public static Collection<MethodClock> all() {
+    public static Collection<Monitor> all() {
         return allRunningMethods;
+    }
+
+    public static Monitor enter(Monitor mm) {
+        log.error("[Tools enter] {}#{} ({}ms)", mm.getObj().getClass().getName(), mm.getMethod().getName(), mm.getStartTime());
+        allRunningMethods.add(mm);
+        return mm;
+    }
+
+    public static void exit(Monitor mm) {
+        log.error("[Tools exit] {}#{} ({}ms)", mm.getObj().getClass().getName(), mm.getMethod().getName(), mm.elapsedMillis());
+        boolean remove = allRunningMethods.remove(mm);
+        System.out.println(remove);
     }
 }
