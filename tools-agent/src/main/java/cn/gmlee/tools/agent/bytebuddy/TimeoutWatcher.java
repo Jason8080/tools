@@ -30,14 +30,14 @@ public class TimeoutWatcher {
                 long elapsed = clock.elapsedMillis();
                 Monitor annotation = clock.getMethod().getAnnotation(Monitor.class);
                 long timeout = annotation != null ? annotation.timeout() : 3000;
-                log.error("-------- Tools Watcher --------\r\n[{}] ({}/{}ms)\r\n{}#{}({})",
-                        clock.getThread().getName(),
-                        clock.elapsedMillis(), timeout,
-                        clock.getObj().getClass().getName(),
-                        clock.getMethod().getName(),
-                        Arrays.toString(clock.getArgs())
-                );
                 if (elapsed > timeout) {
+                    log.error("\r\n-------------------- Tools Watcher --------------------\r\n[{}] ({}/{}ms)\r\n{}#{}({})",
+                            clock.getThread().getName(),
+                            clock.elapsedMillis(), timeout,
+                            clock.getObj().getClass().getName(),
+                            clock.getMethod().getName(),
+                            Arrays.toString(clock.getArgs())
+                    );
                 }
             }
         }, 1000, 1000, TimeUnit.MILLISECONDS);

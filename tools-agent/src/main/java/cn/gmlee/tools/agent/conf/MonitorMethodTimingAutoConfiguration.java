@@ -63,9 +63,7 @@ public class MonitorMethodTimingAutoConfiguration {
             return;
         }
 
-        new AgentBuilder.Default()
-                .ignore(matcher(monitorMethodProperties.getIgnorePackages(), ElementMatchers.nameStartsWith("net.bytebuddy."), ElementMatchers::is, ElementMatcher.Junction::or))
-                .type(matcher(monitorMethodProperties.getPackages(), ElementMatchers.nameStartsWith("cn.gmlee."), ElementMatchers::is, ElementMatcher.Junction::or))
+        new AgentBuilder.Default().ignore(ignore()).type(type())
                 .transform((builder, typeDescription, classLoader, module) ->
                         builder.visit(Advice.to(TimingAdvice.class).on(ElementMatchers.isMethod()
                                 .and(ElementMatchers.not(ElementMatchers.isConstructor()))
@@ -75,15 +73,20 @@ public class MonitorMethodTimingAutoConfiguration {
         log.info("[Tools ByteBuddy] Timing Agent installed.");
     }
 
-    private ElementMatcher<? super TypeDescription> matcher(
-            List<String> packages, ElementMatcher.Junction<NamedElement> emj,
-            Function<ElementMatcher.Junction<NamedElement>, ElementMatcher.Junction<NamedElement>> fun,
-            BiFunction<ElementMatcher.Junction<NamedElement>, ElementMatcher.Junction<NamedElement>, ElementMatcher.Junction<NamedElement>> function) {
-        if (BoolUtil.isEmpty(packages)) {
-            return fun.apply(emj);
-        }
+    private ElementMatcher<? super TypeDescription> type() {
+        ElementMatcher.Junction<NamedElement> emj = ElementMatchers.nameStartsWith("net.bytebuddy.");
+        List<String> packages = monitorMethodProperties.getPackages();
         for (String pack : packages) {
-            emj = function.apply(fun.apply(emj), fun.apply(ElementMatchers.nameStartsWith(pack)));
+            emj = emj.or(ElementMatchers.nameStartsWith(pack));
+        }
+        return emj;
+    }
+
+    private ElementMatcher<? super TypeDescription> ignore() {
+        ElementMatcher.Junction<NamedElement> emj = ElementMatchers.nameStartsWith("net.bytebuddy.");
+        List<String> packages = monitorMethodProperties.getIgnorePackages();
+        for (String pack : packages) {
+            emj = emj.or(ElementMatchers.nameStartsWith(pack));
         }
         return emj;
     }
