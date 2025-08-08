@@ -6,10 +6,10 @@ import java.lang.reflect.Method;
 import java.util.Objects;
 
 /**
- * 监控方法.
+ * 观察者.
  */
 @Data
-public class Monitor {
+public class Watcher {
     private final Thread thread;
     private final Method method;
     private final long startTime;
@@ -24,7 +24,7 @@ public class Monitor {
      * @param method the method
      * @param args   the args
      */
-    public Monitor(Object obj, Method method, Object[] args) {
+    public Watcher(Object obj, Method method, Object[] args) {
         this.obj = obj;
         this.method = method;
         this.args = args;
@@ -54,8 +54,8 @@ public class Monitor {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof Monitor)) return false;
-        Monitor that = (Monitor) o;
+        if (!(o instanceof Watcher)) return false;
+        Watcher that = (Watcher) o;
         return Objects.equals(thread, that.thread) && Objects.equals(method, that.method);
     }
 

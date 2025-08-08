@@ -4,7 +4,7 @@ package cn.gmlee.tools.agent.conf;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -14,5 +14,6 @@ import java.util.List;
 @ConfigurationProperties(prefix = "tools.agent.monitor.method")
 public class MonitorMethodProperties {
     private Boolean enable = Boolean.TRUE;
-    private List<String> packages = Collections.singletonList("*");
+    private List<String> packages = new ArrayList<>();
+    private List<String> ignorePackages = new ArrayList<>();
 }

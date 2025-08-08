@@ -2,11 +2,16 @@ package cn.gmlee.tools.agent.conf;
 
 import cn.gmlee.tools.agent.bytebuddy.TimeoutWatcher;
 import cn.gmlee.tools.agent.bytebuddy.TimingAdvice;
+import cn.gmlee.tools.base.util.BoolUtil;
+import cn.gmlee.tools.base.util.ExceptionUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.asm.Advice;
+import net.bytebuddy.description.NamedElement;
+import net.bytebuddy.description.type.TypeDescription;
+import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
@@ -15,6 +20,9 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
 import java.lang.instrument.Instrumentation;
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * 方法超时监控自动装配.
@@ -43,6 +51,10 @@ public class MonitorMethodTimingAutoConfiguration {
      */
     @PostConstruct
     public void init() {
+        ExceptionUtil.sandbox(this::install);
+    }
+
+    private void install() {
         log.info("[Tools ByteBuddy] Timing Agent is initializing...");
 
         Instrumentation instrumentation = ByteBuddyAgent.install();
@@ -52,18 +64,27 @@ public class MonitorMethodTimingAutoConfiguration {
         }
 
         new AgentBuilder.Default()
-                .ignore(ElementMatchers.nameStartsWith("net.bytebuddy.")
-                        .or(ElementMatchers.nameStartsWith("cn.gmlee.tools.")))
-                .type(ElementMatchers.nameStartsWith("com.ldw."))
-//                        .and(ElementMatchers.not(ElementMatchers.nameContains("$$"))) // 不是JDK代理类
-//                        .and(ElementMatchers.not(ElementMatchers.nameContains("CGLIB"))) // 不是CGLIB代理类
-//                        .and(ElementMatchers.not(ElementMatchers.nameContains("EnhancerBySpring")))) // 不是SPRING代理类
+                .ignore(matcher(monitorMethodProperties.getIgnorePackages(), ElementMatchers.nameStartsWith("net.bytebuddy."), ElementMatchers::is, ElementMatcher.Junction::or))
+                .type(matcher(monitorMethodProperties.getPackages(), ElementMatchers.nameStartsWith("cn.gmlee."), ElementMatchers::not, ElementMatcher.Junction::and))
                 .transform((builder, typeDescription, classLoader, module) ->
                         builder.visit(Advice.to(TimingAdvice.class).on(ElementMatchers.isMethod()
-                                .and(ElementMatchers.not(ElementMatchers.isConstructor())) // 不是构造方法
+                                .and(ElementMatchers.not(ElementMatchers.isConstructor()))
                                 .and(ElementMatchers.not(ElementMatchers.nameStartsWith("lambda$"))))))
                 .installOn(instrumentation);
 
         log.info("[Tools ByteBuddy] Timing Agent installed.");
+    }
+
+    private ElementMatcher<? super TypeDescription> matcher(
+            List<String> packages, ElementMatcher.Junction<NamedElement> emj,
+            Function<ElementMatcher.Junction<NamedElement>, ElementMatcher.Junction<NamedElement>> fun,
+            BiFunction<ElementMatcher.Junction<NamedElement>, ElementMatcher.Junction<NamedElement>, ElementMatcher.Junction<NamedElement>> function) {
+        if (BoolUtil.isEmpty(packages)) {
+            return fun.apply(emj);
+        }
+        for (String pack : packages) {
+            emj = function.apply(fun.apply(emj), fun.apply(ElementMatchers.nameStartsWith(pack)));
+        }
+        return emj;
     }
 }
