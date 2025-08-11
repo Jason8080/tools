@@ -1,9 +1,9 @@
 package cn.gmlee.tools.agent.conf;
 
+import cn.gmlee.tools.agent.bytebuddy.ByteBuddyAdvice;
 import cn.gmlee.tools.agent.bytebuddy.ByteBuddyTrigger;
 import cn.gmlee.tools.agent.mod.Watcher;
 import cn.gmlee.tools.agent.watcher.TimeoutWatcher;
-import cn.gmlee.tools.agent.bytebuddy.ByteBuddyAdvice;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +14,6 @@ import net.bytebuddy.description.NamedElement;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
