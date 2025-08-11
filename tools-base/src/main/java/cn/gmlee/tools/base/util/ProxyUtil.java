@@ -7,6 +7,9 @@ import org.springframework.cglib.proxy.MethodInterceptor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Collections;
+import java.util.IdentityHashMap;
+import java.util.Set;
 
 /**
  * 代理工具类.
@@ -96,43 +99,68 @@ public class ProxyUtil {
     }
 
     /**
-     * 获取原始对象（解除代理）
+     * 获取原始对象（解除代理，带死循环保护）
      *
      * @param candidate the candidate
      * @return the original object
      */
     public static Object getOriginalObject(Object candidate) {
+        return getOriginalObject(candidate, Collections.newSetFromMap(new IdentityHashMap<>()));
+    }
+
+    private static Object getOriginalObject(Object candidate, Set<Object> visited) {
         if (candidate == null) {
             return null;
         }
+        if (visited.contains(candidate)) {
+            return candidate; // 防止死循环
+        }
+        visited.add(candidate);
 
         try {
             // 1. Spring AOP 代理对象
             if (candidate instanceof Advised) {
                 Object target = ((Advised) candidate).getTargetSource().getTarget();
-                return getOriginalObject(target); // 递归解除多层代理
+                if (target != null) {
+                    return getOriginalObject(target, visited);
+                }
+                return candidate;
             }
 
             // 2. JDK 动态代理
             if (Proxy.isProxyClass(candidate.getClass())) {
                 try {
-                    // 如果 InvocationHandler 中有 target 字段，就拿出来
                     Object h = Proxy.getInvocationHandler(candidate);
-                    Method getTarget = h.getClass().getMethod("getTarget");
-                    getTarget.setAccessible(true);
-                    return getOriginalObject(getTarget.invoke(h));
-                } catch (Exception ignore) {
-                    // 如果不能直接拿到 target，就退回原对象
-                    return candidate;
+                    Method getTarget = null;
+                    try {
+                        getTarget = h.getClass().getMethod("getTarget");
+                    } catch (NoSuchMethodException ignored) {
+                    }
+                    if (getTarget != null) {
+                        getTarget.setAccessible(true);
+                        Object target = getTarget.invoke(h);
+                        if (target != null) {
+                            return getOriginalObject(target, visited);
+                        }
+                    }
+                } catch (Exception ignored) {
+                }
+                return candidate;
+            }
+
+            // 3. CGLIB 代理类（类名中包含 $$ 且有非 Object 父类）
+            if (candidate.getClass().getName().contains("$$")) {
+                Class<?> superClass = candidate.getClass().getSuperclass();
+                if (superClass != null && superClass != Object.class) {
+                    try {
+                        Object superObj = superClass.cast(candidate);
+                        return getOriginalObject(superObj, visited);
+                    } catch (ClassCastException ignored) {
+                    }
                 }
             }
 
-            // 3. CGLIB 代理类（类名中包含 $$）
-            if (candidate.getClass().getName().contains("$$")) {
-                return getOriginalObject(candidate.getClass().getSuperclass().cast(candidate));
-            }
-
-        } catch (Exception e) {
+        } catch (Exception ignored) {
             // 出现异常直接返回原对象
             return candidate;
         }

@@ -12,12 +12,12 @@ import java.util.Objects;
 @Data
 public class Watcher {
     private Thread thread;
-    private Method method;
+    private Method originalMethod;
     private long startTime;
-    private Object obj;
+    private Object originalObj;
     private Object[] args;
-    private Object proxyObj;
-    private Method proxyMethod;
+    private Object obj;
+    private Method method;
     private Object ret;
     private Throwable throwable;
     private long endTime = System.currentTimeMillis();
@@ -37,8 +37,8 @@ public class Watcher {
         watcher.args = args;
         watcher.thread = Thread.currentThread();
         watcher.startTime = System.currentTimeMillis();
-        watcher.proxyObj = ProxyUtil.getOriginalObject(obj);
-        watcher.proxyMethod = ProxyUtil.getOriginalMethod(obj, method);
+        watcher.originalObj = ProxyUtil.getOriginalObject(obj);
+        watcher.originalMethod = ProxyUtil.getOriginalMethod(obj, method);
         return watcher;
     }
 
