@@ -14,6 +14,7 @@ import java.util.List;
 @ConfigurationProperties(prefix = "tools.agent.monitor.method")
 public class MonitorMethodProperties {
     private Boolean enable = Boolean.TRUE;
+    private Long timout = 3000L;
     private List<String> packages = new ArrayList<>();
     private List<String> ignorePackages = new ArrayList<>();
 }

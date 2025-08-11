@@ -10,27 +10,47 @@ import java.util.Objects;
  */
 @Data
 public class Watcher {
-    private final Thread thread;
-    private final Method method;
-    private final long startTime;
+    private Thread thread;
+    private Method method;
+    private long startTime;
     private Object obj;
     private Object[] args;
+    private Object ret;
+    private Throwable throwable;
     private long endTime = System.currentTimeMillis();
 
     /**
-     * Instantiates a new Monitor method.
+     * Of watcher.
      *
      * @param obj    the obj
      * @param method the method
      * @param args   the args
+     * @return the watcher
      */
-    public Watcher(Object obj, Method method, Object[] args) {
-        this.obj = obj;
-        this.method = method;
-        this.args = args;
-        this.thread = Thread.currentThread();
-        this.startTime = System.currentTimeMillis();
+    public static Watcher of(Object obj, Method method, Object[] args) {
+        Watcher watcher = new Watcher();
+        watcher.obj = obj;
+        watcher.method = method;
+        watcher.args = args;
+        watcher.thread = Thread.currentThread();
+        watcher.startTime = System.currentTimeMillis();
+        return watcher;
     }
+
+    /**
+     * Ret watcher.
+     *
+     * @param watcher   the watcher
+     * @param ret       the ret
+     * @param throwable the throwable
+     * @return the watcher
+     */
+    public static Watcher ret(Watcher watcher, Object ret, Throwable throwable){
+        watcher.ret = ret;
+        watcher.throwable = throwable;
+        return watcher;
+    }
+
 
     /**
      * Elapsed millis long.

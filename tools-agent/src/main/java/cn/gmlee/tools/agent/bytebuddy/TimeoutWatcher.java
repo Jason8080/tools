@@ -26,17 +26,17 @@ public class TimeoutWatcher {
     @PostConstruct
     public void init() {
         executor.scheduleAtFixedRate(() -> {
-            for (Watcher clock : MethodMonitorRegistry.all()) {
-                long elapsed = clock.elapsedMillis();
-                Monitor annotation = clock.getMethod().getAnnotation(Monitor.class);
-                long timeout = annotation != null ? annotation.timeout() : 3000;
+            for (Watcher watcher : MethodMonitorRegistry.all()) {
+                long elapsed = watcher.elapsedMillis();
+                Monitor annotation = watcher.getMethod().getAnnotation(Monitor.class);
+                long timeout = annotation != null ? annotation.timeout() : props.getTimout();
                 if (elapsed > timeout) {
                     log.error("\r\n-------------------- Tools Watcher --------------------\r\n[{}] ({}/{}ms)\r\n{}#{}({})",
-                            clock.getThread().getName(),
-                            clock.elapsedMillis(), timeout,
-                            clock.getObj().getClass().getName(),
-                            clock.getMethod().getName(),
-                            Arrays.toString(clock.getArgs())
+                            watcher.getThread().getName(),
+                            watcher.elapsedMillis(), timeout,
+                            watcher.getObj().getClass().getName(),
+                            watcher.getMethod().getName(),
+                            Arrays.toString(watcher.getArgs())
                     );
                 }
             }
