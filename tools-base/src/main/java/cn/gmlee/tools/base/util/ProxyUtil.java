@@ -1,5 +1,6 @@
 package cn.gmlee.tools.base.util;
 
+import org.springframework.aop.framework.Advised;
 import org.springframework.cglib.proxy.Enhancer;
 import org.springframework.cglib.proxy.MethodInterceptor;
 
@@ -92,5 +93,77 @@ public class ProxyUtil {
         enhancer.setCallback(mi);
         // 生成
         return (T) enhancer.create();
+    }
+
+    /**
+     * 获取原始对象（解除代理）
+     *
+     * @param candidate the candidate
+     * @return the original object
+     */
+    public static Object getOriginalObject(Object candidate) {
+        if (candidate == null) {
+            return null;
+        }
+
+        try {
+            // 1. Spring AOP 代理对象
+            if (candidate instanceof Advised) {
+                Object target = ((Advised) candidate).getTargetSource().getTarget();
+                return getOriginalObject(target); // 递归解除多层代理
+            }
+
+            // 2. JDK 动态代理
+            if (Proxy.isProxyClass(candidate.getClass())) {
+                try {
+                    // 如果 InvocationHandler 中有 target 字段，就拿出来
+                    Object h = Proxy.getInvocationHandler(candidate);
+                    Method getTarget = h.getClass().getMethod("getTarget");
+                    getTarget.setAccessible(true);
+                    return getOriginalObject(getTarget.invoke(h));
+                } catch (Exception ignore) {
+                    // 如果不能直接拿到 target，就退回原对象
+                    return candidate;
+                }
+            }
+
+            // 3. CGLIB 代理类（类名中包含 $$）
+            if (candidate.getClass().getName().contains("$$")) {
+                return getOriginalObject(candidate.getClass().getSuperclass().cast(candidate));
+            }
+
+        } catch (Exception e) {
+            // 出现异常直接返回原对象
+            return candidate;
+        }
+
+        // 普通对象
+        return candidate;
+    }
+
+
+    /**
+     * 获取原始方法（根据原始对象类重新解析）
+     *
+     * @param instance the instance
+     * @param method   the method
+     * @return the original method
+     */
+    public static Method getOriginalMethod(Object instance, Method method) {
+        Object original = getOriginalObject(instance);
+        if (original == null) {
+            return method;
+        }
+
+        Class<?> clazz = original.getClass();
+        try {
+            return clazz.getMethod(method.getName(), method.getParameterTypes());
+        } catch (NoSuchMethodException e) {
+            try {
+                return clazz.getDeclaredMethod(method.getName(), method.getParameterTypes());
+            } catch (NoSuchMethodException ex) {
+                return method; // 找不到就返回原方法
+            }
+        }
     }
 }
