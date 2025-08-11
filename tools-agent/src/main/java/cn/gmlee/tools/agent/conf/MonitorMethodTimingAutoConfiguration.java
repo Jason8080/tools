@@ -1,8 +1,9 @@
 package cn.gmlee.tools.agent.conf;
 
 import cn.gmlee.tools.agent.bytebuddy.ByteBuddyAdvice;
-import cn.gmlee.tools.agent.bytebuddy.ByteBuddyTrigger;
+import cn.gmlee.tools.agent.trigger.ByteBuddyTrigger;
 import cn.gmlee.tools.agent.mod.Watcher;
+import cn.gmlee.tools.agent.trigger.TimeoutTrigger;
 import cn.gmlee.tools.agent.watcher.TimeoutWatcher;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import lombok.RequiredArgsConstructor;
@@ -66,9 +67,15 @@ public class MonitorMethodTimingAutoConfiguration {
             public void exit(Watcher watcher) {
 
             }
+        };
+    }
 
+    @Bean
+    @ConditionalOnMissingBean(ByteBuddyTrigger.class)
+    public TimeoutTrigger timeoutTrigger() {
+        return new TimeoutTrigger() {
             @Override
-            public void timout(Watcher watcher) {
+            public void handle(Watcher watcher, long elapsed, long timout) {
                 log.warn("\r\n-------------------- Tools Watcher --------------------\r\n[{}] {}ms\r\n{}#{}({})",
                         watcher.getThread().getName(),
                         watcher.elapsedMillis(),

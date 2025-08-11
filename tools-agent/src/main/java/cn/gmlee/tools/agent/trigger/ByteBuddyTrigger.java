@@ -1,4 +1,4 @@
-package cn.gmlee.tools.agent.bytebuddy;
+package cn.gmlee.tools.agent.trigger;
 
 import cn.gmlee.tools.agent.mod.Watcher;
 
@@ -19,11 +19,4 @@ public interface ByteBuddyTrigger {
      * @param watcher the watcher
      */
     void exit(Watcher watcher);
-
-    /**
-     * 超时.
-     *
-     * @param watcher the watcher
-     */
-    void timout(Watcher watcher);
 }
