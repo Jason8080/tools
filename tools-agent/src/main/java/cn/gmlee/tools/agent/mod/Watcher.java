@@ -1,5 +1,6 @@
 package cn.gmlee.tools.agent.mod;
 
+import cn.gmlee.tools.base.util.ProxyUtil;
 import lombok.Data;
 
 import java.lang.reflect.Method;
@@ -15,6 +16,8 @@ public class Watcher {
     private long startTime;
     private Object obj;
     private Object[] args;
+    private Object proxyObj;
+    private Method proxyMethod;
     private Object ret;
     private Throwable throwable;
     private long endTime = System.currentTimeMillis();
@@ -34,6 +37,8 @@ public class Watcher {
         watcher.args = args;
         watcher.thread = Thread.currentThread();
         watcher.startTime = System.currentTimeMillis();
+        watcher.proxyObj = ProxyUtil.getOriginalObject(obj);
+        watcher.proxyMethod = ProxyUtil.getOriginalMethod(obj, method);
         return watcher;
     }
 
@@ -75,12 +80,12 @@ public class Watcher {
     @Override
     public boolean equals(Object o) {
         if (!(o instanceof Watcher)) return false;
-        Watcher that = (Watcher) o;
-        return Objects.equals(thread, that.thread) && Objects.equals(method, that.method);
+        Watcher watcher = (Watcher) o;
+        return Objects.equals(thread, watcher.thread) && Objects.equals(method, watcher.method) && Objects.equals(obj, watcher.obj);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(thread, method);
+        return Objects.hash(thread, method, obj);
     }
 }
