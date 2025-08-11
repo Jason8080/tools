@@ -4,13 +4,21 @@ import cn.gmlee.tools.base.util.ProxyUtil;
 import lombok.Data;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 观察者.
  */
 @Data
 public class Watcher {
+
+    /**
+     * 默认值键.
+     */
+    public static final String DEFAULT_KEY = "DEFAULT";
+
     private Thread thread;
     private Method originalMethod;
     private long startTime;
@@ -21,6 +29,7 @@ public class Watcher {
     private Object ret;
     private Throwable throwable;
     private long endTime = System.currentTimeMillis();
+    private Map<String, Object> infoMap = new ConcurrentHashMap<>();
 
     /**
      * Of watcher.
@@ -54,6 +63,52 @@ public class Watcher {
         watcher.ret = ret;
         watcher.throwable = throwable;
         return watcher;
+    }
+
+    /**
+     * Put watcher.
+     *
+     * @param watcher the watcher
+     * @param key     the key
+     * @param val     the val
+     * @return the watcher
+     */
+    public static Watcher put(Watcher watcher, String key, Object val){
+        watcher.infoMap.put(key, val);
+        return watcher;
+    }
+
+    /**
+     * Get object.
+     *
+     * @param watcher the watcher
+     * @param key     the key
+     * @return the object
+     */
+    public static Object get(Watcher watcher, String key){
+        return watcher.infoMap.get(key);
+    }
+
+    /**
+     * Add watcher.
+     *
+     * @param watcher the watcher
+     * @param val     the val
+     * @return the watcher
+     */
+    public static Watcher add(Watcher watcher, Object val){
+        watcher.infoMap.put(DEFAULT_KEY, val);
+        return watcher;
+    }
+
+    /**
+     * Get object.
+     *
+     * @param watcher the watcher
+     * @return the object
+     */
+    public static Object get(Watcher watcher){
+        return watcher.infoMap.get(DEFAULT_KEY);
     }
 
 
