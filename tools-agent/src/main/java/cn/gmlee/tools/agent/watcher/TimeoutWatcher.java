@@ -7,7 +7,6 @@ import cn.gmlee.tools.agent.mod.Watcher;
 import cn.gmlee.tools.agent.trigger.TimeoutTrigger;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationContext;
 
 import javax.annotation.PostConstruct;
 import java.util.concurrent.Executors;
@@ -17,8 +16,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @RequiredArgsConstructor
 public class TimeoutWatcher {
-
-    private final ApplicationContext ctx;
 
     private final MonitorMethodProperties props;
 

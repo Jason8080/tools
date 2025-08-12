@@ -13,7 +13,6 @@ import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
@@ -28,8 +27,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ByteBuddyAutoConfiguration {
 
-    private final ApplicationContext applicationContext;
-    private final @Autowired(required = false) MonitorMethodProperties monitorMethodProperties;
+    private MonitorMethodProperties monitorMethodProperties;
+
+    /**
+     * Instantiates a new Byte buddy auto configuration.
+     *
+     * @param props the props
+     */
+    public ByteBuddyAutoConfiguration(@Autowired(required = false) MonitorMethodProperties props) {
+        this.monitorMethodProperties = props;
+    }
 
     /**
      * Init.

@@ -9,8 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -24,8 +22,11 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class MonitorTimingAutoConfiguration {
 
-    private final ApplicationContext applicationContext;
-    private final @Autowired(required = false) MonitorMethodProperties monitorMethodProperties;
+    private MonitorMethodProperties monitorMethodProperties;
+
+    public MonitorTimingAutoConfiguration(@Autowired(required = false) MonitorMethodProperties props){
+        this.monitorMethodProperties = props;
+    }
 
     /**
      * 超时监控.
@@ -35,7 +36,7 @@ public class MonitorTimingAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(TimeoutWatcher.class)
     public TimeoutWatcher timeoutWatcher() {
-        return new TimeoutWatcher(applicationContext, NullUtil.get(monitorMethodProperties, MonitorMethodProperties::new));
+        return new TimeoutWatcher(NullUtil.get(monitorMethodProperties, MonitorMethodProperties::new));
     }
 
     /**
