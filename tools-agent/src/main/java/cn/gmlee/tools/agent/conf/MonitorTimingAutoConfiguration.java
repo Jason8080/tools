@@ -7,6 +7,7 @@ import cn.gmlee.tools.agent.watcher.TimeoutWatcher;
 import cn.gmlee.tools.base.util.NullUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
@@ -21,11 +22,10 @@ import java.util.Arrays;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-@EnableConfigurationProperties(MonitorMethodProperties.class)
 public class MonitorTimingAutoConfiguration {
 
     private final ApplicationContext applicationContext;
-    private final MonitorMethodProperties monitorMethodProperties;
+    private final @Autowired(required = false) MonitorMethodProperties monitorMethodProperties;
 
     /**
      * 超时监控.
@@ -35,7 +35,7 @@ public class MonitorTimingAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(TimeoutWatcher.class)
     public TimeoutWatcher timeoutWatcher() {
-        return new TimeoutWatcher(applicationContext, monitorMethodProperties);
+        return new TimeoutWatcher(applicationContext, NullUtil.get(monitorMethodProperties, MonitorMethodProperties::new));
     }
 
     /**

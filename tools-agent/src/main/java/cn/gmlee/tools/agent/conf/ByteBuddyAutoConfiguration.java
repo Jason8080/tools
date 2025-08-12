@@ -2,6 +2,7 @@ package cn.gmlee.tools.agent.conf;
 
 import cn.gmlee.tools.agent.bytebuddy.ByteBuddyAdvice;
 import cn.gmlee.tools.base.util.ExceptionUtil;
+import cn.gmlee.tools.base.util.NullUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.agent.ByteBuddyAgent;
@@ -11,7 +12,7 @@ import net.bytebuddy.description.NamedElement;
 import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 
@@ -25,11 +26,10 @@ import java.util.List;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-@EnableConfigurationProperties(MonitorMethodProperties.class)
 public class ByteBuddyAutoConfiguration {
 
     private final ApplicationContext applicationContext;
-    private final MonitorMethodProperties monitorMethodProperties;
+    private final @Autowired(required = false) MonitorMethodProperties monitorMethodProperties;
 
     /**
      * Init.
@@ -60,7 +60,7 @@ public class ByteBuddyAutoConfiguration {
 
     private ElementMatcher<? super TypeDescription> type() {
         ElementMatcher.Junction<NamedElement> emj = ElementMatchers.nameStartsWith("net.bytebuddy.");
-        List<String> packages = monitorMethodProperties.getPackages();
+        List<String> packages = NullUtil.get(monitorMethodProperties, MonitorMethodProperties::new).getPackages();
         for (String pack : packages) {
             emj = emj.or(ElementMatchers.nameStartsWith(pack));
         }
@@ -69,7 +69,7 @@ public class ByteBuddyAutoConfiguration {
 
     private ElementMatcher<? super TypeDescription> ignore() {
         ElementMatcher.Junction<NamedElement> emj = ElementMatchers.nameStartsWith("net.bytebuddy.");
-        List<String> packages = monitorMethodProperties.getIgnorePackages();
+        List<String> packages = NullUtil.get(monitorMethodProperties, MonitorMethodProperties::new).getIgnorePackages();
         for (String pack : packages) {
             emj = emj.or(ElementMatchers.nameStartsWith(pack));
         }
