@@ -6,6 +6,7 @@ import cn.gmlee.tools.agent.trigger.ByteBuddyTrigger;
 import cn.gmlee.tools.agent.trigger.TimeoutTrigger;
 import cn.gmlee.tools.agent.watcher.TimeoutWatcher;
 import cn.gmlee.tools.base.util.ExceptionUtil;
+import cn.gmlee.tools.base.util.NullUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.agent.ByteBuddyAgent;
@@ -81,7 +82,7 @@ public class MonitorMethodTimingAutoConfiguration {
                         watcher.elapsedMillis(), timout,
                         watcher.getOriginalObj().getClass().getName(),
                         watcher.getOriginalMethod().getName(),
-                        Arrays.toString(watcher.getArgs())
+                        Arrays.toString(NullUtil.get(watcher.getOriginalArgs(), watcher.getArgs()))
                 );
             }
         };

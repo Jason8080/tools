@@ -27,8 +27,8 @@ public class OriginalAssist {
             Object obj = args[1];
             Object[] arg = (Object[]) args[2];
             watcher.setOriginalObj(obj);
-            watcher.setArgs(arg);
-            watcher.setMethod(clazz.getMethods()[idx]);
+            watcher.setOriginalArgs(arg);
+            watcher.setOriginalMethod(clazz.getMethods()[idx]);
         }
     }
 }

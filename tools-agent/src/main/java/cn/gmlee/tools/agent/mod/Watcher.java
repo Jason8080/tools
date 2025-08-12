@@ -20,10 +20,11 @@ public class Watcher {
      */
     public static final String DEFAULT_KEY = "DEFAULT";
 
+    private long startTime;
     private Thread thread;
     private Method originalMethod;
-    private long startTime;
     private Object originalObj;
+    private Object[] originalArgs;
     private Object[] args;
     private Object obj;
     private Method method;
