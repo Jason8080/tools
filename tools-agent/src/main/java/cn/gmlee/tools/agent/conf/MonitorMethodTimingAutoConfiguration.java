@@ -1,8 +1,8 @@
 package cn.gmlee.tools.agent.conf;
 
 import cn.gmlee.tools.agent.bytebuddy.ByteBuddyAdvice;
-import cn.gmlee.tools.agent.trigger.ByteBuddyTrigger;
 import cn.gmlee.tools.agent.mod.Watcher;
+import cn.gmlee.tools.agent.trigger.ByteBuddyTrigger;
 import cn.gmlee.tools.agent.trigger.TimeoutTrigger;
 import cn.gmlee.tools.agent.watcher.TimeoutWatcher;
 import cn.gmlee.tools.base.util.ExceptionUtil;
