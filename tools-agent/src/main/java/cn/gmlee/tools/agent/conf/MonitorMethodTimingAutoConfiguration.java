@@ -71,7 +71,7 @@ public class MonitorMethodTimingAutoConfiguration {
     }
 
     @Bean
-    @ConditionalOnMissingBean(ByteBuddyTrigger.class)
+    @ConditionalOnMissingBean(TimeoutTrigger.class)
     public TimeoutTrigger timeoutTrigger() {
         return new TimeoutTrigger() {
             @Override
