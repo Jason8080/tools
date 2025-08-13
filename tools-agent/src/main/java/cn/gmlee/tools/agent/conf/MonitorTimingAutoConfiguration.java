@@ -64,16 +64,7 @@ public class MonitorTimingAutoConfiguration {
     @ConditionalOnMissingBean(TimeoutTrigger.class)
     public TimeoutTrigger timeoutTrigger() {
         return new TimeoutTrigger() {
-            @Override
-            public void handle(Watcher watcher, long elapsed, long timout) {
-                log.warn("\r\n-------------------- Tools Watcher --------------------\r\n[{}] ({}/{})ms\r\n{}#{}({})",
-                        watcher.getThread().getName(),
-                        watcher.elapsedMillis(), timout,
-                        watcher.getOriginalObj().getClass().getName(),
-                        watcher.getOriginalMethod().getName(),
-                        Arrays.toString(NullUtil.get(watcher.getOriginalArgs(), watcher.getArgs()))
-                );
-            }
+            
         };
     }
 }

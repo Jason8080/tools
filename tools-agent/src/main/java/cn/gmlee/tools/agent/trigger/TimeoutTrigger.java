@@ -3,13 +3,21 @@ package cn.gmlee.tools.agent.trigger;
 import cn.gmlee.tools.agent.mod.Watcher;
 import cn.gmlee.tools.base.anno.Monitor;
 import cn.gmlee.tools.base.util.NullUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 /**
  * 超时触发器.
  */
 public interface TimeoutTrigger {
+    /**
+     * The constant log.
+     */
+    Logger log = LoggerFactory.getLogger(TimeoutTrigger.class);
+
     /**
      * 超时时间(ms).
      *
@@ -45,5 +53,13 @@ public interface TimeoutTrigger {
      * @param elapsed the elapsed
      * @param timout  the timout
      */
-    void handle(Watcher watcher, long elapsed, long timout);
+    default void handle(Watcher watcher, long elapsed, long timout) {
+        log.warn("\r\n-------------------- Tools Watcher --------------------\r\n[{}] ({}/{})ms\r\n{}#{}({})",
+                watcher.getThread().getName(),
+                watcher.elapsedMillis(), timout,
+                watcher.getOriginalObj().getClass().getName(),
+                watcher.getOriginalMethod().getName(),
+                Arrays.toString(NullUtil.get(watcher.getOriginalArgs(), watcher.getArgs()))
+        );
+    }
 }
