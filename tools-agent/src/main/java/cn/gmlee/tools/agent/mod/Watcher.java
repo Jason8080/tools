@@ -76,7 +76,7 @@ public class Watcher {
      * @param val     the val
      * @return the watcher
      */
-    public static Watcher put(Watcher watcher, String key, Object val){
+    public static <V> Watcher put(Watcher watcher, String key, V val){
         watcher.infoMap.put(key, val);
         return watcher;
     }
@@ -88,8 +88,8 @@ public class Watcher {
      * @param key     the key
      * @return the object
      */
-    public static Object get(Watcher watcher, String key){
-        return watcher.infoMap.get(key);
+    public static <V> V get(Watcher watcher, String key){
+        return (V) watcher.infoMap.get(key);
     }
 
     /**
@@ -99,7 +99,7 @@ public class Watcher {
      * @param val     the val
      * @return the watcher
      */
-    public static Watcher add(Watcher watcher, Object val){
+    public static <V> Watcher add(Watcher watcher, V val){
         watcher.infoMap.put(DEFAULT_KEY, val);
         return watcher;
     }
@@ -110,8 +110,8 @@ public class Watcher {
      * @param watcher the watcher
      * @return the object
      */
-    public static Object get(Watcher watcher){
-        return watcher.infoMap.get(DEFAULT_KEY);
+    public static <V> V get(Watcher watcher){
+        return (V) watcher.infoMap.get(DEFAULT_KEY);
     }
 
 
