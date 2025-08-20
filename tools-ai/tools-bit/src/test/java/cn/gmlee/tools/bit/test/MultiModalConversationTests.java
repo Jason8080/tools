@@ -1,7 +1,8 @@
-package cn.gmlee.tools.ai;
+package cn.gmlee.tools.bit.test;
 
+import cn.gmlee.tools.bit.App;
+import cn.gmlee.tools.bit.server.stream.MultiModalConversationServer;
 import cn.gmlee.tools.base.mod.Ask;
-import cn.gmlee.tools.ai.server.stream.GenerateServer;
 import cn.gmlee.tools.base.util.TimerUtil;
 import io.reactivex.Flowable;
 import org.junit.Test;
@@ -12,19 +13,18 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = App.class)
-public class GenerateTests {
+public class MultiModalConversationTests {
 
     @Autowired
-    private GenerateServer generateServer;
+    private MultiModalConversationServer multiModalConversationServer;
 
     @Test
     public void testAsk(){
         TimerUtil.print();
-        Flowable<Ask> ask = generateServer.ask(null, "我是谁?");
+        Flowable<Ask> ask = multiModalConversationServer.ask(null, "我是谁?");
         ask.doOnNext(a -> System.out.println("think..".concat(a.getThink())))
                 .doOnNext(a -> System.out.println("reply::".concat(a.getReply())))
                 .blockingSubscribe();
         TimerUtil.print();
     }
-
 }

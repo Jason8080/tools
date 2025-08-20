@@ -1,4 +1,4 @@
-package cn.gmlee.tools.ai.conf;
+package cn.gmlee.tools.bit.conf;
 
 import com.volcengine.ark.runtime.service.ArkService;
 import okhttp3.ConnectionPool;
@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
  * The type Bit ai auto configuration.
  */
 @EnableConfigurationProperties(BitAiProperties.class)
-public class BitAiAutoConfiguration {
+public class BitAutoConfiguration {
 
     /**
      * Dispatcher dispatcher.

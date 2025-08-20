@@ -1,7 +1,6 @@
 package cn.gmlee.tools.ai;
 
-import cn.gmlee.tools.ai.mod.Ask;
-import cn.gmlee.tools.ai.server.stream.GenerateServer;
+import cn.gmlee.tools.base.mod.Ask;
 import cn.gmlee.tools.ai.server.stream.MultiModalConversationServer;
 import cn.gmlee.tools.base.util.TimerUtil;
 import io.reactivex.Flowable;

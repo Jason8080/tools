@@ -1,7 +1,8 @@
 package cn.gmlee.tools.ai.server.stream;
 
+import cn.gmlee.tools.ai.assist.AskAssist;
 import cn.gmlee.tools.ai.conf.AliAiProperties;
-import cn.gmlee.tools.ai.mod.Ask;
+import cn.gmlee.tools.base.mod.Ask;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.NullUtil;
@@ -93,7 +94,7 @@ public class GenerateServer {
                 .filter(Objects::nonNull)
                 .map(GenerationOutput.Choice::getMessage)
                 .filter(Objects::nonNull)
-                .map(Ask::new)
+                .map(AskAssist::create)
                 .filter(Ask::notEmpty)
                 .collect(Collectors.toList());
         return new Ask(asks);
