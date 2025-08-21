@@ -40,7 +40,7 @@ public class MultiModalConversationTests {
     @Test
     public void testAskImage(){
         TimerUtil.print();
-        Flowable<Ask> ask = multiModalConversationServer.askImage(null, "核心任务：\n" +
+        Flowable<Ask> ask = multiModalConversationServer.askImages(null, null, "核心任务：\n" +
                         "\n" +
                         "从提供的磅单图片中，准确提取并识别以下核心信息：公司名称、净重、毛重和单位。\n" +
                         "\n" +
@@ -170,7 +170,7 @@ public class MultiModalConversationTests {
                         "\n" +
                         "示例： 98.520 应读取为 \"98.520\"。"
                 , "https://prod-public-ldw.oss-cn-shenzhen.aliyuncs.com/%E5%A4%9A%E5%87%80%E9%87%8D1.jpg?Expires=11755741577&OSSAccessKeyId=LTAI5t6MaMnjGd7qKm9XjjbN&Signature=VEodSrvGdthE0QgM1seWyG5uTQ4%3D"
-//                , "https://prod-public-ldw.oss-cn-shenzhen.aliyuncs.com/%E5%A4%9A%E5%87%80%E9%87%8D2.jpg?Expires=11755741632&OSSAccessKeyId=LTAI5t6MaMnjGd7qKm9XjjbN&Signature=D8OZzwBKWP6SRcl6ENKRTazlPOA%3D"
+                , "https://prod-public-ldw.oss-cn-shenzhen.aliyuncs.com/%E5%A4%9A%E5%87%80%E9%87%8D2.jpg?Expires=11755741632&OSSAccessKeyId=LTAI5t6MaMnjGd7qKm9XjjbN&Signature=D8OZzwBKWP6SRcl6ENKRTazlPOA%3D"
         );
         StringBuilder think = new StringBuilder();
         StringBuilder reply = new StringBuilder();

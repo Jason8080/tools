@@ -1,7 +1,7 @@
 package cn.gmlee.tools.ai.server.stream;
 
-import cn.gmlee.tools.ai.assist.MultiAssist;
 import cn.gmlee.tools.ai.conf.AliAiProperties;
+import cn.gmlee.tools.base.util.Base64Util;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.NullUtil;
@@ -121,7 +121,7 @@ public class DashScopeServer {
      */
     public Flowable<String> askImage(String model, String sys, String user, byte... image) {
         MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
-        String content = MultiAssist.base64Image("png", image);
+        String content = Base64Util.encode(null, image);
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
                 .content(Arrays.asList(Collections.singletonMap("image", content), Collections.singletonMap("text", user)))
@@ -209,7 +209,7 @@ public class DashScopeServer {
      */
     public Flowable<String> askAudio(String model, String sys, String user, byte... audio) {
         MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
-        String content = MultiAssist.base64Audio("mp3", audio);
+        String content = Base64Util.encode(null, audio);
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
                 .content(Arrays.asList(Collections.singletonMap("audio", content), Collections.singletonMap("text", user)))
@@ -308,7 +308,7 @@ public class DashScopeServer {
      */
     public Flowable<String> askVideo(String model, String sys, String user, byte... video) {
         MultiModalMessage sysMessage = getTextMultiModalMessage(Role.SYSTEM, sys);
-        String content = MultiAssist.base64Video("mp4", video);
+        String content = Base64Util.encode(null, video);
         MultiModalMessage userMessage = MultiModalMessage.builder()
                 .role(Role.USER.getValue())
                 .content(Arrays.asList(Collections.singletonMap("video", content), Collections.singletonMap("text", user)))
