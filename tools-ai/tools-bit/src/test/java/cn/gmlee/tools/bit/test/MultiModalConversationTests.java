@@ -1,5 +1,7 @@
 package cn.gmlee.tools.bit.test;
 
+import cn.gmlee.tools.base.util.CharUtil;
+import cn.gmlee.tools.base.util.NullUtil;
 import cn.gmlee.tools.bit.App;
 import cn.gmlee.tools.bit.server.stream.MultiModalConversationServer;
 import cn.gmlee.tools.base.mod.Ask;
@@ -22,9 +24,16 @@ public class MultiModalConversationTests {
     public void testAsk(){
         TimerUtil.print();
         Flowable<Ask> ask = multiModalConversationServer.ask(null, "我是谁?");
-        ask.doOnNext(a -> System.out.println("think..".concat(a.getThink())))
-                .doOnNext(a -> System.out.println("reply::".concat(a.getReply())))
-                .blockingSubscribe();
+        StringBuilder think = new StringBuilder();
+        StringBuilder reply = new StringBuilder();
+        ask.doOnNext(a -> {
+            think.append(a.getThink());
+            reply.append(a.getReply());
+            System.out.println(CharUtil.firstNonEmpty(a.getThink(), a.getReply()));
+        }).blockingSubscribe();
+        System.out.println(think);
+        System.out.println("-----------------------------------------------------------------------------------------");
+        System.out.println(reply);
         TimerUtil.print();
     }
 }

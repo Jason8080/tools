@@ -215,21 +215,43 @@ public class CharUtil {
     }
 
     /**
-     * 获取非空的字符串.
+     * 获取非空的值.
      *
-     * @param os the os
+     * @param <T> the type parameter
+     * @param ts  the ts
      * @return the string
      */
-    public static String getNonempty(String... os) {
-        if (os == null) {
-            return "";
+    @SafeVarargs
+    public static <T extends CharSequence> T getNonEmpty(T... ts) {
+        if (ts == null) {
+            return (T) "";
         }
-        for (String o : os) {
-            if (BoolUtil.notEmpty(o)) {
-                return o;
+        for (T t : ts) {
+            if (BoolUtil.notEmpty(t)) {
+                return t;
             }
         }
-        return "";
+        return (T) "";
+    }
+
+    /**
+     * 获取首个非空的值.
+     *
+     * @param <T> the type parameter
+     * @param ts  the ts
+     * @return the t
+     */
+    @SafeVarargs
+    public static <T extends CharSequence> T firstNonEmpty(T... ts) {
+        if (ts == null) {
+            return null;
+        }
+        for (T t : ts) {
+            if (BoolUtil.notEmpty(t)) {
+                return t;
+            }
+        }
+        return null;
     }
 
     /**

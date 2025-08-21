@@ -1,7 +1,9 @@
 package cn.gmlee.tools.bit.server.stream;
 
 import cn.gmlee.tools.base.mod.Ask;
+import cn.gmlee.tools.base.util.AssertUtil;
 import cn.gmlee.tools.base.util.BoolUtil;
+import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.QuickUtil;
 import cn.gmlee.tools.bit.assist.AskAssist;
 import cn.gmlee.tools.bit.conf.BitAiProperties;
@@ -12,9 +14,7 @@ import io.reactivex.Flowable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -51,20 +51,86 @@ public class MultiModalConversationServer {
      */
     public Flowable<Ask> ask(String model, String sys, String user) {
         List<ChatMessage> messages = new ArrayList<>();
-        ChatMessage systemMessage = BoolUtil.isEmpty(sys) ? null : ChatMessage.builder()
-                .role(ChatMessageRole.SYSTEM)
-                .content(sys).build();
-        ChatMessage userMessage = ChatMessage.builder()
-                .role(ChatMessageRole.USER)
-                .content(user).build();
-        QuickUtil.notNull(systemMessage, x -> messages.add(x));
-        messages.add(userMessage);
+        // 添加系统提示词
+        addSystemMessage(sys, messages);
+        // 添加用户提示词
+        addUserMessage(user, messages);
+        // 构建聊天请求体
         ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
                 .model(model)
                 .messages(messages)
                 .build();
         Flowable<ChatCompletionChunk> flowable = bit.streamChatCompletion(chatCompletionRequest);
         return flowable.map(this::convertAsk).filter(Ask::notEmpty);
+    }
+
+    /**
+     * 询问 (图片).
+     *
+     * @param sys   系统角色
+     * @param user  用户输入
+     * @param image 图片内容
+     * @return flowable 输出内容
+     */
+    public Flowable<Ask> askImage(String sys, String user, String image) {
+        return askImage(bitAiProperties.getDefaultModel(), sys, user, image);
+    }
+
+
+    /**
+     * 询问 (图片).
+     *
+     * @param model 模型名称
+     * @param sys   系统角色
+     * @param user  用户输入
+     * @param image 图片内容
+     * @return flowable 输出内容
+     */
+    public Flowable<Ask> askImage(String model, String sys, String user, String image) {
+        List<ChatMessage> messages = new ArrayList<>();
+        // 添加系统提示词
+        addSystemMessage(sys, messages);
+        // 添加用户提示词
+        addUserMessage(getChatCompletionContentParts(user, image), messages);
+        // 构建聊天请求体
+        ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
+                .model(model)
+                .messages(messages)
+                .build();
+        Flowable<ChatCompletionChunk> flowable = bit.streamChatCompletion(chatCompletionRequest);
+        return flowable.map(this::convertAsk).filter(Ask::notEmpty);
+    }
+
+    private static void addSystemMessage(String sys, List<ChatMessage> messages) {
+        ChatMessage systemMessage = BoolUtil.isEmpty(sys) ? null : ChatMessage.builder()
+                .role(ChatMessageRole.SYSTEM)
+                .content(sys).build();
+        QuickUtil.notNull(systemMessage, x -> messages.add(x));
+    }
+
+    private static void addUserMessage(String user, List<ChatMessage> messages) {
+        ChatMessage systemMessage = BoolUtil.isEmpty(user) ? null : ChatMessage.builder()
+                .role(ChatMessageRole.USER)
+                .content(user).build();
+        QuickUtil.notNull(systemMessage, x -> messages.add(x));
+    }
+
+    private void addUserMessage(List<ChatCompletionContentPart> multiParts, List<ChatMessage> messages) {
+        AssertUtil.notEmpty(multiParts, "用户输入不能为空");
+        ChatMessage userMessage = BoolUtil.isEmpty(multiParts) ? null : ChatMessage.builder()
+                .role(ChatMessageRole.USER)
+                .multiContent(multiParts)
+                .build();
+        QuickUtil.notNull(userMessage, x -> messages.add(x));
+    }
+
+    private static List<ChatCompletionContentPart> getChatCompletionContentParts(String user, String image) {
+        List<ChatCompletionContentPart> multiParts = new ArrayList<>();
+        multiParts.add(ChatCompletionContentPart.builder().type("image_url")
+                .imageUrl(new ChatCompletionContentPart.ChatCompletionContentPartImageURL(image))
+                .build());
+        multiParts.add(ChatCompletionContentPart.builder().type("text").text(user).build());
+        return multiParts;
     }
 
     private Ask convertAsk(ChatCompletionChunk chunk) {
