@@ -1,11 +1,10 @@
 package cn.gmlee.tools.bit.test;
 
+import cn.gmlee.tools.base.mod.Ask;
 import cn.gmlee.tools.base.util.CharUtil;
-import cn.gmlee.tools.base.util.NullUtil;
+import cn.gmlee.tools.base.util.TimerUtil;
 import cn.gmlee.tools.bit.App;
 import cn.gmlee.tools.bit.server.stream.MultiModalConversationServer;
-import cn.gmlee.tools.base.mod.Ask;
-import cn.gmlee.tools.base.util.TimerUtil;
 import io.reactivex.Flowable;
 import org.junit.Test;
 import org.junit.runner.RunWith;
