@@ -3,18 +3,18 @@ package cn.gmlee.tools.bit.server.stream;
 import cn.gmlee.tools.base.mod.Ask;
 import cn.gmlee.tools.base.util.AssertUtil;
 import cn.gmlee.tools.base.util.BoolUtil;
-import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.QuickUtil;
 import cn.gmlee.tools.bit.assist.AskAssist;
 import cn.gmlee.tools.bit.conf.BitAiProperties;
-import com.volcengine.ark.runtime.model.Usage;
 import com.volcengine.ark.runtime.model.completion.chat.*;
 import com.volcengine.ark.runtime.service.ArkService;
 import io.reactivex.Flowable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -59,6 +59,7 @@ public class MultiModalConversationServer {
         ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
                 .model(model)
                 .messages(messages)
+                .thinking(getThinking())
                 .build();
         Flowable<ChatCompletionChunk> flowable = bit.streamChatCompletion(chatCompletionRequest);
         return flowable.map(this::convertAsk).filter(Ask::notEmpty);
@@ -96,9 +97,18 @@ public class MultiModalConversationServer {
         ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
                 .model(model)
                 .messages(messages)
+                .thinking(getThinking())
                 .build();
         Flowable<ChatCompletionChunk> flowable = bit.streamChatCompletion(chatCompletionRequest);
         return flowable.map(this::convertAsk).filter(Ask::notEmpty);
+    }
+
+    private ChatCompletionRequest.ChatCompletionRequestThinking getThinking() {
+        String type = "auto";
+        if (bitAiProperties.getEnableThinking() != null) {
+            type = bitAiProperties.getEnableThinking() ? "enabled" : "disabled";
+        }
+        return new ChatCompletionRequest.ChatCompletionRequestThinking(type);
     }
 
     private static void addSystemMessage(String sys, List<ChatMessage> messages) {
