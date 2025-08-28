@@ -59,15 +59,22 @@ public class ByteBuddyAutoConfiguration {
         new AgentBuilder.Default().ignore(ignore()).type(type())
                 .transform((builder, typeDescription, classLoader, module) ->
                         builder.visit(Advice.to(ByteBuddyAdvice.class).on(ElementMatchers.isMethod()
+                                .and(ElementMatchers.not(ElementMatchers.isNative()))
+                                .and(ElementMatchers.not(ElementMatchers.isBridge()))
+                                .and(ElementMatchers.not(ElementMatchers.isSynthetic()))
                                 .and(ElementMatchers.not(ElementMatchers.isConstructor()))
-                                .and(ElementMatchers.not(ElementMatchers.nameStartsWith("lambda$"))))))
+                                .and(ElementMatchers.not(ElementMatchers.isEquals()))
+                                .and(ElementMatchers.not(ElementMatchers.isHashCode()))
+                                .and(ElementMatchers.not(ElementMatchers.isDeclaredBy(Object.class)))
+                                .and(ElementMatchers.not(ignore()))
+                        )))
                 .installOn(instrumentation);
 
         log.info("[Tools ByteBuddy] Timing Agent installed.");
     }
 
-    private ElementMatcher<? super TypeDescription> type() {
-        if(BoolUtil.isEmpty(NullUtil.get(monitorMethodProperties, MonitorMethodProperties::new).getPackages())){
+    private ElementMatcher<? super NamedElement> type() {
+        if (BoolUtil.isEmpty(NullUtil.get(monitorMethodProperties, MonitorMethodProperties::new).getPackages())) {
             return ElementMatchers.any();
         }
         ElementMatcher.Junction<NamedElement> emj = ElementMatchers.nameStartsWith("net.bytebuddy.");
@@ -78,10 +85,18 @@ public class ByteBuddyAutoConfiguration {
         return emj;
     }
 
-    private ElementMatcher<? super TypeDescription> ignore() {
+    private ElementMatcher<? super NamedElement> ignore() {
         ElementMatcher.Junction<NamedElement> emj = ElementMatchers.nameStartsWith("net.bytebuddy.")
+                .or(ElementMatchers.nameContainsIgnoreCase("lambda$"))
+                .or(ElementMatchers.nameStartsWith("io."))
+                .or(ElementMatchers.nameStartsWith("jdk."))
+                .or(ElementMatchers.nameStartsWith("java."))
+                .or(ElementMatchers.nameStartsWith("javax."))
+                .or(ElementMatchers.nameStartsWith("brave."))
+                .or(ElementMatchers.nameStartsWith("com.sun."))
+                .or(ElementMatchers.nameStartsWith("org.jboss."))
                 .or(ElementMatchers.nameStartsWith("sun.reflect."))
-                .or(ElementMatchers.nameStartsWith("org.springframework."))
+                .or(ElementMatchers.nameStartsWith("java.lang.invoke."))
                 .or(ElementMatchers.nameStartsWith("cn.gmlee.tools.agent."));
         List<String> packages = NullUtil.get(monitorMethodProperties, MonitorMethodProperties::new).getIgnorePackages();
         for (String pack : packages) {

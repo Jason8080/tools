@@ -137,13 +137,11 @@ public class Watcher {
 
     @Override
     public boolean equals(Object o) {
-        if (!(o instanceof Watcher)) return false;
-        Watcher watcher = (Watcher) o;
-        return Objects.equals(thread, watcher.thread) && Objects.equals(method, watcher.method) && Objects.equals(obj, watcher.obj);
+        return this == o;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(thread, method, obj);
+        return super.hashCode();
     }
 }
