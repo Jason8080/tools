@@ -67,7 +67,7 @@ public class ByteBuddyAutoConfiguration {
     }
 
     private ElementMatcher<? super TypeDescription> type() {
-        if(BoolUtil.isEmpty(monitorMethodProperties.getPackages())){
+        if(BoolUtil.isEmpty(NullUtil.get(monitorMethodProperties, MonitorMethodProperties::new).getPackages())){
             return ElementMatchers.any();
         }
         ElementMatcher.Junction<NamedElement> emj = ElementMatchers.nameStartsWith("net.bytebuddy.");
