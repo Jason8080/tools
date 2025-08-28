@@ -80,6 +80,8 @@ public class ByteBuddyAutoConfiguration {
 
     private ElementMatcher<? super TypeDescription> ignore() {
         ElementMatcher.Junction<NamedElement> emj = ElementMatchers.nameStartsWith("net.bytebuddy.")
+                .or(ElementMatchers.nameStartsWith("sun.reflect."))
+                .or(ElementMatchers.nameStartsWith("org.springframework."))
                 .or(ElementMatchers.nameStartsWith("cn.gmlee.tools.agent."));
         List<String> packages = NullUtil.get(monitorMethodProperties, MonitorMethodProperties::new).getIgnorePackages();
         for (String pack : packages) {
