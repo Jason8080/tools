@@ -1,6 +1,7 @@
 package cn.gmlee.tools.agent.conf;
 
 import cn.gmlee.tools.agent.bytebuddy.ByteBuddyAdvice;
+import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.NullUtil;
 import lombok.RequiredArgsConstructor;
@@ -66,6 +67,9 @@ public class ByteBuddyAutoConfiguration {
     }
 
     private ElementMatcher<? super TypeDescription> type() {
+        if(BoolUtil.isEmpty(monitorMethodProperties.getPackages())){
+            return ElementMatchers.any();
+        }
         ElementMatcher.Junction<NamedElement> emj = ElementMatchers.nameStartsWith("net.bytebuddy.");
         List<String> packages = NullUtil.get(monitorMethodProperties, MonitorMethodProperties::new).getPackages();
         for (String pack : packages) {
