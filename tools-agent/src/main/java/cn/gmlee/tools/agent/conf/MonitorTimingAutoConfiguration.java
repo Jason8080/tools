@@ -10,15 +10,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-
-import java.util.Arrays;
 
 /**
  * 方法超时监控自动装配.
  */
 @Slf4j
-@Configuration
 @RequiredArgsConstructor
 public class MonitorTimingAutoConfiguration {
 

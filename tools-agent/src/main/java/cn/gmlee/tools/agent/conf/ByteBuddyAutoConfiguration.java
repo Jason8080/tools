@@ -10,11 +10,9 @@ import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.NamedElement;
-import net.bytebuddy.description.type.TypeDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
 import java.lang.instrument.Instrumentation;
@@ -24,7 +22,6 @@ import java.util.List;
  * 方法超时监控自动装配.
  */
 @Slf4j
-@Configuration
 @RequiredArgsConstructor
 public class ByteBuddyAutoConfiguration {
 
