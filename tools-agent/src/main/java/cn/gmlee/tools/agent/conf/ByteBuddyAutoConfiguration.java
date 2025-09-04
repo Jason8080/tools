@@ -4,7 +4,6 @@ import cn.gmlee.tools.agent.bytebuddy.ByteBuddyAdvice;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.NullUtil;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.agent.builder.AgentBuilder;
@@ -22,7 +21,6 @@ import java.util.List;
  * 方法超时监控自动装配.
  */
 @Slf4j
-@RequiredArgsConstructor
 public class ByteBuddyAutoConfiguration {
 
     private MonitorMethodProperties monitorMethodProperties;

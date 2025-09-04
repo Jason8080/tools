@@ -5,7 +5,6 @@ import cn.gmlee.tools.agent.trigger.ByteBuddyTrigger;
 import cn.gmlee.tools.agent.trigger.TimeoutTrigger;
 import cn.gmlee.tools.agent.watcher.TimeoutWatcher;
 import cn.gmlee.tools.base.util.NullUtil;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -15,7 +14,6 @@ import org.springframework.context.annotation.Bean;
  * 方法超时监控自动装配.
  */
 @Slf4j
-@RequiredArgsConstructor
 public class MonitorTimingAutoConfiguration {
 
     private MonitorMethodProperties monitorMethodProperties;
