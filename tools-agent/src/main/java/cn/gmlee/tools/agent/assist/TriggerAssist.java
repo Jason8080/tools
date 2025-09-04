@@ -3,10 +3,12 @@ package cn.gmlee.tools.agent.assist;
 import cn.gmlee.tools.agent.mod.Watcher;
 import cn.gmlee.tools.agent.trigger.ByteBuddyTrigger;
 import cn.gmlee.tools.agent.trigger.TimeoutTrigger;
+import cn.gmlee.tools.base.enums.Function;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.spring.util.IocUtil;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
@@ -18,6 +20,7 @@ public class TriggerAssist {
      * 触发器.
      *
      * @param watcher the watcher
+     * @param fun     the fun
      */
     public static void register(Watcher watcher, BiConsumer<ByteBuddyTrigger, Watcher> fun) {
         Map<String, ByteBuddyTrigger> beanMap = IocUtil.getBeanMap(ByteBuddyTrigger.class);
@@ -33,12 +36,14 @@ public class TriggerAssist {
             ExceptionUtil.sandbox(() -> fun.accept(trigger, watcher));
         }
     }
+
     /**
      * 触发器.
      *
-     * @param watcher the watcher
+     * @param thread   the thread
+     * @param watchers the watchers
      */
-    public static void timout(Watcher watcher, BiConsumer<TimeoutTrigger, Watcher> fun) {
+    public static void timout(Thread thread, List<Watcher> watchers) {
         Map<String, TimeoutTrigger> beanMap = IocUtil.getBeanMap(TimeoutTrigger.class);
         if(BoolUtil.isEmpty(beanMap)){
             return;
@@ -49,7 +54,7 @@ public class TriggerAssist {
             if (trigger == null) {
                 continue;
             }
-            ExceptionUtil.sandbox(() -> fun.accept(trigger, watcher));
+            ExceptionUtil.sandbox(() -> trigger.handler(thread, watchers));
         }
     }
 }

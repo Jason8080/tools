@@ -3,20 +3,23 @@ package cn.gmlee.tools.agent.bytebuddy;
 import cn.gmlee.tools.agent.assist.TriggerAssist;
 import cn.gmlee.tools.agent.mod.Watcher;
 import cn.gmlee.tools.agent.trigger.ByteBuddyTrigger;
+import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.QuickUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class ByteBuddyRegistry {
 
-    private static final Set<Watcher> WATCHERS = ConcurrentHashMap.newKeySet();
+    private static final Map<Thread, List<Watcher>> WATCHERS = new ConcurrentHashMap<>();
 
-    public static Collection<Watcher> all() {
+    public static Map<Thread, List<Watcher>> all() {
         return WATCHERS;
     }
 
@@ -25,7 +28,7 @@ public class ByteBuddyRegistry {
     }
 
     private static Watcher enter(Watcher watcher) {
-        WATCHERS.add(watcher);
+        ByteBuddyRegistry.save(watcher);
         TriggerAssist.register(watcher, ByteBuddyTrigger::enter);
         return watcher;
     }
@@ -37,8 +40,29 @@ public class ByteBuddyRegistry {
     }
 
     private static void exit(Watcher watcher) {
-        boolean remove = WATCHERS.remove(watcher);
+        boolean remove = ByteBuddyRegistry.remove(watcher);
         QuickUtil.isFalse(remove, () -> log.error("监控方法删除失败: {}", watcher));
         TriggerAssist.register(watcher, ByteBuddyTrigger::exit);
+    }
+
+    private static void save(Watcher watcher) {
+        Thread thread = Thread.currentThread();
+        List<Watcher> list = WATCHERS.computeIfAbsent(thread, k -> new ArrayList<>());
+        list.add(watcher);
+    }
+
+    private static boolean remove(Watcher watcher) {
+        Set<Thread> threads = WATCHERS.keySet();
+        for (Thread thread : threads){
+            List<Watcher> list = WATCHERS.get(thread);
+            if(BoolUtil.isEmpty(list)){
+                continue;
+            }
+            boolean remove = list.remove(watcher);
+            if(remove){
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -312,4 +312,40 @@ public interface Function {
          */
         One run(One one, Object... os) throws Throwable;
     }
+
+    /**
+     * The interface Pos 2 v.
+     *
+     * @param <P> the type parameter
+     */
+    @FunctionalInterface
+    interface Pos2v<P> extends Function {
+        /**
+         * Run one.
+         *
+         * @param p  the p
+         * @param os the os
+         * @throws Throwable the throwable
+         */
+        void run(P p, Object... os) throws Throwable;
+    }
+
+    /**
+     * The interface Pos 2 r.
+     *
+     * @param <P> the type parameter
+     * @param <R> the type parameter
+     */
+    @FunctionalInterface
+    interface Pos2r<P, R> extends Function {
+        /**
+         * Run one.
+         *
+         * @param p  the p
+         * @param os the os
+         * @return the r
+         * @throws Throwable the throwable
+         */
+        R run(P p, Object... os) throws Throwable;
+    }
 }
