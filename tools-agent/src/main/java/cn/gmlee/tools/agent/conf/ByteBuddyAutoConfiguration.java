@@ -75,13 +75,10 @@ public class ByteBuddyAutoConfiguration {
     private ElementMatcher<? super NamedElement> ignoreClasses() {
         ElementMatcher.Junction<NamedElement> emj = ElementMatchers.nameStartsWith("net.bytebuddy.")
                 .or(ElementMatchers.nameContainsIgnoreCase("lambda$"))
-                .or(ElementMatchers.nameStartsWith("io."))
                 .or(ElementMatchers.nameStartsWith("jdk."))
                 .or(ElementMatchers.nameStartsWith("java."))
                 .or(ElementMatchers.nameStartsWith("javax."))
-                .or(ElementMatchers.nameStartsWith("brave."))
                 .or(ElementMatchers.nameStartsWith("com.sun."))
-                .or(ElementMatchers.nameStartsWith("org.jboss."))
                 .or(ElementMatchers.nameStartsWith("sun.reflect."))
                 .or(ElementMatchers.nameStartsWith("java.lang.invoke."))
                 .or(ElementMatchers.nameStartsWith("cn.gmlee.tools.agent."));
