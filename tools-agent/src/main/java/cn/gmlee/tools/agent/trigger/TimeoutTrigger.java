@@ -3,6 +3,7 @@ package cn.gmlee.tools.agent.trigger;
 import cn.gmlee.tools.agent.mod.Watcher;
 import cn.gmlee.tools.base.anno.Monitor;
 import cn.gmlee.tools.base.util.BoolUtil;
+import cn.gmlee.tools.base.util.CollectionUtil;
 import cn.gmlee.tools.base.util.NullUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -65,7 +65,7 @@ public interface TimeoutTrigger {
      */
     default void handle(Thread thread, List<Watcher> watchers, long elapsed, long timout) {
         String chain = append(watchers);
-        log.warn("\r\n-------------------- Tools Watcher --------------------\r\n[{}] ({}/{})ms{}\r\n",
+        log.warn("\r\n-------------------- Timeout Watcher --------------------\r\n[{}] ({}/{})ms{}\r\n",
                 thread != null ? thread.getName() : "unknown", elapsed, timout, chain
         );
     }
@@ -76,15 +76,17 @@ public interface TimeoutTrigger {
      * @param watchers the watchers
      * @return the string
      */
-    default String append(List<Watcher> watchers){
+    default String append(List<Watcher> watchers) {
         List<Watcher> list = new ArrayList<>(watchers);
-        if(BoolUtil.isEmpty(watchers)){
+        if (BoolUtil.isEmpty(watchers)) {
             return "监控链路丢失";
         }
-        String format = "\r\n\t↓\r\n%s#%s(%s) %s(ms)";
+        String format = "\r\n\t↓\r\n%s ====>\t%s#%s(%s) %s(ms)";
         StringBuilder sb = new StringBuilder();
         for (Watcher watcher : list) {
-            String method = String.format(format, watcher.getOriginalObj().getClass().getName(),
+            Object traceId = CollectionUtil.getIgnoreCase(watcher.getInfoMap(), "traceId");
+            String method = String.format(format, traceId != null ? traceId : "",
+                    watcher.getOriginalObj().getClass().getName(),
                     watcher.getOriginalMethod().getName(),
                     Arrays.toString(NullUtil.get(watcher.getOriginalArgs(), watcher.getArgs())),
                     watcher.elapsedMillis()

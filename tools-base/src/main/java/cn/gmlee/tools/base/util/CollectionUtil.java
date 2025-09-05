@@ -195,9 +195,9 @@ public class CollectionUtil {
      * @param key     the key
      * @return the ignore case
      */
-    public static String getIgnoreCase(Map<String, String> headers, String key) {
-        Set<Map.Entry<String, String>> entries = headers.entrySet();
-        for (Map.Entry<String, String> entry : entries) {
+    public static <V> V getIgnoreCase(Map<String, V> headers, String key) {
+        Set<Map.Entry<String, V>> entries = headers.entrySet();
+        for (Map.Entry<String, V> entry : entries) {
             if (BoolUtil.equalsIgnoreCase(key, entry.getKey())) {
                 return entry.getValue();
             }
