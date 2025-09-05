@@ -9,6 +9,7 @@ import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.asm.Advice;
 import net.bytebuddy.description.NamedElement;
+import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,36 +52,27 @@ public class ByteBuddyAutoConfiguration {
             return;
         }
 
-        new AgentBuilder.Default().ignore(ignore()).type(type())
+        new AgentBuilder.Default().ignore(ignoreClasses()).type(type())
                 .transform((builder, typeDescription, classLoader, module) ->
-                        builder.visit(Advice.to(ByteBuddyAdvice.class).on(ElementMatchers.isMethod()
-                                .and(ElementMatchers.not(ElementMatchers.isNative()))
-                                .and(ElementMatchers.not(ElementMatchers.isBridge()))
-                                .and(ElementMatchers.not(ElementMatchers.isSynthetic()))
-                                .and(ElementMatchers.not(ElementMatchers.isConstructor()))
-                                .and(ElementMatchers.not(ElementMatchers.isEquals()))
-                                .and(ElementMatchers.not(ElementMatchers.isHashCode()))
-                                .and(ElementMatchers.not(ElementMatchers.isDeclaredBy(Object.class)))
-                                .and(ElementMatchers.not(ignore()))
-                        )))
+                        builder.visit(Advice.to(ByteBuddyAdvice.class).on(ignoreMethods())))
                 .installOn(instrumentation);
 
         log.info("[Tools ByteBuddy] Timing Agent installed.");
     }
 
     private ElementMatcher<? super NamedElement> type() {
-        if (BoolUtil.isEmpty(NullUtil.get(monitorMethodProperties, MonitorMethodProperties::new).getPackages())) {
+        if (BoolUtil.isEmpty(NullUtil.get(monitorMethodProperties, MonitorMethodProperties::new).getType())) {
             return ElementMatchers.any();
         }
         ElementMatcher.Junction<NamedElement> emj = ElementMatchers.nameStartsWith("net.bytebuddy.");
-        List<String> packages = NullUtil.get(monitorMethodProperties, MonitorMethodProperties::new).getPackages();
+        List<String> packages = NullUtil.get(monitorMethodProperties, MonitorMethodProperties::new).getType();
         for (String pack : packages) {
             emj = emj.or(ElementMatchers.nameStartsWith(pack));
         }
         return emj;
     }
 
-    private ElementMatcher<? super NamedElement> ignore() {
+    private ElementMatcher<? super NamedElement> ignoreClasses() {
         ElementMatcher.Junction<NamedElement> emj = ElementMatchers.nameStartsWith("net.bytebuddy.")
                 .or(ElementMatchers.nameContainsIgnoreCase("lambda$"))
                 .or(ElementMatchers.nameStartsWith("io."))
@@ -93,9 +85,33 @@ public class ByteBuddyAutoConfiguration {
                 .or(ElementMatchers.nameStartsWith("sun.reflect."))
                 .or(ElementMatchers.nameStartsWith("java.lang.invoke."))
                 .or(ElementMatchers.nameStartsWith("cn.gmlee.tools.agent."));
-        List<String> packages = NullUtil.get(monitorMethodProperties, MonitorMethodProperties::new).getIgnorePackages();
+        List<String> packages = NullUtil.get(monitorMethodProperties, MonitorMethodProperties::new).getIgnore();
         for (String pack : packages) {
+            if(pack.contains("#")){
+                continue;
+            }
             emj = emj.or(ElementMatchers.nameStartsWith(pack));
+        }
+        return emj;
+    }
+
+    private ElementMatcher<? super MethodDescription> ignoreMethods() {
+        ElementMatcher.Junction<MethodDescription> emj = ElementMatchers.isMethod()
+                .and(ElementMatchers.not(ElementMatchers.isNative()))
+                .and(ElementMatchers.not(ElementMatchers.isBridge()))
+                .and(ElementMatchers.not(ElementMatchers.isSynthetic()))
+                .and(ElementMatchers.not(ElementMatchers.isConstructor()))
+                .and(ElementMatchers.not(ElementMatchers.isEquals()))
+                .and(ElementMatchers.not(ElementMatchers.isHashCode()))
+                .and(ElementMatchers.not(ElementMatchers.isDeclaredBy(Object.class)));
+        List<String> packages = NullUtil.get(monitorMethodProperties, MonitorMethodProperties::new).getIgnore();
+        for (String pack : packages) {
+            if(!pack.contains("#")){
+                continue;
+            }
+            String className = pack.substring(0, pack.indexOf('#'));
+            String methodName = pack.substring(pack.indexOf('#') + 1);
+            emj = emj.and(ElementMatchers.not(ElementMatchers.named(methodName).and(ElementMatchers.isDeclaredBy(ElementMatchers.named(className)))));
         }
         return emj;
     }

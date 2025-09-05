@@ -29,10 +29,11 @@ public interface TimeoutTrigger {
      * @param watchers the watchers
      */
     default void handler(Thread thread, List<Watcher> watchers) {
+        List<Watcher> list = new ArrayList<>(watchers);
         if (BoolUtil.isEmpty(watchers)) {
             return;
         }
-        Watcher watcher = watchers.get(0);
+        Watcher watcher = list.get(0);
         long elapsed = watcher.elapsedMillis();
         long timout = NullUtil.get(timout(watcher), 3000L);
         if (timout > 0 && elapsed > timout) {

@@ -14,6 +14,6 @@ public class MonitorMethodProperties {
     protected Boolean enable = Boolean.TRUE;
     protected Integer period = 1000;
     protected Integer initialDelay = 1000;
-    protected List<String> packages = new ArrayList<>();
-    protected List<String> ignorePackages = new ArrayList<>();
+    protected List<String> type = new ArrayList<>();
+    protected List<String> ignore = new ArrayList<>();
 }
