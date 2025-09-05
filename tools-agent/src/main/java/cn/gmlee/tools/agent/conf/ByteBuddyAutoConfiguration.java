@@ -90,7 +90,7 @@ public class ByteBuddyAutoConfiguration {
             if(pack.contains("#")){
                 continue;
             }
-            emj = emj.or(ElementMatchers.nameStartsWith(pack));
+            emj = emj.or(ElementMatchers.nameContainsIgnoreCase(pack));
         }
         return emj;
     }
