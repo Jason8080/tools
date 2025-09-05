@@ -14,15 +14,31 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * The type Byte buddy registry.
+ */
 @Slf4j
 public class ByteBuddyRegistry {
 
     private static final Map<Thread, List<Watcher>> WATCHERS = new ConcurrentHashMap<>();
 
+    /**
+     * All map.
+     *
+     * @return the map
+     */
     public static Map<Thread, List<Watcher>> all() {
         return WATCHERS;
     }
 
+    /**
+     * Enter object.
+     *
+     * @param obj    the obj
+     * @param method the method
+     * @param args   the args
+     * @return the object
+     */
     public static Object enter(Object obj, Method method, Object[] args) {
         return enter(Watcher.of(obj, method, args));
     }
@@ -33,6 +49,13 @@ public class ByteBuddyRegistry {
         return watcher;
     }
 
+    /**
+     * Exit.
+     *
+     * @param watcher   the watcher
+     * @param ret       the ret
+     * @param throwable the throwable
+     */
     public static void exit(Object watcher, Object ret, Throwable throwable) {
         if(watcher instanceof Watcher){
             exit(Watcher.ret((Watcher) watcher, ret, throwable));
@@ -64,5 +87,19 @@ public class ByteBuddyRegistry {
             }
         }
         return false;
+    }
+
+    /**
+     * Remove.
+     *
+     * @param threads the threads
+     */
+    public static void remove(Thread... threads){
+        if(BoolUtil.isEmpty(threads)){
+            return;
+        }
+        for (Thread thread : threads){
+            WATCHERS.remove(thread);
+        }
     }
 }
