@@ -81,15 +81,13 @@ public interface TimeoutTrigger {
         if (BoolUtil.isEmpty(watchers)) {
             return "监控链路丢失";
         }
-        String format = "\r\n\t↓\r\n%s ====>\t%s#%s(%s) %s(ms)";
+        String format = "\r\n\t↓\r\n%s ==> Executing method %s(ms): %s#%s(%s)";
         StringBuilder sb = new StringBuilder();
         for (Watcher watcher : list) {
             Object traceId = CollectionUtil.getIgnoreCase(watcher.getInfoMap(), "traceId");
-            String method = String.format(format, traceId != null ? traceId : "",
-                    watcher.getOriginalObj().getClass().getName(),
-                    watcher.getOriginalMethod().getName(),
-                    Arrays.toString(NullUtil.get(watcher.getOriginalArgs(), watcher.getArgs())),
-                    watcher.elapsedMillis()
+            String method = String.format(format, traceId != null ? traceId : "", watcher.elapsedMillis(),
+                    watcher.getOriginalObj().getClass().getName(), watcher.getOriginalMethod().getName(),
+                    Arrays.toString(NullUtil.get(watcher.getOriginalArgs(), watcher.getArgs()))
             );
             sb.append(method);
         }
