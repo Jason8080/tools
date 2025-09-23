@@ -10,6 +10,7 @@ import cn.gmlee.tools.spring.util.IocUtil;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.BiConsumer;
 
 /**
@@ -43,7 +44,7 @@ public class TriggerAssist {
      * @param thread   the thread
      * @param watchers the watchers
      */
-    public static void timout(Thread thread, List<Watcher> watchers) {
+    public static void timout(Thread thread, Set<Watcher> watchers) {
         Map<String, TimeoutTrigger> beanMap = IocUtil.getBeanMap(TimeoutTrigger.class);
         if(BoolUtil.isEmpty(beanMap)){
             return;

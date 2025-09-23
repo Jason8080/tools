@@ -12,6 +12,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 超时触发器.
@@ -28,7 +29,7 @@ public interface TimeoutTrigger {
      * @param thread   the thread
      * @param watchers the watchers
      */
-    default void handler(Thread thread, List<Watcher> watchers) {
+    default void handler(Thread thread, Set<Watcher> watchers) {
         List<Watcher> list = new ArrayList<>(watchers);
         if (BoolUtil.isEmpty(watchers)) {
             return;
@@ -64,7 +65,7 @@ public interface TimeoutTrigger {
      * @param elapsed  the elapsed
      * @param timout   the timout
      */
-    default void handle(Thread thread, List<Watcher> watchers, long elapsed, long timout) {
+    default void handle(Thread thread, Set<Watcher> watchers, long elapsed, long timout) {
         String chain = append(watchers);
         log.warn("\r\n-------------------- Timeout Watcher --------------------\r\n[{}] ({}/{})ms{}\r\n",
                 thread != null ? thread.getName() : "unknown", elapsed, timout, chain
@@ -77,7 +78,7 @@ public interface TimeoutTrigger {
      * @param watchers the watchers
      * @return the string
      */
-    default String append(List<Watcher> watchers) {
+    default String append(Set<Watcher> watchers) {
         List<Watcher> list = new ArrayList<>(watchers);
         if (BoolUtil.isEmpty(watchers)) {
             return "监控链路丢失";

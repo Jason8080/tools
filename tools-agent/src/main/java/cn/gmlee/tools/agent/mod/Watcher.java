@@ -3,16 +3,18 @@ package cn.gmlee.tools.agent.mod;
 import cn.gmlee.tools.agent.assist.OriginalAssist;
 import cn.gmlee.tools.base.util.ProxyUtil;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.lang.reflect.Method;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 观察者.
  */
-@Data
+@Getter
+@Setter
 public class Watcher {
 
     /**
@@ -133,15 +135,5 @@ public class Watcher {
     public long elapsedMillis(long endTime) {
         this.endTime = endTime;
         return this.endTime - this.startTime;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return this == o;
-    }
-
-    @Override
-    public int hashCode() {
-        return super.hashCode();
     }
 }

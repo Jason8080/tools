@@ -26,10 +26,10 @@ public class TimeoutWatcher {
     @PostConstruct
     public void init() {
         executor.scheduleAtFixedRate(() -> {
-            Map<Thread, List<Watcher>> all = ByteBuddyRegistry.all();
+            Map<Thread, Set<Watcher>> all = ByteBuddyRegistry.all();
             Set<Thread> threads = all.keySet();
             for (Thread thread : threads) {
-                List<Watcher> watchers = all.get(thread);
+                Set<Watcher> watchers = all.get(thread);
                 TriggerAssist.timout(thread, watchers);
             }
         }, props.getInitialDelay(), props.getPeriod(), TimeUnit.MILLISECONDS);

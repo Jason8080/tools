@@ -8,7 +8,6 @@ import cn.gmlee.tools.base.util.QuickUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,14 +19,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 public class ByteBuddyRegistry {
 
-    private static final Map<Thread, List<Watcher>> WATCHERS = new ConcurrentHashMap<>();
+    private static final Map<Thread, Set<Watcher>> WATCHERS = new ConcurrentHashMap<>();
 
     /**
      * All map.
      *
      * @return the map
      */
-    public static Map<Thread, List<Watcher>> all() {
+    public static Map<Thread, Set<Watcher>> all() {
         return WATCHERS;
     }
 
@@ -70,23 +69,17 @@ public class ByteBuddyRegistry {
 
     private static void save(Watcher watcher) {
         Thread thread = Thread.currentThread();
-        List<Watcher> list = WATCHERS.computeIfAbsent(thread, k -> new ArrayList<>());
-        list.add(watcher);
+        Set<Watcher> set = WATCHERS.computeIfAbsent(thread, k -> ConcurrentHashMap.newKeySet());
+        set.add(watcher);
     }
 
     private static boolean remove(Watcher watcher) {
-        Set<Thread> threads = WATCHERS.keySet();
-        for (Thread thread : threads){
-            List<Watcher> list = WATCHERS.get(thread);
-            if(BoolUtil.isEmpty(list)){
-                continue;
-            }
-            boolean remove = list.remove(watcher);
-            if(remove){
-                return true;
-            }
+        Thread thread = watcher.getThread();
+        Set<Watcher> set = WATCHERS.get(thread);
+        if (set == null) {
+            return false;
         }
-        return false;
+        return set.remove(watcher);
     }
 
     /**
