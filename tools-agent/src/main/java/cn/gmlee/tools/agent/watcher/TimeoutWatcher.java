@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.PostConstruct;
-import java.util.List;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -27,9 +27,20 @@ public class TimeoutWatcher {
     public void init() {
         executor.scheduleAtFixedRate(() -> {
             Map<Thread, Set<Watcher>> all = ByteBuddyRegistry.all();
-            Set<Thread> threads = all.keySet();
-            for (Thread thread : threads) {
+            for (Thread thread : all.keySet()) {
                 Set<Watcher> watchers = all.get(thread);
+                if (watchers == null) {
+                    continue;
+                }
+                // 最大存活时间
+                Watcher watcher = watchers.stream()
+                        .max(Comparator.comparing(Watcher::elapsedMillis))
+                        .orElse(null);
+                if (watcher != null && watcher.elapsedMillis() > props.getMaxSurvival()) {
+                    all.remove(thread);
+                    continue;
+                }
+                // 触发超时监控
                 TriggerAssist.timout(thread, watchers);
             }
         }, props.getInitialDelay(), props.getPeriod(), TimeUnit.MILLISECONDS);
