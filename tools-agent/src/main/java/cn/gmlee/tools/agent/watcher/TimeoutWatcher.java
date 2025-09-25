@@ -25,7 +25,11 @@ public class TimeoutWatcher {
 
     @PostConstruct
     public void init() {
-        executor.scheduleAtFixedRate(() -> {
+        executor.scheduleAtFixedRate(this::actuator, props.getInitialDelay(), props.getPeriod(), TimeUnit.MILLISECONDS);
+    }
+
+    private void actuator() {
+        try {
             Map<Thread, Set<Watcher>> all = ByteBuddyRegistry.all();
             for (Thread thread : all.keySet()) {
                 Set<Watcher> watchers = all.get(thread);
@@ -43,6 +47,8 @@ public class TimeoutWatcher {
                 // 触发超时监控
                 TriggerAssist.timout(thread, watchers);
             }
-        }, props.getInitialDelay(), props.getPeriod(), TimeUnit.MILLISECONDS);
+        } catch (Exception e) {
+            log.error("超时监控定时器执行异常", e);
+        }
     }
 }
