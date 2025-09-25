@@ -78,6 +78,7 @@ public class ByteBuddyAutoConfiguration {
                 .or(ElementMatchers.nameContainsIgnoreCase("agent."))
                 .or(ElementMatchers.nameContainsIgnoreCase("javassist."))
                 .or(ElementMatchers.nameContainsIgnoreCase("instrument."))
+                .or(ElementMatchers.nameStartsWith("sun."))
                 .or(ElementMatchers.nameStartsWith("jdk."))
                 .or(ElementMatchers.nameStartsWith("java."))
                 .or(ElementMatchers.nameStartsWith("javax."))
