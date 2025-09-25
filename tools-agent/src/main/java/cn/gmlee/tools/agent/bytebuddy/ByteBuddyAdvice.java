@@ -8,8 +8,8 @@ import java.lang.reflect.Method;
 
 public class ByteBuddyAdvice {
 
-    private static Method enterMethod = null;
-    private static Method exitMethod = null;
+    public static Method enterMethod;
+    public static Method exitMethod;
 
     static {
         try {
