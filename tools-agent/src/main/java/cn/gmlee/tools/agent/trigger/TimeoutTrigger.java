@@ -27,14 +27,15 @@ public interface TimeoutTrigger {
      * 超时处理器.
      *
      * @param thread   the thread
-     * @param watchers the watchers
+     * @param watcher  线程中耗时最长的监听器
+     * @param watchers 线程中全量的监听器
      */
-    default void handler(Thread thread, Set<Watcher> watchers) {
+    default void handler(Thread thread, Watcher watcher, Set<Watcher> watchers) {
         List<Watcher> list = new ArrayList<>(watchers);
         if (BoolUtil.isEmpty(watchers)) {
             return;
         }
-        Watcher watcher = list.get(0);
+        watcher = watcher!=null ? watcher : list.get(0);
         long elapsed = watcher.elapsedMillis();
         long timout = NullUtil.get(timout(watcher), 3000L);
         if (timout > 0 && elapsed > timout) {

@@ -45,7 +45,7 @@ public class TimeoutWatcher {
                     continue;
                 }
                 // 触发超时监控
-                TriggerAssist.timout(thread, watchers);
+                TriggerAssist.timout(thread, watcher, watchers);
             }
         } catch (Exception e) {
             log.error("超时监控定时器执行异常", e);

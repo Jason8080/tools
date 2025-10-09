@@ -42,9 +42,10 @@ public class TriggerAssist {
      * 触发器.
      *
      * @param thread   the thread
-     * @param watchers the watchers
+     * @param watcher  线程中耗时最长的监听器
+     * @param watchers 线程中全量的监听器
      */
-    public static void timout(Thread thread, Set<Watcher> watchers) {
+    public static void timout(Thread thread, Watcher watcher, Set<Watcher> watchers) {
         Map<String, TimeoutTrigger> beanMap = IocUtil.getBeanMap(TimeoutTrigger.class);
         if(BoolUtil.isEmpty(beanMap)){
             return;
@@ -55,7 +56,7 @@ public class TriggerAssist {
             if (trigger == null) {
                 continue;
             }
-            ExceptionUtil.sandbox(() -> trigger.handler(thread, watchers));
+            ExceptionUtil.sandbox(() -> trigger.handler(thread, watcher, watchers));
         }
     }
 }
