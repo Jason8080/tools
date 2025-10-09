@@ -44,6 +44,10 @@ public class ByteBuddyAutoConfiguration {
     }
 
     private void install() {
+        if(!monitorMethodProperties.getEnable()){
+            log.info("[Tools ByteBuddy] Timing Agent is close...");
+            return;
+        }
         log.info("[Tools ByteBuddy] Timing Agent is initializing...");
 
         Instrumentation instrumentation = ByteBuddyAgent.install();
