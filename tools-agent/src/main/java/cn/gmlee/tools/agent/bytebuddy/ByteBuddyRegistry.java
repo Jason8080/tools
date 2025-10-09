@@ -89,8 +89,7 @@ public class ByteBuddyRegistry {
     }
 
     private static void save(Watcher watcher) {
-        Thread thread = Thread.currentThread();
-        Set<Watcher> set = WATCHERS.computeIfAbsent(thread, k -> ConcurrentHashMap.newKeySet());
+        Set<Watcher> set = WATCHERS.computeIfAbsent(watcher.getThread(), k -> ConcurrentHashMap.newKeySet());
         set.add(watcher);
     }
 
