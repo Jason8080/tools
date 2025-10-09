@@ -31,6 +31,8 @@ public class TimeoutWatcher {
     private void actuator() {
         try {
             Map<Thread, Set<Watcher>> all = ByteBuddyRegistry.all();
+            // 线程复用清理
+            all.entrySet().removeIf(entry -> entry.getKey() == null || entry.getKey().isInterrupted());
             for (Thread thread : all.keySet()) {
                 Set<Watcher> watchers = all.get(thread);
                 if (watchers == null) {
