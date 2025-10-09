@@ -1,5 +1,6 @@
 package cn.gmlee.tools.agent.conf;
 
+import cn.gmlee.tools.agent.listener.MonitorMethodPropertiesChangeApplicationListener;
 import cn.gmlee.tools.agent.mod.Watcher;
 import cn.gmlee.tools.agent.trigger.ByteBuddyTrigger;
 import cn.gmlee.tools.agent.trigger.TimeoutTrigger;
@@ -20,6 +21,12 @@ public class MonitorTimingAutoConfiguration {
 
     public MonitorTimingAutoConfiguration(@Autowired(required = false) MonitorMethodProperties props){
         this.monitorMethodProperties = props;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(MonitorMethodPropertiesChangeApplicationListener.class)
+    public MonitorMethodPropertiesChangeApplicationListener clear(){
+        return new MonitorMethodPropertiesChangeApplicationListener();
     }
 
     /**

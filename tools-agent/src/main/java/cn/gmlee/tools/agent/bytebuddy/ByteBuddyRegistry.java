@@ -122,6 +122,7 @@ public class ByteBuddyRegistry {
      */
     public static void remove(Thread... threads) {
         if (BoolUtil.isEmpty(threads)) {
+            WATCHERS.clear();
             return;
         }
         for (Thread thread : threads) {
