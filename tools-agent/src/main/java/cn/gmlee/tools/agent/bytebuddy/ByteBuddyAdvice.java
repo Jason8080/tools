@@ -10,21 +10,23 @@ public class ByteBuddyAdvice {
 
     @Advice.OnMethodEnter
     public static Object onEnter(@Advice.This Object obj, @Advice.Origin Method method, @Advice.AllArguments Object[] args) {
-        Method clearMethod = null;
+        Method enterMethod = null;
+        Method removeMethod = null;
         try {
             Class<?> clazz = Class.forName("cn.gmlee.tools.agent.bytebuddy.ByteBuddyRegistry");
             Method[] methods = clazz.getDeclaredMethods();
             for (Method clazzMethod : methods) {
                 if (clazzMethod.getName().equals("enter") && Modifier.isPublic(clazzMethod.getModifiers())) {
-                    return clazzMethod.invoke(null, obj, method, args);
+                    enterMethod = clazzMethod;
                 }
-                if(clazzMethod.getName().equals("remove") && clazzMethod.isVarArgs()){
-                    clearMethod = clazzMethod;
+                if (clazzMethod.getName().equals("remove") && clazzMethod.isVarArgs()) {
+                    removeMethod = clazzMethod;
                 }
             }
+            if(enterMethod!=null) enterMethod.invoke(null, obj, method, args);
         } catch (Exception e) {
             try {
-                if(clearMethod!=null) clearMethod.invoke(null, Thread.currentThread());
+                if(removeMethod!=null) removeMethod.invoke(null, Thread.currentThread());
             } catch (Exception ignored) {
             }
         }
@@ -33,21 +35,23 @@ public class ByteBuddyAdvice {
 
     @Advice.OnMethodExit(onThrowable = Throwable.class)
     public static void onExit(@Advice.Enter Object watcher, @Advice.Return(typing = Assigner.Typing.DYNAMIC) Object ret, @Advice.Thrown Throwable throwable) {
-        Method clearMethod = null;
+        Method exitMethod = null;
+        Method removeMethod = null;
         try {
             Class<?> clazz = Class.forName("cn.gmlee.tools.agent.bytebuddy.ByteBuddyRegistry");
             Method[] methods = clazz.getDeclaredMethods();
             for (Method clazzMethod : methods) {
                 if (clazzMethod.getName().equals("exit") && Modifier.isPublic(clazzMethod.getModifiers())) {
-                    clazzMethod.invoke(null, watcher, ret, throwable);
+                    exitMethod = clazzMethod;
                 }
-                if(clazzMethod.getName().equals("remove") && clazzMethod.isVarArgs()){
-                    clearMethod = clazzMethod;
+                if (clazzMethod.getName().equals("remove") && clazzMethod.isVarArgs()) {
+                    removeMethod = clazzMethod;
                 }
             }
+            if(exitMethod!=null) exitMethod.invoke(null, watcher, ret, throwable);
         } catch (Exception e) {
             try {
-                if(clearMethod!=null) clearMethod.invoke(null, Thread.currentThread());
+                if(removeMethod!=null) removeMethod.invoke(null, Thread.currentThread());
             } catch (Exception ignored) {
             }
         }
