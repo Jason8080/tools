@@ -13,7 +13,7 @@ public class ByteBuddyAdvice {
         Method clearMethod = null;
         try {
             Class<?> clazz = Class.forName("cn.gmlee.tools.agent.bytebuddy.ByteBuddyRegistry");
-            Method[] methods = clazz.getMethods();
+            Method[] methods = clazz.getDeclaredMethods();
             for (Method clazzMethod : methods) {
                 if (clazzMethod.getName().equals("enter") && Modifier.isPublic(clazzMethod.getModifiers())) {
                     return clazzMethod.invoke(null, obj, method, args);
@@ -36,7 +36,7 @@ public class ByteBuddyAdvice {
         Method clearMethod = null;
         try {
             Class<?> clazz = Class.forName("cn.gmlee.tools.agent.bytebuddy.ByteBuddyRegistry");
-            Method[] methods = clazz.getMethods();
+            Method[] methods = clazz.getDeclaredMethods();
             for (Method clazzMethod : methods) {
                 if (clazzMethod.getName().equals("exit") && Modifier.isPublic(clazzMethod.getModifiers())) {
                     clazzMethod.invoke(null, watcher, ret, throwable);
