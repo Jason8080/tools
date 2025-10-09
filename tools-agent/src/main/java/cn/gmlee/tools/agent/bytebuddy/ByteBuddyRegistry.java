@@ -124,6 +124,7 @@ public class ByteBuddyRegistry {
     public static void remove(Thread... threads) {
         if (BoolUtil.isEmpty(threads)) {
             WATCHERS.clear();
+            log.warn("监控方法内存清理完成...");
             return;
         }
         for (Thread thread : threads) {
