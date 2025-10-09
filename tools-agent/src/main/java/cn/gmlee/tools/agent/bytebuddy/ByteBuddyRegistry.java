@@ -47,7 +47,7 @@ public class ByteBuddyRegistry {
     }
 
     private static Watcher enter(Watcher watcher) {
-        if (isEnable()) {
+        if (!isEnable()) {
             return watcher;
         }
         if (ignoreThread(watcher)) {
@@ -90,7 +90,7 @@ public class ByteBuddyRegistry {
     }
 
     private static void exit(Watcher watcher) {
-        if (isEnable()) {
+        if (!isEnable()) {
             return;
         }
         if (ignoreThread(watcher)) {
