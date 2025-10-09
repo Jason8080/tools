@@ -1,14 +1,15 @@
 package cn.gmlee.tools.agent.bytebuddy;
 
 import cn.gmlee.tools.agent.assist.TriggerAssist;
+import cn.gmlee.tools.agent.conf.MonitorMethodProperties;
 import cn.gmlee.tools.agent.mod.Watcher;
 import cn.gmlee.tools.agent.trigger.ByteBuddyTrigger;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.QuickUtil;
+import cn.gmlee.tools.spring.util.IocUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,6 +19,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Slf4j
 public class ByteBuddyRegistry {
+
+    private static MonitorMethodProperties props;
 
     private static final Map<Thread, Set<Watcher>> WATCHERS = new ConcurrentHashMap<>();
 
@@ -43,9 +46,23 @@ public class ByteBuddyRegistry {
     }
 
     private static Watcher enter(Watcher watcher) {
+        if (ignoreThread(watcher)) {
+            return watcher;
+        }
         ByteBuddyRegistry.save(watcher);
         TriggerAssist.register(watcher, ByteBuddyTrigger::enter);
         return watcher;
+    }
+
+    private static boolean ignoreThread(Watcher watcher) {
+        String name = watcher.getThread().getName();
+        if (props == null) {
+            props = IocUtil.getBean(MonitorMethodProperties.class);
+        }
+        if(props == null || props.getIgnore().isEmpty()){
+            return false;
+        }
+        return props.getIgnore().contains(name);
     }
 
     /**
@@ -56,12 +73,15 @@ public class ByteBuddyRegistry {
      * @param throwable the throwable
      */
     public static void exit(Object watcher, Object ret, Throwable throwable) {
-        if(watcher instanceof Watcher){
+        if (watcher instanceof Watcher) {
             exit(Watcher.ret((Watcher) watcher, ret, throwable));
         }
     }
 
     private static void exit(Watcher watcher) {
+        if(ignoreThread(watcher)){
+            return;
+        }
         boolean remove = ByteBuddyRegistry.remove(watcher);
         QuickUtil.isFalse(remove, () -> log.error("监控方法删除失败: {}", watcher));
         TriggerAssist.register(watcher, ByteBuddyTrigger::exit);
@@ -87,11 +107,11 @@ public class ByteBuddyRegistry {
      *
      * @param threads the threads
      */
-    public static void remove(Thread... threads){
-        if(BoolUtil.isEmpty(threads)){
+    public static void remove(Thread... threads) {
+        if (BoolUtil.isEmpty(threads)) {
             return;
         }
-        for (Thread thread : threads){
+        for (Thread thread : threads) {
             WATCHERS.remove(thread);
         }
     }
