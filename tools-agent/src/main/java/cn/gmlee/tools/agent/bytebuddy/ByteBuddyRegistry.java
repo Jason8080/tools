@@ -47,7 +47,7 @@ public class ByteBuddyRegistry {
     }
 
     private static Watcher enter(Watcher watcher) {
-        if (!isEnable()) {
+        if (close()) {
             return watcher;
         }
         if (ignoreThread(watcher)) {
@@ -58,11 +58,12 @@ public class ByteBuddyRegistry {
         return watcher;
     }
 
-    private static boolean isEnable() {
+    private static boolean close() {
         if (props == null) {
             props = IocUtil.getBean(MonitorMethodProperties.class);
         }
-        return props != null ? props.getEnable() : false;
+        // 配置不存在视为关闭 || 不开启就是关闭
+        return props == null || !props.getEnable();
     }
 
     private static boolean ignoreThread(Watcher watcher) {
@@ -90,7 +91,7 @@ public class ByteBuddyRegistry {
     }
 
     private static void exit(Watcher watcher) {
-        if (!isEnable()) {
+        if (close()) {
             return;
         }
         if (ignoreThread(watcher)) {
