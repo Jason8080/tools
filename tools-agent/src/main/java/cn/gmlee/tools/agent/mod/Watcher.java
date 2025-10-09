@@ -22,7 +22,7 @@ public class Watcher {
      */
     public static final String DEFAULT_KEY = "DEFAULT";
 
-    private long startTime;
+    private long startTime = System.currentTimeMillis();
     private Thread thread;
     private Method originalMethod;
     private Object originalObj;
@@ -32,7 +32,7 @@ public class Watcher {
     private Method method;
     private Object ret;
     private Throwable throwable;
-    private long endTime = System.currentTimeMillis();
+    private long endTime;
     private Map<String, Object> infoMap = new ConcurrentHashMap<>();
 
     /**
