@@ -47,6 +47,9 @@ public class ByteBuddyRegistry {
     }
 
     private static Watcher enter(Watcher watcher) {
+        if (isEnable()) {
+            return watcher;
+        }
         if (ignoreThread(watcher)) {
             return watcher;
         }
@@ -55,12 +58,19 @@ public class ByteBuddyRegistry {
         return watcher;
     }
 
+    private static boolean isEnable() {
+        if (props == null) {
+            props = IocUtil.getBean(MonitorMethodProperties.class);
+        }
+        return props != null ? props.getEnable() : false;
+    }
+
     private static boolean ignoreThread(Watcher watcher) {
         String name = watcher.getThread().getName();
         if (props == null) {
             props = IocUtil.getBean(MonitorMethodProperties.class);
         }
-        if(props == null || props.getIgnore().isEmpty()){
+        if (props == null || props.getIgnore().isEmpty()) {
             return false;
         }
         return props.getIgnore().contains(name);
@@ -80,7 +90,10 @@ public class ByteBuddyRegistry {
     }
 
     private static void exit(Watcher watcher) {
-        if(ignoreThread(watcher)){
+        if (isEnable()) {
+            return;
+        }
+        if (ignoreThread(watcher)) {
             return;
         }
         boolean remove = ByteBuddyRegistry.remove(watcher);
