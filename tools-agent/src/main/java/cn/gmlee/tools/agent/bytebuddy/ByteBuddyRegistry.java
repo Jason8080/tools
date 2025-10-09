@@ -87,7 +87,10 @@ public class ByteBuddyRegistry {
     public static void exit(Object watcher, Object ret, Throwable throwable) {
         if (watcher instanceof Watcher) {
             exit(Watcher.ret((Watcher) watcher, ret, throwable));
+            return;
         }
+        log.error("[Tools ByteBuddy]这是什么对象? {}", watcher);
+        ByteBuddyRegistry.remove(Thread.currentThread());
     }
 
     private static void exit(Watcher watcher) {
