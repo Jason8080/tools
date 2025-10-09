@@ -4,6 +4,7 @@ import net.bytebuddy.asm.Advice;
 import net.bytebuddy.implementation.bytecode.assign.Assigner;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 public class ByteBuddyAdvice {
 
@@ -14,7 +15,7 @@ public class ByteBuddyAdvice {
             Class<?> clazz = Class.forName("cn.gmlee.tools.agent.bytebuddy.ByteBuddyRegistry");
             Method[] methods = clazz.getMethods();
             for (Method clazzMethod : methods) {
-                if (clazzMethod.getName().equals("enter")) {
+                if (clazzMethod.getName().equals("enter") && Modifier.isPublic(clazzMethod.getModifiers())) {
                     return clazzMethod.invoke(null, obj, method, args);
                 }
                 if(clazzMethod.getName().equals("remove") && clazzMethod.isVarArgs()){
@@ -37,7 +38,7 @@ public class ByteBuddyAdvice {
             Class<?> clazz = Class.forName("cn.gmlee.tools.agent.bytebuddy.ByteBuddyRegistry");
             Method[] methods = clazz.getMethods();
             for (Method clazzMethod : methods) {
-                if (clazzMethod.getName().equals("exit")) {
+                if (clazzMethod.getName().equals("exit") && Modifier.isPublic(clazzMethod.getModifiers())) {
                     clazzMethod.invoke(null, watcher, ret, throwable);
                 }
                 if(clazzMethod.getName().equals("remove") && clazzMethod.isVarArgs()){
