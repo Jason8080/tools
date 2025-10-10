@@ -12,8 +12,8 @@ import java.util.List;
 @Data
 public class MonitorMethodProperties {
     protected Boolean enable = Boolean.TRUE;
-    protected Integer period = 1000;
-    protected Integer initialDelay = 1000;
+    protected Long period = 1000L;
+    protected Long initialDelay = 1000L;
     protected Long maxSurvival = 60*1000L;
     protected List<String> type = new ArrayList<>();
     protected List<String> ignore = new ArrayList<>();
