@@ -43,7 +43,13 @@ public class ByteBuddyRegistry {
      * @return the object
      */
     public static Object enter(Object obj, Method method, Object[] args) {
-        return enter(Watcher.of(obj, method, args));
+        try {
+            return enter(Watcher.of(obj, method, args));
+        } catch (Exception e) {
+            log.error("[Tools ByteBuddy]进入方法异常", e);
+        }
+        ByteBuddyRegistry.remove(Thread.currentThread());
+        return null;
     }
 
     private static Watcher enter(Watcher watcher) {
@@ -86,10 +92,13 @@ public class ByteBuddyRegistry {
      */
     public static void exit(Object watcher, Object ret, Throwable throwable) {
         if (watcher instanceof Watcher) {
-            exit(Watcher.ret((Watcher) watcher, ret, throwable));
+            try {
+                exit(Watcher.ret((Watcher) watcher, ret, throwable));
+            } catch (Exception e) {
+                log.error("[Tools ByteBuddy]退出方法异常", e);
+            }
             return;
         }
-        log.error("[Tools ByteBuddy]这是什么对象? {}", watcher);
         ByteBuddyRegistry.remove(Thread.currentThread());
     }
 
