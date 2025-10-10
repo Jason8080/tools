@@ -23,12 +23,16 @@ public class ByteBuddyAdvice {
                     removeMethod = clazzMethod;
                 }
             }
-            if(enterMethod!=null) enterMethod.invoke(null, obj, method, args);
+            if (enterMethod != null) return enterMethod.invoke(null, obj, method, args);
         } catch (Exception e) {
             try {
-                if(removeMethod!=null) removeMethod.invoke(null, Thread.currentThread());
+                if (removeMethod != null) removeMethod.invoke(null, Thread.currentThread());
             } catch (Exception ignored) {
             }
+        }
+        try {
+            if (removeMethod != null) removeMethod.invoke(null, Thread.currentThread());
+        } catch (Exception ignored) {
         }
         return null;
     }
@@ -48,10 +52,10 @@ public class ByteBuddyAdvice {
                     removeMethod = clazzMethod;
                 }
             }
-            if(exitMethod!=null) exitMethod.invoke(null, watcher, ret, throwable);
+            if (exitMethod != null) exitMethod.invoke(null, watcher, ret, throwable);
         } catch (Exception e) {
             try {
-                if(removeMethod!=null) removeMethod.invoke(null, Thread.currentThread());
+                if (removeMethod != null) removeMethod.invoke(null, Thread.currentThread());
             } catch (Exception ignored) {
             }
         }
