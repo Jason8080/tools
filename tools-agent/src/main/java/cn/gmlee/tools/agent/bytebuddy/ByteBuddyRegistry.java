@@ -46,9 +46,9 @@ public class ByteBuddyRegistry {
         try {
             return enter(Watcher.of(obj, method, args));
         } catch (Exception e) {
+            ByteBuddyRegistry.remove(Thread.currentThread());
             log.error("[Tools ByteBuddy]进入方法异常", e);
         }
-        ByteBuddyRegistry.remove(Thread.currentThread());
         return null;
     }
 
@@ -96,6 +96,7 @@ public class ByteBuddyRegistry {
                 exit(Watcher.ret((Watcher) watcher, ret, throwable));
             } catch (Exception e) {
                 log.error("[Tools ByteBuddy]退出方法异常", e);
+                ByteBuddyRegistry.remove(Thread.currentThread());
             }
             return;
         }
