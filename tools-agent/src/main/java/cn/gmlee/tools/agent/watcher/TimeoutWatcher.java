@@ -50,7 +50,7 @@ public class TimeoutWatcher {
                 TriggerAssist.timout(thread, watcher, watchers);
             }
         } catch (NullPointerException e) {
-            log.warn("超时监控清理任务执行目标为空");
+            log.warn("超时监控清理任务执行目标为空", e);
         } catch (Exception e) {
             log.error("超时监控定时器执行异常", e);
         }
