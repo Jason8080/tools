@@ -285,6 +285,100 @@ public class HttpUtil {
      * @param headers the headers
      * @return the http result
      */
+    public static HttpResult put(String url, Kv<String, String>... headers) {
+        // 创建POST请求
+        HttpPut request = new HttpPut(url);
+        QuickUtil.notNull(version, x -> request.setProtocolVersion(version));
+        // 加载配置
+        request.setConfig(CONFIG);
+        // 设置请求头
+        addHeader(request, headers);
+        // 封装结果
+        return execute(request);
+    }
+
+    /**
+     * 调用POST请求(application/json).
+     *
+     * @param url     the url
+     * @param params  the params
+     * @param headers the headers
+     * @return t t
+     */
+    public static HttpResult put(String url, Object params, Kv<String, String>... headers) {
+        // 创建POST请求
+        HttpPut request = new HttpPut(url);
+        QuickUtil.notNull(version, x -> request.setProtocolVersion(version));
+        // 加载配置
+        request.setConfig(CONFIG);
+        // 设置请求头
+        addHeader(request, headers);
+        // 设置请求内容
+        setEntity(request, params);
+        // 封装结果
+        return execute(request);
+    }
+
+    /**
+     * 调用POST请求(application/json) -> 无参.
+     *
+     * @param url     the url
+     * @param out     the out
+     * @param headers the headers
+     */
+    public static void put(String url, OutputStream out, Kv<String, String>... headers) {
+        // 创建POST请求
+        HttpPut request = new HttpPut(url);
+        QuickUtil.notNull(version, x -> request.setProtocolVersion(version));
+        // 加载配置
+        request.setConfig(CONFIG);
+        // 设置请求头
+        addHeader(request, headers);
+        // 写出到指定位置
+        HttpResult httpResult = execute(request);
+        try {
+            out.write(httpResult.getResult());
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 调用POST请求(application/json).
+     *
+     * @param url     the url
+     * @param params  the params
+     * @param out     the out
+     * @param headers the headers
+     */
+    public static void put(String url, Object params, OutputStream out, Kv<String, String>... headers) {
+        // 创建POST请求
+        HttpPut request = new HttpPut(url);
+        QuickUtil.notNull(version, x -> request.setProtocolVersion(version));
+        // 加载配置
+        request.setConfig(CONFIG);
+        // 设置请求头
+        addHeader(request, headers);
+        // 设置请求内容
+        setEntity(request, params);
+        // 写出到指定位置
+        HttpResult httpResult = execute(request);
+        try {
+            out.write(httpResult.getResult());
+            out.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 调用POST请求 (无参).
+     *
+     * @param url     the url
+     * @param headers the headers
+     * @return the http result
+     */
     public static HttpResult post(String url, Kv<String, String>... headers) {
         // 创建POST请求
         HttpPost request = new HttpPost(url);
@@ -380,7 +474,7 @@ public class HttpUtil {
      */
     public static void addHeader(HttpRequestBase http, Kv<String, String>... kvs) {
         // 默认json请求
-        if ("POST".equalsIgnoreCase(http.getMethod())) {
+        if ("POST".equalsIgnoreCase(http.getMethod()) || "PUT".equalsIgnoreCase(http.getMethod())) {
             http.setHeader(CONTENT_TYPE, JSON_HEADER);
         }
         if (kvs != null && kvs.length > 0) {
