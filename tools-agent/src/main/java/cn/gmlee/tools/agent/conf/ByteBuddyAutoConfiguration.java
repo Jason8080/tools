@@ -78,7 +78,7 @@ public class ByteBuddyAutoConfiguration {
 
     private ElementMatcher<? super NamedElement> ignoreClasses() {
         ElementMatcher.Junction<NamedElement> emj = ElementMatchers.nameStartsWith("net.bytebuddy.")
-                .or(ElementMatchers.nameContainsIgnoreCase("lambda$"))
+                .or(ElementMatchers.nameContainsIgnoreCase("lambda"))
                 .or(ElementMatchers.nameContainsIgnoreCase("agent."))
                 .or(ElementMatchers.nameContainsIgnoreCase("javassist."))
                 .or(ElementMatchers.nameContainsIgnoreCase("instrument."))
@@ -116,6 +116,10 @@ public class ByteBuddyAutoConfiguration {
             }
             String className = pack.substring(0, pack.indexOf('#'));
             String methodName = pack.substring(pack.indexOf('#') + 1);
+            if(BoolUtil.isEmpty(className)){
+                emj.and(ElementMatchers.not(ElementMatchers.nameContainsIgnoreCase(methodName)));
+                continue;
+            }
             emj = emj.and(ElementMatchers.not(ElementMatchers.named(methodName).and(ElementMatchers.isDeclaredBy(ElementMatchers.named(className)))));
         }
         return emj;
