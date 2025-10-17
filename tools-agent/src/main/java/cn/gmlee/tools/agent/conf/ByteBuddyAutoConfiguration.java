@@ -4,6 +4,7 @@ import cn.gmlee.tools.agent.bytebuddy.ByteBuddyAdvice;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.NullUtil;
+import cn.gmlee.tools.spring.config.SpringAutoConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.agent.ByteBuddyAgent;
 import net.bytebuddy.agent.builder.AgentBuilder;
@@ -13,7 +14,7 @@ import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 
 import javax.annotation.PostConstruct;
 import java.lang.instrument.Instrumentation;
@@ -23,8 +24,8 @@ import java.util.List;
  * 方法超时监控自动装配.
  */
 @Slf4j
-@AutoConfigureAfter({
-        AopAutoConfiguration.class,
+@AutoConfigureBefore({
+        SpringAutoConfiguration.class,
 })
 public class ByteBuddyAutoConfiguration {
 

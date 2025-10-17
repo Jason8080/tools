@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Bean;
 @Slf4j
 @AutoConfigureBefore({
         SpringAutoConfiguration.class,
+        ByteBuddyAutoConfiguration.class,
 })
 public class AopAutoConfiguration {
 
