@@ -13,6 +13,7 @@ import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 
 import javax.annotation.PostConstruct;
 import java.lang.instrument.Instrumentation;
@@ -22,7 +23,10 @@ import java.util.List;
  * 方法超时监控自动装配.
  */
 @Slf4j
+@AutoConfigureAfter(AopAutoConfiguration.class)
 public class ByteBuddyAutoConfiguration {
+
+    private static final String MODE = "ByteBuddy";
 
     private MonitorMethodProperties monitorMethodProperties;
 
@@ -40,11 +44,13 @@ public class ByteBuddyAutoConfiguration {
      */
     @PostConstruct
     public void init() {
-        ExceptionUtil.sandbox(this::install);
+        if (monitorMethodProperties != null && MODE.equalsIgnoreCase(monitorMethodProperties.getMode())) {
+            ExceptionUtil.sandbox(this::install);
+        }
     }
 
     private void install() {
-        if(!monitorMethodProperties.getEnable()){
+        if (!monitorMethodProperties.getEnable()) {
             log.info("[Tools ByteBuddy] Timing Agent is close...");
             return;
         }
@@ -92,7 +98,7 @@ public class ByteBuddyAutoConfiguration {
                 .or(ElementMatchers.nameStartsWith("cn.gmlee.tools.agent."));
         List<String> packages = NullUtil.get(monitorMethodProperties, MonitorMethodProperties::new).getIgnore();
         for (String pack : packages) {
-            if(pack.contains("#")){
+            if (pack.contains("#")) {
                 continue;
             }
             emj = emj.or(ElementMatchers.nameContainsIgnoreCase(pack));
@@ -111,12 +117,12 @@ public class ByteBuddyAutoConfiguration {
                 .and(ElementMatchers.not(ElementMatchers.isDeclaredBy(Object.class)));
         List<String> packages = NullUtil.get(monitorMethodProperties, MonitorMethodProperties::new).getIgnore();
         for (String pack : packages) {
-            if(!pack.contains("#")){
+            if (!pack.contains("#")) {
                 continue;
             }
             String className = pack.substring(0, pack.indexOf('#'));
             String methodName = pack.substring(pack.indexOf('#') + 1);
-            if(BoolUtil.isEmpty(className)){
+            if (BoolUtil.isEmpty(className)) {
                 emj.and(ElementMatchers.not(ElementMatchers.nameContainsIgnoreCase(methodName)));
                 continue;
             }
