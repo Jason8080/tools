@@ -1,14 +1,17 @@
 package cn.gmlee.tools.agent.conf;
 
 import cn.gmlee.tools.agent.aop.AopAspect;
+import cn.gmlee.tools.spring.config.SpringAutoConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.context.annotation.Bean;
 
 /**
  * 方法超时监控自动装配.
  */
 @Slf4j
+@AutoConfigureAfter({ SpringAutoConfiguration.class, })
 public class AopAutoConfiguration {
 
     private static final String MODE = "AOP";
