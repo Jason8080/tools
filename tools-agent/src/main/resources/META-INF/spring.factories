@@ -1,4 +1,4 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-  cn.gmlee.tools.agent.conf.AopAutoConfiguration,\
+  cn.gmlee.tools.agent.conf.AspectAutoConfiguration,\
   cn.gmlee.tools.agent.conf.ByteBuddyAutoConfiguration,\
   cn.gmlee.tools.agent.conf.MonitorTimingAutoConfiguration

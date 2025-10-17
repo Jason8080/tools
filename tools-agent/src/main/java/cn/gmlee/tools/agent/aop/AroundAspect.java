@@ -21,7 +21,7 @@ import java.util.List;
 @Slf4j
 @Aspect
 @RequiredArgsConstructor
-public class AopAspect {
+public class AroundAspect {
 
     private final MonitorMethodProperties monitorMethodProperties;
 
