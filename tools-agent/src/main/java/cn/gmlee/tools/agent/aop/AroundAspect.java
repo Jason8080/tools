@@ -38,7 +38,7 @@ public class AroundAspect {
                     "!within(javax..*) && " +
                     "!within(sun..*) && " +
                     "!within(com.sun..*) && " +
-                    "!within(com.alibaba.cloud.sentinel..*)"
+                    "!within(*..sentinel..*)"
     )
     public void allMethods() {
     }
