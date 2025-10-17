@@ -1,6 +1,7 @@
 package cn.gmlee.tools.agent.conf;
 
 import cn.gmlee.tools.agent.aop.AroundAspect;
+import cn.gmlee.tools.spring.SpringInstanceProvider;
 import cn.gmlee.tools.spring.config.SpringAutoConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -4,6 +4,7 @@ import cn.gmlee.tools.agent.bytebuddy.ByteBuddyRegistry;
 import cn.gmlee.tools.agent.conf.MonitorMethodProperties;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
+import cn.gmlee.tools.spring.util.IocUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -29,7 +30,8 @@ public class AroundAspect {
      * All methods.
      */
     @Pointcut("execution(* *(..)) && !within(cn.gmlee.tools.agent..*)")
-    public void allMethods() {}
+    public void allMethods() {
+    }
 
 
     /**
@@ -45,7 +47,7 @@ public class AroundAspect {
         Method method = ExceptionUtil.sandbox(() -> (MethodSignature) pjp.getSignature()).getMethod();
         Object[] args = pjp.getArgs();
         Boolean check = ExceptionUtil.sandbox(() -> check(obj, method, args));
-        if(!BoolUtil.isTrue(check)){
+        if (!BoolUtil.isTrue(check)) {
             return pjp.proceed(pjp.getArgs());
         }
         Object watcher = ExceptionUtil.sandbox(() -> ByteBuddyRegistry.enter(obj, method, args));
@@ -64,37 +66,40 @@ public class AroundAspect {
     /**
      * 检查是否监控
      *
-     * @param obj 对象
+     * @param obj    对象
      * @param method 方法
-     * @param args 参数
+     * @param args   参数
      * @return true表示监控 false表示不监控
      */
     private boolean check(Object obj, Method method, Object[] args) {
-        if(monitorMethodProperties == null || !BoolUtil.isTrue(monitorMethodProperties.getEnable())){
+        if (IocUtil.getInstanceProvider() == null) {
+            return false;
+        }
+        if (monitorMethodProperties == null || !BoolUtil.isTrue(monitorMethodProperties.getEnable())) {
             return false;
         }
         String clazz = obj.getClass().getName();
         String name = method.getName();
         List<String> ignores = monitorMethodProperties.getIgnore();
-        for (String ignore : ignores){
-            if (ignore.contains("#")){
+        for (String ignore : ignores) {
+            if (ignore.contains("#")) {
                 String className = ignore.substring(0, ignore.indexOf('#'));
                 String methodName = ignore.substring(ignore.indexOf('#') + 1);
-                if(BoolUtil.equalsIgnoreCase(clazz, className) && BoolUtil.equalsIgnoreCase(name, methodName)){
+                if (BoolUtil.equalsIgnoreCase(clazz, className) && BoolUtil.equalsIgnoreCase(name, methodName)) {
                     return false; // 表示直接放行（不监控）
                 }
                 continue;
             }
-            if(clazz.startsWith(ignore)){
+            if (clazz.startsWith(ignore)) {
                 return false; // 表示直接放行（不监控）
             }
         }
         List<String> types = monitorMethodProperties.getType();
-        for (String type : types){
-            if (type.contains("#")){
+        for (String type : types) {
+            if (type.contains("#")) {
                 continue;
             }
-            if(clazz.startsWith(type)){
+            if (clazz.startsWith(type)) {
                 return true; // 表示要监控
             }
         }
