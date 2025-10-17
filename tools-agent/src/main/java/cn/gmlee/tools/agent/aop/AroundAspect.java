@@ -4,7 +4,6 @@ import cn.gmlee.tools.agent.bytebuddy.ByteBuddyRegistry;
 import cn.gmlee.tools.agent.conf.MonitorMethodProperties;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
-import cn.gmlee.tools.spring.util.IocUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -29,7 +28,18 @@ public class AroundAspect {
     /**
      * All methods.
      */
-    @Pointcut("execution(* *(..)) && !within(cn.gmlee.tools.agent..*)")
+    @Pointcut(
+            "execution(* *(..)) && " +
+                    "!within(cn.gmlee.tools.agent..*) && " +
+                    "!within(org.springframework..*) && " +
+                    "!within(org.aspectj..*) && " +
+                    "!within(jdk.internal..*) && " +
+                    "!within(java..*) && " +
+                    "!within(javax..*) && " +
+                    "!within(sun..*) && " +
+                    "!within(com.sun..*) && " +
+                    "!within(com.alibaba.cloud.sentinel..*)"
+    )
     public void allMethods() {
     }
 
@@ -72,9 +82,6 @@ public class AroundAspect {
      * @return true表示监控 false表示不监控
      */
     private boolean check(Object obj, Method method, Object[] args) {
-        if (IocUtil.getInstanceProvider() == null) {
-            return false;
-        }
         if (monitorMethodProperties == null || !BoolUtil.isTrue(monitorMethodProperties.getEnable())) {
             return false;
         }

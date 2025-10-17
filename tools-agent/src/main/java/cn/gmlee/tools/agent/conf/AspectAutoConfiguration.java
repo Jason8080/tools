@@ -1,9 +1,9 @@
 package cn.gmlee.tools.agent.conf;
 
 import cn.gmlee.tools.agent.aop.AroundAspect;
-import cn.gmlee.tools.spring.SpringInstanceProvider;
 import cn.gmlee.tools.spring.config.SpringAutoConfiguration;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.context.annotation.Bean;
@@ -22,7 +22,7 @@ public class AspectAutoConfiguration {
     private MonitorMethodProperties monitorMethodProperties;
 
     public AspectAutoConfiguration(@Autowired(required = false) MonitorMethodProperties monitorMethodProperties) {
-        if (monitorMethodProperties != null && MODE.equalsIgnoreCase(monitorMethodProperties.getMode())) {
+        if(monitorMethodProperties != null && MODE.equalsIgnoreCase(monitorMethodProperties.getMode())){
             log.info("[Tools AroundAspect] Timing Agent is initializing...");
             this.monitorMethodProperties = monitorMethodProperties;
             log.info("[Tools AroundAspect] Timing Agent is initialized.");
@@ -30,7 +30,7 @@ public class AspectAutoConfiguration {
     }
 
     @Bean
-    public AroundAspect aopAspect() {
+    public AroundAspect aroundAspect() {
         return new AroundAspect(monitorMethodProperties);
     }
 }
