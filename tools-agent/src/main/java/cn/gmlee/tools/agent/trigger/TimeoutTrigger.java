@@ -3,14 +3,12 @@ package cn.gmlee.tools.agent.trigger;
 import cn.gmlee.tools.agent.mod.Watcher;
 import cn.gmlee.tools.base.anno.Monitor;
 import cn.gmlee.tools.base.util.BoolUtil;
-import cn.gmlee.tools.base.util.CollectionUtil;
 import cn.gmlee.tools.base.util.NullUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 

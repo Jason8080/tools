@@ -3,9 +3,9 @@ package cn.gmlee.tools.agent.trigger;
 import cn.gmlee.tools.agent.mod.Watcher;
 
 /**
- * ByteBuddy触发器.
+ * Agent触发器.
  */
-public interface ByteBuddyTrigger {
+public interface AgentTrigger {
     /**
      * 进入.
      *

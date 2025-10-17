@@ -2,7 +2,7 @@ package cn.gmlee.tools.agent.conf;
 
 import cn.gmlee.tools.agent.listener.MonitorMethodPropertiesChangeApplicationListener;
 import cn.gmlee.tools.agent.mod.Watcher;
-import cn.gmlee.tools.agent.trigger.ByteBuddyTrigger;
+import cn.gmlee.tools.agent.trigger.AgentTrigger;
 import cn.gmlee.tools.agent.trigger.TimeoutTrigger;
 import cn.gmlee.tools.agent.watcher.TimeoutWatcher;
 import cn.gmlee.tools.base.util.NullUtil;
@@ -46,9 +46,9 @@ public class MonitorTimingAutoConfiguration {
      * @return the byte buddy trigger
      */
     @Bean
-    @ConditionalOnMissingBean(ByteBuddyTrigger.class)
-    public ByteBuddyTrigger byteBuddyTrigger() {
-        return new ByteBuddyTrigger() {
+    @ConditionalOnMissingBean(AgentTrigger.class)
+    public AgentTrigger byteBuddyTrigger() {
+        return new AgentTrigger() {
             @Override
             public void enter(Watcher watcher) {
 

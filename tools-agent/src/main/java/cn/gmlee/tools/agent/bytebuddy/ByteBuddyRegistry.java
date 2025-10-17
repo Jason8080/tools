@@ -3,7 +3,7 @@ package cn.gmlee.tools.agent.bytebuddy;
 import cn.gmlee.tools.agent.assist.TriggerAssist;
 import cn.gmlee.tools.agent.conf.MonitorMethodProperties;
 import cn.gmlee.tools.agent.mod.Watcher;
-import cn.gmlee.tools.agent.trigger.ByteBuddyTrigger;
+import cn.gmlee.tools.agent.trigger.AgentTrigger;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.QuickUtil;
 import cn.gmlee.tools.spring.util.IocUtil;
@@ -60,7 +60,7 @@ public class ByteBuddyRegistry {
             return watcher;
         }
         ByteBuddyRegistry.save(watcher);
-        TriggerAssist.register(watcher, ByteBuddyTrigger::enter);
+        TriggerAssist.register(watcher, AgentTrigger::enter);
         return watcher;
     }
 
@@ -112,7 +112,7 @@ public class ByteBuddyRegistry {
         }
         boolean remove = ByteBuddyRegistry.remove(watcher);
         QuickUtil.isFalse(remove, () -> log.error("监控方法删除失败: {}", watcher));
-        TriggerAssist.register(watcher, ByteBuddyTrigger::exit);
+        TriggerAssist.register(watcher, AgentTrigger::exit);
     }
 
     private static void save(Watcher watcher) {
