@@ -1,6 +1,7 @@
 package cn.gmlee.tools.agent.conf;
 
 import cn.gmlee.tools.agent.aop.AopAspect;
+import cn.gmlee.tools.spring.SpringInstanceProvider;
 import cn.gmlee.tools.spring.config.SpringAutoConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,7 @@ public class AopAutoConfiguration {
     }
 
     @Bean
-    public AopAspect aopAspect() {
+    public AopAspect aopAspect(SpringInstanceProvider sp) {
         return new AopAspect(monitorMethodProperties);
     }
 }
