@@ -7,14 +7,19 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * ✅ 最终版 ByteBuddyAdvice
+ * - 所有静态方法、字段均设为 public
+ * - 避免任何 IllegalAccessError
+ */
 public class ByteBuddyAdvice {
 
-    // 🚩 必须是 public，否则增强类无法访问
+    // 🔧 必须为 public static，否则目标类字节码无法访问
     public static final AtomicReference<Method> ENTER_METHOD = new AtomicReference<>();
     public static final AtomicReference<Method> EXIT_METHOD = new AtomicReference<>();
     public static final AtomicReference<Method> REMOVE_METHOD = new AtomicReference<>();
 
-    // 🚩 同理 public static
+    // 🔧 同样必须为 public
     public static void initRegistryMethods() {
         if (ENTER_METHOD.get() == null || EXIT_METHOD.get() == null || REMOVE_METHOD.get() == null) {
             synchronized (ByteBuddyAdvice.class) {
@@ -31,6 +36,7 @@ public class ByteBuddyAdvice {
                             }
                         }
                     } catch (Throwable ignored) {
+                        // swallow to prevent blocking classload
                     }
                 }
             }
@@ -67,11 +73,13 @@ public class ByteBuddyAdvice {
         }
     }
 
-    private static void safeRemove(Method remove) {
+    // 🚩 核心：ByteBuddy 会生成直接调用字节码，必须是 public static
+    public static void safeRemove(Method remove) {
         if (remove != null) {
             try {
                 remove.invoke(null, Thread.currentThread());
             } catch (Throwable ignored) {
+                // ignore silently
             }
         }
     }
