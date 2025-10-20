@@ -107,6 +107,7 @@ public class ByteBuddyAutoConfiguration {
 
     private ElementMatcher<? super MethodDescription> ignoreMethods() {
         ElementMatcher.Junction<MethodDescription> emj = ElementMatchers.isMethod()
+                .and(ElementMatchers.not(ElementMatchers.nameContainsIgnoreCase("$")))
                 .and(ElementMatchers.not(ElementMatchers.isNative()))
                 .and(ElementMatchers.not(ElementMatchers.isBridge()))
                 .and(ElementMatchers.not(ElementMatchers.isSynthetic()))
