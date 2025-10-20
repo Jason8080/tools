@@ -29,16 +29,7 @@ public class AroundAspect {
      * All methods.
      */
     @Pointcut(
-            "execution(* *(..)) && " +
-                    "!within(cn.gmlee.tools.agent..*) && " +
-                    "!within(org.springframework..*) && " +
-                    "!within(org.aspectj..*) && " +
-                    "!within(jdk.internal..*) && " +
-                    "!within(java..*) && " +
-                    "!within(javax..*) && " +
-                    "!within(sun..*) && " +
-                    "!within(com.sun..*) && " +
-                    "!within(*..sentinel..*)"
+            "execution(* *(..))"
     )
     public void allMethods() {
     }
