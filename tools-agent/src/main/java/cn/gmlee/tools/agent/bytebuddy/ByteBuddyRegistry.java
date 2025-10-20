@@ -111,7 +111,7 @@ public class ByteBuddyRegistry {
             return;
         }
         boolean remove = ByteBuddyRegistry.remove(watcher);
-        QuickUtil.isFalse(remove, () -> log.error("监控方法删除失败: {}", watcher.getMethod()));
+        QuickUtil.isFalse(remove, () -> log.warn("监控方法删除失败: {}", watcher.getMethod()));
         TriggerAssist.register(watcher, AgentTrigger::exit);
     }
 
