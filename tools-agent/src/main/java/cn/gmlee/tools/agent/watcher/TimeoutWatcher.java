@@ -4,11 +4,13 @@ import cn.gmlee.tools.agent.assist.TriggerAssist;
 import cn.gmlee.tools.agent.bytebuddy.ByteBuddyRegistry;
 import cn.gmlee.tools.agent.conf.MonitorMethodProperties;
 import cn.gmlee.tools.agent.mod.Watcher;
+import cn.gmlee.tools.base.util.BoolUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.PostConstruct;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -33,9 +35,13 @@ public class TimeoutWatcher {
             Map<Thread, Set<Watcher>> all = ByteBuddyRegistry.all();
             // 线程复用清理
             all.entrySet().removeIf(entry -> entry.getKey() == null || entry.getKey().isInterrupted());
-            for (Thread thread : all.keySet()) {
-                Set<Watcher> watchers = all.get(thread);
-                if (watchers == null) {
+            Iterator<Map.Entry<Thread, Set<Watcher>>> it = all.entrySet().iterator();
+            while (it.hasNext()){
+                Map.Entry<Thread, Set<Watcher>> next = it.next();
+                Thread thread = next.getKey();
+                Set<Watcher> watchers = next.getValue();
+                if (BoolUtil.isEmpty(watchers)) {
+                    it.remove();
                     continue;
                 }
                 // 最大存活时间
@@ -43,7 +49,7 @@ public class TimeoutWatcher {
                         .max(Comparator.comparing(Watcher::elapsedMillis))
                         .orElse(null);
                 if (watcher != null && watcher.elapsedMillis() > props.getMaxSurvival()) {
-                    all.remove(thread);
+                    it.remove();
                     continue;
                 }
                 // 触发超时监控
