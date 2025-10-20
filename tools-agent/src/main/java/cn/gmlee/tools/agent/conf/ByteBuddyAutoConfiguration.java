@@ -82,6 +82,7 @@ public class ByteBuddyAutoConfiguration {
 
     private ElementMatcher<? super NamedElement> ignoreClasses() {
         ElementMatcher.Junction<NamedElement> emj = ElementMatchers.nameStartsWith("net.bytebuddy.")
+                .or(ElementMatchers.nameContainsIgnoreCase("$"))
                 .or(ElementMatchers.nameContainsIgnoreCase("lambda"))
                 .or(ElementMatchers.nameContainsIgnoreCase("agent."))
                 .or(ElementMatchers.nameContainsIgnoreCase("javassist."))
