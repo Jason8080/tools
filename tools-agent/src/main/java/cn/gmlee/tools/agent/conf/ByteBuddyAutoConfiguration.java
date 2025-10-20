@@ -13,7 +13,6 @@ import net.bytebuddy.description.method.MethodDescription;
 import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 
 import javax.annotation.PostConstruct;
 import java.lang.instrument.Instrumentation;
@@ -23,9 +22,6 @@ import java.util.List;
  * 方法超时监控自动装配.
  */
 @Slf4j
-@AutoConfigureAfter({
-        AspectAutoConfiguration.class,
-})
 public class ByteBuddyAutoConfiguration {
 
     private static final String MODE = "ByteBuddy";
