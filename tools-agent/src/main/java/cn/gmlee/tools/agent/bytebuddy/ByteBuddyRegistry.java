@@ -66,7 +66,7 @@ public class ByteBuddyRegistry {
 
     private static boolean close() {
         if (props == null) {
-            props = IocUtil.getBean(MonitorMethodProperties.class);
+            props = IocUtil.contain(MonitorMethodProperties.class) ? IocUtil.getBean(MonitorMethodProperties.class) : null;
         }
         // 配置不存在视为关闭 || 不开启就是关闭
         return props == null || !props.getEnable();
@@ -75,7 +75,7 @@ public class ByteBuddyRegistry {
     private static boolean ignoreThread(Watcher watcher) {
         String name = watcher.getThread().getName();
         if (props == null) {
-            props = IocUtil.getBean(MonitorMethodProperties.class);
+            props = IocUtil.contain(MonitorMethodProperties.class) ? IocUtil.getBean(MonitorMethodProperties.class) : null;
         }
         if (props == null || props.getIgnore().isEmpty()) {
             return false;

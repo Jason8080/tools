@@ -2,8 +2,10 @@ package cn.gmlee.tools.agent.aop;
 
 import cn.gmlee.tools.agent.bytebuddy.ByteBuddyRegistry;
 import cn.gmlee.tools.agent.conf.MonitorMethodProperties;
+import cn.gmlee.tools.base.enums.Function;
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
+import cn.gmlee.tools.spring.util.IocUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -28,9 +30,7 @@ public class AroundAspect {
     /**
      * All methods.
      */
-    @Pointcut(
-            "execution(* *(..))"
-    )
+    @Pointcut("execution(* *..*(..))")
     public void allMethods() {
     }
 
@@ -47,15 +47,29 @@ public class AroundAspect {
         Object obj = pjp.getTarget();
         Method method = ExceptionUtil.sandbox(() -> (MethodSignature) pjp.getSignature()).getMethod();
         Object[] args = pjp.getArgs();
+        return getObject(obj, method, args, pjp::proceed);
+    }
+
+    /**
+     * Gets object.
+     *
+     * @param obj    the obj
+     * @param method the method
+     * @param args   the args
+     * @param run    the run
+     * @return the object
+     * @throws Throwable the throwable
+     */
+    public static Object getObject(Object obj, Method method, Object[] args, Function.Zero2r<?> run) throws Throwable {
         Boolean check = ExceptionUtil.sandbox(() -> check(obj, method, args));
         if (!BoolUtil.isTrue(check)) {
-            return pjp.proceed(pjp.getArgs());
+            return run.run();
         }
         Object watcher = ExceptionUtil.sandbox(() -> ByteBuddyRegistry.enter(obj, method, args));
         Object ret = null;
         Throwable throwable = null;
         try {
-            return ret = pjp.proceed();
+            return ret = run.run();
         } catch (Throwable e) {
             throwable = e;
             throw e;
@@ -72,13 +86,14 @@ public class AroundAspect {
      * @param args   参数
      * @return true表示监控 false表示不监控
      */
-    private boolean check(Object obj, Method method, Object[] args) {
-        if (monitorMethodProperties == null || !BoolUtil.isTrue(monitorMethodProperties.getEnable())) {
+    public static boolean check(Object obj, Method method, Object[] args) {
+        MonitorMethodProperties props = IocUtil.contain(MonitorMethodProperties.class) ? IocUtil.getBean(MonitorMethodProperties.class) : null;
+        if (props == null || !BoolUtil.isTrue(props.getEnable())) {
             return false;
         }
         String clazz = obj.getClass().getName();
         String name = method.getName();
-        List<String> ignores = monitorMethodProperties.getIgnore();
+        List<String> ignores = props.getIgnore();
         for (String ignore : ignores) {
             if (ignore.contains("#")) {
                 String className = ignore.substring(0, ignore.indexOf('#'));
@@ -92,7 +107,7 @@ public class AroundAspect {
                 return false; // 表示直接放行（不监控）
             }
         }
-        List<String> types = monitorMethodProperties.getType();
+        List<String> types = props.getType();
         for (String type : types) {
             if (type.contains("#")) {
                 continue;

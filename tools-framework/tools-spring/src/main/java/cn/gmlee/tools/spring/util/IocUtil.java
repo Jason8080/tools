@@ -1,6 +1,7 @@
 package cn.gmlee.tools.spring.util;
 
 import cn.gmlee.tools.base.util.AssertUtil;
+import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.spring.SpringInstanceProvider;
 import org.springframework.context.ApplicationContext;
@@ -115,6 +116,21 @@ public class IocUtil {
     }
 
     /**
+     * Contain boolean.
+     *
+     * @param clazz the clazz
+     * @return the boolean
+     */
+    public static boolean contain(Class<?> clazz){
+        ApplicationContext applicationContext = getContext();
+        if(clazz == null){
+            return false;
+        }
+        String[] names = applicationContext.getBeanNamesForType(clazz, false, false);
+        return names != null && names.length > 0;
+    }
+
+    /**
      * 获取实例提供者。
      *
      * @return 实体提供者的一个实现类 。
@@ -149,7 +165,7 @@ public class IocUtil {
             }
             long waiting = System.currentTimeMillis() - timeStarting;
             if (waiting > 60 * 1000) {
-                throw new RuntimeException("Spring Initialize failture");
+                throw new RuntimeException("Spring Initialize failure");
             }
             System.out.println("Spring Initializing >>>>>" + waiting + " s");
         }
