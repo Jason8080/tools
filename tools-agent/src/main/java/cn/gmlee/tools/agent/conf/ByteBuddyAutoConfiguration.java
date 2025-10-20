@@ -84,6 +84,7 @@ public class ByteBuddyAutoConfiguration {
         ElementMatcher.Junction<NamedElement> emj = ElementMatchers.nameStartsWith("net.bytebuddy.")
                 .or(ElementMatchers.nameContainsIgnoreCase("$"))
                 .or(ElementMatchers.nameContainsIgnoreCase("lambda"))
+                .or(ElementMatchers.nameContainsIgnoreCase("mapper"))
                 .or(ElementMatchers.nameContainsIgnoreCase("agent."))
                 .or(ElementMatchers.nameContainsIgnoreCase("javassist."))
                 .or(ElementMatchers.nameContainsIgnoreCase("instrument."))
