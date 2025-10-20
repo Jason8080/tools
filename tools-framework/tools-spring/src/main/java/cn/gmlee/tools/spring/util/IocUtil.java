@@ -122,7 +122,7 @@ public class IocUtil {
      * @return the boolean
      */
     public static boolean contain(Class<?> clazz){
-        ApplicationContext applicationContext = getContext();
+        ApplicationContext applicationContext = getInstanceProvider()!=null ? getContext() : null;
         if(clazz == null){
             return false;
         }
