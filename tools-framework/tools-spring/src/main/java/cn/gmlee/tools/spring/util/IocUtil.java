@@ -123,7 +123,7 @@ public class IocUtil {
      */
     public static boolean contain(Class<?> clazz){
         ApplicationContext applicationContext = getInstanceProvider()!=null ? getContext() : null;
-        if(clazz == null){
+        if(applicationContext == null){
             return false;
         }
         String[] names = applicationContext.getBeanNamesForType(clazz, false, false);
