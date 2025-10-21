@@ -62,7 +62,7 @@ public class ByteBuddyAutoConfiguration {
 
         new AgentBuilder.Default().ignore(ignoreClasses()).type(type())
                 .transform((builder, typeDescription, classLoader, module) ->
-                        builder.visit(Advice.to(ByteBuddyAdvice.class).on(ignoreMethods())))
+                        builder.visit(Advice.to(ByteBuddyAdvice.class).on(methods())))
                 .installOn(instrumentation);
 
         log.info("[Tools ByteBuddy] Timing Agent installed.");
@@ -104,7 +104,7 @@ public class ByteBuddyAutoConfiguration {
         return emj;
     }
 
-    private ElementMatcher<? super MethodDescription> ignoreMethods() {
+    private ElementMatcher<? super MethodDescription> methods() {
         ElementMatcher.Junction<MethodDescription> emj = ElementMatchers.isMethod()
                 .and(ElementMatchers.not(ElementMatchers.isNative()))
                 .and(ElementMatchers.not(ElementMatchers.isBridge()))
