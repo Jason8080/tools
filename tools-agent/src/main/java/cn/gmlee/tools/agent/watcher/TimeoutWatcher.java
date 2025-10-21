@@ -29,7 +29,7 @@ public class TimeoutWatcher {
 
     private void actuator() {
         try {
-            Map<Thread, Set<Watcher>> all = ByteBuddyRegistry.all();
+            Map<Thread, Set<Watcher>> all = new HashMap<>(ByteBuddyRegistry.all());
             // 线程复用清理
             all.entrySet().removeIf(entry -> entry.getKey() == null || entry.getKey().isInterrupted());
             Iterator<Map.Entry<Thread, Set<Watcher>>> it = all.entrySet().iterator();
