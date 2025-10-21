@@ -82,11 +82,7 @@ public class ByteBuddyAutoConfiguration {
 
     private ElementMatcher<? super NamedElement> ignoreClasses() {
         ElementMatcher.Junction<NamedElement> emj = ElementMatchers.nameStartsWith("net.bytebuddy.")
-                .or(ElementMatchers.nameContainsIgnoreCase("$"))
-                .or(ElementMatchers.nameContainsIgnoreCase("cglib"))
-                .or(ElementMatchers.nameContainsIgnoreCase("proxy"))
                 .or(ElementMatchers.nameContainsIgnoreCase("lambda"))
-                .or(ElementMatchers.nameContainsIgnoreCase("mapper"))
                 .or(ElementMatchers.nameContainsIgnoreCase("agent."))
                 .or(ElementMatchers.nameContainsIgnoreCase("javassist."))
                 .or(ElementMatchers.nameContainsIgnoreCase("instrument."))
@@ -110,7 +106,6 @@ public class ByteBuddyAutoConfiguration {
 
     private ElementMatcher<? super MethodDescription> ignoreMethods() {
         ElementMatcher.Junction<MethodDescription> emj = ElementMatchers.isMethod()
-                .and(ElementMatchers.not(ElementMatchers.nameContainsIgnoreCase("$")))
                 .and(ElementMatchers.not(ElementMatchers.isNative()))
                 .and(ElementMatchers.not(ElementMatchers.isBridge()))
                 .and(ElementMatchers.not(ElementMatchers.isSynthetic()))
