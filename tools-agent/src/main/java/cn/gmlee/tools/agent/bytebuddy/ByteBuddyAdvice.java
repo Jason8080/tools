@@ -68,7 +68,8 @@ public class ByteBuddyAdvice {
         Method remove = REMOVE_METHOD.get();
         try {
             if (exit != null) exit.invoke(null, watcher, ret, throwable);
-        } catch (Throwable e) {
+        } catch (Throwable ignored) {
+        } finally {
             safeRemove(remove);
         }
     }
