@@ -9,10 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.PostConstruct;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -39,7 +36,8 @@ public class TimeoutWatcher {
             while (it.hasNext()){
                 Map.Entry<Thread, Set<Watcher>> next = it.next();
                 Thread thread = next.getKey();
-                Set<Watcher> watchers = next.getValue();
+                Set<Watcher> set = next.getValue();
+                LinkedHashSet<Watcher> watchers = new LinkedHashSet<>(set);
                 if (BoolUtil.isEmpty(watchers)) {
                     it.remove();
                     continue;
