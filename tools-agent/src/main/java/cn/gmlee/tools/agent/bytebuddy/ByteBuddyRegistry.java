@@ -10,6 +10,7 @@ import cn.gmlee.tools.spring.util.IocUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
@@ -116,7 +117,7 @@ public class ByteBuddyRegistry {
     }
 
     private static void save(Watcher watcher) {
-        Set<Watcher> set = WATCHERS.computeIfAbsent(watcher.getThread(), k -> ConcurrentHashMap.newKeySet());
+        Set<Watcher> set = WATCHERS.computeIfAbsent(watcher.getThread(), k -> new LinkedHashSet<>());
         set.add(watcher);
     }
 
