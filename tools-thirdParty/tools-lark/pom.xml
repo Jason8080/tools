@@ -2,23 +2,23 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>tools</artifactId>
         <groupId>cn.gmlee.tools</groupId>
+        <artifactId>tools-thirdParty</artifactId>
         <version>5.5.0-SNAPSHOT</version>
     </parent>
-    <modelVersion>4.0.0</modelVersion>
 
     <groupId>cn.gmlee.tools</groupId>
-    <artifactId>tools-thirdParty</artifactId>
+    <artifactId>tools-lark</artifactId>
     <version>5.5.0-SNAPSHOT</version>
 
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
 
     <!--项目信息-->
-    <name>tools-thirdParty</name>
-    <description>TOOLS(图尔斯): 是一款Java开发库, 包含但不限于: 基础工具包, 解决方案, 微架构等</description>
-    <url>https://github.com/Jason8080/tools/tree/master/tools-thirdParty</url>
+    <name>tools-lark</name>
+    <description>TOOLS-LARK: FeiShu相关的开放平台集成</description>
+    <url>https://github.com/Jason8080/tools/tree/master/tools-lark</url>
 
     <!--开源协议-->
     <licenses>
@@ -49,12 +49,35 @@
         </developer>
     </developers>
 
-    <modules>
-        <!-- 临时注释 -->
-        <module>tools-alibaba</module>
-        <module>tools-tencent</module>
-        <module>tools-lark</module>
-    </modules>
+    <dependencies>
+        <!-- tools -->
+        <dependency>
+            <groupId>cn.gmlee.tools</groupId>
+            <artifactId>tools-base</artifactId>
+            <version>5.5.0-SNAPSHOT</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
 
+        <!--飞书开放平台 -->
+        <dependency>
+            <groupId>com.larksuite.oapi</groupId>
+            <artifactId>oapi-sdk</artifactId>
+            <version>2.4.24</version>
+        </dependency>
 
+        <!-- other -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <scope>test</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <scope>test</scope>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
 </project>
