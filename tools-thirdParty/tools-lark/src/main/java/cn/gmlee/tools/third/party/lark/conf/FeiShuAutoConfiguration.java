@@ -23,7 +23,7 @@ public class FeiShuAutoConfiguration {
      * @return the client
      */
     @Bean
-    public Client FeiShuClient() {
+    public Client feiShuClient() {
         return Client.newBuilder(feiShuProperties.getAppId(), feiShuProperties.getAppSecret())
                 .openBaseUrl(BaseUrlEnum.FeiShu) // 设置域名，默认为飞书
                 .requestTimeout(3, TimeUnit.SECONDS) // 设置httpclient 超时时间，默认永不超时
