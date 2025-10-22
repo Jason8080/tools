@@ -14,11 +14,22 @@ public class JvmUtil {
      * @return the all msg
      */
     public static String getAllMsg(String... msg) {
+        return getAllMsg(Thread.currentThread(), msg);
+    }
+
+    /**
+     * 获取指定线程的全部堆栈信息.
+     *
+     * @param thread the thread
+     * @param msg    the msg
+     * @return the all msg
+     */
+    public static String getAllMsg(Thread thread, String... msg) {
         StringBuilder sb = new StringBuilder();
         if (BoolUtil.notEmpty(msg)) {
             sb.append(String.format("---------- %s ----------", String.join(" ", msg)));
         }
-        sb.append(getCurrentThreadStackTrace());
+        sb.append(getThreadStackTrace(thread));
         return sb.toString();
     }
 
@@ -39,7 +50,7 @@ public class JvmUtil {
      */
     public static String getThreadStackTrace(Thread thread) {
 
-        if(thread == null){
+        if (thread == null) {
             return "";
         }
 
