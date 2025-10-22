@@ -29,7 +29,8 @@ public class TimeoutWatcher {
 
     private void actuator() {
         try {
-            Map<Thread, Set<Watcher>> all = new HashMap<>(ByteBuddyRegistry.all());
+            Map<Thread, Set<Watcher>> originMap = ByteBuddyRegistry.all();
+            Map<Thread, Set<Watcher>> all = new HashMap<>(originMap);
             // 线程复用清理
             all.entrySet().removeIf(entry -> entry.getKey() == null || entry.getKey().isInterrupted());
             Iterator<Map.Entry<Thread, Set<Watcher>>> it = all.entrySet().iterator();
@@ -39,7 +40,7 @@ public class TimeoutWatcher {
                 Set<Watcher> set = next.getValue();
                 LinkedHashSet<Watcher> watchers = new LinkedHashSet<>(set);
                 if (BoolUtil.isEmpty(watchers)) {
-                    it.remove();
+                    originMap.remove(thread);
                     continue;
                 }
                 // 最大存活时间
@@ -47,7 +48,7 @@ public class TimeoutWatcher {
                         .max(Comparator.comparing(Watcher::elapsedMillis))
                         .orElse(null);
                 if (watcher != null && watcher.elapsedMillis() > props.getMaxSurvival()) {
-                    it.remove();
+                    originMap.remove(thread);
                     continue;
                 }
                 // 触发超时监控
