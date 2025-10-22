@@ -37,7 +37,7 @@ public class FeiShuKit {
      * @param variables  the variables
      * @param chatIds    the chat ids
      */
-    public static void send(String templateId, Map<String, Serializable> variables, String... chatIds) {
+    public static void send(String templateId, Map<String, Object> variables, String... chatIds) {
         Client client = ExceptionUtil.sandbox(() -> IocUtil.contain(Client.class) ? IocUtil.getBean(Client.class) : defaultClient);
         send(client, templateId, variables, chatIds);
     }
@@ -50,7 +50,7 @@ public class FeiShuKit {
      * @param variables  the variables
      * @param chatIds    the chat ids
      */
-    public static void send(Client client, String templateId, Map<String, Serializable> variables, String... chatIds) {
+    public static void send(Client client, String templateId, Map<String, Object> variables, String... chatIds) {
         // 构建变量
         Map<String, Object> variablesMap = new HashMap<>(2);
         Map<String, Object> dataMap = new HashMap<>(2);
