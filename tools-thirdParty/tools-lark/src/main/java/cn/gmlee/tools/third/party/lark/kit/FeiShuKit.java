@@ -1,8 +1,8 @@
 package cn.gmlee.tools.third.party.lark.kit;
 
-import cn.gmlee.tools.base.builder.MapBuilder;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.JsonUtil;
+import cn.gmlee.tools.base.util.NullUtil;
 import com.lark.oapi.Client;
 import com.lark.oapi.core.enums.BaseUrlEnum;
 import com.lark.oapi.service.im.v1.model.CreateMessageReq;
@@ -28,33 +28,45 @@ public class FeiShuKit {
             .build();
 
     /**
-     * 发送模板消息.
+     * Send.
      *
      * @param templateId the template id
      * @param variables  the variables
      * @param chatIds    the chat ids
      */
     public static void send(String templateId, Map<String, Serializable> variables, String... chatIds) {
-        // 构建变量集合
+        send(defaultClient, templateId, variables, chatIds);
+    }
+
+    /**
+     * 发送模板消息.
+     *
+     * @param client     the client
+     * @param templateId the template id
+     * @param variables  the variables
+     * @param chatIds    the chat ids
+     */
+    public static void send(Client client, String templateId, Map<String, Serializable> variables, String... chatIds) {
+        // 构建变量
         Map<String, Object> variablesMap = new HashMap<>(2);
         Map<String, Object> dataMap = new HashMap<>(2);
         variablesMap.put("type", "template");
         variablesMap.put("data", dataMap);
-        dataMap.put("template_id", templateId);
-        dataMap.put("template_variable", variables);
+        dataMap.put("template_id", NullUtil.get(templateId));
+        dataMap.put("template_variable", NullUtil.get(variables));
 
-        // 创建请求对象
+        // 创建请求
         CreateMessageReq req = CreateMessageReq.newBuilder()
                 .receiveIdType("chat_id")
                 .createMessageReqBody(CreateMessageReqBody.newBuilder()
-                        .receiveId(String.join(",", chatIds))
+                        .receiveId(String.join(",", NullUtil.get(chatIds)))
                         .msgType("interactive")
                         .content(JsonUtil.toJson(variablesMap))
                         .build())
                 .build();
 
         // 发起请求
-        CreateMessageResp resp = ExceptionUtil.sandbox(() -> defaultClient.im().v1().message().create(req));
+        CreateMessageResp resp = ExceptionUtil.sandbox(() -> client.im().v1().message().create(req));
 
         if(resp == null){
             return;
