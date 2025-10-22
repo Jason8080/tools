@@ -19,6 +19,7 @@ public enum XTime {
     DAY_SLASH("yyyy/MM/dd"),
     DAY_DOUBLE_SLASH("yyyy\\MM\\dd"),
     DAY_NONE("yyyyMMdd"),
+    HOUR_MINUTE_SECOND("HH:mm:ss"),
     HOUR_MINUS_BLANK("yyyy-MM-dd HH"),
     HOUR_SLASH_BLANK("yyyy/MM/dd HH"),
     HOUR_DOUBLE_SLASH_BLANK("yyyy\\MM\\dd HH"),
