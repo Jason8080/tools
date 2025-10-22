@@ -21,7 +21,9 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class FeiShuKit {
 
-    private static final Client defaultClient = Client.newBuilder("cli_a8624fd47914100c","6Pb5IJgpIt92anHV2Yng4baMycVjuRZP")
+    private static final Client defaultClient = Client.newBuilder(
+            System.getProperty("tools.lark.appId", "cli_a8624fd47914100c"),
+            System.getProperty("tools.lark.appSecret", "6Pb5IJgpIt92anHV2Yng4baMycVjuRZP"))
             .openBaseUrl(BaseUrlEnum.FeiShu) // 设置域名，默认为飞书
             .requestTimeout(3, TimeUnit.SECONDS) // 设置httpclient 超时时间，默认永不超时
             .logReqAtDebug(true) // 在 debug 模式下会打印 http 请求和响应的 headers、body 等信息。
