@@ -1,0 +1,2 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+  cn.gmlee.tools.third.party.lark.conf.FeiShuAutoConfiguration

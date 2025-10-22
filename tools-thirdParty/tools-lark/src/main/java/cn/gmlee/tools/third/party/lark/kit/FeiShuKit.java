@@ -3,6 +3,7 @@ package cn.gmlee.tools.third.party.lark.kit;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.JsonUtil;
 import cn.gmlee.tools.base.util.NullUtil;
+import cn.gmlee.tools.spring.util.IocUtil;
 import com.lark.oapi.Client;
 import com.lark.oapi.core.enums.BaseUrlEnum;
 import com.lark.oapi.service.im.v1.model.CreateMessageReq;
@@ -37,7 +38,8 @@ public class FeiShuKit {
      * @param chatIds    the chat ids
      */
     public static void send(String templateId, Map<String, Serializable> variables, String... chatIds) {
-        send(defaultClient, templateId, variables, chatIds);
+        Client client = ExceptionUtil.sandbox(() -> IocUtil.contain(Client.class) ? IocUtil.getBean(Client.class) : defaultClient);
+        send(client, templateId, variables, chatIds);
     }
 
     /**

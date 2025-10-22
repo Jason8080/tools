@@ -58,6 +58,13 @@
             <scope>provided</scope>
             <optional>true</optional>
         </dependency>
+        <dependency>
+            <groupId>cn.gmlee.tools</groupId>
+            <artifactId>tools-spring</artifactId>
+            <version>5.5.0-SNAPSHOT</version>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
 
         <!--飞书开放平台 -->
         <dependency>
@@ -77,6 +84,14 @@
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
             <scope>test</scope>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <version>2.3.4.RELEASE</version>
+            <scope>provided</scope>
             <optional>true</optional>
         </dependency>
     </dependencies>
