@@ -38,7 +38,7 @@ public class FeiShuKit {
      * @param chatIds    the chat ids
      */
     public static void send(String templateId, Map<String, Object> variables, String... chatIds) {
-        Client client = ExceptionUtil.sandbox(() -> IocUtil.contain(Client.class) ? IocUtil.getBean(Client.class) : defaultClient);
+        Client client = ExceptionUtil.sandbox(() -> IocUtil.contain(Client.class) ? IocUtil.getBean(Client.class) : defaultClient, () -> defaultClient);
         send(client, templateId, variables, chatIds);
     }
 
