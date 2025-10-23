@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * The type Byte buddy registry.
@@ -78,7 +79,8 @@ public class ByteBuddyRegistry {
         if (props == null || props.getIgnore().isEmpty()) {
             return false;
         }
-        return props.getIgnore().contains(name);
+        Optional<String> any = props.getIgnore().stream().filter(name::startsWith).findAny();
+        return any.isPresent();
     }
 
     /**
