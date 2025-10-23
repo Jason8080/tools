@@ -79,7 +79,10 @@ public class ByteBuddyRegistry {
         if (props == null || props.getIgnore().isEmpty()) {
             return false;
         }
-        Optional<String> any = props.getIgnore().stream().filter(name::startsWith).findAny();
+        Optional<String> any = props.getIgnore().stream()
+                .filter(x -> x.startsWith("$"))
+                .map(x -> x.substring(1))
+                .filter(name::startsWith).findAny();
         return any.isPresent();
     }
 
