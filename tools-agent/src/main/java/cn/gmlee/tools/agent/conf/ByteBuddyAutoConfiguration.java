@@ -124,7 +124,11 @@ public class ByteBuddyAutoConfiguration {
                 emj.and(ElementMatchers.not(ElementMatchers.nameContainsIgnoreCase(methodName)));
                 continue;
             }
-            emj = emj.and(ElementMatchers.not(ElementMatchers.named(methodName).and(ElementMatchers.isDeclaredBy(ElementMatchers.named(className)))));
+            emj = emj.and(ElementMatchers.not(
+                    ElementMatchers.isDeclaredBy(ElementMatchers.named(className)).and(
+                            ElementMatchers.named(methodName)
+                    )
+            ));
         }
         return emj;
     }
