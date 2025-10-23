@@ -1,6 +1,7 @@
 package cn.gmlee.tools.agent.mod;
 
 import cn.gmlee.tools.agent.assist.OriginalAssist;
+import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.ProxyUtil;
 import lombok.Data;
 import lombok.Getter;
@@ -52,7 +53,7 @@ public class Watcher {
         watcher.startTime = System.currentTimeMillis();
         watcher.originalObj = ProxyUtil.getOriginalObject(obj);
         watcher.originalMethod = ProxyUtil.getOriginalMethod(obj, method);
-        OriginalAssist.parserFastClassOriginalObjectAndMethod(watcher); // 支持FastClass代理类
+        ExceptionUtil.sandbox(() -> OriginalAssist.parserFastClassOriginalObjectAndMethod(watcher)); // 支持FastClass代理类
         return watcher;
     }
 
