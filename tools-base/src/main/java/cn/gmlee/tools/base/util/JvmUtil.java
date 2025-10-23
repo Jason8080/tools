@@ -85,8 +85,8 @@ public class JvmUtil {
         }
         for (String ignore : ignores) {
             int index = ignore.indexOf('#');
-            String className = ignore.substring(0, Math.max(index, 0));
-            String methodName = ignore.substring(Math.max(index + 1, 0));
+            String className = index > -1 ? ignore.substring(0, index) : ignore;
+            String methodName = index > -1 ? ignore.substring(index + 1) : "";
             if (element.getClassName().startsWith(className) && element.getMethodName().contains(methodName)) {
                 return true;
             }
