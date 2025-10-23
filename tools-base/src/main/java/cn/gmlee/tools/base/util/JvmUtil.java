@@ -38,17 +38,18 @@ public class JvmUtil {
      *
      * @return the current thread stack trace
      */
-    public static String getCurrentThreadStackTrace() {
-        return getThreadStackTrace(Thread.currentThread());
+    public static String getCurrentThreadStackTrace(String... ignores) {
+        return getThreadStackTrace(Thread.currentThread(), ignores);
     }
 
     /**
      * 获取指定线程的完整堆栈日志原文.
      *
-     * @param thread the thread
+     * @param thread  the thread
+     * @param ignores the ignores
      * @return the thread stack trace
      */
-    public static String getThreadStackTrace(Thread thread) {
+    public static String getThreadStackTrace(Thread thread, String... ignores) {
 
         if (thread == null) {
             return "";
@@ -65,11 +66,31 @@ public class JvmUtil {
                 .append("]\n");
 
         for (StackTraceElement element : thread.getStackTrace()) {
+
+            if (ignore(element, ignores)) {
+                continue;
+            }
+
             sb.append("\tat ")
                     .append(element)
                     .append('\n');
         }
 
         return sb.toString();
+    }
+
+    private static boolean ignore(StackTraceElement element, String... ignores) {
+        if (BoolUtil.isEmpty(ignores)) {
+            return false;
+        }
+        for (String ignore : ignores) {
+            int index = ignore.indexOf('#');
+            String className = ignore.substring(0, Math.max(index, 0));
+            String methodName = ignore.substring(Math.max(index + 1, 0));
+            if (element.getClassName().startsWith(className) && element.getMethodName().contains(methodName)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
