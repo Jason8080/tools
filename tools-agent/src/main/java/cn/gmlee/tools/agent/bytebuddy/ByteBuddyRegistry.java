@@ -4,15 +4,14 @@ import cn.gmlee.tools.agent.assist.TriggerAssist;
 import cn.gmlee.tools.agent.conf.MonitorMethodProperties;
 import cn.gmlee.tools.agent.mod.Watcher;
 import cn.gmlee.tools.agent.trigger.AgentTrigger;
+import cn.gmlee.tools.base.mod.Kv;
 import cn.gmlee.tools.base.util.BoolUtil;
-import cn.gmlee.tools.base.util.QuickUtil;
+import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.spring.util.IocUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 /**
  * The type Byte buddy registry.
@@ -55,7 +54,7 @@ public class ByteBuddyRegistry {
         if (close()) {
             return watcher;
         }
-        if (ignoreThread(watcher)) {
+        if (ignores(watcher)) {
             return watcher;
         }
         ByteBuddyRegistry.save(watcher);
@@ -71,19 +70,31 @@ public class ByteBuddyRegistry {
         return props == null || !props.getEnable();
     }
 
-    private static boolean ignoreThread(Watcher watcher) {
-        String name = watcher.getThread().getName();
+    private static boolean ignores(Watcher watcher) {
         if (props == null) {
             props = IocUtil.contain(MonitorMethodProperties.class) ? IocUtil.getBean(MonitorMethodProperties.class) : null;
         }
         if (props == null || props.getIgnore().isEmpty()) {
             return false;
         }
-        Optional<String> any = props.getIgnore().stream()
+        // 动态忽略线程
+        String name = watcher.getThread().getName();
+        Optional<?> optionalThread = props.getIgnore().stream()
                 .filter(x -> x.startsWith("$"))
                 .map(x -> x.substring(1))
                 .filter(name::startsWith).findAny();
-        return any.isPresent();
+        // 动态忽略路径
+        String className = ExceptionUtil.sandbox(() -> watcher.getObj().getClass().getName());
+        String methodName = ExceptionUtil.sandbox(() -> watcher.getMethod().getName());
+        Optional<?> optionalPackage = props.getIgnore().stream()
+                .filter(x -> !x.contains("#"))
+                .filter(className::startsWith).findAny();
+        // 动态忽略方法
+        Optional<?> optionalMethod = props.getIgnore().stream()
+                .filter(x -> x.contains("#"))
+                .map(x -> new Kv<>(x.substring(0, x.indexOf('#')), x.substring(x.indexOf('#') + 1)))
+                .filter(kv -> className.startsWith(kv.getKey()) && methodName.contains(kv.getVal())).findAny();
+        return optionalThread.isPresent() || optionalPackage.isPresent() || optionalMethod.isPresent();
     }
 
     /**
@@ -110,7 +121,7 @@ public class ByteBuddyRegistry {
         if (close()) {
             return;
         }
-        if (ignoreThread(watcher)) {
+        if (ignores(watcher)) {
             return;
         }
         boolean remove = ByteBuddyRegistry.remove(watcher);
