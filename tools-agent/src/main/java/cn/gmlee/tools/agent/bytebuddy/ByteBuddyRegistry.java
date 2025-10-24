@@ -84,8 +84,8 @@ public class ByteBuddyRegistry {
                 .map(x -> x.substring(1))
                 .filter(name::startsWith).findAny();
         // 动态忽略路径
-        String className = ExceptionUtil.sandbox(() -> watcher.getObj().getClass().getName());
-        String methodName = ExceptionUtil.sandbox(() -> watcher.getMethod().getName());
+        String className = ExceptionUtil.sandbox(() -> watcher.getOriginalObj().getClass().getName());
+        String methodName = ExceptionUtil.sandbox(() -> watcher.getOriginalMethod().getName());
         Optional<?> optionalPackage = props.getIgnore().stream()
                 .filter(x -> !x.contains("#"))
                 .filter(className::startsWith).findAny();
