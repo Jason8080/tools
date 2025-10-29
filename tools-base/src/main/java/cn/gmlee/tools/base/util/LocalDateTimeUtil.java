@@ -128,7 +128,7 @@ public class LocalDateTimeUtil {
      * @param unit   the unit
      * @return the local date time
      */
-    private static LocalDateTime plus(LocalDateTime now, long offset, ChronoUnit unit) {
+    public static LocalDateTime plus(LocalDateTime now, long offset, ChronoUnit unit) {
         return now.plus(offset, unit);
     }
 
