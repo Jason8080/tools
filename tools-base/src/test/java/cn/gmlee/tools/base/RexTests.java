@@ -1,5 +1,9 @@
 package cn.gmlee.tools.base;
 
+import cn.gmlee.tools.base.enums.Regex;
+import cn.gmlee.tools.base.util.RegexUtil;
+import org.junit.Test;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -20,5 +24,12 @@ public class RexTests {
             result.add(matcher.group());
         }
         return result;
+    }
+
+    @Test
+    public void test() {
+        String number = "300000099205280013";
+        boolean match = RegexUtil.match(number, Regex.ID_CARD_COMMON_PATTERN.regex);
+        System.out.println(match);
     }
 }
