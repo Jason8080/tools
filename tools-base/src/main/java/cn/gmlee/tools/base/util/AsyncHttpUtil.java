@@ -58,7 +58,7 @@ public class AsyncHttpUtil {
         // 创建GET请求
         HttpGet get = new HttpGet(url);
         // 加载配置
-        get.setConfig(HttpUtil.CONFIG);
+        get.setConfig(HttpUtil.clearCurrentRequestConfig());
         // 添加请求头
         HttpUtil.addHeader(get, headers);
         // 发起异步请求
@@ -76,7 +76,7 @@ public class AsyncHttpUtil {
         // 创建POST请求
         HttpPost post = new HttpPost(url);
         // 加载配置
-        post.setConfig(HttpUtil.CONFIG);
+        post.setConfig(HttpUtil.clearCurrentRequestConfig());
         // 设置请求头
         HttpUtil.addHeader(post, headers);
         // 发起异步请求
@@ -95,7 +95,7 @@ public class AsyncHttpUtil {
         // 创建POST请求
         HttpPost post = new HttpPost(url);
         // 加载配置
-        post.setConfig(HttpUtil.CONFIG);
+        post.setConfig(HttpUtil.clearCurrentRequestConfig());
         // 设置请求头
         HttpUtil.addHeader(post, headers);
         // 设置请求内容

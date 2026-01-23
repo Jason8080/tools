@@ -1,6 +1,7 @@
 package cn.gmlee.tools.base.util;
 
 import cn.gmlee.tools.base.enums.XCode;
+import cn.gmlee.tools.base.kit.thread.AutoCleanThreadLocal;
 import cn.gmlee.tools.base.mod.HttpResult;
 import cn.gmlee.tools.base.mod.Kv;
 import org.apache.http.*;
@@ -131,6 +132,26 @@ public class HttpUtil {
             .build();
 
     /**
+     * 当前线程的请求配置.
+     */
+    private static final ThreadLocal<RequestConfig> REQUEST_CONFIG_HOLDER = new AutoCleanThreadLocal<>();
+
+    /**
+     * 设置当前线程的请求配置.
+     *
+     * @param config the config
+     */
+    public static void setCurrentRequestConfig(RequestConfig config) {
+        REQUEST_CONFIG_HOLDER.set(config);
+    }
+
+    static RequestConfig clearCurrentRequestConfig() {
+        RequestConfig config = REQUEST_CONFIG_HOLDER.get();
+        REQUEST_CONFIG_HOLDER.remove();
+        return config != null ? config : CONFIG;
+    }
+
+    /**
      * The constant SSL_CONTEXT.
      */
     protected static final SSLConnectionSocketFactory SSL_CONTEXT = ExceptionUtil.suppress(() -> SSLConnectionSocketFactory.getSocketFactory());
@@ -179,13 +200,16 @@ public class HttpUtil {
         HttpGet request = new HttpGet(url);
         QuickUtil.notNull(version, x -> request.setProtocolVersion(version));
         // 加载配置
-        request.setConfig(CONFIG);
+        request.setConfig(clearCurrentRequestConfig());
         // 设置请求头
         addHeader(request, headers);
         // 封装结果
         return execute(request);
     }
 
+    /**
+     * The type Http get with entity.
+     */
     public static class HttpGetWithEntity extends HttpEntityEnclosingRequestBase {
         /**
          * Instantiates a new Http get with entity.
@@ -215,7 +239,7 @@ public class HttpUtil {
         HttpGetWithEntity request = new HttpGetWithEntity(url);
         QuickUtil.notNull(version, x -> request.setProtocolVersion(version));
         // 加载配置
-        request.setConfig(CONFIG);
+        request.setConfig(clearCurrentRequestConfig());
         // 设置请求头
         addHeader(request, headers);
         // 设置请求内容
@@ -238,7 +262,7 @@ public class HttpUtil {
         HttpGetWithEntity request = new HttpGetWithEntity(url);
         QuickUtil.notNull(version, x -> request.setProtocolVersion(version));
         // 加载配置
-        request.setConfig(CONFIG);
+        request.setConfig(clearCurrentRequestConfig());
         // 设置请求头
         addHeader(request, headers);
         // 设置请求内容
@@ -265,7 +289,7 @@ public class HttpUtil {
         HttpGet request = new HttpGet(url);
         QuickUtil.notNull(version, x -> request.setProtocolVersion(version));
         // 加载配置
-        request.setConfig(CONFIG);
+        request.setConfig(clearCurrentRequestConfig());
         // 设置请求头
         addHeader(request, headers);
         // 写出到指定位置
@@ -290,7 +314,7 @@ public class HttpUtil {
         HttpPut request = new HttpPut(url);
         QuickUtil.notNull(version, x -> request.setProtocolVersion(version));
         // 加载配置
-        request.setConfig(CONFIG);
+        request.setConfig(clearCurrentRequestConfig());
         // 设置请求头
         addHeader(request, headers);
         // 封装结果
@@ -310,7 +334,7 @@ public class HttpUtil {
         HttpPut request = new HttpPut(url);
         QuickUtil.notNull(version, x -> request.setProtocolVersion(version));
         // 加载配置
-        request.setConfig(CONFIG);
+        request.setConfig(clearCurrentRequestConfig());
         // 设置请求头
         addHeader(request, headers);
         // 设置请求内容
@@ -331,7 +355,7 @@ public class HttpUtil {
         HttpPut request = new HttpPut(url);
         QuickUtil.notNull(version, x -> request.setProtocolVersion(version));
         // 加载配置
-        request.setConfig(CONFIG);
+        request.setConfig(clearCurrentRequestConfig());
         // 设置请求头
         addHeader(request, headers);
         // 写出到指定位置
@@ -357,7 +381,7 @@ public class HttpUtil {
         HttpPut request = new HttpPut(url);
         QuickUtil.notNull(version, x -> request.setProtocolVersion(version));
         // 加载配置
-        request.setConfig(CONFIG);
+        request.setConfig(clearCurrentRequestConfig());
         // 设置请求头
         addHeader(request, headers);
         // 设置请求内容
@@ -384,7 +408,7 @@ public class HttpUtil {
         HttpPost request = new HttpPost(url);
         QuickUtil.notNull(version, x -> request.setProtocolVersion(version));
         // 加载配置
-        request.setConfig(CONFIG);
+        request.setConfig(clearCurrentRequestConfig());
         // 设置请求头
         addHeader(request, headers);
         // 封装结果
@@ -404,7 +428,7 @@ public class HttpUtil {
         HttpPost request = new HttpPost(url);
         QuickUtil.notNull(version, x -> request.setProtocolVersion(version));
         // 加载配置
-        request.setConfig(CONFIG);
+        request.setConfig(clearCurrentRequestConfig());
         // 设置请求头
         addHeader(request, headers);
         // 设置请求内容
@@ -425,7 +449,7 @@ public class HttpUtil {
         HttpPost request = new HttpPost(url);
         QuickUtil.notNull(version, x -> request.setProtocolVersion(version));
         // 加载配置
-        request.setConfig(CONFIG);
+        request.setConfig(clearCurrentRequestConfig());
         // 设置请求头
         addHeader(request, headers);
         // 写出到指定位置
@@ -451,7 +475,7 @@ public class HttpUtil {
         HttpPost request = new HttpPost(url);
         QuickUtil.notNull(version, x -> request.setProtocolVersion(version));
         // 加载配置
-        request.setConfig(CONFIG);
+        request.setConfig(clearCurrentRequestConfig());
         // 设置请求头
         addHeader(request, headers);
         // 设置请求内容
@@ -652,6 +676,7 @@ public class HttpUtil {
     /**
      * Gets http client.
      *
+     * @param cookies the cookies
      * @return the http client
      */
     public static CloseableHttpClient getHttpClient(Cookie... cookies) {

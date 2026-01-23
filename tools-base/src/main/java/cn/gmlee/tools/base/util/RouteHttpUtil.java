@@ -120,7 +120,7 @@ public class RouteHttpUtil {
         // 创建GET请求
         HttpGet get = new HttpGet(url);
         // 加载配置
-        get.setConfig(HttpUtil.CONFIG);
+        get.setConfig(HttpUtil.clearCurrentRequestConfig());
         return HttpUtil.execute(get, cookies);
     }
 
@@ -137,7 +137,7 @@ public class RouteHttpUtil {
         // 创建GET请求
         HttpGet get = new HttpGet(url);
         // 加载配置
-        get.setConfig(HttpUtil.CONFIG);
+        get.setConfig(HttpUtil.clearCurrentRequestConfig());
         // 设置请求头
         addHeader(header, get);
         return HttpUtil.execute(get, cookies);
@@ -154,7 +154,7 @@ public class RouteHttpUtil {
         // 创建POST请求
         HttpPost post = new HttpPost(url);
         // 加载配置
-        post.setConfig(HttpUtil.CONFIG);
+        post.setConfig(HttpUtil.clearCurrentRequestConfig());
         // 调用请求
         return HttpUtil.execute(post, cookies);
     }
@@ -172,7 +172,7 @@ public class RouteHttpUtil {
         //创建POST请求
         HttpPost post = new HttpPost(url);
         //加载配置
-        post.setConfig(HttpUtil.CONFIG);
+        post.setConfig(HttpUtil.clearCurrentRequestConfig());
         //添加请求头
         addHeader(header, post);
         //调用请求
@@ -191,7 +191,7 @@ public class RouteHttpUtil {
         // 创建POST请求
         HttpPost post = new HttpPost(url);
         // 加载配置
-        post.setConfig(HttpUtil.CONFIG);
+        post.setConfig(HttpUtil.clearCurrentRequestConfig());
         // 设置请求内容
         HttpUtil.setEntity(post, bytes);
         // 调用请求
@@ -212,7 +212,7 @@ public class RouteHttpUtil {
         //创建POST请求
         HttpPost post = new HttpPost(url);
         //加载配置
-        post.setConfig(HttpUtil.CONFIG);
+        post.setConfig(HttpUtil.clearCurrentRequestConfig());
         //添加请求头
         addHeader(header, post);
         //设置请求内容
@@ -248,7 +248,7 @@ public class RouteHttpUtil {
 
     public static HttpResult unity(HttpRequestBase request, Map<String, String> reqHeaders, byte[] bytes, Cookie... cookies) {
         // 加载配置
-        request.setConfig(HttpUtil.CONFIG);
+        request.setConfig(HttpUtil.clearCurrentRequestConfig());
         // 添加请求头
         addHeader(reqHeaders, request);
         // 设置请求内容
@@ -261,7 +261,7 @@ public class RouteHttpUtil {
 
     public static void unity(HttpRequestBase request, Map<String, String> reqHeaders, byte[] bytes, FutureCallback<HttpResponse> callback, Cookie... cookies) {
         //加载配置
-        request.setConfig(HttpUtil.CONFIG);
+        request.setConfig(HttpUtil.clearCurrentRequestConfig());
         //添加请求头
         addHeader(reqHeaders, request);
         //设置请求内容
