@@ -1,8 +1,6 @@
 package cn.gmlee.tools.redis.aop;
 
-import cn.gmlee.tools.base.util.BoolUtil;
-import cn.gmlee.tools.base.util.ClassUtil;
-import cn.gmlee.tools.base.util.WebUtil;
+import cn.gmlee.tools.base.util.*;
 import cn.gmlee.tools.redis.anno.VariableLock;
 import cn.gmlee.tools.redis.lock.VariableLockServer;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +9,7 @@ import org.aspectj.lang.annotation.*;
 import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Field;
@@ -87,7 +86,13 @@ public class VariableLockAspect {
             }
             //  ARGS
             Object arg = getArg(point, name);
-            if (arg != null) {
+            if (arg instanceof MultipartFile) {
+                byte[] bytes = ExceptionUtil.sandbox(() -> ((MultipartFile) arg).getBytes(), e -> {
+                    log.warn("变量锁读取文件异常", e);
+                    return ExceptionUtil.getOriginMsg(e).getBytes();
+                });
+                sb.add(Md5Util.encode(bytes));
+            } else if (arg != null) {
                 sb.add(arg.toString());
                 return;
             }
@@ -178,7 +183,7 @@ public class VariableLockAspect {
      * 请求发生异常单独解锁.
      *
      * <p>
-     *     不加锁 或 不检锁: 则异常也不解锁
+     * 不加锁 或 不检锁: 则异常也不解锁
      * </p>
      *
      * @param point the point
