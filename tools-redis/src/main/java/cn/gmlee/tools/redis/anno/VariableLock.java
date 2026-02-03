@@ -38,9 +38,9 @@ public @interface VariableLock {
     /**
      * 名称.
      *
-     * @return 不允许空 string [ ]
+     * @return 默认为方法的全限定路径名 string [ ]
      */
-    String[] value();
+    String[] value() default {};
 
     /**
      * 业务.

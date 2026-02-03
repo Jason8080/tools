@@ -63,7 +63,65 @@ public class VariableLockAspect {
     private VariableLock getVariableLock(JoinPoint point) {
         MethodSignature methodSignature = (MethodSignature) point.getSignature();
         Method methodObj = methodSignature.getMethod();
-        return methodObj.getAnnotation(VariableLock.class);
+        VariableLock variableLock = methodObj.getAnnotation(VariableLock.class);
+        
+        // 如果 value 为空数组，则使用方法的全限定路径名
+        if (variableLock.value().length == 0) {
+            String methodName = methodSignature.getDeclaringTypeName() + "." + methodSignature.getName();
+            return new VariableLock() {
+                @Override
+                public String[] value() {
+                    return new String[]{methodName};
+                }
+
+                @Override
+                public String biz() {
+                    return variableLock.biz();
+                }
+
+                @Override
+                public VariableLock.Origin[] origin() {
+                    return variableLock.origin();
+                }
+
+                @Override
+                public boolean spin() {
+                    return variableLock.spin();
+                }
+
+                @Override
+                public boolean lock() {
+                    return variableLock.lock();
+                }
+
+                @Override
+                public boolean check() {
+                    return variableLock.check();
+                }
+
+                @Override
+                public boolean unlock() {
+                    return variableLock.unlock();
+                }
+
+                @Override
+                public long timeout() {
+                    return variableLock.timeout();
+                }
+
+                @Override
+                public String message() {
+                    return variableLock.message();
+                }
+
+                @Override
+                public Class<VariableLock> annotationType() {
+                    return VariableLock.class;
+                }
+            };
+        }
+        
+        return variableLock;
     }
 
     /**
