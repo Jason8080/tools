@@ -48,6 +48,22 @@ public class ClassUtil {
         }
     }
 
+    public static List<?> newInstance(String... classes) {
+        AssertUtil.notEmpty(classes, "字节码路径是空");
+        try {
+            List<Object> list = new ArrayList<>();
+            for (String clazz : classes) {
+                Object obj = ExceptionUtil.sandbox(() -> newInstance(clazz));
+                if(obj != null) {
+                    list.add(obj);
+                }
+            }
+            return list;
+        } catch (Exception e) {
+            return ExceptionUtil.cast(e);
+        }
+    }
+
     /**
      * New instance t.
      *
@@ -409,12 +425,17 @@ public class ClassUtil {
      * @return the classes
      */
     public static Set<Class<?>> getClasses(String... packs) {
+        return getClasses(true, packs);
+    }
+
+
+    public static Set<Class<?>> getClasses(boolean recursive, String... packs) {
         if (packs == null || packs.length == 0) {
             return Collections.emptySet();
         }
         Set<Class<?>> classes = new LinkedHashSet();
         for (String pack : packs) {
-            classes.addAll(getClasses(pack, true));
+            classes.addAll(getClasses(pack, recursive));
         }
         return classes;
     }
