@@ -8,6 +8,7 @@ import cn.gmlee.tools.base.util.NullUtil;
 import feign.FeignException;
 import feign.hystrix.FallbackFactory;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.openfeign.FeignClient;
 
 import java.lang.reflect.Method;
@@ -19,6 +20,7 @@ import java.lang.reflect.Proxy;
  * @param <T> the type parameter
  */
 @Data
+@Slf4j
 public class ApiFallbackFactory<T> implements FallbackFactory<T> {
 
     private Class<?> feignClient;
@@ -59,6 +61,7 @@ public class ApiFallbackFactory<T> implements FallbackFactory<T> {
     }
 
     private Object handleFallback(Method method, Object[] args, Throwable cause) {
+        log.error("远程调用失败: {}", method.getName(), cause);
         Class<?> returnType = NullUtil.get(method.getReturnType(), R.class);
         if (cause instanceof FeignException) {
             String content = ((FeignException) cause).contentUTF8();
