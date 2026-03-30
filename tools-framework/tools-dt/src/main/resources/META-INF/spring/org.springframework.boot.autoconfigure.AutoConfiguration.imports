@@ -1,0 +1,2 @@
+cn.gmlee.tools.dt.conf.DtTransactionManagementAutoConfiguration
+cn.gmlee.tools.dt.conf.DtInterceptorAutoConfiguration

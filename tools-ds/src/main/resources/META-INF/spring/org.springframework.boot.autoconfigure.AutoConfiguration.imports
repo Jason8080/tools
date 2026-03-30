@@ -1,0 +1,2 @@
+cn.gmlee.tools.ds.config.dynamic.DynamicDatasourceAutoConfiguration
+cn.gmlee.tools.ds.config.druid.DruidMonitorAutoConfiguration

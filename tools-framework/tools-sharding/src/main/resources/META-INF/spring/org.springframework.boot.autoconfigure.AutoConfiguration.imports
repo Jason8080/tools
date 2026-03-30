@@ -1,0 +1,2 @@
+cn.gmlee.tools.sharding.config.ShardingDataSourceAutoConfiguration
+cn.gmlee.tools.sharding.config.ShardingTimingOverloadAutoConfiguration

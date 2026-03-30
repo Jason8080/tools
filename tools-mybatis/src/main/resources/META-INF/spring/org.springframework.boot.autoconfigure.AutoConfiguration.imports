@@ -1,0 +1,3 @@
+cn.gmlee.tools.mybatis.config.IBatisAutoConfiguration
+cn.gmlee.tools.mybatis.config.plus.MyBatisPlusConfiguration
+cn.gmlee.tools.mybatis.config.mybatis.MyBatisConfiguration

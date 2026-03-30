@@ -1,0 +1,2 @@
+cn.gmlee.tools.mail.config.AnnotationSendMailAutoConfiguration
+cn.gmlee.tools.mail.config.ApiExceptionSendMailAutoConfiguration

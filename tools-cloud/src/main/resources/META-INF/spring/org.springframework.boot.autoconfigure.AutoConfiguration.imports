@@ -1,0 +1,2 @@
+cn.gmlee.tools.cloud.feign.FeignLoggerAutoConfiguration
+cn.gmlee.tools.cloud.feign.FallbackFactoryAutoConfiguration

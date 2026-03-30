@@ -1,0 +1,2 @@
+cn.gmlee.tools.redis.config.RedisAutoConfiguration
+cn.gmlee.tools.redis.config.VariableLockAutoConfiguration

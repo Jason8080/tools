@@ -1,0 +1,2 @@
+cn.gmlee.tools.jackson.config.JacksonWebMvcConfigurer
+cn.gmlee.tools.jackson.config.JacksonCodecAuoConfiguration
