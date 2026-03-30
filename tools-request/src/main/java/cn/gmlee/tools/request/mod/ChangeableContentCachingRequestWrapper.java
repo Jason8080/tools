@@ -17,6 +17,9 @@ import java.util.*;
  * 可变请求.
  */
 public class ChangeableContentCachingRequestWrapper extends ContentCachingRequestWrapper {
+    /** Matches Spring's former single-arg constructor default (bytes). */
+    private static final int CONTENT_CACHE_LIMIT = 4096;
+
     private boolean change = false;
     private byte[] bytes;
     private ServletInputStream inputStream;
@@ -30,7 +33,7 @@ public class ChangeableContentCachingRequestWrapper extends ContentCachingReques
      * @param request the request
      */
     public ChangeableContentCachingRequestWrapper(HttpServletRequest request) {
-        super(request);
+        super(request, CONTENT_CACHE_LIMIT);
     }
 
     /**

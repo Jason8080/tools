@@ -1,21 +1,13 @@
 package cn.gmlee.tools.es.dao;
 
-import cn.gmlee.tools.base.mod.PageRequest;
-import cn.gmlee.tools.base.mod.PageResponse;
-import cn.gmlee.tools.base.util.BeanUtil;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
 
 /**
  * 通用持久化工具
+ * <p>
+ * Spring Data Elasticsearch 5+ 已移除基于 {@code org.elasticsearch.index.query.QueryBuilder} 的仓储查询 API；
+ * 分页与原生查询请使用 {@code ElasticsearchOperations} + {@code NativeQuery}/{@code CriteriaQuery} 等在业务层实现。
+ * </p>
  *
  * @param <T>  the type parameter
  * @param <ID> the type parameter
@@ -46,40 +38,7 @@ public interface BaseRepository<T, ID> extends ElasticsearchRepository<T, ID> {
      *
      * @param ts the ts
      */
-    default void updateBatchById(Collection<T> ts) {
+    default void updateBatchById(java.util.Collection<T> ts) {
         saveAll(ts);
-    }
-
-    /**
-     * 分页查询.
-     *
-     * @param t       the t
-     * @param request the request
-     * @param orders  the orders
-     * @return page response
-     */
-    default PageResponse<T> selectPage(T t, PageRequest request, Sort.Order... orders) {
-        QueryBuilder all = getQueryBuilder(t);
-        Page<T> page = this.search(all, org.springframework.data.domain.PageRequest.of(request.current, request.size, Sort.by(orders)));
-        return new PageResponse(request, page.getTotalElements(), page.getContent());
-    }
-
-    /**
-     * Gets query builder.
-     *
-     * @param t the t
-     * @return the query builder
-     */
-    default QueryBuilder getQueryBuilder(T t) {
-        Map<String, Object> map = BeanUtil.convert(t, Map.class);
-        BoolQueryBuilder all = QueryBuilders.boolQuery();
-        Iterator<Map.Entry<String, Object>> it = map.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry<String, Object> next = it.next();
-            String key = next.getKey();
-            Object value = next.getValue();
-            all.must(QueryBuilders.termQuery(key, value));
-        }
-        return all;
     }
 }

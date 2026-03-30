@@ -1,7 +1,7 @@
 package cn.gmlee.tools.api.config;
 
 import cn.gmlee.tools.api.coexist.ApiCoexistRequestMappingHandlerMapping;
-import org.springframework.boot.autoconfigure.web.servlet.WebMvcRegistrations;
+import org.springframework.boot.webmvc.autoconfigure.WebMvcRegistrations;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 /**

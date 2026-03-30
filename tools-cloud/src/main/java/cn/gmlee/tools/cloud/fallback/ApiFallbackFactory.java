@@ -6,7 +6,7 @@ import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.JsonUtil;
 import cn.gmlee.tools.base.util.NullUtil;
 import feign.FeignException;
-import feign.hystrix.FallbackFactory;
+import org.springframework.cloud.openfeign.FallbackFactory;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.openfeign.FeignClient;

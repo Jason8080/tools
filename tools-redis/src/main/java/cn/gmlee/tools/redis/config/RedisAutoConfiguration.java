@@ -26,7 +26,7 @@ import org.springframework.data.redis.serializer.*;
  * @date 2020 /8/28 (周五)
  */
 @Order
-@AutoConfigureBefore(org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration.class)
+@AutoConfigureBefore(org.springframework.boot.data.redis.autoconfigure.DataRedisAutoConfiguration.class)
 @PropertySource(value = {"classpath:redis.properties", "classpath:application.properties"}, ignoreResourceNotFound = true)
 public class RedisAutoConfiguration extends CachingConfigurerSupport {
 

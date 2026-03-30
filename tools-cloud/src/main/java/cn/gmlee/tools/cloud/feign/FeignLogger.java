@@ -12,7 +12,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import static feign.Util.decodeOrDefault;
-import static feign.form.util.CharsetUtil.UTF_8;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Feign日志
@@ -46,7 +46,7 @@ public class FeignLogger extends Logger {
                 throw new RuntimeException(e);
             }
             if (bodyData.length > 0) {
-                responseBody = decodeOrDefault(bodyData, UTF_8, "Binary data");
+                responseBody = decodeOrDefault(bodyData, StandardCharsets.UTF_8, "Binary data");
             }
             response = response.toBuilder().body(bodyData).build();
         }

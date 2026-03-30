@@ -8,8 +8,6 @@ import org.springframework.aop.support.AopUtils;
 import org.springframework.cglib.proxy.MethodProxy;
 import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.servlet.mvc.condition.PatternsRequestCondition;
-import org.springframework.web.servlet.mvc.condition.RequestMethodsRequestCondition;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
@@ -59,15 +57,7 @@ public class MvcUtil {
      * @param controller the 源对象
      */
     public static <C> void register(String uri, RequestMethod rm, Class<C> controller) {
-        register(new RequestMappingInfo(
-                new PatternsRequestCondition(uri),
-                new RequestMethodsRequestCondition(rm),
-                null,
-                null,
-                null,
-                null,
-                null
-        ), controller);
+        register(mappingInfo(uri, rm), controller);
     }
 
     /**
@@ -80,15 +70,7 @@ public class MvcUtil {
      * @param method     the method
      */
     public static <C> void register(String uri, RequestMethod rm, C controller, String method) {
-        register(new RequestMappingInfo(
-                new PatternsRequestCondition(uri),
-                new RequestMethodsRequestCondition(rm),
-                null,
-                null,
-                null,
-                null,
-                null
-        ), controller, method);
+        register(mappingInfo(uri, rm), controller, method);
     }
 
 
@@ -147,6 +129,10 @@ public class MvcUtil {
         return controller.getDeclaredMethods()[0]; // 必须获取自身方法, 否则无法精确调用函数
     }
 
+    private static RequestMappingInfo mappingInfo(String uri, RequestMethod rm) {
+        return RequestMappingInfo.paths(uri).methods(rm).build();
+    }
+
     // -----------------------------------------------------------------------------------------------------------------
 
     /**
@@ -170,15 +156,7 @@ public class MvcUtil {
      * @param rm  the rm
      */
     public static <C> void unregister(String uri, RequestMethod rm) {
-        unregister(new RequestMappingInfo(
-                new PatternsRequestCondition(uri),
-                new RequestMethodsRequestCondition(rm),
-                null,
-                null,
-                null,
-                null,
-                null)
-        );
+        unregister(mappingInfo(uri, rm));
     }
 
     /**

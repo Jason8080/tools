@@ -2,7 +2,7 @@ package cn.gmlee.tools.base;
 
 import lombok.Data;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 
 /**

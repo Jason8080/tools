@@ -19,7 +19,7 @@ import org.springframework.scheduling.support.CronTrigger;
 import jakarta.annotation.Resource;
 import javax.sql.DataSource;
 import java.sql.SQLException;
-import java.util.Date;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -42,16 +42,14 @@ public class ShardingTimingOverloadAutoConfiguration implements SchedulingConfig
         taskRegistrar.addTriggerTask(() -> ExceptionUtil.sandbox(() -> dataSizeObserver()),
                 (TriggerContext triggerContext) -> {
                     CronTrigger cronTrigger = new CronTrigger(configProperties.getCron().getObserveDataSize());
-                    Date date = cronTrigger.nextExecutionTime(triggerContext);
-                    return date;
+                    return cronTrigger.nextExecution(triggerContext);
                 }
         );
         // 切换数据源
         taskRegistrar.addTriggerTask(() -> ExceptionUtil.sandbox(() -> cutShardingDataSource()),
                 (TriggerContext triggerContext) -> {
                     CronTrigger cronTrigger = new CronTrigger(configProperties.getCron().getCutDataSource());
-                    Date date = cronTrigger.nextExecutionTime(triggerContext);
-                    return date;
+                    return cronTrigger.nextExecution(triggerContext);
                 }
         );
     }

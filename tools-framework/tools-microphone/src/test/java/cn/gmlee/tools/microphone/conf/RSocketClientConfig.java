@@ -43,7 +43,7 @@ public class RSocketClientConfig {
             )
             .setupRoute("/microphone/ai_translator/connection")
             .setupMetadata(MapBuilder.of("token","4BC6EACA0429421CBBFAE48FA4E506A3", "language", "en"), MediaType.APPLICATION_JSON)
-            .dataMimeType(MediaType.APPLICATION_STREAM_JSON)
+            .dataMimeType(MediaType.parseMediaType("application/stream+json"))
             .connectWebSocket(URI.create("wss://ai.gmlee.cn/rsocket")); // WebSocket端点
     }
 

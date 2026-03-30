@@ -61,7 +61,7 @@ public class ByteBuddyAutoConfiguration {
         }
 
         new AgentBuilder.Default().ignore(ignoreClasses()).type(type())
-                .transform((builder, typeDescription, classLoader, module) ->
+                .transform((builder, typeDescription, classLoader, module, protectionDomain) ->
                         builder.visit(Advice.to(ByteBuddyAdvice.class).on(methods())))
                 .installOn(instrumentation);
 

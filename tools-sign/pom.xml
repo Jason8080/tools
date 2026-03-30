@@ -5,13 +5,13 @@
     <parent>
         <artifactId>tools</artifactId>
         <groupId>cn.gmlee.tools</groupId>
-        <version>5.5.0-SNAPSHOT</version>
+        <version>5.6.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>cn.gmlee.tools</groupId>
     <artifactId>tools-sign</artifactId>
-    <version>5.5.0-SNAPSHOT</version>
+    <version>5.6.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
@@ -53,14 +53,14 @@
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-base</artifactId>
-            <version>5.5.0-SNAPSHOT</version>
+            <version>5.6.0-SNAPSHOT</version>
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-jackson</artifactId>
-            <version>5.5.0-SNAPSHOT</version>
+            <version>5.6.0-SNAPSHOT</version>
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
@@ -75,6 +75,18 @@
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
             <version>6.1.0</version>
+            <optional>true</optional>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+            <optional>true</optional>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>

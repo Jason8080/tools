@@ -6,12 +6,12 @@
     <parent>
         <groupId>cn.gmlee.tools</groupId>
         <artifactId>tools-ai</artifactId>
-        <version>5.5.0-SNAPSHOT</version>
+        <version>5.6.0-SNAPSHOT</version>
     </parent>
 
     <groupId>cn.gmlee.tools</groupId>
     <artifactId>tools-ali</artifactId>
-    <version>5.5.0-SNAPSHOT</version>
+    <version>5.6.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
@@ -53,7 +53,7 @@
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-base</artifactId>
-            <version>5.5.0-SNAPSHOT</version>
+            <version>5.6.0-SNAPSHOT</version>
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
@@ -61,7 +61,7 @@
         <dependency>
             <groupId>cn.gmlee.tools</groupId>
             <artifactId>tools-logback</artifactId>
-            <version>5.5.0-SNAPSHOT</version>
+            <version>5.6.0-SNAPSHOT</version>
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
@@ -97,6 +97,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- JUnit 4：测试仍使用 @RunWith(SpringRunner)；Boot 4 的 starter-test 默认不提供 junit4 编译期依赖 -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
