@@ -1,30 +1,27 @@
 package cn.gmlee.tools.swagger.config;
 
-import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.IocUtil;
 import cn.gmlee.tools.swagger.assist.SwaggerAssist;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.info.Info;
+import org.springdoc.core.customizers.OperationCustomizer;
+import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import springfox.documentation.builders.ApiInfoBuilder;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.service.ApiInfo;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
-
+import org.springframework.core.annotation.AnnotationUtils;
 import jakarta.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
+
+import java.lang.reflect.Method;
 
 /**
- * Swagger通用配置.
+ * springdoc-openapi 通用配置（替代 Springfox）.
  * <p>
  *     matchIfMissing: true -> 丢失该配置可以注入
  *     havingValue: "xxx" -> 配置必须与xxx相同方可注入
@@ -34,10 +31,10 @@ import java.util.List;
  *
  * @author Jas °
  */
-@EnableSwagger2
+@Configuration
 @EnableConfigurationProperties(SwaggerGlobalProperties.class)
 @ConditionalOnProperty(prefix = "tools.webapp.swagger", value = "close", matchIfMissing = true, havingValue = "false")
-@PropertySource(value = {"classpath:swagger.properties","classpath:application.properties","classpath:application-${spring.profiles.active}.properties"}, ignoreResourceNotFound = true)
+@PropertySource(value = {"classpath:swagger.properties", "classpath:application.properties", "classpath:application-${spring.profiles.active}.properties"}, ignoreResourceNotFound = true)
 public class SwaggerAutoConfiguration {
     @Value("${tools.webapp.swagger.prefix:}")
     protected String prefix;
@@ -49,82 +46,57 @@ public class SwaggerAutoConfiguration {
     protected String ignoredParameterTypes;
 
     @Resource
-    SwaggerGlobalProperties swaggerGlobalProperties;
+    private SwaggerGlobalProperties swaggerGlobalProperties;
+
+    @Bean
+    public OpenAPI toolsOpenAPI() {
+        return new OpenAPI()
+                .info(new Info()
+                        .title(title)
+                        .description("OpenAPI 通用接口文档")
+                        .version("1.0.0"));
+    }
+
+    @Bean
+    public OperationCustomizer toolsSwaggerGlobalOperationCustomizer() {
+        return SwaggerAssist.globalOperationCustomizer(swaggerGlobalProperties);
+    }
+
+    @Bean
+    public OperationCustomizer toolsSwaggerIgnoredParameterTypesCustomizer() {
+        return SwaggerAssist.ignoredParameterTypesCustomizer(ignoredParameterTypes);
+    }
 
     /**
-     * 注册在线文档.
-     *
-     * @param applicationContext the application context
-     * @return the docket
+     * 注册分组文档；仅扫描带 {@link ApiOperation} 的方法（与旧 Springfox 行为一致）.
      */
     @Bean
-    public Docket docket(ApplicationContext applicationContext) {
-        try {
-            return registerGroups((ConfigurableApplicationContext) applicationContext);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new Docket(DocumentationType.SWAGGER_2)
-                    .pathMapping(SwaggerAssist.parserPrefix(prefix))
-                    .apiInfo(apiInfo())
-                    .select()
-                    .apis(RequestHandlerSelectors.withMethodAnnotation(ApiOperation.class))
-                    .paths(PathSelectors.any())
-                    .build()
-                    .globalOperationParameters(SwaggerAssist.getGlobalOperationParameters(swaggerGlobalProperties))
-                    .ignoredParameterTypes(getIgnoredParameterTypes(ignoredParameterTypes));
-        }
-    }
-
-    private Docket registerGroups(ConfigurableApplicationContext applicationContext) {
+    public GroupedOpenApi toolsSwaggerGroupedOpenApi(ApplicationContext applicationContext) {
+        ConfigurableApplicationContext ctx = (ConfigurableApplicationContext) applicationContext;
         String[] split = groups.split(",");
         for (int i = 1; i < split.length; i++) {
-            Docket docket = IocUtil.registerBean(
-                    applicationContext,
-                    String.format("Docket%s", i),
-                    Docket.class,
-                    DocumentationType.SWAGGER_2
-            );
-            String[] groups = split[i].split(":");
-            registerDocket(docket, groups[0], groups[1]);
-        }
-        String[] groups = split[0].split(":");
-        return registerDocket(new Docket(DocumentationType.SWAGGER_2), groups[0], groups[1]);
-    }
-
-    private Docket registerDocket(Docket docket, String groupName, String pathPattern) {
-        return docket.pathMapping(SwaggerAssist.parserPrefix(prefix))
-                .apiInfo(apiInfo())
-                .select()
-                .apis(RequestHandlerSelectors.withMethodAnnotation(ApiOperation.class))
-                .paths(PathSelectors.ant(pathPattern))
-                .build()
-                .groupName(groupName)
-                .globalOperationParameters(SwaggerAssist.getGlobalOperationParameters(swaggerGlobalProperties))
-                .ignoredParameterTypes(getIgnoredParameterTypes(ignoredParameterTypes));
-    }
-
-    private Class[] getIgnoredParameterTypes(String ignoredParameterTypes) {
-        String[] split = ignoredParameterTypes.split(",");
-        List<Class> classes = new ArrayList(0);
-        for (String clazz : split) {
-            if (BoolUtil.notEmpty(clazz)) {
-                try {
-                    Class<?> aClass = Class.forName(clazz);
-                    classes.add(aClass);
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
+            String[] parts = split[i].split(":");
+            if (parts.length >= 2) {
+                GroupedOpenApi g = buildGroupedOpenApi(parts[0].trim(), parts[1].trim());
+                IocUtil.registerBean(ctx, "swaggerGroupedOpenApi_" + i, g);
             }
         }
-        return classes.toArray(new Class[0]);
+        String[] first = split[0].split(":");
+        String groupName = first[0].trim();
+        String pathPattern = first.length > 1 ? first[1].trim() : "/**";
+        return buildGroupedOpenApi(groupName, pathPattern);
     }
 
-    private ApiInfo apiInfo() {
-        return new ApiInfoBuilder()
-                .title(title)
-                .description("Swagger3通用接口文档")
-                .version("1.0.0")
-//                .contact(new Contact("Jas°", "http://GM.cn/", "1253532233@qq.com"))
+    private static GroupedOpenApi buildGroupedOpenApi(String groupName, String pathPattern) {
+        return GroupedOpenApi.builder()
+                .group(groupName)
+                .displayName(groupName)
+                .pathsToMatch(pathPattern)
+                .addOpenApiMethodFilter(SwaggerAutoConfiguration::hasApiOperation)
                 .build();
+    }
+
+    private static boolean hasApiOperation(Method method) {
+        return method != null && AnnotationUtils.findAnnotation(method, ApiOperation.class) != null;
     }
 }

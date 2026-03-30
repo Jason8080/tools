@@ -2,8 +2,10 @@ package cn.gmlee.tools.base.alg.timing.wheel;
 
 import cn.gmlee.tools.base.util.TimeUtil;
 import lombok.EqualsAndHashCode;
-import org.springframework.scheduling.support.CronSequenceGenerator;
+import org.springframework.scheduling.support.CronExpression;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
 /**
@@ -118,7 +120,7 @@ public abstract class Task extends Time implements Runnable {
     public static abstract class ScheduleTask extends Task {
         protected long next;
         protected long last;
-        protected CronSequenceGenerator cron;
+        protected CronExpression cron;
 
         /**
          * Instantiates a new Task.
@@ -126,10 +128,19 @@ public abstract class Task extends Time implements Runnable {
          * @param time the time
          * @param cron the cron
          */
-        public ScheduleTask(Time time, CronSequenceGenerator cron) {
+        public ScheduleTask(Time time, CronExpression cron) {
             super(time.age.get(), time.current.get());
             this.cron = cron;
-            this.next = TimeUtil.getTimestampSecond(cron.next(TimeUtil.getCurrentDate()));
+            this.next = TimeUtil.getTimestampSecond(nextCronAfter(cron, TimeUtil.getCurrentDate()));
+        }
+
+        private static Date nextCronAfter(CronExpression cron, Date from) {
+            LocalDateTime ldt = LocalDateTime.ofInstant(from.toInstant(), ZoneId.systemDefault());
+            LocalDateTime next = cron.next(ldt);
+            if (next == null) {
+                return from;
+            }
+            return Date.from(next.atZone(ZoneId.systemDefault()).toInstant());
         }
 
         @Override
@@ -137,7 +148,7 @@ public abstract class Task extends Time implements Runnable {
             // 重置时间
             this.last = TimeUtil.getCurrentTimestampSecond();
             // 计算下次
-            Date current = cron.next(TimeUtil.getCurrentDate());
+            Date current = nextCronAfter(cron, TimeUtil.getCurrentDate());
             this.next = TimeUtil.getTimestampSecond(current);
         }
 

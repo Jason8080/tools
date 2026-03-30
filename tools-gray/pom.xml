@@ -75,10 +75,10 @@
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
+        <!-- feign 版本由 spring-cloud-openfeign / BOM 对齐，避免与 Spring Cloud 2025.x 漂移 -->
         <dependency>
             <groupId>io.github.openfeign</groupId>
             <artifactId>feign-core</artifactId>
-            <version>10.10.1</version>
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
@@ -97,7 +97,6 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-gateway-server-webmvc</artifactId>
-            <version>5.0.1</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.springframework.cloud</groupId>

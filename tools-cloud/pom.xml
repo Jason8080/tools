@@ -64,17 +64,16 @@
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
+        <!-- 版本由 spring-cloud-dependencies (${spring-cloud.version}) BOM 统一管理 -->
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-loadbalancer</artifactId>
-            <version>4.3.0</version>
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
-            <version>5.0.1</version>
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>

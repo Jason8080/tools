@@ -65,13 +65,7 @@
             <optional>true</optional>
         </dependency>
         <!-- ============================================================ -->
-        <dependency>
-            <groupId>org.apache.tomcat.embed</groupId>
-            <artifactId>tomcat-embed-core</artifactId>
-            <version>9.0.38</version>
-            <scope>provided</scope>
-            <optional>true</optional>
-        </dependency>
+        <!-- Servlet API：仅保留 Jakarta（与 Spring Boot 4 / Tomcat 10+ 一致），不再引入 Tomcat 9 / javax 栈 -->
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>

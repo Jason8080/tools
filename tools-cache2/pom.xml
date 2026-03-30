@@ -77,6 +77,12 @@
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>org.aspectj</groupId>
+            <artifactId>aspectjweaver</artifactId>
+            <optional>true</optional>
+            <scope>provided</scope>
+        </dependency>
         <!-- ============================================================ -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

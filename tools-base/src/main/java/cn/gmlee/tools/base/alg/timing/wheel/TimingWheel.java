@@ -2,7 +2,7 @@ package cn.gmlee.tools.base.alg.timing.wheel;
 
 import cn.gmlee.tools.base.kit.task.ScheduledTaskManager;
 import cn.gmlee.tools.base.util.TimeUtil;
-import org.springframework.scheduling.support.CronSequenceGenerator;
+import org.springframework.scheduling.support.CronExpression;
 
 import java.io.Serializable;
 import java.util.Arrays;
@@ -152,9 +152,11 @@ public class TimingWheel {
      * @param run  the run
      */
     public static void addScheduleTask(Tw tw, String cron, Runnable run) {
-        CronSequenceGenerator.isValidExpression(cron);
+        if (!CronExpression.isValidExpression(cron)) {
+            throw new IllegalArgumentException("Invalid cron expression: " + cron);
+        }
         // 创建任务
-        Task task = new Task.ScheduleTask(tw.calculate(0), new CronSequenceGenerator(cron)) {
+        Task task = new Task.ScheduleTask(tw.calculate(0), CronExpression.parse(cron)) {
             @Override
             public void run() {
                 run.run();

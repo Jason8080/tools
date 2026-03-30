@@ -1,6 +1,7 @@
 package cn.gmlee.tools.swagger.config;
 
 import cn.gmlee.tools.swagger.assist.SwaggerAssist;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -8,6 +9,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * @author Jas°
  * @date 2020/11/4 (周三)
  */
+@Configuration
 public class SwaggerWebMvcAutoConfiguration implements WebMvcConfigurer {
     /**
      * 发现如果继承了WebMvcConfigurationSupport，则在yml中配置的相关内容会失效。 需要重新指定静态资源

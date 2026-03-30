@@ -5,9 +5,11 @@ import cn.gmlee.tools.base.alg.timing.wheel.Tw;
 import cn.gmlee.tools.base.enums.XTime;
 import cn.gmlee.tools.base.util.TimeUtil;
 import org.junit.Test;
-import org.springframework.scheduling.support.CronSequenceGenerator;
+import org.springframework.scheduling.support.CronExpression;
 
 import java.io.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
 
 public class TimingWheelTests {
@@ -28,12 +30,14 @@ public class TimingWheelTests {
     @Test
     public void testCron() throws Exception {
         String cron = "0/5 * * * * ?";
-        CronSequenceGenerator.isValidExpression(cron);
-        CronSequenceGenerator generator = new CronSequenceGenerator(cron);
+        CronExpression expression = CronExpression.parse(cron);
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
         String content = "请输入";
-        while ((content = in.readLine()) != null){
-            Date next = generator.next(TimeUtil.getCurrentDate());
+        while ((content = in.readLine()) != null) {
+            Date from = TimeUtil.getCurrentDate();
+            LocalDateTime ldt = LocalDateTime.ofInstant(from.toInstant(), ZoneId.systemDefault());
+            LocalDateTime nextLdt = expression.next(ldt);
+            Date next = nextLdt == null ? from : Date.from(nextLdt.atZone(ZoneId.systemDefault()).toInstant());
             System.out.println(TimeUtil.format(next, XTime.SECOND_MINUS_BLANK_COLON));
         }
     }
