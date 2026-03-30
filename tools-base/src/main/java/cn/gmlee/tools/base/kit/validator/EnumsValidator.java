@@ -6,8 +6,8 @@ import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.EnumUtil;
 import cn.gmlee.tools.base.util.RegexUtil;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 /**
  * 枚举校验器.

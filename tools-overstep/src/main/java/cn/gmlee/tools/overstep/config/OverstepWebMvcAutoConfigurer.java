@@ -5,7 +5,7 @@ import cn.gmlee.tools.overstep.converter.SnIntegerConverter;
 import cn.gmlee.tools.overstep.converter.StringSnConverter;
 import org.springframework.context.annotation.Bean;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * .

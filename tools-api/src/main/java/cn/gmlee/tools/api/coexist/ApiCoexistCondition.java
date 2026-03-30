@@ -3,7 +3,7 @@ package cn.gmlee.tools.api.coexist;
 import cn.gmlee.tools.api.anno.ApiCoexist;
 import org.springframework.web.servlet.mvc.condition.RequestCondition;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * 过滤器配置

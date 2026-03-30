@@ -87,15 +87,15 @@
     </modules>
 
     <properties>
-        <jdk>8</jdk>
+        <jdk>25</jdk>
         <encoding>UTF-8</encoding>
 
         <!-- old: 2.3.4.RELEASE < 2.4.2 -->
-        <spring-boot.version>2.3.4.RELEASE</spring-boot.version>
+        <spring-boot.version>4.0.4</spring-boot.version>
         <!-- old: Hoxton.SR8 < Hoxton.SR10 -->
-        <spring-cloud.version>Hoxton.SR10</spring-cloud.version>
+        <spring-cloud.version>2025.1.1</spring-cloud.version>
         <!-- old: 2.2.3.RELEASE < 2.2.5.RELEASE -->
-        <cloud.alibaba.version>2.2.5.RELEASE</cloud.alibaba.version>
+        <cloud.alibaba.version>2025.1.0.0</cloud.alibaba.version>
         <jaxrs.version>3.0.12.Final</jaxrs.version>
         <swagger.version>2.9.2</swagger.version>
         <monitor.version>2.2.1</monitor.version>
@@ -119,9 +119,9 @@
         <alipay.version>4.9.9</alipay.version>
         <zxing.version>3.3.3</zxing.version>
         <mail.version>1.4.7</mail.version>
-        <jaxb.version>2.3.0</jaxb.version>
+        <jaxb.version>4.0.5</jaxb.version>
         <log4j.version>1.2.17</log4j.version>
-        <sun.mail.version>1.5.2</sun.mail.version>
+        <sun.mail.version>2.0.2</sun.mail.version>
         <logback-redis.version>1.1.6</logback-redis.version>
         <bcprov.version>1.56</bcprov.version>
         <http-client.version>4.5.5</http-client.version>
@@ -129,7 +129,7 @@
         <poi.version>5.0.0</poi.version>
         <!-- 特殊工具 -->
         <proguard.version>4.4</proguard.version>
-        <lombok.version>1.18.22</lombok.version>
+        <lombok.version>1.18.44</lombok.version>
     </properties>
 
     <dependencyManagement>
@@ -191,6 +191,13 @@
                     <source>${jdk}</source>
                     <target>${jdk}</target>
                     <encoding>${encoding}</encoding>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
                 </configuration>
             </plugin>
         </plugins>

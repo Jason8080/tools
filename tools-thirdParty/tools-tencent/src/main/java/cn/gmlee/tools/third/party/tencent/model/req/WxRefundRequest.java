@@ -3,7 +3,7 @@ package cn.gmlee.tools.third.party.tencent.model.req;
 
 import lombok.Data;
 
-import javax.validation.constraints.*;
+import jakarta.validation.constraints.*;
 import java.io.Serializable;
 
 /**

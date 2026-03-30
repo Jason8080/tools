@@ -4,8 +4,8 @@ import cn.gmlee.tools.base.util.ClassUtil;
 import cn.gmlee.tools.base.util.HumpUtil;
 import cn.gmlee.tools.dt.dao.entity.Tx;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.util.Iterator;
 import java.util.Map;
 

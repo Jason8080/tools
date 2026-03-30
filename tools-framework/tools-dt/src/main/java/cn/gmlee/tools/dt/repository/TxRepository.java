@@ -5,11 +5,10 @@ import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.JdbcUtil;
 import cn.gmlee.tools.dt.dao.entity.Tx;
 import cn.gmlee.tools.dt.kit.SqlKit;
-import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -24,9 +23,12 @@ public class TxRepository {
 
     private static final Logger log = LoggerFactory.getLogger(TxRepository.class);
 
-    @Getter
     @Resource
     private DataSource dataSource;
+
+    public DataSource getDataSource() {
+        return dataSource;
+    }
 
     /**
      * Create global tx.

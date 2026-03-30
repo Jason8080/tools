@@ -6,8 +6,8 @@ import cn.gmlee.tools.base.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.PropertyPlaceholderHelper;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.Objects;

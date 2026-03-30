@@ -80,17 +80,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <version>2.3.4.RELEASE</version>
+            <version>${spring-boot.version}</version>
             <scope>provided</scope>
             <optional>true</optional>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
-            <version>2.3.4.RELEASE</version>
-            <scope>provided</scope>
-            <optional>true</optional>
-        </dependency>
+        <!-- spring-boot-starter-aop was removed: module has no @Aspect/aop code -->
         <!-- ============================================================ -->
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>

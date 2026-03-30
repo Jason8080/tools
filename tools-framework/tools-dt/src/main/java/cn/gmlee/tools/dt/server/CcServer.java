@@ -6,7 +6,7 @@ import cn.gmlee.tools.dt.repository.TxRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * The type Tx server.

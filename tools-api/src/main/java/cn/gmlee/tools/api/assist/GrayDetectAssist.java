@@ -4,7 +4,7 @@ import cn.gmlee.tools.api.coexist.ApiCoexistRequestMappingHandlerMapping;
 import org.springframework.context.ApplicationContext;
 import org.springframework.web.method.HandlerMethod;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Objects;
 
 /**

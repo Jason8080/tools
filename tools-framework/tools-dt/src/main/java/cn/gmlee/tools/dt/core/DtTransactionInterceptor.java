@@ -12,7 +12,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.TransactionAttribute;
 import org.springframework.transaction.interceptor.TransactionInterceptor;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * 事务拦截器.
@@ -50,7 +50,7 @@ public class DtTransactionInterceptor extends TransactionInterceptor {
     }
 
     @Override
-    protected void completeTransactionAfterThrowing(TransactionInfo txInfo, Throwable ex) {
+    protected void completeTransactionAfterThrowing(TransactionInfo txInfo, InvocationCallback invocation, Throwable ex) {
         try {
             int commit = complete(txInfo, ex);
             // 全局失败则回滚

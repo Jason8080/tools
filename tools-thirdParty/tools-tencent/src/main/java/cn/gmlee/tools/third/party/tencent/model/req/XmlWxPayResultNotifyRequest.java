@@ -4,7 +4,7 @@ package cn.gmlee.tools.third.party.tencent.model.req;
 import cn.gmlee.tools.base.define.Reflect;
 import lombok.Data;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
 /**
  * Xml版本支付结果通知请求.

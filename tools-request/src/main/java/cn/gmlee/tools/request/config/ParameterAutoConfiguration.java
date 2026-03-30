@@ -4,7 +4,7 @@ import cn.gmlee.tools.request.aop.DesensitizationAspect;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * 参数拦截器.

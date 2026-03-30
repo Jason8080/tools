@@ -2,7 +2,7 @@ package cn.gmlee.tools.base.entity;
 
 import lombok.Data;
 
-import javax.validation.constraints.Digits;
+import jakarta.validation.constraints.Digits;
 
 /**
  * @author Jas

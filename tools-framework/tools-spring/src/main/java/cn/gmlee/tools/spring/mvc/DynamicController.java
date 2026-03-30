@@ -1,6 +1,6 @@
 package cn.gmlee.tools.spring.mvc;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * 动态控制器定义.

@@ -4,7 +4,7 @@ import cn.gmlee.tools.base.define.Reflect;
 import cn.gmlee.tools.base.util.TimeUtil;
 import lombok.Data;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 
 /**
  * 通用接口签名实体

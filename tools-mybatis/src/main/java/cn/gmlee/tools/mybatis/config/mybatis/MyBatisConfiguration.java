@@ -40,7 +40,7 @@ public class MyBatisConfiguration {
     @Value("${tools.mysql.dynamic.mapperPackageName:mapper}")
     private String[] mapperPackageName;
 
-    @javax.annotation.Resource
+    @jakarta.annotation.Resource
     private MybatisProperties mybatisProperties;
 
     @SuppressWarnings("all")

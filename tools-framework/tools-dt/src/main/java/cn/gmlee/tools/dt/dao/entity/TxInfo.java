@@ -1,6 +1,5 @@
 package cn.gmlee.tools.dt.dao.entity;
 
-import lombok.Data;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.interceptor.TransactionAttribute;
@@ -10,7 +9,6 @@ import java.io.Serializable;
 /**
  * The type Tx info.
  */
-@Data
 public class TxInfo implements Serializable {
     private PlatformTransactionManager tm;
     private TransactionStatus ts;
@@ -34,5 +32,45 @@ public class TxInfo implements Serializable {
         info.ta = ta;
         info.point = point;
         return info;
+    }
+
+    public PlatformTransactionManager getTm() {
+        return tm;
+    }
+
+    public void setTm(PlatformTransactionManager tm) {
+        this.tm = tm;
+    }
+
+    public TransactionStatus getTs() {
+        return ts;
+    }
+
+    public void setTs(TransactionStatus ts) {
+        this.ts = ts;
+    }
+
+    public TransactionAttribute getTa() {
+        return ta;
+    }
+
+    public void setTa(TransactionAttribute ta) {
+        this.ta = ta;
+    }
+
+    public Tx getTx() {
+        return tx;
+    }
+
+    public void setTx(Tx tx) {
+        this.tx = tx;
+    }
+
+    public String getPoint() {
+        return point;
+    }
+
+    public void setPoint(String point) {
+        this.point = point;
     }
 }

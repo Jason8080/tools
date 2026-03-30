@@ -3,7 +3,7 @@ package cn.gmlee.tools.third.party.tencent.model.req;
 
 import lombok.Data;
 
-import javax.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotEmpty;
 
 /**
  * 微信支付JS下单请求.

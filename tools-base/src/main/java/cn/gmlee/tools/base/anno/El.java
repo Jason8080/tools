@@ -1,6 +1,6 @@
 package cn.gmlee.tools.base.anno;
 
-import javax.validation.Payload;
+import jakarta.validation.Payload;
 import java.lang.annotation.*;
 
 /**

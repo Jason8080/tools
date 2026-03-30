@@ -2,8 +2,8 @@ package cn.gmlee.tools.base.anno;
 
 import cn.gmlee.tools.base.kit.validator.CheckValidator;
 
-import javax.validation.Constraint;
-import javax.validation.Payload;
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
 import java.lang.annotation.*;
 
 /**

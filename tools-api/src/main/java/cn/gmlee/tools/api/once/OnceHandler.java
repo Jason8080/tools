@@ -3,8 +3,8 @@ package cn.gmlee.tools.api.once;
 import cn.gmlee.tools.base.enums.XCode;
 import cn.gmlee.tools.base.ex.SkillException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * 自定义Once处理器.

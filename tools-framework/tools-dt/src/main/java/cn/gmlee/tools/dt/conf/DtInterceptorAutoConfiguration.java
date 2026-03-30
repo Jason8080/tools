@@ -16,11 +16,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.filter.CorsFilter;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+
+import java.io.IOException;
 
 /**
  * 事务管理配置类.
@@ -36,17 +39,20 @@ public class DtInterceptorAutoConfiguration {
     @ConditionalOnClass(Filter.class)
     public FilterRegistrationBean<CorsFilter> filterRegistrationBean() {
         FilterRegistrationBean register = new FilterRegistrationBean();
-        register.setFilter((ServletRequest request, ServletResponse response, FilterChain chain) -> {
-            if (request instanceof HttpServletRequest) {
-                String globalCode = ((HttpServletRequest) request).getHeader(DtHead.GLOBAL_CODE);
-                String superiorCode = ((HttpServletRequest) request).getHeader(DtHead.SUPERIOR_CODE);
-                TxSupport.saveGlobalCode(globalCode);
-                TxSupport.saveSuperiorCode(superiorCode);
-            }
-            try {
-                chain.doFilter(request, response);
-            } finally {
-                TxSupport.clear();
+        register.setFilter(new Filter() {
+            @Override
+            public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+                if (request instanceof HttpServletRequest) {
+                    String globalCode = ((HttpServletRequest) request).getHeader(DtHead.GLOBAL_CODE);
+                    String superiorCode = ((HttpServletRequest) request).getHeader(DtHead.SUPERIOR_CODE);
+                    TxSupport.saveGlobalCode(globalCode);
+                    TxSupport.saveSuperiorCode(superiorCode);
+                }
+                try {
+                    chain.doFilter(request, response);
+                } finally {
+                    TxSupport.clear();
+                }
             }
         });
         register.addUrlPatterns(new String[]{"/*"});
