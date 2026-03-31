@@ -22,7 +22,7 @@ public @interface Enums {
 
     String value() default "";
 
-    Class<? extends Enum>[] enums() default {};
+    Class<?>[] enums() default {};
 
     boolean required() default false;
 
