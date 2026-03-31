@@ -2,6 +2,10 @@ package cn.gmlee.tools.base.assist;
 
 import cn.gmlee.tools.base.mod.R;
 import cn.gmlee.tools.base.util.ExceptionUtil;
+import cn.gmlee.tools.base.util.IdUtil;
+import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Schedulers;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -13,6 +17,7 @@ import java.net.InetAddress;
  * @author Jas °
  * @date 2021 /2/18 (周四)
  */
+@Slf4j
 public class ApiAssist {
 
     /**
@@ -40,6 +45,12 @@ public class ApiAssist {
             return "null";
         } else if (result instanceof R) {
             return result;
+        } else if (result instanceof Flux) {
+            String logger = String.format("Flux%s%s", Thread.currentThread().getId(), IdUtil.uuidReplaceUpperCase());
+            ((Flux<?>) result)
+                    .subscribeOn(Schedulers.boundedElastic())
+                    .doOnNext(o -> log.info("{} -> {}", logger, o != null ? getResponseParams(o.getClass(), o) : null));
+            return logger;
         } else if (result instanceof Serializable) {
             return result;
         } else if (returnType.equals(result.getClass())) {
