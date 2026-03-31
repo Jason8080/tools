@@ -53,8 +53,12 @@ public class EnumsValidator implements ConstraintValidator<Enums, Object> {
             return false;
         }
         if (Modifier.isStatic(method.getModifiers())) {
-            Object obj = ExceptionUtil.sandbox(() -> ClassUtil.call(null, method, value));
-            return obj != null;
+            try {
+                Object obj = ClassUtil.call(null, method, value);
+                return obj != null;
+            } catch (Throwable _) {
+                return false;
+            }
         }
         return false;
     }
