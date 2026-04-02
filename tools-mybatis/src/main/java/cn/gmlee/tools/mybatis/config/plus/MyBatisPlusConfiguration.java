@@ -1,6 +1,5 @@
 package cn.gmlee.tools.mybatis.config.plus;
 
-import cn.gmlee.tools.base.util.NullUtil;
 import cn.gmlee.tools.mybatis.assist.ConfigurationAssist;
 import cn.gmlee.tools.mybatis.assist.LocalResourcesAssist;
 import cn.gmlee.tools.mybatis.config.mybatis.MyBatisConfiguration;

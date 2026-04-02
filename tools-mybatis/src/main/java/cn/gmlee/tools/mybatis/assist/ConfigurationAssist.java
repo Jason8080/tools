@@ -76,19 +76,23 @@ public class ConfigurationAssist {
 
     public static void addPagination(MybatisConfiguration configuration, List<Interceptor> interceptors) {
         boolean exist = false;
-        List<Interceptor> all = new ArrayList();
+        List<Interceptor> all = new ArrayList<>();
+
         if (BoolUtil.notEmpty(interceptors)) {
             all.addAll(interceptors);
         }
         all.addAll(configuration.getInterceptors());
+
         for (Object interceptor : all) {
             if (interceptor instanceof MybatisPlusInterceptor) {
-                List<InnerInterceptor> is = ((MybatisPlusInterceptor) interceptor).getInterceptors();
-                Optional<InnerInterceptor> any = is.stream().filter(x -> x instanceof PaginationInnerInterceptor).findAny();
-                exist = any.isPresent();
+                List<InnerInterceptor> innerInterceptors = ((MybatisPlusInterceptor) interceptor).getInterceptors();
+                // 只要有任何一个 PaginationInnerInterceptor 就认为已存在
+                exist = innerInterceptors.stream()
+                        .anyMatch(x -> x instanceof PaginationInnerInterceptor);
+                if (exist) break; // 提前退出
             }
-
         }
+
         if (!exist) {
             MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
             interceptor.addInnerInterceptor(createPaginationInnerInterceptor());
