@@ -206,25 +206,6 @@ public class NullUtil {
     }
 
     /**
-     * 获取不为null的对象, 如果是空则采用tClass创建对象, 如果创建对象出错就抛出250异常.
-     *
-     * @param <T>    the type parameter
-     * @param source the source
-     * @param tClass the t class
-     * @return the t
-     */
-    public static <T> T get(T source, Class<? extends T> tClass) {
-        if (source == null) {
-            try {
-                return tClass.newInstance();
-            } catch (Exception e) {
-                return ExceptionUtil.cast("工具使用异常: 反射创建不了对象", e);
-            }
-        }
-        return source;
-    }
-
-    /**
      * 获取不为null的对象, 如果是空则抛出提示性异常.
      *
      * @param <T>    the type parameter
