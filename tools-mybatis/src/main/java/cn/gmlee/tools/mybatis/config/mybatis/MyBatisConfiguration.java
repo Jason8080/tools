@@ -62,7 +62,7 @@ public class MyBatisConfiguration {
     }
 
     private Configuration getMybatisConfigurationBoot(SqlSessionFactoryBean sessionFactoryBean) {
-        Configuration configuration = NullUtil.get(mybatisProperties.getConfiguration(), Configuration.class);
+        Configuration configuration = (Configuration) NullUtil.get(mybatisProperties.getConfiguration(), Configuration.class);
         ConfigurationAssist.addSetting(configuration);
         sessionFactoryBean.setConfiguration(configuration);
         return configuration;

@@ -102,9 +102,10 @@
             <scope>provided</scope>
         </dependency>
         <!-- ============================================================ -->
+        <!-- MyBatis-Plus Spring Boot 4 专用 Starter (3.5.13+ 支持) -->
         <dependency>
             <groupId>com.baomidou</groupId>
-            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
             <version>${mybatis-plus.version}</version>
             <optional>true</optional>
             <scope>provided</scope>

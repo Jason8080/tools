@@ -213,7 +213,7 @@ public class NullUtil {
      * @param tClass the t class
      * @return the t
      */
-    public static <T> T get(T source, Class<T> tClass) {
+    public static <T> T get(T source, Class<? extends T> tClass) {
         if (source == null) {
             try {
                 return tClass.newInstance();
