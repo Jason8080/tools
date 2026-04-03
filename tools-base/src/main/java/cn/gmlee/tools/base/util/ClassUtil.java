@@ -101,7 +101,7 @@ public class ClassUtil {
     public static <T> Class<T> getGenericClass(Object obj) {
         Class<?> clazz = obj.getClass();
         Type type = clazz.getGenericSuperclass();
-        if (type == null) {
+        if (Object.class.equals(type)) {
             Type[] genericInterfaces = clazz.getGenericInterfaces();
             type = genericInterfaces.length > 0 ? genericInterfaces[0] : null;
         }
