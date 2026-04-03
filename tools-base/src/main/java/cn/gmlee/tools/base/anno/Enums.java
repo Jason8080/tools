@@ -11,12 +11,12 @@ import java.lang.annotation.*;
  *
  * @author Jas
  */
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
 @Documented
 @Constraint(
         validatedBy = {EnumsValidator.class}
 )
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD, ElementType.PARAMETER})
 public @interface Enums {
     String separator = ",";
 
