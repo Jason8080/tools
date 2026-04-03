@@ -54,7 +54,7 @@ public class ClassUtil {
             List<Object> list = new ArrayList<>();
             for (String clazz : classes) {
                 Object obj = ExceptionUtil.sandbox(() -> newInstance(clazz));
-                if(obj != null) {
+                if (obj != null) {
                     list.add(obj);
                 }
             }
@@ -101,6 +101,10 @@ public class ClassUtil {
     public static <T> Class<T> getGenericClass(Object obj) {
         Class<?> clazz = obj.getClass();
         Type type = clazz.getGenericSuperclass();
+        if (type == null) {
+            Type[] genericInterfaces = clazz.getGenericInterfaces();
+            type = genericInterfaces.length > 0 ? genericInterfaces[0] : null;
+        }
         if (type instanceof ParameterizedType) {
             ParameterizedType genericSuperclass = (ParameterizedType) type;
             Type actualTypeArgument = genericSuperclass.getActualTypeArguments()[0];
@@ -409,7 +413,7 @@ public class ClassUtil {
      * @param value  the value
      */
     public static void setValue(Object source, Field field, Object value) {
-        if (field!=null && !Modifier.isFinal(field.getModifiers())) {
+        if (field != null && !Modifier.isFinal(field.getModifiers())) {
             boolean ok = field.isAccessible();
             QuickUtil.isFalse(ok, () -> field.setAccessible(true));
             ExceptionUtil.suppress(() -> field.set(source, value));
@@ -923,7 +927,7 @@ public class ClassUtil {
             Map<String, Field> fieldsMap = getFieldsMap(obj);
             Map<String, Object> marksMap = getColumnMarks(obj, fieldsMap, mark);
             Map<String, Object> linkMap = CollectionUtil.keySort(marksMap);
-            if(marksMap.isEmpty()){
+            if (marksMap.isEmpty()) {
                 continue;
             }
             // 通过字段排序+拼接对齐
@@ -949,7 +953,7 @@ public class ClassUtil {
             Map<String, Field> fieldsMap = getFieldsMap(obj);
             Map<String, Object> marksMap = getColumnMarks(obj, fieldsMap, mark);
             Map<String, Object> linkMap = CollectionUtil.keySort(marksMap);
-            if(marksMap.isEmpty()){
+            if (marksMap.isEmpty()) {
                 continue;
             }
             // 通过首个标记字段进行排序, 没有标记则保持顺序不变。
@@ -962,18 +966,18 @@ public class ClassUtil {
 
     private static Map<String, Object> getValue(Object obj, Map<String, Field> fieldsMap) {
         Map<String, Object> map = new HashMap<>();
-        if(BoolUtil.isNull(obj) || BoolUtil.isEmpty(fieldsMap)){
+        if (BoolUtil.isNull(obj) || BoolUtil.isEmpty(fieldsMap)) {
             return map;
         }
-        fieldsMap.forEach((name,field) -> map.put(name, ClassUtil.getValue(obj, field)));
+        fieldsMap.forEach((name, field) -> map.put(name, ClassUtil.getValue(obj, field)));
         return map;
     }
 
     private static Map<String, Object> getColumnMarks(Object obj, Map<String, Field> fieldsMap, Mark... any) {
         Map<String, Object> map = new HashMap<>();
-        fieldsMap.forEach((name,field) -> {
+        fieldsMap.forEach((name, field) -> {
             Column column = field.getAnnotation(Column.class);
-            if(column!=null && BoolUtil.containOne(column.mark(), any)){
+            if (column != null && BoolUtil.containOne(column.mark(), any)) {
                 Object value = ClassUtil.getValue(obj, field);
                 map.put(name, serializer(column, value));
             }
@@ -984,9 +988,9 @@ public class ClassUtil {
     private static Object serializer(Column column, Object value) {
         Class<?> serializer = column.serializer();
         // 是否序列化
-        if(Column.JsonSerializer.class.equals(serializer)){
+        if (Column.JsonSerializer.class.equals(serializer)) {
             value = JsonUtil.toJson(value);
-        } else if (serializer.isEnum()){
+        } else if (serializer.isEnum()) {
             value = EnumUtil.value(value, (Class<Enum>) serializer);
         } else {
             // 格式化
