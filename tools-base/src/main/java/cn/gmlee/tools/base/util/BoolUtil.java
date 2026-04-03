@@ -201,6 +201,20 @@ public class BoolUtil {
     }
 
     /**
+     * Is subclass boolean.
+     *
+     * @param sub        the sub
+     * @param superclass the superclass
+     * @return the boolean
+     */
+    public static boolean isSubclass(Object sub, Class superclass) {
+        if (BoolUtil.allNotNull(sub, superclass)) {
+            return superclass.isAssignableFrom(sub.getClass());
+        }
+        return false;
+    }
+
+    /**
      * 判断字符是否数字.
      *
      * @param cs the cs
