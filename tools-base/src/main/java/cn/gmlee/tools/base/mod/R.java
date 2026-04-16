@@ -20,11 +20,11 @@ public class R<T> implements Serializable {
     /**
      * 操作失败.
      */
-    public static final R FAIL = new R(XCode.FAIL);
+    public static final R<?> FAIL = new R<>(XCode.FAIL);
     /**
      * 操作成功.
      */
-    public static final R OK = new R(XCode.OK);
+    public static final R<?> OK = new R<>(XCode.OK);
 
 
     /**
@@ -163,8 +163,8 @@ public class R<T> implements Serializable {
      * @param throwable the throwable
      * @return the json result
      */
-    public R newly(Throwable throwable) {
-        return new R(throwable);
+    public R<T> newly(Throwable throwable) {
+        return new R<>(throwable);
     }
 
     /**
@@ -174,8 +174,8 @@ public class R<T> implements Serializable {
      * @param throwable the throwable
      * @return the json result
      */
-    public R newly(XCode xCode, Throwable throwable) {
-        return new R(xCode, throwable);
+    public R<T> newly(XCode xCode, Throwable throwable) {
+        return new R<>(xCode, throwable);
     }
 
     /**
@@ -184,8 +184,8 @@ public class R<T> implements Serializable {
      * @param se the se
      * @return the json result
      */
-    public R newly(SkillException se) {
-        return new R(se);
+    public R<T> newly(SkillException se) {
+        return new R<>(se);
     }
 
     /**
@@ -194,8 +194,18 @@ public class R<T> implements Serializable {
      * @param msg the msg
      * @return the json result
      */
-    public R newly(String msg) {
-        return new R(this.code, msg, this.data);
+    public R<T> newly(String msg) {
+        return new R<>(this.code, msg, this.data);
+    }
+
+    /**
+     * Newly r.
+     *
+     * @param xCode the x code
+     * @return the r
+     */
+    public R<T> newly(XCode xCode) {
+        return new R<>(xCode);
     }
 
     /**
@@ -205,8 +215,8 @@ public class R<T> implements Serializable {
      * @param desc  the desc
      * @return the json result
      */
-    public R newly(XCode xCode, String desc) {
-        return new R(xCode, desc);
+    public R<T> newly(XCode xCode, String desc) {
+        return new R<>(xCode, desc);
     }
 
     /**
@@ -215,8 +225,8 @@ public class R<T> implements Serializable {
      * @param data the data
      * @return the json result
      */
-    public R newly(T data) {
-        return new R(this.code, this.msg, data);
+    public R<T> newly(T data) {
+        return new R<>(this.code, this.msg, data);
     }
 
     /**
@@ -226,8 +236,8 @@ public class R<T> implements Serializable {
      * @param msg  the msg
      * @return the json result
      */
-    public R newly(Integer code, String msg) {
-        return new R(code, msg, data);
+    public R<T> newly(Integer code, String msg) {
+        return new R<>(code, msg, data);
     }
 
     /**
@@ -237,7 +247,7 @@ public class R<T> implements Serializable {
      * @param msg  the msg
      * @return the json result
      */
-    public R newly(T data, String msg) {
-        return new R(code, msg, data);
+    public R<T> newly(T data, String msg) {
+        return new R<>(code, msg, data);
     }
 }

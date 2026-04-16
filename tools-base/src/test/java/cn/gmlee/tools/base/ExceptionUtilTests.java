@@ -11,7 +11,7 @@ public class ExceptionUtilTests {
     @Test
     public void main() {
         R<String> result = ExceptionUtil.sandbox(
-                (Function.Zero2r<R>) () -> R.OK.newly(1/0),
+                (Function.Zero2r<R>) () -> R.OK.newly(String.valueOf(1/0)),
                 (Function.P2r<Throwable, R>) (Throwable e) -> R.FAIL.newly(e.getMessage())
         );
         System.out.println(result);
