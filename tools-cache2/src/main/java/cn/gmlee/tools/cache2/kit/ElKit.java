@@ -24,7 +24,7 @@ public class ElKit {
         if(BoolUtil.isEmpty(content) || BoolUtil.isEmpty(map)) {
             return content;
         }
-        CollectionUtil.filter(map, (key, value) -> value!=null);
+        CollectionUtil.filter(map, (key, val) -> val!=null);
         Properties properties = new Properties();
         properties.putAll(map);
         return helper.replacePlaceholders(content, properties);
