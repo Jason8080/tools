@@ -158,34 +158,96 @@ public class R<T> implements Serializable {
     }
 
     /**
-     * Newly json result.
+     * Of r.
      *
+     * @param <T>       the type parameter
      * @param throwable the throwable
      * @return the json result
      */
-    public R<T> newly(Throwable throwable) {
+    public static <T> R<T> of(Throwable throwable) {
         return new R<>(throwable);
     }
 
     /**
-     * Newly json result.
+     * Of r.
      *
+     * @param <T>       the type parameter
      * @param xCode     the x code
      * @param throwable the throwable
      * @return the json result
      */
-    public R<T> newly(XCode xCode, Throwable throwable) {
+    public static <T> R<T> of(XCode xCode, Throwable throwable) {
         return new R<>(xCode, throwable);
     }
 
     /**
-     * Newly json result.
+     * Of r.
      *
-     * @param se the se
+     * @param <T> the type parameter
+     * @param se  the se
      * @return the json result
      */
-    public R<T> newly(SkillException se) {
+    public static <T> R<T> of(SkillException se) {
         return new R<>(se);
+    }
+
+    /**
+     * Of r.
+     *
+     * @param <T>   the type parameter
+     * @param xCode the x code
+     * @return the r
+     */
+    public static <T> R<T> of(XCode xCode) {
+        return new R<>(xCode);
+    }
+
+    /**
+     * Of r.
+     *
+     * @param <T>   the type parameter
+     * @param xCode the x code
+     * @param desc  the desc
+     * @return the json result
+     */
+    public static <T> R<T> of(XCode xCode, String desc) {
+        return new R<>(xCode, desc);
+    }
+
+    /**
+     * Of r.
+     *
+     * @param <T>  the type parameter
+     * @param data the data
+     * @return the r
+     */
+    public static <T> R<T> of(T data) {
+        return new R<>(XCode.OK, data);
+    }
+
+    /**
+     * Of r.
+     *
+     * @param <T>   the type parameter
+     * @param xCode the x code
+     * @param data  the data
+     * @return the r
+     */
+    public static <T> R<T> of(XCode xCode, T data) {
+        return new R<>(xCode, data);
+    }
+
+    /**
+     * Of r.
+     *
+     * @param <T>  the type parameter
+     * @param code the code
+     * @param msg  the msg
+     * @param data the data
+     * @return the r
+     */
+    public static <T> R<T> of(Integer code, String msg, T data) {
+        return new R<>(code, msg, data);
     }
 
     /**
@@ -194,29 +256,8 @@ public class R<T> implements Serializable {
      * @param msg the msg
      * @return the json result
      */
-    public R<T> newly(String msg) {
+    public R<?> newly(String msg) {
         return new R<>(this.code, msg, this.data);
-    }
-
-    /**
-     * Newly r.
-     *
-     * @param xCode the x code
-     * @return the r
-     */
-    public R<T> newly(XCode xCode) {
-        return new R<>(xCode);
-    }
-
-    /**
-     * Newly json result.
-     *
-     * @param xCode the x code
-     * @param desc  the desc
-     * @return the json result
-     */
-    public R<T> newly(XCode xCode, String desc) {
-        return new R<>(xCode, desc);
     }
 
     /**
@@ -225,7 +266,7 @@ public class R<T> implements Serializable {
      * @param data the data
      * @return the json result
      */
-    public R<T> newly(T data) {
+    public R<?> newly(Object data) {
         return new R<>(this.code, this.msg, data);
     }
 
@@ -236,7 +277,7 @@ public class R<T> implements Serializable {
      * @param msg  the msg
      * @return the json result
      */
-    public R<T> newly(Integer code, String msg) {
+    public R<?> newly(Integer code, String msg) {
         return new R<>(code, msg, data);
     }
 
@@ -247,7 +288,7 @@ public class R<T> implements Serializable {
      * @param msg  the msg
      * @return the json result
      */
-    public R<T> newly(T data, String msg) {
+    public R<?> newly(Object data, String msg) {
         return new R<>(code, msg, data);
     }
 }
