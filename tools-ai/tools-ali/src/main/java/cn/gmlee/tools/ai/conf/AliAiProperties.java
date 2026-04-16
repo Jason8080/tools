@@ -26,6 +26,7 @@ public class AliAiProperties {
     private String agentKey;
     private String appId;
     private String apiKey;
+    private String model; // 定制开发时使用该属性（非工具封装者不使用）
     private String defaultModel = "qwen-omni-turbo";
     private Map<String, Mode> models = Collections.singletonMap(defaultModel, new Mode());
 
