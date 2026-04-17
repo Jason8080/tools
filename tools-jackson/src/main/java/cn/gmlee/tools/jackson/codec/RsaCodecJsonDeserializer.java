@@ -7,19 +7,17 @@ import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.QuickUtil;
 import cn.gmlee.tools.jackson.anno.Codec;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.deser.ContextualDeserializer;
-import com.fasterxml.jackson.databind.deser.std.StringDeserializer;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.BeanProperty;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ValueDeserializer;
+import tools.jackson.databind.deser.jdk.StringDeserializer;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-
 @Slf4j
-public class RsaCodecJsonDeserializer extends JsonDeserializer<String> implements RsaCodec, ContextualDeserializer {
+public class RsaCodecJsonDeserializer extends ValueDeserializer<String> implements RsaCodec {
 
     private String appId;
 
@@ -37,16 +35,17 @@ public class RsaCodecJsonDeserializer extends JsonDeserializer<String> implement
     }
 
     @Override
-    public String deserialize(JsonParser p, DeserializationContext c) throws IOException {
-        if (p.getText() == null) {
+    public String deserialize(JsonParser p, DeserializationContext c) throws JacksonException {
+        String text = p.getString();
+        if (text == null) {
             return null;
         }
-        return ExceptionUtil.sandbox(() -> decode(p.getText()), e -> p.getText());
+        return ExceptionUtil.sandbox(() -> decode(text), e -> text);
     }
 
     @Override
     @SuppressWarnings("all")
-    public JsonDeserializer<?> createContextual(DeserializationContext c, BeanProperty property) throws JsonMappingException {
+    public ValueDeserializer<?> createContextual(DeserializationContext c, BeanProperty property) throws DatabindException {
         if (property != null) {
             Codec codec = property.getAnnotation(Codec.class);
             if (codec == null) {
@@ -59,10 +58,10 @@ public class RsaCodecJsonDeserializer extends JsonDeserializer<String> implement
                 return this.that(codec);
             }
         }
-        return new StringDeserializer();
+        return StringDeserializer.instance;
     }
 
-    private JsonDeserializer<?> that(Codec codec) {
+    private ValueDeserializer<?> that(Codec codec) {
         this.appId = codec.appId();
         return this;
     }

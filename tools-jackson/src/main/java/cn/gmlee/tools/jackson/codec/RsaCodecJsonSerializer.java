@@ -7,19 +7,17 @@ import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import cn.gmlee.tools.base.util.QuickUtil;
 import cn.gmlee.tools.jackson.anno.Codec;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.BeanProperty;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.ContextualSerializer;
-import com.fasterxml.jackson.databind.ser.std.StringSerializer;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.BeanProperty;
+import tools.jackson.databind.DatabindException;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.ValueSerializer;
+import tools.jackson.databind.ser.jdk.StringSerializer;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.IOException;
-
 @Slf4j
-public class RsaCodecJsonSerializer extends JsonSerializer<String> implements RsaCodec, ContextualSerializer {
+public class RsaCodecJsonSerializer extends ValueSerializer<String> implements RsaCodec {
 
     private String appId;
 
@@ -37,7 +35,7 @@ public class RsaCodecJsonSerializer extends JsonSerializer<String> implements Rs
     }
 
     @Override
-    public void serialize(String value, JsonGenerator gen, SerializerProvider s) throws IOException {
+    public void serialize(String value, JsonGenerator gen, SerializationContext s) throws JacksonException {
         if (value == null) {
             gen.writeNull();
             return;
@@ -47,7 +45,7 @@ public class RsaCodecJsonSerializer extends JsonSerializer<String> implements Rs
 
     @Override
     @SuppressWarnings("all")
-    public JsonSerializer<?> createContextual(SerializerProvider prov, BeanProperty property) throws JsonMappingException {
+    public ValueSerializer<?> createContextual(SerializationContext prov, BeanProperty property) throws DatabindException {
         if (property != null) {
             Codec codec = property.getAnnotation(Codec.class);
             if (codec == null) {
@@ -60,10 +58,10 @@ public class RsaCodecJsonSerializer extends JsonSerializer<String> implements Rs
                 return this.that(codec);
             }
         }
-        return new StringSerializer();
+        return StringSerializer.instance;
     }
 
-    private JsonSerializer<?> that(Codec codec) {
+    private ValueSerializer<?> that(Codec codec) {
         this.appId = codec.appId();
         return this;
     }

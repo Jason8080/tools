@@ -3,8 +3,8 @@ package cn.gmlee.tools.jackson.anno;
 import cn.gmlee.tools.jackson.codec.RsaCodecJsonDeserializer;
 import cn.gmlee.tools.jackson.codec.RsaCodecJsonSerializer;
 import com.fasterxml.jackson.annotation.JacksonAnnotationsInside;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import tools.jackson.databind.annotation.JsonDeserialize;
+import tools.jackson.databind.annotation.JsonSerialize;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
