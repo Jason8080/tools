@@ -1,9 +1,7 @@
 package cn.gmlee.tools.jackson.config;
 
-import cn.gmlee.tools.base.jackson.JacksonAssist;
-import cn.gmlee.tools.base.util.JsonUtil;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.annotation.PostConstruct;
+import cn.gmlee.tools.base.enums.XTime;
+import cn.gmlee.tools.base.util.BoolUtil;
 import jakarta.annotation.Resource;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -16,10 +14,17 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.MapperFeature;
 import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.ext.javatime.deser.LocalDateDeserializer;
+import tools.jackson.databind.ext.javatime.deser.LocalDateTimeDeserializer;
+import tools.jackson.databind.ext.javatime.deser.LocalTimeDeserializer;
+import tools.jackson.databind.ext.javatime.ser.LocalDateSerializer;
+import tools.jackson.databind.ext.javatime.ser.LocalDateTimeSerializer;
+import tools.jackson.databind.ext.javatime.ser.LocalTimeSerializer;
 import tools.jackson.databind.module.SimpleModule;
 import tools.jackson.databind.ser.std.ToStringSerializer;
 
 import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 
 /**
  * @author Jas°
@@ -35,13 +40,6 @@ public class JacksonWebMvcConfigurer implements WebMvcConfigurer {
 
     @Resource
     private JacksonModuleProperties jacksonModuleProperties;
-
-    @PostConstruct
-    public void initJsonUtilMapper() {
-        // 保持 JsonUtil 的 ObjectMapper 与 Spring 配置对齐（兼容老工具调用链）
-        autoInjectSpringOriginal(JsonUtil.getInstance(), jacksonProperties, jacksonModuleProperties);
-        JacksonAssist.registerDefaultModule(JsonUtil.getInstance());
-    }
 
     @Bean
     public JsonMapperBuilderCustomizer toolsJacksonJsonMapperBuilderCustomizer() {
@@ -61,6 +59,20 @@ public class JacksonWebMvcConfigurer implements WebMvcConfigurer {
                 builder.defaultDateFormat(new SimpleDateFormat(jacksonProperties.getDateFormat()));
             }
 
+            DateTimeFormatter dateTimeFormatter = BoolUtil.isEmpty(jacksonProperties.getDateFormat())
+                    ? XTime.SECOND_MINUS_BLANK_COLON.timeFormat
+                    : DateTimeFormatter.ofPattern(jacksonProperties.getDateFormat());
+
+            // 覆盖 JavaTime 默认 ISO 输出（否则会出现 2026-04-17T09:14:24.79387）
+            SimpleModule timeModule = new SimpleModule();
+            timeModule.addSerializer(java.time.LocalDateTime.class, new LocalDateTimeSerializer(dateTimeFormatter));
+            timeModule.addSerializer(java.time.LocalDate.class, new LocalDateSerializer(dateTimeFormatter));
+            timeModule.addSerializer(java.time.LocalTime.class, new LocalTimeSerializer(dateTimeFormatter));
+            timeModule.addDeserializer(java.time.LocalDateTime.class, new LocalDateTimeDeserializer(dateTimeFormatter));
+            timeModule.addDeserializer(java.time.LocalDate.class, new LocalDateDeserializer(dateTimeFormatter));
+            timeModule.addDeserializer(java.time.LocalTime.class, new LocalTimeDeserializer(dateTimeFormatter));
+            builder.addModule(timeModule);
+
             // Long 转字符串，避免前端精度丢失
             if (jacksonModuleProperties.getLongToString() == null || jacksonModuleProperties.getLongToString()) {
                 SimpleModule typeModule = new SimpleModule();
@@ -68,12 +80,5 @@ public class JacksonWebMvcConfigurer implements WebMvcConfigurer {
                 builder.addModule(typeModule);
             }
         };
-    }
-
-    private static void autoInjectSpringOriginal(ObjectMapper objectMapper, JacksonProperties jacksonProperties, JacksonModuleProperties jacksonModuleProperties) {
-        // 类型转换
-        JacksonAssist.registerTypeModule(objectMapper, jacksonModuleProperties.getLongToString());
-        // 时区转换
-        JacksonAssist.registerTimeZoneModule(objectMapper, jacksonProperties.getTimeZone(), jacksonProperties.getDateFormat());
     }
 }
