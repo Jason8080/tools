@@ -1,12 +1,12 @@
 package cn.gmlee.tools.jackson;
 
 import cn.gmlee.tools.base.mod.Kv;
-import cn.gmlee.tools.base.util.JsonUtil;
 import cn.gmlee.tools.base.util.LocalDateTimeUtil;
 import cn.gmlee.tools.base.util.RsaUtil;
 import cn.gmlee.tools.base.util.SignUtil;
 import cn.gmlee.tools.jackson.anno.Codec;
 import lombok.Data;
+import tools.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -19,7 +19,7 @@ import java.util.Map;
  * @date 2021/3/20 (周六)
  */
 public class SignTests {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 
         // ---------------------
         Kv<String, String> kv = RsaUtil.generateSecretKey();
@@ -27,7 +27,7 @@ public class SignTests {
         System.setProperty("tools.jackson.codec.default.privateKey", kv.getVal());
         // ---------------------
 
-        Map<String, Object> map = new HashMap();
+        Map<String, Object> map = new HashMap<>();
         map.put("appId", 111);
         System.out.println("appId: " + map.get("appId"));
         map.put("nonce", "123");
@@ -37,10 +37,11 @@ public class SignTests {
         Aa aa = new Aa();
         aa.setA3(new Aa());
         map.put("body", aa);
-        String json = JsonUtil.toJson(aa);
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(aa);
         System.out.println("加密: " + json);
-        System.out.println("解密: " + JsonUtil.toBean(json, Aa.class));
-        System.out.println("body: " + JsonUtil.toJson(map.get("body")));
+        System.out.println("解密: " + mapper.readValue(json, Aa.class));
+        System.out.println("body: " + mapper.writeValueAsString(map.get("body")));
         String signature = SignUtil.sign(map, "dGT6IKVQL9oSOlOJSGcZnPPCv39z9mHU");
         map.put("signature", signature);
         System.out.println(SignUtil.check(map, "dGT6IKVQL9oSOlOJSGcZnPPCv39z9mHU"));

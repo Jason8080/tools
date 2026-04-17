@@ -2,29 +2,28 @@ package cn.gmlee.tools.base.jackson;
 
 import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.TimeUtil;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationConfig;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.JsonParser;
+import tools.jackson.databind.DeserializationConfig;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ValueDeserializer;
 
-import java.io.IOException;
 import java.text.DateFormat;
 import java.util.Date;
 
 /**
  * The type Time json deserializer.
  */
-public class TimeJsonDeserializer extends JsonDeserializer<Date> {
+public class TimeJsonDeserializer extends ValueDeserializer<Date> {
     /**
      * The constant instance.
      */
-    public static JsonDeserializer<? extends Date> instance = new TimeJsonDeserializer();
+    public static ValueDeserializer<? extends Date> instance = new TimeJsonDeserializer();
 
     @Override
-    public Date deserialize(JsonParser p, DeserializationContext txt) throws IOException, JsonProcessingException {
+    public Date deserialize(JsonParser p, DeserializationContext txt) throws JacksonException {
         // 如果为空则不处理
-        String text = p.getText();
+        String text = p.getString();
         if (BoolUtil.isEmpty(text)) {
             return null;
         }

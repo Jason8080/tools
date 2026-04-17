@@ -3,10 +3,10 @@ package cn.gmlee.tools.base.util;
 import cn.gmlee.tools.base.enums.XTime;
 import cn.gmlee.tools.base.jackson.JacksonAssist;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.JavaType;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.PropertyNamingStrategies;
 
 import java.util.TimeZone;
 
@@ -18,28 +18,33 @@ import java.util.TimeZone;
  */
 public class JsonUtil {
 
-    private static final ObjectMapper objectMapper = newInstance();
-    private static final ObjectMapper objectMapperIncludeAlways = newInstance();
-    private static final ObjectMapper objectMapperSnakeCase = newInstance();
-
-    static {
-        objectMapperIncludeAlways.setSerializationInclusion(Include.ALWAYS);
-        objectMapperSnakeCase.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
-    }
+    private static final ObjectMapper objectMapper = newInstance(false, false);
+    private static final ObjectMapper objectMapperIncludeAlways = newInstance(true, false);
+    private static final ObjectMapper objectMapperSnakeCase = newInstance(false, true);
 
     /**
      * Jackson .
      *
      * @return the object mapper
      */
-    private static ObjectMapper newInstance() {
+    private static ObjectMapper newInstance(boolean includeAlways, boolean snakeCase) {
         ObjectMapper objectMapper = new ObjectMapper();
         // 默认注册: 保持与框架同步
-        JacksonAssist.registerDefaultModule(objectMapper);
+        objectMapper = JacksonAssist.registerDefaultModule(objectMapper);
         // 默认转换: 默认long类型会转换成String
-        JacksonAssist.registerTypeModule(objectMapper, true);
+        objectMapper = JacksonAssist.registerTypeModule(objectMapper, true);
         // 默认时区: 默认 GMT+8 时区 yyyy-MM-dd HH:mm:ss 格式
-        JacksonAssist.registerTimeZoneModule(objectMapper, TimeZone.getTimeZone("GMT+8"), XTime.SECOND_MINUS_BLANK_COLON.pattern);
+        objectMapper = JacksonAssist.registerTimeZoneModule(objectMapper, TimeZone.getTimeZone("GMT+8"), XTime.SECOND_MINUS_BLANK_COLON.pattern);
+        if (includeAlways) {
+            objectMapper = objectMapper.rebuild()
+                    .changeDefaultPropertyInclusion(old -> com.fasterxml.jackson.annotation.JsonInclude.Value.construct(Include.ALWAYS, Include.ALWAYS))
+                    .build();
+        }
+        if (snakeCase) {
+            objectMapper = objectMapper.rebuild()
+                    .propertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE)
+                    .build();
+        }
         return objectMapper;
     }
 
