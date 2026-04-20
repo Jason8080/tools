@@ -60,10 +60,7 @@ public class LocalDateTimeUtil {
     public static Duration between(Date start, Date end) {
         LocalDateTime date1 = LocalDateTimeUtil.toLocalDateTime(start);
         LocalDateTime date2 = LocalDateTimeUtil.toLocalDateTime(end);
-        if (BoolUtil.allNotNull(date1, date2)) {
-            return Duration.between(date1, date2);
-        }
-        return Duration.ZERO;
+        return between(date1, date2);
     }
 
     /**
@@ -164,8 +161,8 @@ public class LocalDateTimeUtil {
      * @param localTime the local time
      * @return the date
      */
-    public static Date moment(Date date, LocalTime localTime) {
-        return moment(toLocalDateTime(date), localTime);
+    public static LocalDateTime moment(Date date, LocalTime localTime) {
+        return moment(Objects.requireNonNull(toLocalDateTime(date)), localTime);
     }
 
     /**
@@ -176,7 +173,7 @@ public class LocalDateTimeUtil {
      * @param localTime the local time
      * @return the date
      */
-    public static Date moment(Date date, long offset, LocalTime localTime) {
+    public static LocalDateTime moment(Date date, long offset, LocalTime localTime) {
         return moment(toLocalDateTime(date), offset, localTime);
     }
 
@@ -187,8 +184,8 @@ public class LocalDateTimeUtil {
      * @param localTime the local date
      * @return the date
      */
-    public static Date moment(LocalDateTime date, LocalTime localTime) {
-        return toDate(LocalDateTime.of(date.toLocalDate(), localTime));
+    public static LocalDateTime moment(LocalDateTime date, LocalTime localTime) {
+        return LocalDateTime.of(date.toLocalDate(), localTime);
     }
 
     /**
@@ -199,9 +196,9 @@ public class LocalDateTimeUtil {
      * @param localTime the local time
      * @return the date
      */
-    public static Date moment(LocalDateTime date, long offset, LocalTime localTime) {
+    public static LocalDateTime moment(LocalDateTime date, long offset, LocalTime localTime) {
         LocalDateTime plus = plus(date, offset, ChronoUnit.DAYS);
-        return toDate(LocalDateTime.of(plus.toLocalDate(), localTime));
+        return LocalDateTime.of(plus.toLocalDate(), localTime);
     }
 
     /**
@@ -215,11 +212,9 @@ public class LocalDateTimeUtil {
      * @param localTime 指定时刻
      * @return 时间 date
      */
-    public static Date momentCurrent(int offset, LocalTime localTime) {
+    public static LocalDateTime momentCurrent(int offset, LocalTime localTime) {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime plus = plus(now, offset, ChronoUnit.DAYS);
-        LocalDateTime date = LocalDateTime.of(plus.toLocalDate(), localTime);
-        return toDate(date);
+        return moment(now, offset, localTime);
     }
 
     /**
@@ -228,10 +223,9 @@ public class LocalDateTimeUtil {
      * @param localTime the local time
      * @return the date
      */
-    public static Date momentCurrent(LocalTime localTime) {
+    public static LocalDateTime momentCurrent(LocalTime localTime) {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime date = LocalDateTime.of(now.toLocalDate(), localTime);
-        return toDate(date);
+        return LocalDateTime.of(now.toLocalDate(), localTime);
     }
 
     /**
