@@ -247,7 +247,7 @@ public class LocalDateTimeUtil {
      */
     public static LocalDateTime momentCurrent(TemporalAdjuster temporalAdjuster, LocalTime localTime) {
         LocalDateTime localDateTime = LocalDateTime.now().with(temporalAdjuster);
-        return localDateTime.of(localDateTime.toLocalDate(), localTime);
+        return LocalDateTime.of(localDateTime.toLocalDate(), localTime);
     }
 
 }
