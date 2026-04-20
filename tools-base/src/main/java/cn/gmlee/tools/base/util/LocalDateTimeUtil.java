@@ -235,7 +235,7 @@ public class LocalDateTimeUtil {
     }
 
     /**
-     * 获取某个高光时刻.
+     * 获取某个特定日期.
      *
      * @param temporalAdjuster the temporal adjuster
      * @return local date time
@@ -245,7 +245,7 @@ public class LocalDateTimeUtil {
     }
 
     /**
-     * 获取某个高光时刻.
+     * 获取某个特定日期.
      *
      * @param temporalAdjuster the temporal adjuster
      * @param localTime        the local time
