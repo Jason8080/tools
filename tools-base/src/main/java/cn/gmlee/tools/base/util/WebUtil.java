@@ -1243,17 +1243,11 @@ public class WebUtil {
      */
     public static String addParam(String url, Map<String, Object> params) {
         if (BoolUtil.notEmpty(url) && BoolUtil.notEmpty(params)) {
-            StringBuilder sb = new StringBuilder();
-            Iterator<Map.Entry<String, Object>> it = params.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry<String, Object> next = it.next();
+            for (Map.Entry<String, Object> next : params.entrySet()) {
                 String key = next.getKey();
                 Object value = next.getValue();
-                String str = addParam(sb.toString(), key, value.toString());
-                sb.append(str);
+                url = addParam(url, key, value.toString());
             }
-            sb.insert(0, url);
-            return sb.toString();
         }
         return url;
     }
