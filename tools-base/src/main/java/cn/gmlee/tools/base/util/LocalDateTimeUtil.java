@@ -110,9 +110,9 @@ public class LocalDateTimeUtil {
      * @param unit   the unit
      * @return the date
      */
-    public static Date offset(LocalDateTime now, long offset, ChronoUnit unit) {
+    public static LocalDateTime offset(LocalDateTime now, long offset, ChronoUnit unit) {
         if (now != null) {
-            return toDate(now.plus(offset, unit));
+            return now.plus(offset, unit);
         }
         return null;
     }
@@ -139,7 +139,7 @@ public class LocalDateTimeUtil {
      */
     public static Date offset(Date date, long offset, ChronoUnit unit) {
         LocalDateTime now = toLocalDateTime(date);
-        return offset(now, offset, unit);
+        return toDate(offset(now, offset, unit));
     }
 
     /**
@@ -151,7 +151,7 @@ public class LocalDateTimeUtil {
      */
     public static Date offsetCurrent(long offset, ChronoUnit unit) {
         LocalDateTime now = LocalDateTime.now();
-        return offset(now, offset, unit);
+        return toDate(offset(now, offset, unit));
     }
 
     /**
