@@ -70,7 +70,7 @@
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>dashscope-sdk-java</artifactId>
-            <version>2.20.1</version>
+            <version>2.22.15</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.google.code.gson</groupId>
@@ -86,7 +86,7 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.10.1</version> <!-- 可以使用最新版本 -->
+            <version>2.13.2</version> <!-- 可以使用最新版本 -->
         </dependency>
 
         <dependency>
