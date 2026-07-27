@@ -1,6 +1,5 @@
 package cn.gmlee.tools.im.serve;
 
-import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.MsgEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cloud.stream.function.StreamBridge;
@@ -19,7 +18,7 @@ public class BroadcasterServe {
      * @param topic the topic
      * @param event the event
      */
-    public void broadcast(String topic, MsgEvent event) {
+    public void send(String topic, MsgEvent event) {
         streamBridge.send(topic, event);
     }
 }
