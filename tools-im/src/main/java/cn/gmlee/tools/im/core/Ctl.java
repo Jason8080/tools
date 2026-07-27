@@ -4,6 +4,8 @@ import cn.gmlee.tools.base.mod.R;
 import org.springframework.util.MultiValueMap;
 import reactor.core.publisher.Flux;
 
+import java.io.Serializable;
+
 /**
  * 控制器
  *
@@ -18,8 +20,8 @@ public interface Ctl<T> {
      * @param t         推送内容
      * @return r 返回结果
      */
-    default R<?> push(String queue, MultiValueMap<String, String> urlParams, T t) {
-        return R.OK;
+    default R<Serializable> push(String queue, MultiValueMap<String, String> urlParams, T t) {
+        return R.of("推送成功");
     }
 
     /**

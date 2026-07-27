@@ -1,5 +1,7 @@
 package cn.gmlee.tools.im.core;
 
+import org.springframework.util.MultiValueMap;
+
 import java.io.Serializable;
 
 /**
@@ -9,7 +11,9 @@ public interface Msg extends Serializable {
     /**
      * Build msg event.
      *
+     * @param urlParams the url params
      * @return the msg event
      */
-    MsgEvent<Msg> build();
+    MsgEvent<Msg> build(MultiValueMap<String, String> urlParams);
+
 }

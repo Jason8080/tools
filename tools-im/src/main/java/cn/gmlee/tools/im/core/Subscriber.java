@@ -1,5 +1,7 @@
 package cn.gmlee.tools.im.core;
 
+import org.springframework.util.MultiValueMap;
+
 import java.io.Serializable;
 
 /**
@@ -11,8 +13,9 @@ public interface Subscriber<T> extends Serializable {
     /**
      * 拉取消息.
      *
-     * @param t the t
-     * @return Boolean 是否处理成功，true: 处理成功，false: 处理失败， null: 忽略不处理
+     * @param topic     the topic
+     * @param urlParams
+     * @return t 消息内容
      */
-    Boolean pull(T t);
+    T pull(String topic, MultiValueMap<String, String> urlParams);
 }

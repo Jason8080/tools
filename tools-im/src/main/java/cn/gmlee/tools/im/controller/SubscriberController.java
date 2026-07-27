@@ -3,7 +3,8 @@ package cn.gmlee.tools.im.controller;
 import cn.gmlee.tools.base.mod.R;
 import cn.gmlee.tools.im.core.Ctl;
 import cn.gmlee.tools.im.core.Msg;
-import cn.gmlee.tools.im.core.MsgEvent;
+import cn.gmlee.tools.im.serve.PublisherServe;
+import cn.gmlee.tools.im.serve.SubscriberServe;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
@@ -11,7 +12,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Sinks;
 
 /**
  * 订阅者控制器
@@ -19,7 +19,7 @@ import reactor.core.publisher.Sinks;
 @RequiredArgsConstructor
 public class SubscriberController implements Ctl<Msg> {
 
-    private final Sinks.Many<MsgEvent<Msg>> msgSink;
+    private final SubscriberServe subscriberServe;
 
     /**
      * 拉取.
@@ -29,6 +29,6 @@ public class SubscriberController implements Ctl<Msg> {
      */
     @GetMapping(value = "pull/{topic}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<R<Msg>> pull(@PathVariable String topic, @RequestParam MultiValueMap<String, String> urlParams) {
-        return Flux.empty();
+        return subscriberServe.pull(topic, urlParams);
     }
 }

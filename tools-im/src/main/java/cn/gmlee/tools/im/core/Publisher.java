@@ -1,5 +1,7 @@
 package cn.gmlee.tools.im.core;
 
+import org.springframework.util.MultiValueMap;
+
 import java.io.Serializable;
 
 /**
@@ -11,8 +13,10 @@ public interface Publisher<T> extends Serializable {
     /**
      * 推送消息.
      *
-     * @param t the t
+     * @param topic     the topic
+     * @param urlParams
+     * @param msg       the t
      * @return Serializable 消息ID
      */
-    Serializable push(T t);
+    Serializable push(String topic, MultiValueMap<String, String> urlParams, Msg msg);
 }
