@@ -27,9 +27,9 @@ public class PublisherController implements Ctl<Msg> {
      * @return r 返回结果
      */
     @Override
-    @PostMapping(value = "push/{queue}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public R<?> push(@PathVariable String queue, @RequestParam MultiValueMap<String, String> urlParams, @RequestBody Msg msg) {
-        broadcasterServe.send(queue, msg);
+    @PostMapping(value = "push/{topic}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public R<?> push(@PathVariable String topic, @RequestParam MultiValueMap<String, String> urlParams, @RequestBody Msg msg) {
+        broadcasterServe.send(topic, msg);
         return R.OK;
     }
 }

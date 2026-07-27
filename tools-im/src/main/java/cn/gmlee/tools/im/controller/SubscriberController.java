@@ -27,8 +27,8 @@ public class SubscriberController implements Ctl<Msg> {
      * @param urlParams the url params
      * @return flux 返回结果
      */
-    @GetMapping(value = "pull/{queue}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<R<Msg>> pull(@PathVariable String queue, @RequestParam MultiValueMap<String, String> urlParams) {
+    @GetMapping(value = "pull/{topic}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<R<Msg>> pull(@PathVariable String topic, @RequestParam MultiValueMap<String, String> urlParams) {
         return Flux.empty();
     }
 }
