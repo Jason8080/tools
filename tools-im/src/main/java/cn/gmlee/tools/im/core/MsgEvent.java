@@ -6,4 +6,5 @@ import java.io.Serializable;
 
 @Data
 public class MsgEvent implements Serializable {
+    private long timestamp = System.currentTimeMillis();
 }
