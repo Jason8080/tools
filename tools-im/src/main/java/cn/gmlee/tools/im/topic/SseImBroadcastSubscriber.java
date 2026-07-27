@@ -1,30 +1,29 @@
-package cn.gmlee.tools.im.serve;
+package cn.gmlee.tools.im.topic;
 
 import cn.gmlee.tools.base.mod.R;
 import cn.gmlee.tools.im.core.Msg;
-import cn.gmlee.tools.im.core.TopicMessage;
 import cn.gmlee.tools.im.core.Subscriber;
+import cn.gmlee.tools.im.sse.SseConnectionManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.util.MultiValueMap;
 import reactor.core.publisher.Flux;
-import reactor.core.publisher.Sinks;
 
 /**
  * 订阅服务
  */
 @RequiredArgsConstructor
-public class SubscriberServe implements Subscriber<Flux<R<Msg>>> {
+public class SseImBroadcastSubscriber implements Subscriber<Flux<R<Msg>>> {
 
-    private final Sinks.Many<TopicMessage<Msg>> sinksMany;
+    private final SseConnectionManager sseConnectionManager;
 
     @Override
     public String topic() {
-        return "";
+        return "sse-im.broadcast";
     }
 
     @Override
     public Flux<R<Msg>> pull(MultiValueMap<String, String> urlParams) {
-        return Flux.empty();
+        return sseConnectionManager.subscribe(topic()).map(topicMessage -> R.of(topicMessage.getMsg()));
     }
 
 }

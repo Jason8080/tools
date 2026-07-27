@@ -3,7 +3,7 @@ package cn.gmlee.tools.im.controller;
 import cn.gmlee.tools.base.mod.R;
 import cn.gmlee.tools.im.core.Ctl;
 import cn.gmlee.tools.im.core.Msg;
-import cn.gmlee.tools.im.serve.TopicRouterServe;
+import cn.gmlee.tools.im.core.TopicRouter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
@@ -20,7 +20,7 @@ import java.io.Serializable;
 @RequiredArgsConstructor
 public class SubscriberController implements Ctl<Msg> {
 
-    private final TopicRouterServe<Serializable, Msg> topicRouteServe;
+    private final TopicRouter<Serializable, Msg> topicRouteServe;
 
     /**
      * 拉取.

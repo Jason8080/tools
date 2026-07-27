@@ -1,6 +1,5 @@
-package cn.gmlee.tools.im.serve;
+package cn.gmlee.tools.im.topic;
 
-import cn.gmlee.tools.im.conf.StreamProperties;
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.TopicMessage;
@@ -14,15 +13,13 @@ import java.io.Serializable;
  * 发布服务
  */
 @RequiredArgsConstructor
-public class PublisherServe implements Publisher<Serializable, Msg> {
+public class SseImBroadcastPublisher implements Publisher<Serializable, Msg> {
 
     private final StreamBridge streamBridge;
 
-    private final StreamProperties streamProperties;
-
     @Override
     public String topic() {
-        return "sse-im-broadcast";
+        return "sse-im.broadcast";
     }
 
     @Override

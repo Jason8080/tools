@@ -1,28 +1,43 @@
 package cn.gmlee.tools.im.core;
 
-import cn.gmlee.tools.im.ex.TopicNotFoundException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.util.MultiValueMap;
+import reactor.core.publisher.Flux;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
- * The interface Topic route.
+ * 主题路由服务.
+ *
+ * @param <ID>  the type parameter
+ * @param <MSG> the type parameter
  */
-public interface TopicRouter extends Serializable {
+@RequiredArgsConstructor
+public class TopicRouter<ID, MSG> implements Router {
+
+    private final List<Publisher<ID, MSG>> publishers;
+    private final List<Subscriber<Flux<MSG>>> subscribers;
+
     /**
-     * Route topic.
+     * Push serializable.
      *
-     * @param <T>    the type parameter
-     * @param topic  the topic
-     * @param topics the topics
-     * @return the topic
+     * @param topic     the topic
+     * @param urlParams the url params
+     * @param msg       the msg
+     * @return the serializable
      */
-    default <T extends Topic> T route(String topic, List<T> topics) {
-        for (T t : topics) {
-            if (String.valueOf(t.topic()).equalsIgnoreCase(topic)) {
-                return t;
-            }
-        }
-        throw new TopicNotFoundException(topic);
+    public ID push(String topic, MultiValueMap<String, String> urlParams, MSG msg) {
+        return route(topic, publishers).push(urlParams, msg);
+    }
+
+    /**
+     * Pull flux.
+     *
+     * @param topic     the topic
+     * @param urlParams the url params
+     * @return the flux
+     */
+    public Flux<MSG> pull(String topic, MultiValueMap<String, String> urlParams) {
+        return route(topic, subscribers).pull(urlParams);
     }
 }
