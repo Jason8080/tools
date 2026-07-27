@@ -14,7 +14,7 @@ public interface Subscriber<T> extends Serializable {
      * 拉取消息.
      *
      * @param topic     the topic
-     * @param urlParams
+     * @param urlParams the url params
      * @return t 消息内容
      */
     T pull(String topic, MultiValueMap<String, String> urlParams);
