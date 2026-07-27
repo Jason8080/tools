@@ -14,8 +14,8 @@ public class SubscriberController {
     /**
      * Pull flux.
      *
-     * @param message the message
-     * @return the flux
+     * @param message 消息内容
+     * @return flux 返回结果
      */
     @GetMapping(value = "pull", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<?> pull(@RequestParam String message) {
