@@ -20,7 +20,7 @@ public class MsgEventConsumer {
                     MsgEvent event = msg.getPayload();
                     Sinks.EmitResult result = msgSink.tryEmitNext(event);
                     if (result.isFailure()) {
-                        log.warn("Failed to emit msg event: {}", result);
+                        log.warn("消息发送失败: {}", result);
                     }
                 }).then();
     }
