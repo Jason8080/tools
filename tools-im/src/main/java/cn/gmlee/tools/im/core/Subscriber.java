@@ -11,8 +11,8 @@ public interface Subscriber<T> extends Serializable {
     /**
      * 拉取消息.
      *
-     * @param msg the msg
+     * @param t the t
      * @return Boolean 是否处理成功，true: 处理成功，false: 处理失败， null: 忽略不处理
      */
-    Boolean pull(Msg<T> msg);
+    Boolean pull(T t);
 }

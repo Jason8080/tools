@@ -11,8 +11,8 @@ public interface Publisher<T> extends Serializable {
     /**
      * 推送消息.
      *
-     * @param msg the msg
+     * @param t the t
      * @return Serializable 消息ID
      */
-    Serializable push(Msg<T> msg);
+    Serializable push(T t);
 }

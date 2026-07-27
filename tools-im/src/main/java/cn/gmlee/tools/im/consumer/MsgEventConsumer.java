@@ -1,5 +1,6 @@
 package cn.gmlee.tools.im.consumer;
 
+import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.MsgEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -14,10 +15,10 @@ import java.util.function.Function;
 public class MsgEventConsumer {
 
     @Bean
-    public Function<Flux<Message<MsgEvent>>, Mono<Void>> consumeMsgEvents(Sinks.Many<MsgEvent> msgSink) {
+    public Function<Flux<Message<MsgEvent<Msg>>>, Mono<Void>> consumeMsgEvents(Sinks.Many<MsgEvent<Msg>> msgSink) {
         return flux -> flux
                 .doOnNext(msg -> {
-                    MsgEvent event = msg.getPayload();
+                    MsgEvent<Msg> event = msg.getPayload();
                     Sinks.EmitResult result = msgSink.tryEmitNext(event);
                     if (result.isFailure()) {
                         log.warn("消息发送失败: {}", result);
