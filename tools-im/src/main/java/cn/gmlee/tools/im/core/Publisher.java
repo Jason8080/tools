@@ -7,16 +7,16 @@ import java.io.Serializable;
 /**
  * 发布者
  *
- * @param <T> 消息内容
+ * @param <ID>  the type parameter
+ * @param <MSG> the type parameter
  */
-public interface Publisher<T> extends Serializable {
+public interface Publisher<ID, MSG> extends Topic, Serializable {
     /**
      * 推送消息.
      *
-     * @param topic     the topic
-     * @param urlParams
-     * @param msg       the t
-     * @return Serializable 消息ID
+     * @param urlParams the url params
+     * @param msg       the msg
+     * @return id 消息ID
      */
-    Serializable push(String topic, MultiValueMap<String, String> urlParams, Msg msg);
+    ID push(MultiValueMap<String, String> urlParams, MSG msg);
 }

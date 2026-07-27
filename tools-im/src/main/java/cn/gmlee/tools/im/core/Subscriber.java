@@ -7,15 +7,14 @@ import java.io.Serializable;
 /**
  * 订阅者
  *
- * @param <T> 消息内容
+ * @param <MSG> the type parameter
  */
-public interface Subscriber<T> extends Serializable {
+public interface Subscriber<MSG> extends Topic, Serializable {
     /**
      * 拉取消息.
      *
-     * @param topic     the topic
      * @param urlParams the url params
-     * @return t 消息内容
+     * @return msg 消息内容
      */
-    T pull(String topic, MultiValueMap<String, String> urlParams);
+    MSG pull(MultiValueMap<String, String> urlParams);
 }

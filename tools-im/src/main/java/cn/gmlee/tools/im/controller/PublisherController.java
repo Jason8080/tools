@@ -3,8 +3,7 @@ package cn.gmlee.tools.im.controller;
 import cn.gmlee.tools.base.mod.R;
 import cn.gmlee.tools.im.core.Ctl;
 import cn.gmlee.tools.im.core.Msg;
-import cn.gmlee.tools.im.core.MsgEvent;
-import cn.gmlee.tools.im.serve.PublisherServe;
+import cn.gmlee.tools.im.serve.TopicRouterServe;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.util.MultiValueMap;
@@ -21,7 +20,7 @@ import java.io.Serializable;
 @RequiredArgsConstructor
 public class PublisherController implements Ctl<Msg> {
 
-    private final PublisherServe publisherServe;
+    private final TopicRouterServe<Serializable, Msg> topicRouteServe;
 
     /**
      * 推送.
@@ -32,6 +31,6 @@ public class PublisherController implements Ctl<Msg> {
     @Override
     @PostMapping(value = "push/{topic}", produces = MediaType.APPLICATION_JSON_VALUE)
     public R<Serializable> push(@PathVariable String topic, @RequestParam MultiValueMap<String, String> urlParams, @RequestBody Msg msg) {
-        return R.of(publisherServe.push(topic, urlParams, msg));
+        return R.of(topicRouteServe.push(topic, urlParams, msg));
     }
 }

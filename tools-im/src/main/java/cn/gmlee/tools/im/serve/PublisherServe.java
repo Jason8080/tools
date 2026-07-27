@@ -13,14 +13,19 @@ import java.io.Serializable;
  * 发布服务
  */
 @RequiredArgsConstructor
-public class PublisherServe implements Publisher<Msg> {
+public class PublisherServe implements Publisher<Serializable, Msg> {
 
     private final StreamBridge streamBridge;
 
     @Override
-    public Serializable push(String topic, MultiValueMap<String, String> urlParams, Msg msg) {
+    public String topic() {
+        return "";
+    }
+
+    @Override
+    public Serializable push(MultiValueMap<String, String> urlParams, Msg msg) {
         MsgEvent<Msg> event = msg.build(urlParams);
-        streamBridge.send(topic, event);
+        streamBridge.send(topic(), event);
         return event.getId();
     }
 }

@@ -18,7 +18,13 @@ public class SubscriberServe implements Subscriber<Flux<R<Msg>>> {
     private final Sinks.Many<MsgEvent<Msg>> sinksMany;
 
     @Override
-    public Flux<R<Msg>> pull(String topic, MultiValueMap<String, String> urlParams) {
+    public String topic() {
+        return "";
+    }
+
+    @Override
+    public Flux<R<Msg>> pull(MultiValueMap<String, String> urlParams) {
         return Flux.empty();
     }
+
 }
