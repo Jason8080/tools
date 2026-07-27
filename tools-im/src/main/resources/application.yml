@@ -1,0 +1,46 @@
+# SseIm Framework 默认配置
+sse-im:
+  sse:
+    enabled: true
+    base-path: /sse
+    heartbeat-interval: 15s
+    max-connections-per-topic: 10000
+    max-total-connections: 100000
+    buffer-size: 1024
+    connection-timeout: 0s
+    replay-enabled: true
+    max-replay-events: 200
+    retry-millis: 5000
+
+  stream:
+    enabled: false                          # 多实例同步（需引入 Spring Cloud Stream Binder）
+    broadcast-destination: sse-im-broadcast # 广播目标名
+    consumer-prefetch: 250                  # 消费者预取数（覆盖 SCS 默认的 1）
+    consumer-concurrency: 4                 # 消费者并发数
+    skip-self-messages: true                # 跳过本实例发出的消息
+
+# ========================================================
+# Spring Cloud Stream 配置示例（多实例同步时启用）
+# ========================================================
+# spring:
+#   cloud:
+#     function:
+#       definition: sseImBroadcastConsumer     # 必须与 Bean 名一致
+#     stream:
+#       bindings:
+#         sseImBroadcastConsumer-in-0:
+#           destination: ${sse-im.stream.broadcast-destination}
+#           # 不设 group → Fanout 广播到所有实例
+#       # ---- RabbitMQ Binder 调优示例 ----
+#       rabbit:
+#         bindings:
+#           sseImBroadcastConsumer-in-0:
+#             consumer:
+#               prefetch: ${sse-im.stream.consumer-prefetch}
+#               max-concurrency: ${sse-im.stream.consumer-concurrency}
+#       # ---- Kafka Binder 调优示例 ----
+#       kafka:
+#         bindings:
+#           sseImBroadcastConsumer-in-0:
+#             consumer:
+#               concurrency: ${sse-im.stream.consumer-concurrency}

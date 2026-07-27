@@ -1,0 +1,47 @@
+# Demo 应用配置
+server:
+  port: 8080
+
+# SseIm 框架配置
+sse-im:
+  sse:
+    enabled: true
+    base-path: /sse
+    heartbeat-interval: 15s
+    max-connections-per-topic: 1000
+    buffer-size: 256
+    retry-millis: 5000
+
+  stream:
+    enabled: false  # Demo 单实例模式，不启用多实例广播
+
+# 日志配置
+logging:
+  level:
+    cn.gmlee.tools.im: DEBUG
+    root: INFO
+
+# ========================================================
+# 多实例模式配置示例（启用后需引入 rabbit binder 依赖）：
+# ========================================================
+# sse-im:
+#   stream:
+#     enabled: true
+#     broadcast-destination: sse-im-broadcast
+#
+# spring:
+#   cloud:
+#     function:
+#       definition: sseImBroadcastConsumer
+#     stream:
+#       bindings:
+#         sseImBroadcastConsumer-in-0:
+#           destination: sse-im-broadcast
+#       rabbit:
+#         bindings:
+#           sseImBroadcastConsumer-in-0:
+#             consumer:
+#               prefetch: 250
+#   rabbitmq:
+#     host: localhost
+#     port: 5672
