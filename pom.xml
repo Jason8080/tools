@@ -93,6 +93,7 @@
         <module>tools-profile</module>
         <module>tools-gray</module>
         <module>tools-sign</module>
+        <module>tools-im</module>
     </modules>
 
     <!--
