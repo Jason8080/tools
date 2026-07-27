@@ -13,7 +13,7 @@ public class BroadcasterServe {
     private final StreamBridge streamBridge;
 
     /**
-     * Broadcast.
+     * Send.
      *
      * @param topic the topic
      * @param event the event
