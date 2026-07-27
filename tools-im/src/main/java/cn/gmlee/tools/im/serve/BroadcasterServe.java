@@ -10,7 +10,7 @@ import reactor.core.publisher.Sinks;
 public class BroadcasterServe {
 
     @Bean
-    public Sinks.Many<MsgEvent> priceSink() {
+    public Sinks.Many<MsgEvent> msgEventSink() {
         return Sinks.many().multicast().onBackpressureBuffer(1024);
     }
 
