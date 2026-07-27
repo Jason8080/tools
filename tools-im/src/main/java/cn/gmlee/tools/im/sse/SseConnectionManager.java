@@ -3,6 +3,7 @@ package cn.gmlee.tools.im.sse;
 import cn.gmlee.tools.im.conf.SseProperties;
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.TopicMessage;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
@@ -15,11 +16,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <p>
  * 管理所有 SSE 连接，提供订阅/取消订阅能力
  * </p>
- *
- * @author SseIm Framework
- * @since 1.0.0
  */
 @Slf4j
+@RequiredArgsConstructor
 public class SseConnectionManager {
 
     private final SseProperties properties;
@@ -39,10 +38,6 @@ public class SseConnectionManager {
      */
     private final AtomicInteger totalConnections = new AtomicInteger(0);
 
-    public SseConnectionManager(SseProperties properties) {
-        this.properties = properties;
-    }
-
     /**
      * 订阅 Topic
      *
@@ -52,13 +47,13 @@ public class SseConnectionManager {
     public Flux<TopicMessage<Msg>> subscribe(String topic) {
         // 检查连接数限制
         if (totalConnections.get() >= properties.getMaxTotalConnections()) {
-            log.warn("Max total connections reached: {}", properties.getMaxTotalConnections());
+            log.warn("已达到最大连接数: {}", properties.getMaxTotalConnections());
             return Flux.error(new RuntimeException("Max connections reached"));
         }
 
         AtomicInteger count = connectionCounts.computeIfAbsent(topic, k -> new AtomicInteger(0));
         if (count.get() >= properties.getMaxConnectionsPerTopic()) {
-            log.warn("Max connections for topic {} reached: {}", topic, properties.getMaxConnectionsPerTopic());
+            log.warn("已达到 {} 的最大连接数: {}", topic, properties.getMaxConnectionsPerTopic());
             return Flux.error(new RuntimeException("Max connections for topic reached"));
         }
 
@@ -70,14 +65,14 @@ public class SseConnectionManager {
         count.incrementAndGet();
         totalConnections.incrementAndGet();
 
-        log.debug("Client subscribed to topic: {}, connections: {}", topic, count.get());
+        log.debug("客户端已订阅主题: {}, 连接数: {}", topic, count.get());
 
         // 返回事件流，添加心跳和生命周期管理
         return sink.asFlux()
                 .doOnCancel(() -> {
                     count.decrementAndGet();
                     totalConnections.decrementAndGet();
-                    log.debug("Client unsubscribed from topic: {}, connections: {}", topic, count.get());
+                    log.debug("客户端已取消订阅主题: {}, 连接数: {}", topic, count.get());
                     cleanupIfEmpty(topic);
                 })
                 .doOnTerminate(() -> {
@@ -101,7 +96,7 @@ public class SseConnectionManager {
         if (sink != null) {
             Sinks.EmitResult result = sink.tryEmitNext(message);
             if (result.isFailure()) {
-                log.warn("Failed to emit message to topic {}: {}", message.getTopic(), result);
+                log.warn("消息发送到主题 {} 失败: {}", message.getTopic(), result);
             }
         }
     }
@@ -143,7 +138,7 @@ public class SseConnectionManager {
         if (count != null && count.get() <= 0) {
             topicSinks.remove(topic);
             connectionCounts.remove(topic);
-            log.debug("Cleaned up empty sink for topic: {}", topic);
+            log.debug("已清理空闲主题: {}", topic);
         }
     }
 
@@ -155,6 +150,6 @@ public class SseConnectionManager {
         topicSinks.clear();
         connectionCounts.clear();
         totalConnections.set(0);
-        log.info("SSE Connection Manager shutdown");
+        log.info("SSE 连接管理器已关闭");
     }
 }
