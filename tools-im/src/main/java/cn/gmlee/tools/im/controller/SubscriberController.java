@@ -12,13 +12,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import reactor.core.publisher.Flux;
 
+import java.io.Serializable;
+
 /**
  * 订阅者控制器
  */
 @RequiredArgsConstructor
 public class SubscriberController implements Ctl<Msg> {
 
-    private final TopicRouterServe topicRouteServe;
+    private final TopicRouterServe<Serializable, Msg> topicRouteServe;
 
     /**
      * 拉取.
@@ -28,6 +30,6 @@ public class SubscriberController implements Ctl<Msg> {
      */
     @GetMapping(value = "pull/{topic}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<R<Msg>> pull(@PathVariable String topic, @RequestParam MultiValueMap<String, String> urlParams) {
-        return topicRouteServe.pull(topic, urlParams);
+        return topicRouteServe.pull(topic, urlParams).map(R::of);
     }
 }

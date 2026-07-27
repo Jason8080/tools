@@ -1,6 +1,5 @@
 package cn.gmlee.tools.im.serve;
 
-import cn.gmlee.tools.base.mod.R;
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Subscriber;
 import cn.gmlee.tools.im.core.TopicRouter;
@@ -20,7 +19,7 @@ import java.util.List;
 public class TopicRouterServe<ID, MSG> implements TopicRouter {
 
     private final List<Publisher<ID, MSG>> publishers;
-    private final List<Subscriber<Flux<R<MSG>>>> subscribers;
+    private final List<Subscriber<Flux<MSG>>> subscribers;
 
     /**
      * Push serializable.
@@ -41,7 +40,7 @@ public class TopicRouterServe<ID, MSG> implements TopicRouter {
      * @param urlParams the url params
      * @return the flux
      */
-    public Flux<R<MSG>> pull(String topic, MultiValueMap<String, String> urlParams) {
+    public Flux<MSG> pull(String topic, MultiValueMap<String, String> urlParams) {
         return route(topic, subscribers).pull(urlParams);
     }
 }

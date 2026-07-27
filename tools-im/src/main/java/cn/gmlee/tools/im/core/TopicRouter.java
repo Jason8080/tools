@@ -1,5 +1,7 @@
 package cn.gmlee.tools.im.core;
 
+import cn.gmlee.tools.im.ex.TopicNotFoundException;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -21,6 +23,6 @@ public interface TopicRouter extends Serializable {
                 return t;
             }
         }
-        throw new RuntimeException("不支持的 Topic: " + topic);
+        throw new TopicNotFoundException(topic);
     }
 }
