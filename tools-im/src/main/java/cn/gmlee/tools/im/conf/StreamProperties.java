@@ -4,6 +4,6 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
-@ConfigurationProperties(prefix = "im")
-public class ImProperties {
+@ConfigurationProperties(prefix = "im.stream")
+public class StreamProperties {
 }

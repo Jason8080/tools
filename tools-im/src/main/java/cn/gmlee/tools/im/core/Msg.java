@@ -14,6 +14,6 @@ public interface Msg extends Serializable {
      * @param urlParams the url params
      * @return the msg event
      */
-    MsgEvent<Msg> build(MultiValueMap<String, String> urlParams);
+    TopicMessage<Msg> build(MultiValueMap<String, String> urlParams);
 
 }
