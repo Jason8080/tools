@@ -1,17 +1,25 @@
 package cn.gmlee.tools.im.serve;
 
+import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.MsgEvent;
-import org.springframework.context.annotation.Bean;
-import reactor.core.publisher.Sinks;
+import lombok.RequiredArgsConstructor;
+import org.springframework.cloud.stream.function.StreamBridge;
 
 /**
  * 广播服务
  */
+@RequiredArgsConstructor
 public class BroadcasterServe {
 
-    @Bean
-    public Sinks.Many<MsgEvent> msgEventSink() {
-        return Sinks.many().multicast().onBackpressureBuffer(1024);
-    }
+    private final StreamBridge streamBridge;
 
+    /**
+     * Broadcast.
+     *
+     * @param topic the topic
+     * @param event the event
+     */
+    public void broadcast(String topic, MsgEvent event) {
+        streamBridge.send(topic, event);
+    }
 }

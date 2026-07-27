@@ -7,7 +7,7 @@ import reactor.core.publisher.Sinks;
 public class MsgStreamAutoConfiguration {
 
     @Bean
-    public Sinks.Many<MsgEvent> msgSink() {
+    public Sinks.Many<MsgEvent> msgEventSink() {
         return Sinks.many().multicast().onBackpressureBuffer(1024);
     }
 }
