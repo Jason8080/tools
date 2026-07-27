@@ -3,6 +3,8 @@ package cn.gmlee.tools.im.conf;
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.MsgEvent;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.messaging.Message;
 import reactor.core.publisher.Flux;
@@ -12,6 +14,7 @@ import reactor.core.publisher.Sinks;
 import java.util.function.Function;
 
 @Slf4j
+@EnableConfigurationProperties(ImProperties.class)
 public class MsgStreamAutoConfiguration {
 
     @Bean
