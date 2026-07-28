@@ -36,6 +36,16 @@ public class SseMetrics {
 
     private static final String PREFIX = "im.sse";
 
+    /**
+     * 错误计数器最大类型数.
+     * <p>
+     * 防止动态错误类型无限增长导致 MeterRegistry 膨胀。
+     * 实际场景中错误类型来自固定集合（reaper_scan、subscribe_init 等），
+     * 此限制仅为防御性保护。
+     * </p>
+     */
+    private static final int MAX_ERROR_TYPES = 50;
+
     private final MeterRegistry registry;
     private final SseConnectionRegistry connectionRegistry;
     private final SseProperties properties;
@@ -159,11 +169,20 @@ public class SseMetrics {
 
     /**
      * 记录错误.
+     * <p>
+     * 错误类型来自固定集合（如 reaper_scan、subscribe_init），数量有限。
+     * 当类型数超过 {@link #MAX_ERROR_TYPES} 时，新类型不再注册，防止 MeterRegistry 无限膨胀。
+     * 所有错误计数器在 {@link #shutdownCleanup()} 中统一清理。
+     * </p>
      *
      * @param type 错误类型
      */
     public void recordError(String type) {
         if (!enabled) return;
+        if (errorCounters.size() >= MAX_ERROR_TYPES && !errorCounters.containsKey(type)) {
+            log.warn("SSE 错误计数器类型已达上限({}), 跳过注册新类型: {}", MAX_ERROR_TYPES, type);
+            return;
+        }
         errorCounters.computeIfAbsent(type, k ->
                 Counter.builder(PREFIX + ".errors")
                         .tag("type", k)
@@ -209,6 +228,10 @@ public class SseMetrics {
      * <p>
      * 当 Topic 被销毁时调用，从本地缓存和 MeterRegistry 中移除该 Topic 的指标对象，
      * 防止动态 Topic 场景下指标对象无限增长。
+     * </p>
+     * <p>
+     * 注意：errorCounters 按错误类型（而非 Topic）索引，类型数量有限且有上限保护
+     * （见 {@link #MAX_ERROR_TYPES}），不在此处清理。全量清理由 {@link #shutdownCleanup()} 负责。
      * </p>
      *
      * @param topic 要清理的 Topic

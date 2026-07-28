@@ -40,8 +40,16 @@ public class ConnectionReaper {
     private final SseConnectionRegistry registry;
     private final SseMetrics metrics;
     private final SseProperties properties;
-    private final ScheduledExecutorService scheduler;
     private final AtomicBoolean running = new AtomicBoolean(false);
+
+    /**
+     * 收割调度器（非 final，支持 stop/start 重建）.
+     * <p>
+     * stop() 会销毁调度器，start() 重新创建，避免在已终止的调度器上提交任务。
+     * volatile 保证 stop/start 跨线程可见性。
+     * </p>
+     */
+    private volatile ScheduledExecutorService scheduler;
 
     /**
      * 创建连接收割器.
@@ -54,17 +62,13 @@ public class ConnectionReaper {
         this.registry = registry;
         this.metrics = metrics;
         this.properties = properties;
-        this.scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "sse-connection-reaper");
-            t.setDaemon(true);
-            return t;
-        });
     }
 
     /**
      * 启动收割器.
      * <p>
      * 按配置的间隔定期执行扫描。
+     * 每次启动创建新的调度器，避免在已终止的调度器上提交任务。
      * </p>
      */
     public void start() {
@@ -77,9 +81,23 @@ public class ConnectionReaper {
             return;
         }
 
+        scheduler = createScheduler();
         long intervalMs = properties.getReaper().getInterval().toMillis();
         scheduler.scheduleAtFixedRate(this::scan, intervalMs, intervalMs, TimeUnit.MILLISECONDS);
         log.info("SSE 连接收割器已启动，扫描间隔: {}ms", intervalMs);
+    }
+
+    /**
+     * 创建收割调度器.
+     *
+     * @return 新的 daemon 单线程调度器
+     */
+    private static ScheduledExecutorService createScheduler() {
+        return Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "sse-connection-reaper");
+            t.setDaemon(true);
+            return t;
+        });
     }
 
     /**
@@ -89,14 +107,18 @@ public class ConnectionReaper {
         if (!running.compareAndSet(true, false)) {
             return;
         }
-        scheduler.shutdown();
-        try {
-            if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
-                scheduler.shutdownNow();
+        ScheduledExecutorService s = this.scheduler;
+        this.scheduler = null;
+        if (s != null) {
+            s.shutdown();
+            try {
+                if (!s.awaitTermination(5, TimeUnit.SECONDS)) {
+                    s.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                s.shutdownNow();
+                Thread.currentThread().interrupt();
             }
-        } catch (InterruptedException e) {
-            scheduler.shutdownNow();
-            Thread.currentThread().interrupt();
         }
         log.info("SSE 连接收割器已停止");
     }
@@ -114,6 +136,12 @@ public class ConnectionReaper {
             long idleTimeoutMs = properties.getReaper().getIdleTimeout().toMillis();
             long gracePeriodMs = properties.getReaper().getGracePeriod().toMillis();
 
+            // 捕获本地引用，避免 stop() 并发置 null 后 NPE
+            ScheduledExecutorService s = this.scheduler;
+            if (s == null || s.isShutdown()) {
+                return;
+            }
+
             // 获取所有连接快照
             List<SseConnection> connections = registry.snapshotConnections();
             int zombieCount = 0;
@@ -128,7 +156,7 @@ public class ConnectionReaper {
                                 System.currentTimeMillis() - conn.getLastActivityAt().get());
 
                         // 调度强制关闭
-                        scheduler.schedule(() -> forceClose(conn), gracePeriodMs, TimeUnit.MILLISECONDS);
+                        s.schedule(() -> forceClose(conn), gracePeriodMs, TimeUnit.MILLISECONDS);
                         zombieCount++;
                     }
                 }

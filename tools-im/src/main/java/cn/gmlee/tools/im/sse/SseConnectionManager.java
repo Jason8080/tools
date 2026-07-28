@@ -168,59 +168,76 @@ public class SseConnectionManager implements SmartLifecycle {
                 }
             } while (!topicCount.compareAndSet(currentTopic, currentTopic + 1));
 
-            // 3. 获取或创建 Sink（原子操作）
-            Sinks.Many<TopicMessage<Msg>> sink = registry.getOrCreateSink(topic);
+            // 3-5. 获取 Sink、创建连接、构建数据流
+            // 异常时回滚计数器，防止 doFinally 未注册导致计数器泄漏
+            try {
+                // 3. 获取或创建 Sink（原子操作）
+                Sinks.Many<TopicMessage<Msg>> sink = registry.getOrCreateSink(topic);
 
-            // 4. 创建连接记录
-            SseConnection conn = new SseConnection(topic);
-            registry.register(conn);
-            metrics.recordSubscribe(topic, "SUCCESS");
+                // 4. 创建连接记录
+                SseConnection conn = new SseConnection(topic);
+                registry.register(conn);
+                metrics.recordSubscribe(topic, "SUCCESS");
 
-            long elapsed = System.currentTimeMillis() - startTime;
-            metrics.recordSubscribeDuration(topic, elapsed);
+                long elapsed = System.currentTimeMillis() - startTime;
+                metrics.recordSubscribeDuration(topic, elapsed);
 
-            log.debug("SSE 连接已建立: topic={}, connectionId={}", topic, conn.getConnectionId());
+                log.debug("SSE 连接已建立: topic={}, connectionId={}", topic, conn.getConnectionId());
 
-            // 5. 构建数据流，附加生命周期钩子
+                // 5. 构建数据流，附加生命周期钩子
 
-            return sink.asFlux()
-                    // 首次订阅时保存 Subscription 引用并转换为 ACTIVE
-                    .doOnSubscribe(sub -> {
-                        conn.setSubscription(sub);
-                        conn.transition(ConnectionState.CREATED, ConnectionState.ACTIVE);
-                        conn.touch();
-                    })
-                    // 每次接收数据更新活跃时间
-                    .doOnNext(msg -> conn.touch())
-                    // 终止时清理（仅执行一次）
-                    .doFinally(signal -> {
-                        if (conn.markClosed()) {
-                            // doFinally 赢得清理权：递减计数器并移除连接
-                            if (conn.getCountersDecrementGuard().compareAndSet(false, true)) {
-                                topicCount.decrementAndGet();
-                                registry.getTotalConnections().decrementAndGet();
-                                registry.unregister(conn);
+                return sink.asFlux()
+                        // 首次订阅时保存 Subscription 引用并转换为 ACTIVE
+                        .doOnSubscribe(sub -> {
+                            conn.setSubscription(sub);
+                            // 检查是否在 doOnSubscribe 之前已被 Reaper/forceClose 标记关闭：
+                            // 此时 cancel() 因 subscription 为 null 而丢失，需在此处补偿取消
+                            if (conn.isClosed()) {
+                                sub.cancel();
+                                return;
                             }
-                            if (registry.cleanupIfEmpty(topic)) {
-                                metrics.cleanupTopic(topic);
-                            }
-                            conn.transition(conn.getState().get(), ConnectionState.CLOSED);
-                            log.debug("SSE 连接已关闭: topic={}, connectionId={}, signal={}",
-                                    topic, conn.getConnectionId(), signal);
-                        } else {
-                            // markClosed 返回 false：Reaper 或 Shutdown 已先清理
-                            // 检查 doFinally 是否仍需要递减计数器（Reaper 未完成递减的边界情况）
-                            if (registry.isRegistered(conn)
-                                    && conn.getCountersDecrementGuard().compareAndSet(false, true)) {
-                                topicCount.decrementAndGet();
-                                registry.getTotalConnections().decrementAndGet();
-                                registry.unregister(conn);
+                            conn.transition(ConnectionState.CREATED, ConnectionState.ACTIVE);
+                            conn.touch();
+                        })
+                        // 每次接收数据更新活跃时间
+                        .doOnNext(msg -> conn.touch())
+                        // 终止时清理（仅执行一次）
+                        .doFinally(signal -> {
+                            if (conn.markClosed()) {
+                                // doFinally 赢得清理权：递减计数器并移除连接
+                                if (conn.getCountersDecrementGuard().compareAndSet(false, true)) {
+                                    topicCount.decrementAndGet();
+                                    registry.getTotalConnections().decrementAndGet();
+                                    registry.unregister(conn);
+                                }
                                 if (registry.cleanupIfEmpty(topic)) {
                                     metrics.cleanupTopic(topic);
                                 }
+                                conn.transition(conn.getState().get(), ConnectionState.CLOSED);
+                                log.debug("SSE 连接已关闭: topic={}, connectionId={}, signal={}",
+                                        topic, conn.getConnectionId(), signal);
+                            } else {
+                                // markClosed 返回 false：Reaper 或 Shutdown 已先清理
+                                // 检查 doFinally 是否仍需要递减计数器（Reaper 未完成递减的边界情况）
+                                if (registry.isRegistered(conn)
+                                        && conn.getCountersDecrementGuard().compareAndSet(false, true)) {
+                                    topicCount.decrementAndGet();
+                                    registry.getTotalConnections().decrementAndGet();
+                                    registry.unregister(conn);
+                                    if (registry.cleanupIfEmpty(topic)) {
+                                        metrics.cleanupTopic(topic);
+                                    }
+                                }
                             }
-                        }
-                    });
+                        });
+            } catch (Exception e) {
+                // 异常路径：doFinally 尚未注册，必须手动回滚计数器
+                topicCount.decrementAndGet();
+                registry.getTotalConnections().decrementAndGet();
+                metrics.recordError("subscribe_init");
+                log.error("SSE 订阅初始化失败: topic={}", topic, e);
+                return Flux.error(e);
+            }
         });
     }
 
@@ -357,7 +374,12 @@ public class SseConnectionManager implements SmartLifecycle {
         running = true;
         accepting.set(true);
         drainGeneration.incrementAndGet(); // 使旧的异步 drain 任务失效
+        // 关闭旧调度器（若存在），防止线程泄漏
+        ScheduledExecutorService old = lifecycleScheduler;
         lifecycleScheduler = createLifecycleScheduler();
+        if (old != null) {
+            old.shutdownNow();
+        }
         reaper.start();
         log.info("SSE 连接管理器已启动");
     }
@@ -456,7 +478,10 @@ public class SseConnectionManager implements SmartLifecycle {
             } finally {
                 // 关闭调度器线程（daemon 线程，不影响 JVM 退出）
                 scheduler.shutdown();
-                lifecycleScheduler = null;
+                // 仅在调度器未被 start() 替换时置 null，避免覆盖新生命周期的调度器
+                if (lifecycleScheduler == scheduler) {
+                    lifecycleScheduler = null;
+                }
                 callback.run();
             }
         }, 0, TimeUnit.MILLISECONDS);
