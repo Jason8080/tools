@@ -46,6 +46,8 @@ public class SseMetrics {
     private final ConcurrentHashMap<String, Counter> publishCounters = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Counter> noSubscriberCounters = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Counter> errorCounters = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Timer> subscribeDurationTimers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Timer> publishDurationTimers = new ConcurrentHashMap<>();
 
     private Counter reaperScans;
     private Counter reaperZombies;
@@ -178,11 +180,12 @@ public class SseMetrics {
      */
     public void recordSubscribeDuration(String topic, long durationMs) {
         if (!enabled) return;
-        Timer.builder(PREFIX + ".subscribe.duration")
-                .tag("topic", topic)
-                .description("SSE 订阅延迟")
-                .register(registry)
-                .record(durationMs, TimeUnit.MILLISECONDS);
+        subscribeDurationTimers.computeIfAbsent(topic, k ->
+                Timer.builder(PREFIX + ".subscribe.duration")
+                        .tag("topic", topic)
+                        .description("SSE 订阅延迟")
+                        .register(registry)
+        ).record(durationMs, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -193,11 +196,59 @@ public class SseMetrics {
      */
     public void recordPublishDuration(String topic, long durationMs) {
         if (!enabled) return;
-        Timer.builder(PREFIX + ".publish.duration")
-                .tag("topic", topic)
-                .description("SSE 发布延迟")
-                .register(registry)
-                .record(durationMs, TimeUnit.MILLISECONDS);
+        publishDurationTimers.computeIfAbsent(topic, k ->
+                Timer.builder(PREFIX + ".publish.duration")
+                        .tag("topic", topic)
+                        .description("SSE 发布延迟")
+                        .register(registry)
+        ).record(durationMs, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * 清理指定 Topic 的所有指标.
+     * <p>
+     * 当 Topic 被销毁时调用，从本地缓存和 MeterRegistry 中移除该 Topic 的指标对象，
+     * 防止动态 Topic 场景下指标对象无限增长。
+     * </p>
+     *
+     * @param topic 要清理的 Topic
+     */
+    public void cleanupTopic(String topic) {
+        if (!enabled) return;
+
+        // 清理 subscribe counters (key = "topic:result")
+        subscribeCounters.entrySet().removeIf(entry -> {
+            if (entry.getKey().startsWith(topic + ":")) {
+                registry.remove(entry.getValue());
+                return true;
+            }
+            return false;
+        });
+
+        // 清理 publish counters
+        publishCounters.entrySet().removeIf(entry -> {
+            if (entry.getKey().startsWith(topic + ":")) {
+                registry.remove(entry.getValue());
+                return true;
+            }
+            return false;
+        });
+
+        // 清理 no-subscriber counters (key = topic)
+        Counter noSub = noSubscriberCounters.remove(topic);
+        if (noSub != null) {
+            registry.remove(noSub);
+        }
+
+        // 清理 duration timers (key = topic)
+        Timer subTimer = subscribeDurationTimers.remove(topic);
+        if (subTimer != null) {
+            registry.remove(subTimer);
+        }
+        Timer pubTimer = publishDurationTimers.remove(topic);
+        if (pubTimer != null) {
+            registry.remove(pubTimer);
+        }
     }
 
     /**

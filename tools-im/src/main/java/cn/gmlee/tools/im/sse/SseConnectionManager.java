@@ -170,7 +170,9 @@ public class SseConnectionManager implements SmartLifecycle {
                             registry.getTotalConnections().decrementAndGet();
                             registry.unregister(conn);
                         }
-                        registry.cleanupIfEmpty(topic);
+                        if (registry.cleanupIfEmpty(topic)) {
+                            metrics.cleanupTopic(topic);
+                        }
                         conn.transition(conn.getState().get(), ConnectionState.CLOSED);
                         log.debug("SSE 连接已关闭: topic={}, connectionId={}, signal={}",
                                 topic, conn.getConnectionId(), signal);
@@ -182,7 +184,9 @@ public class SseConnectionManager implements SmartLifecycle {
                             topicCount.decrementAndGet();
                             registry.getTotalConnections().decrementAndGet();
                             registry.unregister(conn);
-                            registry.cleanupIfEmpty(topic);
+                            if (registry.cleanupIfEmpty(topic)) {
+                                metrics.cleanupTopic(topic);
+                            }
                         }
                     }
                 });
@@ -280,7 +284,9 @@ public class SseConnectionManager implements SmartLifecycle {
         SseConnection conn = registry.getConnection(connectionId);
         if (conn != null && conn.markClosed()) {
             if (registry.forceDecrementCounters(conn)) {
-                registry.cleanupIfEmpty(conn.getTopic());
+                if (registry.cleanupIfEmpty(conn.getTopic())) {
+                    metrics.cleanupTopic(conn.getTopic());
+                }
             }
             log.info("强制关闭连接: {}", connectionId);
             return true;

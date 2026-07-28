@@ -136,11 +136,16 @@ public class ConnectionReaper {
 
             // 清理空 Topic（基于 TTL）
             long emptyTopicTtlMs = properties.getCleanup().getEmptyTopicTtl().toMillis();
-            int cleanedTopics = registry.cleanupEmptyTopicsByTtl(emptyTopicTtlMs);
+            List<String> cleanedTopics = registry.cleanupEmptyTopicsByTtl(emptyTopicTtlMs);
 
-            if (zombieCount > 0 || cleanedTopics > 0) {
+            // 清理已销毁 Topic 的指标对象
+            for (String topic : cleanedTopics) {
+                metrics.cleanupTopic(topic);
+            }
+
+            if (zombieCount > 0 || !cleanedTopics.isEmpty()) {
                 metrics.recordZombieReaped(zombieCount);
-                log.info("收割扫描完成: 僵尸连接={}, 清理 Topic={}", zombieCount, cleanedTopics);
+                log.info("收割扫描完成: 僵尸连接={}, 清理 Topic={}", zombieCount, cleanedTopics.size());
             }
         } catch (Exception e) {
             log.error("收割扫描异常", e);
@@ -162,7 +167,9 @@ public class ConnectionReaper {
             // 标记成功，执行完整清理（包括计数器递减）
             log.debug("强制关闭僵尸连接: {}", conn);
             if (registry.forceDecrementCounters(conn)) {
-                registry.cleanupIfEmpty(conn.getTopic());
+                if (registry.cleanupIfEmpty(conn.getTopic())) {
+                    metrics.cleanupTopic(conn.getTopic());
+                }
             }
         }
     }

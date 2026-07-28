@@ -150,8 +150,10 @@ public class SseConnectionRegistry {
             if (v == null || v.get() > 0) {
                 return v;
             }
-            // 计数为 0，清理 Sink
+            // 计数为 0，清理该 Topic 的全部资源
             topicSinks.remove(k);
+            topicConnections.remove(k);
+            emptySince.remove(k);
             cleaned[0] = true;
             log.debug("清理空 Topic: {}", k);
             return null; // 移除该计数器条目
@@ -166,11 +168,11 @@ public class SseConnectionRegistry {
      * </p>
      *
      * @param emptyTopicTtlMillis 空 Topic TTL（毫秒）
-     * @return 清理的 Topic 数量
+     * @return 被清理的 Topic 名称列表
      */
-    public int cleanupEmptyTopicsByTtl(long emptyTopicTtlMillis) {
+    public List<String> cleanupEmptyTopicsByTtl(long emptyTopicTtlMillis) {
         long now = System.currentTimeMillis();
-        int cleaned = 0;
+        List<String> cleaned = new ArrayList<>();
 
         // 检查所有 Topic 计数
         for (Map.Entry<String, AtomicInteger> entry : topicCounts.entrySet()) {
@@ -182,16 +184,17 @@ public class SseConnectionRegistry {
                 emptySince.putIfAbsent(topic, now);
                 Long since = emptySince.get(topic);
                 if (since != null && (now - since) > emptyTopicTtlMillis) {
-                    // 超过 TTL，执行清理
+                    // 超过 TTL，清理该 Topic 的全部资源
                     topicCounts.compute(topic, (k, v) -> {
                         if (v != null && v.get() == 0) {
                             topicSinks.remove(k);
+                            topicConnections.remove(k);
                             return null;
                         }
                         return v;
                     });
                     emptySince.remove(topic);
-                    cleaned++;
+                    cleaned.add(topic);
                 }
             } else {
                 // Topic 有连接，清除空标记
