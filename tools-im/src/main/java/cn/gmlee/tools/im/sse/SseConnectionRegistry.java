@@ -83,6 +83,15 @@ public class SseConnectionRegistry {
     private final ConcurrentHashMap<String, Long> emptySince = new ConcurrentHashMap<>();
 
     /**
+     * 是否正在关闭.
+     * <p>
+     * 由 {@link #closeAll()} 在清理开始前设置，阻止 subscribe() 创建新 Sink。
+     * volatile 保证跨线程可见性。
+     * </p>
+     */
+    private volatile boolean closing = false;
+
+    /**
      * 注册连接.
      *
      * @param conn 连接记录
@@ -112,12 +121,16 @@ public class SseConnectionRegistry {
      * 获取或创建 Sink.
      * <p>
      * 使用 computeIfAbsent 保证原子性，同一 Topic 的所有并发请求只会创建一个 Sink。
+     * 关闭中（{@link #closing} = true）时返回 null，阻止创建新 Sink。
      * </p>
      *
      * @param topic Topic 名称
-     * @return 对应的 Sink
+     * @return 对应的 Sink，关闭中返回 null
      */
     public Sinks.Many<TopicMessage<Msg>> getOrCreateSink(String topic) {
+        if (closing) {
+            return null;
+        }
         return topicSinks.computeIfAbsent(topic, t -> {
             BackpressureStrategy strategy = strategyResolver.resolve(t);
             int bufferSize = properties.getBackpressure().getDefaultBufferSize();
@@ -386,9 +399,11 @@ public class SseConnectionRegistry {
      * 关闭所有连接.
      * <p>
      * 向所有 Sink 发送完成信号，清空所有映射。
+     * 首先设置 {@link #closing} 标志，阻止 subscribe() 创建新 Sink。
      * </p>
      */
     public void closeAll() {
+        closing = true; // 首先标记关闭，阻止新 Sink 创建
         topicSinks.values().forEach(sink -> sink.tryEmitComplete());
         topicSinks.clear();
         topicCounts.clear();

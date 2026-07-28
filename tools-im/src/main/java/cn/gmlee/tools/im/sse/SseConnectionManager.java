@@ -181,11 +181,27 @@ public class SseConnectionManager implements SmartLifecycle {
                 }
             } while (!topicCount.compareAndSet(currentTopic, currentTopic + 1));
 
+            // 1.5 二次检查关闭状态（防止 CAS 期间进入关闭流程）
+            if (closed || !accepting.get()) {
+                topicCount.decrementAndGet();
+                registry.getTotalConnections().decrementAndGet();
+                metrics.recordSubscribe(topic, "REJECTED_SHUTDOWN");
+                return Flux.error(SseShutdownException.INSTANCE);
+            }
+
             // 3-5. 获取 Sink、创建连接、构建数据流
             // 异常时回滚计数器，防止 doFinally 未注册导致计数器泄漏
             try {
                 // 3. 获取或创建 Sink（原子操作）
                 Sinks.Many<TopicMessage<Msg>> sink = registry.getOrCreateSink(topic);
+
+                // 3.5 Sink 创建失败（Registry 正在关闭）
+                if (sink == null) {
+                    topicCount.decrementAndGet();
+                    registry.getTotalConnections().decrementAndGet();
+                    metrics.recordSubscribe(topic, "REJECTED_SHUTDOWN");
+                    return Flux.error(SseShutdownException.INSTANCE);
+                }
 
                 // 4. 创建连接记录
                 SseConnection conn = new SseConnection(topic);
