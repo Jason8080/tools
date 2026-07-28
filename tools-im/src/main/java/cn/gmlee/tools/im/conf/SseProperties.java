@@ -33,11 +33,6 @@ public class SseProperties {
     private BackpressureConfig backpressure = new BackpressureConfig();
 
     /**
-     * 心跳配置
-     */
-    private HeartbeatConfig heartbeat = new HeartbeatConfig();
-
-    /**
      * 收割器配置
      */
     private ReaperConfig reaper = new ReaperConfig();
@@ -84,28 +79,11 @@ public class SseProperties {
     }
 
     /**
-     * 心跳配置
-     */
-    @Data
-    public static class HeartbeatConfig {
-        /**
-         * 是否启用心跳
-         */
-        private boolean enabled = true;
-
-        /**
-         * 心跳发送间隔
-         */
-        private Duration interval = Duration.ofSeconds(30);
-
-        /**
-         * 空闲超时阈值（超过此时间无活动视为僵尸连接）
-         */
-        private Duration idleTimeout = Duration.ofSeconds(120);
-    }
-
-    /**
-     * 收割器配置
+     * 收割器配置.
+     * <p>
+     * 收割器作为 doFinally 的兜底机制，清理未能正常关闭的连接。
+     * 连接空闲超时检测基于最后活跃时间（数据收发时间）。
+     * </p>
      */
     @Data
     public static class ReaperConfig {
@@ -118,6 +96,11 @@ public class SseProperties {
          * 扫描间隔
          */
         private Duration interval = Duration.ofSeconds(30);
+
+        /**
+         * 空闲超时阈值（超过此时间无数据活动视为僵尸连接）
+         */
+        private Duration idleTimeout = Duration.ofMinutes(5);
 
         /**
          * 僵尸连接强制关闭前的宽限期

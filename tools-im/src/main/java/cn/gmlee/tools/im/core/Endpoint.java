@@ -28,7 +28,7 @@ public interface Endpoint<T> {
      * @return r 返回结果
      */
     default R<Serializable> push(String queue, MultiValueMap<String, String> urlParams, T t) {
-        return R.of("推送成功");
+        return R.of(-1);
     }
 
     /**

@@ -111,7 +111,7 @@ public class ConnectionReaper {
         try {
             metrics.recordReaperScan();
 
-            long idleTimeoutMs = properties.getHeartbeat().getIdleTimeout().toMillis();
+            long idleTimeoutMs = properties.getReaper().getIdleTimeout().toMillis();
             long gracePeriodMs = properties.getReaper().getGracePeriod().toMillis();
 
             // 获取所有连接快照

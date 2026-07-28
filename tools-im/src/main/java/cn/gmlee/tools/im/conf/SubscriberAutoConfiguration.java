@@ -19,9 +19,7 @@ public class SubscriberAutoConfiguration {
     }
 
     @Bean
-    public SubscriberEndpoint subscriberEndpoint(TopicRouter<Serializable, Msg> topicRouter,
-                                                  SseConnectionManager sseConnectionManager,
-                                                  SseProperties sseProperties) {
-        return new SubscriberEndpoint(topicRouter, sseConnectionManager, sseProperties);
+    public SubscriberEndpoint subscriberEndpoint(TopicRouter<Serializable, Msg> topicRouter) {
+        return new SubscriberEndpoint(topicRouter);
     }
 }

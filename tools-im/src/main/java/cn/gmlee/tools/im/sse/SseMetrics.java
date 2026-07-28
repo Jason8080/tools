@@ -23,7 +23,6 @@ import java.util.concurrent.TimeUnit;
  *   <li>im.sse.subscribe.rate - 订阅尝试（Counter，标签：topic, result）</li>
  *   <li>im.sse.publish.rate - 发布尝试（Counter，标签：topic, result）</li>
  *   <li>im.sse.publish.no-subscribers - 无订阅者消息（Counter，标签：topic）</li>
- *   <li>im.sse.heartbeat.sent - 心跳发送（Counter，标签：topic）</li>
  *   <li>im.sse.reaper.scans - 收割扫描次数（Counter）</li>
  *   <li>im.sse.reaper.zombies - 收割的僵尸连接（Counter）</li>
  *   <li>im.sse.sinks.active - 活跃 Sink 数（Gauge）</li>
@@ -45,7 +44,6 @@ public class SseMetrics {
     private final ConcurrentHashMap<String, Counter> subscribeCounters = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Counter> publishCounters = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Counter> noSubscriberCounters = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, Counter> heartbeatCounters = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Counter> errorCounters = new ConcurrentHashMap<>();
 
     private Counter reaperScans;
@@ -133,21 +131,6 @@ public class SseMetrics {
                         .tag("topic", topic)
                         .tag("result", result)
                         .description("SSE 发布尝试次数")
-                        .register(registry)
-        ).increment();
-    }
-
-    /**
-     * 记录心跳发送.
-     *
-     * @param topic Topic
-     */
-    public void recordHeartbeatSent(String topic) {
-        if (!enabled) return;
-        heartbeatCounters.computeIfAbsent(topic, k ->
-                Counter.builder(PREFIX + ".heartbeat.sent")
-                        .tag("topic", topic)
-                        .description("SSE 心跳发送次数")
                         .register(registry)
         ).increment();
     }
