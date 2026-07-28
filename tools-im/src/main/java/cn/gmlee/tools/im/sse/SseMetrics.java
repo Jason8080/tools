@@ -38,6 +38,7 @@ public class SseMetrics {
 
     private final MeterRegistry registry;
     private final SseConnectionRegistry connectionRegistry;
+    private final SseProperties properties;
     private final boolean enabled;
 
     // 预创建的计数器（避免每次创建）
@@ -58,6 +59,7 @@ public class SseMetrics {
      */
     public SseMetrics(MeterRegistry registry, SseConnectionRegistry connectionRegistry, SseProperties properties) {
         this.connectionRegistry = connectionRegistry;
+        this.properties = properties;
         this.enabled = registry != null && properties.getMetrics().isEnabled();
         this.registry = registry;
 
@@ -77,8 +79,8 @@ public class SseMetrics {
         // 活跃 Sink 数
         registry.gauge(PREFIX + ".sinks.active", connectionRegistry, SseConnectionRegistry::getActiveSinkCount);
 
-        // 配置的最大连接数
-        registry.gauge(PREFIX + ".connections.max", connectionRegistry, r -> (long) r.getAllTopics().size());
+        // 全局最大连接数上限
+        registry.gauge(PREFIX + ".connections.max-total", properties, p -> (long) p.getMaxTotalConnections());
     }
 
     /**

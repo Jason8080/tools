@@ -60,6 +60,17 @@ public class SseConnection {
     private final AtomicBoolean cleanupGuard;
 
     /**
+     * 计数器递减守卫：确保连接计数器仅递减一次.
+     * <p>
+     * 当 Reaper/forceClose 与 doFinally 竞争清理时，
+     * 通过 CAS 保证 totalConnections 和 topicCounts 仅递减一次，
+     * 避免双重递减导致的计数器下溢。
+     * </p>
+     */
+    @Getter
+    private final AtomicBoolean countersDecrementGuard;
+
+    /**
      * 创建新连接.
      *
      * @param topic 所属 Topic
@@ -71,6 +82,7 @@ public class SseConnection {
         this.state = new AtomicReference<>(ConnectionState.CREATED);
         this.lastActivityAt = new AtomicLong(System.currentTimeMillis());
         this.cleanupGuard = new AtomicBoolean(false);
+        this.countersDecrementGuard = new AtomicBoolean(false);
     }
 
     /**

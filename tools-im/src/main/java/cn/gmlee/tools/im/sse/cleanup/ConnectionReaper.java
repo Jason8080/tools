@@ -150,15 +150,20 @@ public class ConnectionReaper {
 
     /**
      * 强制关闭连接.
+     * <p>
+     * 通过 {@link SseConnectionRegistry#forceDecrementCounters} 原子递减计数器，
+     * 确保与 doFinally 之间不会双重递减。
+     * </p>
      *
      * @param conn 连接记录
      */
     private void forceClose(SseConnection conn) {
         if (conn.markClosed()) {
-            // 标记成功，执行清理
+            // 标记成功，执行完整清理（包括计数器递减）
             log.debug("强制关闭僵尸连接: {}", conn);
-            registry.unregister(conn);
-            registry.cleanupIfEmpty(conn.getTopic());
+            if (registry.forceDecrementCounters(conn)) {
+                registry.cleanupIfEmpty(conn.getTopic());
+            }
         }
     }
 

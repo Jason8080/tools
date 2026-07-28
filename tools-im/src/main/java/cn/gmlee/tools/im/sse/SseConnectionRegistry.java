@@ -297,6 +297,57 @@ public class SseConnectionRegistry {
     }
 
     /**
+     * 检查连接是否仍在注册表中.
+     *
+     * @param conn 连接记录
+     * @return 存在返回 true
+     */
+    public boolean isRegistered(SseConnection conn) {
+        return connections.containsKey(conn.getConnectionId());
+    }
+
+    /**
+     * 强制递减连接计数器.
+     * <p>
+     * 用于 Reaper / forceClose 等非响应式清理路径。
+     * 通过 CAS 确保每个连接仅递减一次，避免与 doFinally 的双重递减。
+     * </p>
+     *
+     * @param conn 连接记录
+     * @return 如果执行了递减返回 true（表示该连接未被 doFinally 清理过）
+     */
+    public boolean forceDecrementCounters(SseConnection conn) {
+        // CAS: 仅当 doFinally 尚未处理时执行递减
+        if (!conn.getCountersDecrementGuard().compareAndSet(false, true)) {
+            return false;
+        }
+        // 递减全局计数
+        totalConnections.decrementAndGet();
+        // 递减 Topic 计数
+        AtomicInteger topicCount = topicCounts.get(conn.getTopic());
+        if (topicCount != null) {
+            topicCount.decrementAndGet();
+        }
+        // 从 maps 中移除
+        connections.remove(conn.getConnectionId());
+        Set<String> connIds = topicConnections.get(conn.getTopic());
+        if (connIds != null) {
+            connIds.remove(conn.getConnectionId());
+        }
+        return true;
+    }
+
+    /**
+     * 获取 Topic 的原子计数器.
+     *
+     * @param topic Topic 名称
+     * @return 计数器，不存在返回 null
+     */
+    public AtomicInteger getTopicCountAtomic(String topic) {
+        return topicCounts.get(topic);
+    }
+
+    /**
      * 检查 Topic 是否有连接.
      *
      * @param topic Topic 名称

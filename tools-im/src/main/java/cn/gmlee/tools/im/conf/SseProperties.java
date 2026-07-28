@@ -60,7 +60,7 @@ public class SseProperties {
         /**
          * 默认策略名称：buffer / drop-oldest / drop-newest / error / replay-last
          */
-        private String defaultStrategy = "buffer";
+        private String defaultStrategy = "drop-oldest";
 
         /**
          * 默认缓冲区大小

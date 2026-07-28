@@ -164,14 +164,26 @@ public class SseConnectionManager implements SmartLifecycle {
                 // 终止时清理（仅执行一次）
                 .doFinally(signal -> {
                     if (conn.markClosed()) {
-                        // 标记成功，执行清理
-                        topicCount.decrementAndGet();
-                        registry.getTotalConnections().decrementAndGet();
-                        registry.unregister(conn);
+                        // doFinally 赢得清理权：递减计数器并移除连接
+                        if (conn.getCountersDecrementGuard().compareAndSet(false, true)) {
+                            topicCount.decrementAndGet();
+                            registry.getTotalConnections().decrementAndGet();
+                            registry.unregister(conn);
+                        }
                         registry.cleanupIfEmpty(topic);
                         conn.transition(conn.getState().get(), ConnectionState.CLOSED);
                         log.debug("SSE 连接已关闭: topic={}, connectionId={}, signal={}",
                                 topic, conn.getConnectionId(), signal);
+                    } else {
+                        // markClosed 返回 false：Reaper 或 Shutdown 已先清理
+                        // 检查 doFinally 是否仍需要递减计数器（Reaper 未完成递减的边界情况）
+                        if (registry.isRegistered(conn)
+                                && conn.getCountersDecrementGuard().compareAndSet(false, true)) {
+                            topicCount.decrementAndGet();
+                            registry.getTotalConnections().decrementAndGet();
+                            registry.unregister(conn);
+                            registry.cleanupIfEmpty(topic);
+                        }
                     }
                 });
     }
@@ -256,6 +268,10 @@ public class SseConnectionManager implements SmartLifecycle {
 
     /**
      * 强制关闭指定连接.
+     * <p>
+     * 通过 {@link SseConnectionRegistry#forceDecrementCounters} 原子递减计数器，
+     * 确保与 doFinally 之间不会双重递减。
+     * </p>
      *
      * @param connectionId 连接 ID
      * @return 成功关闭返回 true
@@ -263,8 +279,9 @@ public class SseConnectionManager implements SmartLifecycle {
     public boolean forceClose(String connectionId) {
         SseConnection conn = registry.getConnection(connectionId);
         if (conn != null && conn.markClosed()) {
-            registry.unregister(conn);
-            registry.cleanupIfEmpty(conn.getTopic());
+            if (registry.forceDecrementCounters(conn)) {
+                registry.cleanupIfEmpty(conn.getTopic());
+            }
             log.info("强制关闭连接: {}", connectionId);
             return true;
         }
@@ -340,7 +357,7 @@ public class SseConnectionManager implements SmartLifecycle {
         // 阶段 4: 等待排空超时
         Duration drainTimeout = properties.getShutdown().getDrainTimeout();
         try {
-            Thread.sleep(Math.min(drainTimeout.toMillis(), 1000));
+            Thread.sleep(drainTimeout.toMillis());
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
