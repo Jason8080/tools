@@ -11,7 +11,7 @@ import java.io.Serializable;
  *
  * @param <T> the type parameter
  */
-public interface Ctl<T> {
+public interface Endpoint<T> {
     /**
      * 推送.
      *

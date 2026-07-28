@@ -1,6 +1,6 @@
 package cn.gmlee.tools.im.conf;
 
-import cn.gmlee.tools.im.controller.PublisherController;
+import cn.gmlee.tools.im.endpoint.PublisherEndpoint;
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.TopicRouter;
 import cn.gmlee.tools.im.topic.ImBroadcastPublisher;
@@ -19,7 +19,7 @@ public class PublisherAutoConfiguration {
     }
 
     @Bean
-    public PublisherController publisherController(TopicRouter<Serializable, Msg> topicRouter) {
-        return new PublisherController(topicRouter);
+    public PublisherEndpoint publisherController(TopicRouter<Serializable, Msg> topicRouter) {
+        return new PublisherEndpoint(topicRouter);
     }
 }

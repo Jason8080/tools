@@ -1,7 +1,7 @@
-package cn.gmlee.tools.im.controller;
+package cn.gmlee.tools.im.endpoint;
 
 import cn.gmlee.tools.base.mod.R;
-import cn.gmlee.tools.im.core.Ctl;
+import cn.gmlee.tools.im.core.Endpoint;
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.TopicRouter;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import java.io.Serializable;
  */
 @RequiredArgsConstructor
 @RequestMapping("${im.base-path:/}")
-public class PublisherController implements Ctl<Msg> {
+public class PublisherEndpoint implements Endpoint<Msg> {
 
     private final TopicRouter<Serializable, Msg> topicRouteServe;
 
