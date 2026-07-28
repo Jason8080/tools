@@ -1,0 +1,226 @@
+package cn.gmlee.tools.im.sse;
+
+import cn.gmlee.tools.im.conf.SseProperties;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * SSE 指标收集器.
+ * <p>
+ * 封装所有 Micrometer 交互，核心代码不直接依赖 io.micrometer。
+ * 如果 MeterRegistry 不可用，则使用 NoOp 实现。
+ * </p>
+ *
+ * <h3>暴露的指标</h3>
+ * <ul>
+ *   <li>im.sse.connections.total - 总连接数（Gauge）</li>
+ *   <li>im.sse.connections.active - 每 Topic 连接数（Gauge）</li>
+ *   <li>im.sse.subscribe.rate - 订阅尝试（Counter，标签：topic, result）</li>
+ *   <li>im.sse.publish.rate - 发布尝试（Counter，标签：topic, result）</li>
+ *   <li>im.sse.publish.no-subscribers - 无订阅者消息（Counter，标签：topic）</li>
+ *   <li>im.sse.heartbeat.sent - 心跳发送（Counter，标签：topic）</li>
+ *   <li>im.sse.reaper.scans - 收割扫描次数（Counter）</li>
+ *   <li>im.sse.reaper.zombies - 收割的僵尸连接（Counter）</li>
+ *   <li>im.sse.sinks.active - 活跃 Sink 数（Gauge）</li>
+ *   <li>im.sse.errors - 错误计数（Counter，标签：type）</li>
+ *   <li>im.sse.subscribe.duration - 订阅延迟（Timer，标签：topic）</li>
+ *   <li>im.sse.publish.duration - 发布延迟（Timer，标签：topic）</li>
+ * </ul>
+ */
+@Slf4j
+public class SseMetrics {
+
+    private static final String PREFIX = "im.sse";
+
+    private final MeterRegistry registry;
+    private final SseConnectionRegistry connectionRegistry;
+    private final boolean enabled;
+
+    // 预创建的计数器（避免每次创建）
+    private final ConcurrentHashMap<String, Counter> subscribeCounters = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Counter> publishCounters = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Counter> noSubscriberCounters = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Counter> heartbeatCounters = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Counter> errorCounters = new ConcurrentHashMap<>();
+
+    private Counter reaperScans;
+    private Counter reaperZombies;
+
+    /**
+     * 创建指标收集器.
+     *
+     * @param registry          Micrometer 注册表（可为 null 表示禁用）
+     * @param connectionRegistry 连接注册表（用于 Gauge 回调）
+     * @param properties        配置
+     */
+    public SseMetrics(MeterRegistry registry, SseConnectionRegistry connectionRegistry, SseProperties properties) {
+        this.connectionRegistry = connectionRegistry;
+        this.enabled = registry != null && properties.getMetrics().isEnabled();
+        this.registry = registry;
+
+        if (this.enabled) {
+            bindGauges();
+            initReaperCounters();
+        }
+    }
+
+    /**
+     * 绑定 Gauge 指标.
+     */
+    private void bindGauges() {
+        // 总连接数
+        registry.gauge(PREFIX + ".connections.total", connectionRegistry, r -> r.getTotalConnections().get());
+
+        // 活跃 Sink 数
+        registry.gauge(PREFIX + ".sinks.active", connectionRegistry, SseConnectionRegistry::getActiveSinkCount);
+
+        // 配置的最大连接数
+        registry.gauge(PREFIX + ".connections.max", connectionRegistry, r -> (long) r.getAllTopics().size());
+    }
+
+    /**
+     * 初始化 Reaper 计数器.
+     */
+    private void initReaperCounters() {
+        reaperScans = Counter.builder(PREFIX + ".reaper.scans")
+                .description("SSE 连接收割器扫描次数")
+                .register(registry);
+        reaperZombies = Counter.builder(PREFIX + ".reaper.zombies")
+                .description("SSE 收割器清理的僵尸连接数")
+                .register(registry);
+    }
+
+    /**
+     * 记录订阅结果.
+     *
+     * @param topic  Topic
+     * @param result 结果（SUCCESS / REJECTED_GLOBAL / REJECTED_TOPIC）
+     */
+    public void recordSubscribe(String topic, String result) {
+        if (!enabled) return;
+        subscribeCounters.computeIfAbsent(topic + ":" + result, k ->
+                Counter.builder(PREFIX + ".subscribe.rate")
+                        .tag("topic", topic)
+                        .tag("result", result)
+                        .description("SSE 订阅尝试次数")
+                        .register(registry)
+        ).increment();
+    }
+
+    /**
+     * 记录发布结果.
+     *
+     * @param topic  Topic
+     * @param result 结果（SUCCESS / NO_SUBSCRIBERS / EMIT_FAILURE）
+     */
+    public void recordPublish(String topic, String result) {
+        if (!enabled) return;
+        if ("NO_SUBSCRIBERS".equals(result)) {
+            noSubscriberCounters.computeIfAbsent(topic, k ->
+                    Counter.builder(PREFIX + ".publish.no-subscribers")
+                            .tag("topic", topic)
+                            .description("SSE 无订阅者的消息数")
+                            .register(registry)
+            ).increment();
+        }
+        publishCounters.computeIfAbsent(topic + ":" + result, k ->
+                Counter.builder(PREFIX + ".publish.rate")
+                        .tag("topic", topic)
+                        .tag("result", result)
+                        .description("SSE 发布尝试次数")
+                        .register(registry)
+        ).increment();
+    }
+
+    /**
+     * 记录心跳发送.
+     *
+     * @param topic Topic
+     */
+    public void recordHeartbeatSent(String topic) {
+        if (!enabled) return;
+        heartbeatCounters.computeIfAbsent(topic, k ->
+                Counter.builder(PREFIX + ".heartbeat.sent")
+                        .tag("topic", topic)
+                        .description("SSE 心跳发送次数")
+                        .register(registry)
+        ).increment();
+    }
+
+    /**
+     * 记录收割扫描.
+     */
+    public void recordReaperScan() {
+        if (!enabled) return;
+        reaperScans.increment();
+    }
+
+    /**
+     * 记录收割的僵尸连接.
+     *
+     * @param count 数量
+     */
+    public void recordZombieReaped(int count) {
+        if (!enabled) return;
+        reaperZombies.increment(count);
+    }
+
+    /**
+     * 记录错误.
+     *
+     * @param type 错误类型
+     */
+    public void recordError(String type) {
+        if (!enabled) return;
+        errorCounters.computeIfAbsent(type, k ->
+                Counter.builder(PREFIX + ".errors")
+                        .tag("type", k)
+                        .description("SSE 错误计数")
+                        .register(registry)
+        ).increment();
+    }
+
+    /**
+     * 记录订阅延迟.
+     *
+     * @param topic      Topic
+     * @param durationMs 延迟（毫秒）
+     */
+    public void recordSubscribeDuration(String topic, long durationMs) {
+        if (!enabled) return;
+        Timer.builder(PREFIX + ".subscribe.duration")
+                .tag("topic", topic)
+                .description("SSE 订阅延迟")
+                .register(registry)
+                .record(durationMs, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * 记录发布延迟.
+     *
+     * @param topic      Topic
+     * @param durationMs 延迟（毫秒）
+     */
+    public void recordPublishDuration(String topic, long durationMs) {
+        if (!enabled) return;
+        Timer.builder(PREFIX + ".publish.duration")
+                .tag("topic", topic)
+                .description("SSE 发布延迟")
+                .register(registry)
+                .record(durationMs, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * 检查是否启用指标.
+     *
+     * @return 启用返回 true
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
+}

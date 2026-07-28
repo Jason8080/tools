@@ -28,7 +28,10 @@ public class PublisherEndpoint implements Endpoint<Msg> {
      */
     @Override
     @PostMapping(value = "push/{topic}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public @ResponseBody R<Serializable> push(@PathVariable String topic, @RequestParam MultiValueMap<String, String> urlParams, @RequestBody Msg msg) {
+    public @ResponseBody R<Serializable> push(
+            @PathVariable String topic,
+            @RequestParam MultiValueMap<String, String> urlParams,
+            @RequestBody Msg msg) {
         return R.of(topicRouteServe.push(topic, urlParams, msg));
     }
 }
