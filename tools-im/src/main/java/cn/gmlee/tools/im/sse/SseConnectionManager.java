@@ -503,27 +503,44 @@ public class SseConnectionManager implements SmartLifecycle {
                     return; // 新生命周期的 stop() 会负责清理
                 }
 
-                // 阶段 5: 强制关闭剩余连接
+                // 阶段 5: 强制关闭剩余连接（每个连接独立 try-catch，避免单个失败影响其他连接）
                 int forceClosed = 0;
                 for (SseConnection conn : registry.snapshotConnections()) {
-                    if (conn.markClosed()) {
-                        if (registry.forceDecrementCounters(conn)) {
-                            registry.cleanupIfEmpty(conn.getTopic());
+                    try {
+                        if (conn.markClosed()) {
+                            if (registry.forceDecrementCounters(conn)) {
+                                registry.cleanupIfEmpty(conn.getTopic());
+                            }
+                            // 主动取消 Flux 订阅，立即终止连接
+                            conn.cancel();
+                            forceClosed++;
                         }
-                        // 主动取消 Flux 订阅，立即终止连接
-                        conn.cancel();
-                        forceClosed++;
+                    } catch (Exception e) {
+                        log.error("强制关闭连接失败: topic={}, connectionId={}",
+                                conn.getTopic(), conn.getConnectionId(), e);
                     }
                 }
                 if (forceClosed > 0) {
                     log.debug("强制关闭 {} 个剩余连接", forceClosed);
                 }
 
-                // 阶段 6: 清理所有资源
+                // 阶段 6: 清理所有资源（各自 try-catch，保证尽力清理）
                 closed = true; // 标记关闭完成，阻止后续 subscribe()
-                registry.closeAll();
-                reaper.stop();
-                metrics.shutdownCleanup();
+                try {
+                    registry.closeAll();
+                } catch (Exception e) {
+                    log.error("Registry 关闭失败", e);
+                }
+                try {
+                    reaper.stop();
+                } catch (Exception e) {
+                    log.error("Reaper 停止失败", e);
+                }
+                try {
+                    metrics.shutdownCleanup();
+                } catch (Exception e) {
+                    log.error("Metrics 清理失败", e);
+                }
 
                 log.info("SSE 连接管理器已关闭");
             } finally {
