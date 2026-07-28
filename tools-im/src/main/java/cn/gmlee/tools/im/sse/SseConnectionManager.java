@@ -177,8 +177,9 @@ public class SseConnectionManager implements SmartLifecycle {
         // 5. 构建数据流，附加生命周期钩子
 
         return sink.asFlux()
-                // 首次订阅时转换为 ACTIVE
+                // 首次订阅时保存 Subscription 引用并转换为 ACTIVE
                 .doOnSubscribe(sub -> {
+                    conn.setSubscription(sub);
                     conn.transition(ConnectionState.CREATED, ConnectionState.ACTIVE);
                     conn.touch();
                 })
@@ -311,6 +312,8 @@ public class SseConnectionManager implements SmartLifecycle {
                     metrics.cleanupTopic(conn.getTopic());
                 }
             }
+            // 主动取消 Flux 订阅，立即终止连接
+            conn.cancel();
             log.info("强制关闭连接: {}", connectionId);
             return true;
         }
@@ -427,6 +430,8 @@ public class SseConnectionManager implements SmartLifecycle {
                         if (registry.forceDecrementCounters(conn)) {
                             registry.cleanupIfEmpty(conn.getTopic());
                         }
+                        // 主动取消 Flux 订阅，立即终止连接
+                        conn.cancel();
                         forceClosed++;
                     }
                 }

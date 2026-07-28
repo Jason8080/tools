@@ -361,20 +361,6 @@ public class SseConnectionRegistry {
     }
 
     /**
-     * 强制关闭指定连接.
-     *
-     * @param connectionId 连接 ID
-     * @return 找到并标记关闭返回 true
-     */
-    public boolean forceClose(String connectionId) {
-        SseConnection conn = connections.get(connectionId);
-        if (conn != null) {
-            return conn.markClosed();
-        }
-        return false;
-    }
-
-    /**
      * 关闭所有连接.
      * <p>
      * 向所有 Sink 发送完成信号，清空所有映射。

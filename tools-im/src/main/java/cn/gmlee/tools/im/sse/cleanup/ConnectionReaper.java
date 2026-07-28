@@ -171,6 +171,8 @@ public class ConnectionReaper {
                     metrics.cleanupTopic(conn.getTopic());
                 }
             }
+            // 主动取消 Flux 订阅，立即终止连接（而非等待客户端自行断开）
+            conn.cancel();
         }
     }
 

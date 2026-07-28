@@ -1,6 +1,7 @@
 package cn.gmlee.tools.im.sse;
 
 import lombok.Getter;
+import org.reactivestreams.Subscription;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -69,6 +70,15 @@ public class SseConnection {
      */
     @Getter
     private final AtomicBoolean countersDecrementGuard;
+
+    /**
+     * Reactive Streams 订阅引用（volatile，支持延迟设置和线程安全取消）.
+     * <p>
+     * 在 doOnSubscribe 回调中设置，用于 Reaper/forceClose 主动取消 Flux 订阅，
+     * 确保强制关闭时 Flux 立即终止（而非等待客户端自行断开）。
+     * </p>
+     */
+    private volatile Subscription subscription;
 
     /**
      * 创建新连接.
@@ -145,6 +155,37 @@ public class SseConnection {
      */
     public boolean isIdle(long idleTimeoutMillis) {
         return (System.currentTimeMillis() - lastActivityAt.get()) > idleTimeoutMillis;
+    }
+
+    /**
+     * 设置 Reactive Streams 订阅引用.
+     * <p>
+     * 在 Flux 的 doOnSubscribe 回调中调用，保存订阅引用以支持后续主动取消。
+     * </p>
+     *
+     * @param subscription 订阅引用
+     */
+    public void setSubscription(Subscription subscription) {
+        this.subscription = subscription;
+    }
+
+    /**
+     * 主动取消 Flux 订阅.
+     * <p>
+     * 用于 Reaper/forceClose 路径：在标记关闭并递减计数器后，
+     * 调用此方法立即终止 Flux，触发 doFinally 清理，
+     * 而非等待客户端自行断开。
+     * </p>
+     * <p>
+     * 线程安全：volatile 保证可见性，Subscription.cancel() 本身是线程安全的。
+     * 如果 subscription 尚未设置（doOnSubscribe 尚未执行），则跳过取消。
+     * </p>
+     */
+    public void cancel() {
+        Subscription s = this.subscription;
+        if (s != null) {
+            s.cancel();
+        }
     }
 
     @Override
