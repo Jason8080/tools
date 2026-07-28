@@ -13,13 +13,13 @@ import java.io.Serializable;
  * 发布服务
  */
 @RequiredArgsConstructor
-public class SseImBroadcastPublisher implements Publisher<Serializable, Msg> {
+public class ImBroadcastPublisher implements Publisher<Serializable, Msg> {
 
     private final StreamBridge streamBridge;
 
     @Override
     public String topic() {
-        return "sse-im.broadcast";
+        return "im.broadcast";
     }
 
     @Override

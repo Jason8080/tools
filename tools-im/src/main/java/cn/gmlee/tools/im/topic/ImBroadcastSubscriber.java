@@ -12,13 +12,13 @@ import reactor.core.publisher.Flux;
  * 订阅服务
  */
 @RequiredArgsConstructor
-public class SseImBroadcastSubscriber implements Subscriber<Flux<R<Msg>>> {
+public class ImBroadcastSubscriber implements Subscriber<Flux<R<Msg>>> {
 
     private final SseConnectionManager sseConnectionManager;
 
     @Override
     public String topic() {
-        return "sse-im.broadcast";
+        return "im.broadcast";
     }
 
     @Override
