@@ -151,8 +151,8 @@ public class SseConnectionManager implements SmartLifecycle {
 
         log.debug("SSE 连接已建立: topic={}, connectionId={}", topic, conn.getConnectionId());
 
-        // 5. 构建返回 Flux，附加生命周期钩子
-        return sink.asFlux()
+        // 5. 构建数据流，附加生命周期钩子
+        Flux<TopicMessage<Msg>> dataFlux = sink.asFlux()
                 // 首次订阅时转换为 ACTIVE
                 .doOnSubscribe(sub -> {
                     conn.transition(ConnectionState.CREATED, ConnectionState.ACTIVE);
@@ -172,6 +172,30 @@ public class SseConnectionManager implements SmartLifecycle {
                         log.debug("SSE 连接已关闭: topic={}, connectionId={}, signal={}",
                                 topic, conn.getConnectionId(), signal);
                     }
+                });
+
+        return dataFlux;
+    }
+
+    /**
+     * 获取轻量心跳流.
+     * <p>
+     * 返回定时发送心跳时间戳的 Flux，不创建实际 SSE 连接。
+     * 用于端点层合并心跳，保持 TopicRouter 路由的统一性。
+     * </p>
+     *
+     * @param topic    Topic 名称
+     * @param interval 心跳间隔
+     * @return 心跳时间戳流
+     */
+    public Flux<Long> heartbeat(String topic, Duration interval) {
+        return Flux.interval(interval)
+                .map(tick -> {
+                    long now = System.currentTimeMillis();
+                    // 更新该 Topic 所有连接的活跃时间
+                    registry.updateTopicActivity(topic, now);
+                    metrics.recordHeartbeatSent(topic);
+                    return now;
                 });
     }
 
