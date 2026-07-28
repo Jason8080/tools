@@ -44,7 +44,20 @@ public class SseConnectionRegistry {
     private final ConcurrentHashMap<String, Sinks.Many<TopicMessage<Msg>>> topicSinks = new ConcurrentHashMap<>();
 
     /**
-     * Topic -> 连接数映射
+     * Topic -> 连接数映射.
+     * <p>
+     * <b>设计决策</b>：条目仅在 {@link #closeAll()} 时全量移除，不在 {@link #cleanupIfEmpty}
+     * 或 {@link #cleanupEmptyTopicsByTtl} 中按 Topic 移除。原因是移除操作会与并发
+     * {@code subscribe()} 的 {@code computeIfAbsent} 产生竞态：
+     * <pre>
+     * Thread A: computeIfAbsent → 获得引用 X（值 0）
+     * Thread B: remove → 移除 X
+     * Thread A: CAS X: 0→1 成功（X 已脱离 Map）
+     * Thread C: computeIfAbsent → 创建新引用 Y（值 0）
+     * 结果：X=1（孤儿），Y=0（Map 中），计数器漂移
+     * </pre>
+     * 保留条目（值为 0）的代价是每个历史 Topic 约占 40 字节，对 IM 场景可忽略。
+     * </p>
      */
     private final ConcurrentHashMap<String, AtomicInteger> topicCounts = new ConcurrentHashMap<>();
 

@@ -74,6 +74,19 @@ public class SseConnectionManager implements SmartLifecycle {
     private final AtomicBoolean accepting = new AtomicBoolean(true);
 
     /**
+     * 是否已完成关闭（closeAll 已执行）.
+     * <p>
+     * 与 {@link #running} 的区别：
+     * <ul>
+     *   <li>{@code running} 在 stop() 开始时即设为 false，但 closeAll 在异步 drain 任务中执行</li>
+     *   <li>{@code closed} 在 closeAll() 执行时设为 true，确保关闭后不再有新连接创建</li>
+     *   <li>start() 时重置为 false</li>
+     * </ul>
+     * </p>
+     */
+    private volatile boolean closed = false;
+
+    /**
      * SmartLifecycle 运行状态
      */
     @Getter
@@ -136,7 +149,7 @@ public class SseConnectionManager implements SmartLifecycle {
             long startTime = System.currentTimeMillis();
 
             // 0. 检查是否正在接受连接
-            if (!accepting.get()) {
+            if (closed || !accepting.get()) {
                 metrics.recordSubscribe(topic, "REJECTED_SHUTDOWN");
                 return Flux.error(SseShutdownException.INSTANCE);
             }
@@ -364,6 +377,19 @@ public class SseConnectionManager implements SmartLifecycle {
         return accepting.get();
     }
 
+    /**
+     * 检查管理器是否已完成关闭.
+     * <p>
+     * 与 {@link #isRunning()} 的区别：{@code isRunning()} 在 stop() 开始时返回 false，
+     * 而 {@code isClosed()} 在 closeAll() 执行后才返回 true。
+     * </p>
+     *
+     * @return 已关闭返回 true
+     */
+    public boolean isClosed() {
+        return closed;
+    }
+
     // ============ SmartLifecycle 实现 ============
 
     @Override
@@ -372,6 +398,7 @@ public class SseConnectionManager implements SmartLifecycle {
             return;
         }
         running = true;
+        closed = false;
         accepting.set(true);
         drainGeneration.incrementAndGet(); // 使旧的异步 drain 任务失效
         // 关闭旧调度器（若存在），防止线程泄漏
@@ -437,6 +464,13 @@ public class SseConnectionManager implements SmartLifecycle {
         ScheduledExecutorService scheduler = this.lifecycleScheduler;
         int expectedGen = drainGeneration.get(); // 捕获当前代数
 
+        // 防御性检查：start() 中 running=true 与 lifecycleScheduler 赋值之间的极端竞态窗口
+        if (scheduler == null) {
+            log.warn("lifecycleScheduler 为 null，跳过异步 drain 任务");
+            callback.run();
+            return;
+        }
+
         scheduler.schedule(() -> {
             try {
                 // 阶段 4: 等待排空超时（响应中断以实现快速关闭）
@@ -470,6 +504,7 @@ public class SseConnectionManager implements SmartLifecycle {
                 }
 
                 // 阶段 6: 清理所有资源
+                closed = true; // 标记关闭完成，阻止后续 subscribe()
                 registry.closeAll();
                 reaper.stop();
                 metrics.shutdownCleanup();
