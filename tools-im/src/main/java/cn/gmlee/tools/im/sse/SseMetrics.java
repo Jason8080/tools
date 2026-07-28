@@ -252,6 +252,23 @@ public class SseMetrics {
     }
 
     /**
+     * 关闭时清理所有本地指标缓存.
+     * <p>
+     * 清理所有 Counter/Timer 的本地缓存引用，防止组件重启后旧指标对象残留。
+     * 在 {@link cn.gmlee.tools.im.sse.SseConnectionManager#stop} 的异步关闭任务中调用。
+     * </p>
+     */
+    public void shutdownCleanup() {
+        if (!enabled) return;
+        subscribeCounters.clear();
+        publishCounters.clear();
+        noSubscriberCounters.clear();
+        errorCounters.clear();
+        subscribeDurationTimers.clear();
+        publishDurationTimers.clear();
+    }
+
+    /**
      * 检查是否启用指标.
      *
      * @return 启用返回 true

@@ -122,98 +122,106 @@ public class SseConnectionManager implements SmartLifecycle {
      * 如果超过限制，返回 Flux.error() 而非抛异常（兼容响应式 API）。
      * </p>
      *
+     * <h4>延迟执行</h4>
+     * <p>
+     * 使用 {@link Flux#defer} 将计数器递增、Sink 创建、连接注册延迟到实际订阅时执行。
+     * 避免返回的 Flux 未被订阅时导致计数器泄漏（{@code doFinally} 仅在实际订阅后才会触发）。
+     * </p>
+     *
      * @param topic Topic 名称
      * @return 消息流
      */
     public Flux<TopicMessage<Msg>> subscribe(String topic) {
-        long startTime = System.currentTimeMillis();
+        return Flux.defer(() -> {
+            long startTime = System.currentTimeMillis();
 
-        // 0. 检查是否正在接受连接
-        if (!accepting.get()) {
-            metrics.recordSubscribe(topic, "REJECTED_SHUTDOWN");
-            return Flux.error(SseShutdownException.INSTANCE);
-        }
-
-        // 1. CAS 循环：原子检查并递增全局连接数
-        long maxTotal = properties.getMaxTotalConnections();
-        long currentTotal;
-        do {
-            currentTotal = registry.getTotalConnections().get();
-            if (currentTotal >= maxTotal) {
-                metrics.recordSubscribe(topic, "REJECTED_GLOBAL");
-                return Flux.error(new SseConnectionLimitExceededException(
-                        topic, (int) currentTotal, (int) maxTotal, Scope.GLOBAL));
+            // 0. 检查是否正在接受连接
+            if (!accepting.get()) {
+                metrics.recordSubscribe(topic, "REJECTED_SHUTDOWN");
+                return Flux.error(SseShutdownException.INSTANCE);
             }
-        } while (!registry.getTotalConnections().compareAndSet(currentTotal, currentTotal + 1));
 
-        // 2. CAS 循环：原子检查并递增 Topic 连接数
-        int maxPerTopic = properties.getMaxConnectionsPerTopic();
-        AtomicInteger topicCount = registry.getOrCreateTopicCount(topic);
-        int currentTopic;
-        do {
-            currentTopic = topicCount.get();
-            if (currentTopic >= maxPerTopic) {
-                // 回滚全局计数
-                registry.getTotalConnections().decrementAndGet();
-                metrics.recordSubscribe(topic, "REJECTED_TOPIC");
-                return Flux.error(new SseConnectionLimitExceededException(
-                        topic, currentTopic, maxPerTopic, Scope.PER_TOPIC));
-            }
-        } while (!topicCount.compareAndSet(currentTopic, currentTopic + 1));
+            // 1. CAS 循环：原子检查并递增全局连接数
+            long maxTotal = properties.getMaxTotalConnections();
+            long currentTotal;
+            do {
+                currentTotal = registry.getTotalConnections().get();
+                if (currentTotal >= maxTotal) {
+                    metrics.recordSubscribe(topic, "REJECTED_GLOBAL");
+                    return Flux.error(new SseConnectionLimitExceededException(
+                            topic, (int) currentTotal, (int) maxTotal, Scope.GLOBAL));
+                }
+            } while (!registry.getTotalConnections().compareAndSet(currentTotal, currentTotal + 1));
 
-        // 3. 获取或创建 Sink（原子操作）
-        Sinks.Many<TopicMessage<Msg>> sink = registry.getOrCreateSink(topic);
+            // 2. CAS 循环：原子检查并递增 Topic 连接数
+            int maxPerTopic = properties.getMaxConnectionsPerTopic();
+            AtomicInteger topicCount = registry.getOrCreateTopicCount(topic);
+            int currentTopic;
+            do {
+                currentTopic = topicCount.get();
+                if (currentTopic >= maxPerTopic) {
+                    // 回滚全局计数
+                    registry.getTotalConnections().decrementAndGet();
+                    metrics.recordSubscribe(topic, "REJECTED_TOPIC");
+                    return Flux.error(new SseConnectionLimitExceededException(
+                            topic, currentTopic, maxPerTopic, Scope.PER_TOPIC));
+                }
+            } while (!topicCount.compareAndSet(currentTopic, currentTopic + 1));
 
-        // 4. 创建连接记录
-        SseConnection conn = new SseConnection(topic);
-        registry.register(conn);
-        metrics.recordSubscribe(topic, "SUCCESS");
+            // 3. 获取或创建 Sink（原子操作）
+            Sinks.Many<TopicMessage<Msg>> sink = registry.getOrCreateSink(topic);
 
-        long elapsed = System.currentTimeMillis() - startTime;
-        metrics.recordSubscribeDuration(topic, elapsed);
+            // 4. 创建连接记录
+            SseConnection conn = new SseConnection(topic);
+            registry.register(conn);
+            metrics.recordSubscribe(topic, "SUCCESS");
 
-        log.debug("SSE 连接已建立: topic={}, connectionId={}", topic, conn.getConnectionId());
+            long elapsed = System.currentTimeMillis() - startTime;
+            metrics.recordSubscribeDuration(topic, elapsed);
 
-        // 5. 构建数据流，附加生命周期钩子
+            log.debug("SSE 连接已建立: topic={}, connectionId={}", topic, conn.getConnectionId());
 
-        return sink.asFlux()
-                // 首次订阅时保存 Subscription 引用并转换为 ACTIVE
-                .doOnSubscribe(sub -> {
-                    conn.setSubscription(sub);
-                    conn.transition(ConnectionState.CREATED, ConnectionState.ACTIVE);
-                    conn.touch();
-                })
-                // 每次接收数据更新活跃时间
-                .doOnNext(msg -> conn.touch())
-                // 终止时清理（仅执行一次）
-                .doFinally(signal -> {
-                    if (conn.markClosed()) {
-                        // doFinally 赢得清理权：递减计数器并移除连接
-                        if (conn.getCountersDecrementGuard().compareAndSet(false, true)) {
-                            topicCount.decrementAndGet();
-                            registry.getTotalConnections().decrementAndGet();
-                            registry.unregister(conn);
-                        }
-                        if (registry.cleanupIfEmpty(topic)) {
-                            metrics.cleanupTopic(topic);
-                        }
-                        conn.transition(conn.getState().get(), ConnectionState.CLOSED);
-                        log.debug("SSE 连接已关闭: topic={}, connectionId={}, signal={}",
-                                topic, conn.getConnectionId(), signal);
-                    } else {
-                        // markClosed 返回 false：Reaper 或 Shutdown 已先清理
-                        // 检查 doFinally 是否仍需要递减计数器（Reaper 未完成递减的边界情况）
-                        if (registry.isRegistered(conn)
-                                && conn.getCountersDecrementGuard().compareAndSet(false, true)) {
-                            topicCount.decrementAndGet();
-                            registry.getTotalConnections().decrementAndGet();
-                            registry.unregister(conn);
+            // 5. 构建数据流，附加生命周期钩子
+
+            return sink.asFlux()
+                    // 首次订阅时保存 Subscription 引用并转换为 ACTIVE
+                    .doOnSubscribe(sub -> {
+                        conn.setSubscription(sub);
+                        conn.transition(ConnectionState.CREATED, ConnectionState.ACTIVE);
+                        conn.touch();
+                    })
+                    // 每次接收数据更新活跃时间
+                    .doOnNext(msg -> conn.touch())
+                    // 终止时清理（仅执行一次）
+                    .doFinally(signal -> {
+                        if (conn.markClosed()) {
+                            // doFinally 赢得清理权：递减计数器并移除连接
+                            if (conn.getCountersDecrementGuard().compareAndSet(false, true)) {
+                                topicCount.decrementAndGet();
+                                registry.getTotalConnections().decrementAndGet();
+                                registry.unregister(conn);
+                            }
                             if (registry.cleanupIfEmpty(topic)) {
                                 metrics.cleanupTopic(topic);
                             }
+                            conn.transition(conn.getState().get(), ConnectionState.CLOSED);
+                            log.debug("SSE 连接已关闭: topic={}, connectionId={}, signal={}",
+                                    topic, conn.getConnectionId(), signal);
+                        } else {
+                            // markClosed 返回 false：Reaper 或 Shutdown 已先清理
+                            // 检查 doFinally 是否仍需要递减计数器（Reaper 未完成递减的边界情况）
+                            if (registry.isRegistered(conn)
+                                    && conn.getCountersDecrementGuard().compareAndSet(false, true)) {
+                                topicCount.decrementAndGet();
+                                registry.getTotalConnections().decrementAndGet();
+                                registry.unregister(conn);
+                                if (registry.cleanupIfEmpty(topic)) {
+                                    metrics.cleanupTopic(topic);
+                                }
+                            }
                         }
-                    }
-                });
+                    });
+        });
     }
 
     /**
@@ -442,11 +450,13 @@ public class SseConnectionManager implements SmartLifecycle {
                 // 阶段 6: 清理所有资源
                 registry.closeAll();
                 reaper.stop();
+                metrics.shutdownCleanup();
 
                 log.info("SSE 连接管理器已关闭");
             } finally {
                 // 关闭调度器线程（daemon 线程，不影响 JVM 退出）
                 scheduler.shutdown();
+                lifecycleScheduler = null;
                 callback.run();
             }
         }, 0, TimeUnit.MILLISECONDS);

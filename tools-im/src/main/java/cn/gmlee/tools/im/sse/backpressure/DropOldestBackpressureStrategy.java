@@ -3,13 +3,14 @@ package cn.gmlee.tools.im.sse.backpressure;
 import reactor.core.publisher.Sinks;
 
 /**
- * 丢弃最旧消息背压策略.
+ * 丢弃旧消息背压策略（系统默认）.
  * <p>
- * 使用 multicast + onBackpressureBuffer(1)，
- * 缓冲区满时丢弃最旧的消息，始终保留最新的消息。
+ * 使用 {@code Sinks.many().replay().latest()}，始终仅保留最新一条消息。
+ * 新订阅者会立即收到最后一条消息；旧消息在新消息到达时被替换。
  * </p>
  * <p>
- * 适用场景：实时场景，只有最新消息有意义（如股价、位置更新）。
+ * <b>注意</b>：此策略忽略 {@code bufferSize} 参数，固定保留 1 条消息。
+ * 适用于只有最新消息有意义的实时场景（如股价、位置更新、在线状态）。
  * </p>
  */
 public class DropOldestBackpressureStrategy implements BackpressureStrategy {

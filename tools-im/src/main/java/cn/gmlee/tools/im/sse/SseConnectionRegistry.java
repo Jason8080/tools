@@ -138,7 +138,12 @@ public class SseConnectionRegistry {
      * 原子清理空 Topic.
      * <p>
      * 使用 ConcurrentHashMap.compute() 持有 bin 锁，保证检查-删除的原子性。
-     * 仅当 Topic 计数为 0 时才清理 Sink 和计数器。
+     * 仅当 Topic 计数为 0 时才清理 Sink 和连接集合。
+     * </p>
+     * <p>
+     * 注意：保留 topicCounts 计数器条目（值为 0），避免与并发 subscribe() 的
+     * computeIfAbsent() 产生竞态导致计数器漂移。代价是每个历史 Topic 保留一个
+     * AtomicInteger（~40 字节），对 IM 场景可忽略。
      * </p>
      *
      * @param topic Topic 名称
@@ -150,13 +155,13 @@ public class SseConnectionRegistry {
             if (v == null || v.get() > 0) {
                 return v;
             }
-            // 计数为 0，清理该 Topic 的全部资源
+            // 计数为 0，清理 Sink 和连接集合，但保留计数器条目
             topicSinks.remove(k);
             topicConnections.remove(k);
             emptySince.remove(k);
             cleaned[0] = true;
             log.debug("清理空 Topic: {}", k);
-            return null; // 移除该计数器条目
+            return v; // 保留计数器，避免与并发 subscribe 的竞态
         });
         return cleaned[0];
     }
@@ -165,6 +170,7 @@ public class SseConnectionRegistry {
      * 基于 TTL 清理空 Topic.
      * <p>
      * 仅当 Topic 为空超过指定 TTL 时才清理，防止抖动。
+     * 保留 topicCounts 计数器条目，避免与并发 subscribe() 的竞态。
      * </p>
      *
      * @param emptyTopicTtlMillis 空 Topic TTL（毫秒）
@@ -184,17 +190,20 @@ public class SseConnectionRegistry {
                 emptySince.putIfAbsent(topic, now);
                 Long since = emptySince.get(topic);
                 if (since != null && (now - since) > emptyTopicTtlMillis) {
-                    // 超过 TTL，清理该 Topic 的全部资源
+                    // 超过 TTL，清理 Sink 和连接集合（保留计数器）
+                    final boolean[] didClean = {false};
                     topicCounts.compute(topic, (k, v) -> {
                         if (v != null && v.get() == 0) {
                             topicSinks.remove(k);
                             topicConnections.remove(k);
-                            return null;
+                            didClean[0] = true;
                         }
-                        return v;
+                        return v; // 保留计数器
                     });
-                    emptySince.remove(topic);
-                    cleaned.add(topic);
+                    if (didClean[0]) {
+                        emptySince.remove(topic);
+                        cleaned.add(topic);
+                    }
                 }
             } else {
                 // Topic 有连接，清除空标记

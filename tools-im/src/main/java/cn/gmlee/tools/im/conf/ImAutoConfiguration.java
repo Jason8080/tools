@@ -39,9 +39,7 @@ public class ImAutoConfiguration {
         Map<String, BackpressureStrategy> strategyMap = new HashMap<>();
         strategyMap.put(BufferBackpressureStrategy.NAME, new BufferBackpressureStrategy());
         strategyMap.put(DropOldestBackpressureStrategy.NAME, new DropOldestBackpressureStrategy());
-        strategyMap.put(DropNewestBackpressureStrategy.NAME, new DropNewestBackpressureStrategy());
         strategyMap.put(ErrorBackpressureStrategy.NAME, new ErrorBackpressureStrategy());
-        strategyMap.put(ReplayLatestBackpressureStrategy.NAME, new ReplayLatestBackpressureStrategy());
 
         return new DefaultBackpressureStrategyResolver(properties, strategyMap);
     }

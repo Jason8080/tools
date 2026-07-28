@@ -58,7 +58,7 @@ public class SseProperties {
     @Data
     public static class BackpressureConfig {
         /**
-         * 默认策略名称：buffer / drop-oldest / drop-newest / error / replay-last
+         * 默认策略名称：buffer / drop-oldest / error
          */
         private String defaultStrategy = "drop-oldest";
 
