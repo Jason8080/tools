@@ -17,6 +17,9 @@ import reactor.core.publisher.Sinks;
 import java.time.Duration;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -56,6 +59,16 @@ public class SseConnectionManager implements SmartLifecycle {
     private final ConnectionReaper reaper;
 
     /**
+     * 生命周期调度器（daemon 线程）.
+     * <p>
+     * 用于异步执行优雅关闭的等待和强制清理阶段，
+     * 避免阻塞 Spring lifecycle 线程。
+     * 使用 volatile 支持重启时重建。
+     * </p>
+     */
+    private volatile ScheduledExecutorService lifecycleScheduler;
+
+    /**
      * 是否正在接受新连接
      */
     private final AtomicBoolean accepting = new AtomicBoolean(true);
@@ -65,6 +78,16 @@ public class SseConnectionManager implements SmartLifecycle {
      */
     @Getter
     private volatile boolean running = false;
+
+    /**
+     * 生命周期代数计数器.
+     * <p>
+     * 每次 start() 递增。异步 drain 任务通过比较代数来判断自身是否已过期
+     * （组件已被重启），过期任务跳过破坏性清理（如 closeAll），
+     * 避免影响新生命周期的状态。
+     * </p>
+     */
+    private final AtomicInteger drainGeneration = new AtomicInteger(0);
 
     /**
      * 创建 SSE 连接管理器.
@@ -322,8 +345,23 @@ public class SseConnectionManager implements SmartLifecycle {
         }
         running = true;
         accepting.set(true);
+        drainGeneration.incrementAndGet(); // 使旧的异步 drain 任务失效
+        lifecycleScheduler = createLifecycleScheduler();
         reaper.start();
         log.info("SSE 连接管理器已启动");
+    }
+
+    /**
+     * 创建生命周期调度器.
+     *
+     * @return 新的 daemon 单线程调度器
+     */
+    private static ScheduledExecutorService createLifecycleScheduler() {
+        return Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "sse-lifecycle");
+            t.setDaemon(true);
+            return t;
+        });
     }
 
     @Override
@@ -339,14 +377,15 @@ public class SseConnectionManager implements SmartLifecycle {
         }
 
         log.info("SSE 连接管理器开始优雅关闭...");
+        running = false; // 同步设置，防止重复调度
 
-        // 阶段 1: 停止接受新连接
+        // 阶段 1: 停止接受新连接（同步，立即生效）
         if (properties.getShutdown().isRejectNew()) {
             accepting.set(false);
             log.debug("已拒绝新连接");
         }
 
-        // 阶段 2: 转换所有连接为 DRAINING
+        // 阶段 2: 转换所有连接为 DRAINING（同步，O(n) CAS）
         int drainingCount = 0;
         for (SseConnection conn : registry.snapshotConnections()) {
             if (conn.transition(ConnectionState.ACTIVE, ConnectionState.DRAINING) ||
@@ -356,37 +395,56 @@ public class SseConnectionManager implements SmartLifecycle {
         }
         log.debug("已将 {} 个连接转换为 DRAINING 状态", drainingCount);
 
-        // 阶段 3: 向所有 Sink 发送完成信号
+        // 阶段 3: 向所有 Sink 发送完成信号（同步，触发 doFinally 排空）
         registry.getAllSinks().forEach(Sinks.Many::tryEmitComplete);
         log.debug("已向所有 Sink 发送完成信号");
 
-        // 阶段 4: 等待排空超时
+        // 阶段 4-6: 异步执行，不阻塞 lifecycle 线程
         Duration drainTimeout = properties.getShutdown().getDrainTimeout();
-        try {
-            Thread.sleep(drainTimeout.toMillis());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        ScheduledExecutorService scheduler = this.lifecycleScheduler;
+        int expectedGen = drainGeneration.get(); // 捕获当前代数
 
-        // 阶段 5: 强制关闭剩余连接
-        int forceClosed = 0;
-        for (SseConnection conn : registry.snapshotConnections()) {
-            if (conn.markClosed()) {
-                forceClosed++;
+        scheduler.schedule(() -> {
+            try {
+                // 阶段 4: 等待排空超时（响应中断以实现快速关闭）
+                try {
+                    Thread.sleep(drainTimeout.toMillis());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    log.debug("排空等待被中断，立即进入强制关闭阶段");
+                }
+
+                // 检查组件是否已被重启（start() 在等待期间被调用）
+                if (drainGeneration.get() != expectedGen) {
+                    log.debug("检测到组件重启（代数变更），跳过旧 drain 任务");
+                    return; // 新生命周期的 stop() 会负责清理
+                }
+
+                // 阶段 5: 强制关闭剩余连接
+                int forceClosed = 0;
+                for (SseConnection conn : registry.snapshotConnections()) {
+                    if (conn.markClosed()) {
+                        if (registry.forceDecrementCounters(conn)) {
+                            registry.cleanupIfEmpty(conn.getTopic());
+                        }
+                        forceClosed++;
+                    }
+                }
+                if (forceClosed > 0) {
+                    log.debug("强制关闭 {} 个剩余连接", forceClosed);
+                }
+
+                // 阶段 6: 清理所有资源
+                registry.closeAll();
+                reaper.stop();
+
+                log.info("SSE 连接管理器已关闭");
+            } finally {
+                // 关闭调度器线程（daemon 线程，不影响 JVM 退出）
+                scheduler.shutdown();
+                callback.run();
             }
-        }
-        if (forceClosed > 0) {
-            log.debug("强制关闭 {} 个剩余连接", forceClosed);
-        }
-
-        // 阶段 6: 清理所有资源
-        registry.closeAll();
-        reaper.stop();
-
-        running = false;
-        log.info("SSE 连接管理器已关闭");
-
-        callback.run();
+        }, 0, TimeUnit.MILLISECONDS);
     }
 
     @Override
