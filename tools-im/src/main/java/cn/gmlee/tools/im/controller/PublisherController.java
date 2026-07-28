@@ -10,6 +10,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.Serializable;
@@ -18,6 +19,7 @@ import java.io.Serializable;
  * 发布者控制器
  */
 @RequiredArgsConstructor
+@RequestMapping("${im.base-path:/}")
 public class PublisherController implements Ctl<Msg> {
 
     private final TopicRouter<Serializable, Msg> topicRouteServe;
