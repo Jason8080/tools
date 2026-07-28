@@ -14,7 +14,7 @@ import java.util.function.Consumer;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class StreamBroadcastConsumer implements Consumer<TopicMessage<Msg>> {
+public class ImBroadcastConsumer implements Consumer<TopicMessage<Msg>> {
 
     private final SseConnectionManager sseConnectionManager;
 

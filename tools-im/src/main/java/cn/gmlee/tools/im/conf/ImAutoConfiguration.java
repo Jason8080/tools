@@ -5,7 +5,7 @@ import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Subscriber;
 import cn.gmlee.tools.im.core.TopicRouter;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
-import cn.gmlee.tools.im.stream.StreamBroadcastConsumer;
+import cn.gmlee.tools.im.stream.ImBroadcastConsumer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -27,10 +27,10 @@ public class ImAutoConfiguration {
         return new SseConnectionManager(sseProperties);
     }
 
-    @Bean("sseImBroadcastConsumer")
-    public StreamBroadcastConsumer sseImBroadcastConsumer(SseConnectionManager sseConnectionManager,
-                                                          StreamProperties streamProperties) {
-        return new StreamBroadcastConsumer(sseConnectionManager, streamProperties);
+    @Bean
+    public ImBroadcastConsumer imBroadcastConsumer(SseConnectionManager sseConnectionManager,
+                                                      StreamProperties streamProperties) {
+        return new ImBroadcastConsumer(sseConnectionManager, streamProperties);
     }
 
     @Bean
