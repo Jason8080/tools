@@ -11,7 +11,7 @@ import java.io.Serializable;
  * 端点接口.
  * <p>
  * 提供 push/pull 默认桩方法。
- * 对于 SSE 场景，提供 {@link #ssePull(String, MultiValueMap)} 方法返回
+ * 对于 SSE 场景，提供 {@link #sse(String, MultiValueMap)} 方法返回
  * {@code Flux<ServerSentEvent<Object>>}，支持心跳注释等 SSE 特性。
  * </p>
  *
@@ -54,10 +54,10 @@ public interface Endpoint<T> {
      * @param urlParams 路径参数
      * @return SSE 事件流
      */
-    default Flux<ServerSentEvent<Object>> ssePull(String queue, MultiValueMap<String, String> urlParams) {
+    default Flux<ServerSentEvent<T>> sse(String queue, MultiValueMap<String, String> urlParams) {
         return pull(queue, urlParams)
-                .map(data -> ServerSentEvent.builder()
-                        .data(data)
+                .map(data -> ServerSentEvent.<T>builder()
+                        .data(data.getData())
                         .build());
     }
 }
