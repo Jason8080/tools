@@ -447,6 +447,7 @@ td code { font-size: 13px; }
   margin-bottom: 40px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   border: 1px solid #F3F4F6;
+  overflow-x: auto;
 }
 .arch-flow {
   display: flex;
@@ -456,6 +457,7 @@ td code { font-size: 13px; }
   flex-wrap: wrap;
   font-size: 14px;
   font-weight: 500;
+  min-width: max-content;
 }
 .arch-box {
   padding: 12px 20px;
@@ -612,6 +614,7 @@ td code { font-size: 13px; }
       <button class="tab-btn" data-tab="home">首页</button>
       <button class="tab-btn active" data-tab="quick-start">快速开始</button>
       <button class="tab-btn" data-tab="core-concepts">核心概念</button>
+      <button class="tab-btn" data-tab="architecture">架构详解</button>
       <button class="tab-btn" data-tab="configuration">配置参考</button>
       <button class="tab-btn" data-tab="advanced">高级功能</button>
       <button class="tab-btn" data-tab="client-integration">客户端集成</button>
@@ -888,7 +891,7 @@ eventSource.<span class="fn">onerror</span> = (error) =&gt; {
   </div>
 
   <h3>Subscriber（订阅者）</h3>
-  <p>实现 <code>Subscriber</code> 接口定义消息订阅逻辑：</p>
+  <p>实现 <code>Subscriber</code> 接口定义消息订阅逻辑。注意 <code>pull()</code> 返回 <code>Flux&lt;MSG&gt;</code>，表示消息流：</p>
   <div class="code-block">
     <div class="code-header">
       <span class="code-lang">Java</span>
@@ -903,9 +906,10 @@ eventSource.<span class="fn">onerror</span> = (error) =&gt; {
     }
 
     <span class="ann">@Override</span>
-    <span class="kw">public</span> <span class="typ">OrderMsg</span> <span class="fn">pull</span>(<span class="typ">MultiValueMap</span>&lt;<span class="typ">String</span>, <span class="typ">String</span>&gt; urlParams) {
-        <span class="cm">// 自定义订阅逻辑（从缓存读取、查询数据库等）</span>
-        <span class="kw">return</span> orderMsg;
+    <span class="kw">public</span> <span class="typ">Flux</span>&lt;<span class="typ">OrderMsg</span>&gt; <span class="fn">pull</span>(<span class="typ">MultiValueMap</span>&lt;<span class="typ">String</span>, <span class="typ">String</span>&gt; urlParams) {
+        <span class="cm">// 返回消息流（SSE 场景）</span>
+        <span class="kw">return</span> sseConnectionManager.<span class="fn">subscribe</span>(<span class="fn">topic</span>())
+                .<span class="fn">map</span>(<span class="typ">TopicMessage</span>::<span class="fn">getMsg</span>);
     }
 }</code></pre>
   </div>
@@ -987,6 +991,211 @@ topicRouter.<span class="fn">push</span>(<span class="str">"order.update"</span>
     <div>
       <strong>并发安全</strong>
       <p>三层清理通过<strong>位域双守卫</strong>保证并发安全：单个 <code>AtomicInteger</code> 的 bit 0 竞争清理执行权，bit 1 保证计数器仅递减一次。</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== Tab: 架构详解 ==================== -->
+<div class="tab-panel" id="architecture">
+
+  <h2>架构详解</h2>
+  <p class="section-desc">深入理解 TOOLS IM 的消息流转机制、MQ 自动创建原理和微服务部署模式。</p>
+
+  <h3>消息流转全链路</h3>
+  <p>框架采用<strong>进-转-出</strong>三段式架构，通过 Spring Cloud Stream 实现跨进程消息传递：</p>
+
+  <div class="arch-diagram">
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+
+      <!-- 发送端 -->
+      <div style="background: #EEF2FF; border: 1px solid #C7D2FE; border-radius: 12px; padding: 20px;">
+        <div style="font-weight: 600; color: #4338CA; margin-bottom: 12px;">📤 发送端服务 (Service A)</div>
+        <div class="arch-flow" style="justify-content: flex-start;">
+          <div class="arch-box" style="background: #fff; border: 1px solid #C7D2FE; color: #4338CA;">HTTP POST<br><small>/push/{topic}</small></div>
+          <span class="arch-arrow">→</span>
+          <div class="arch-box" style="background: #fff; border: 1px solid #C7D2FE; color: #4338CA;">PublisherEndpoint</div>
+          <span class="arch-arrow">→</span>
+          <div class="arch-box" style="background: #fff; border: 1px solid #C7D2FE; color: #4338CA;">TopicRouter</div>
+          <span class="arch-arrow">→</span>
+          <div class="arch-box" style="background: #fff; border: 1px solid #C7D2FE; color: #4338CA;">YourPublisher</div>
+          <span class="arch-arrow">→</span>
+          <div class="arch-box arch-mq">StreamBridge<br><small>.send(topic, msg)</small></div>
+        </div>
+      </div>
+
+      <!-- MQ -->
+      <div style="text-align: center; font-size: 32px; color: #059669;">⬇️</div>
+
+      <div style="background: #F0FDF4; border: 2px solid #86EFAC; border-radius: 12px; padding: 20px; text-align: center;">
+        <div style="font-weight: 700; color: #166534; font-size: 18px; margin-bottom: 8px;">🐰 RabbitMQ / Spring Cloud Stream</div>
+        <div style="color: #166534; font-size: 14px;">
+          Exchange: <code>{topic}</code> &nbsp;|&nbsp; Queue: 自动创建 &nbsp;|&nbsp; Binding: 自动绑定
+        </div>
+      </div>
+
+      <div style="text-align: center; font-size: 32px; color: #059669;">⬇️</div>
+
+      <!-- 拉取端 -->
+      <div style="background: #FFF7ED; border: 1px solid #FED7AA; border-radius: 12px; padding: 20px;">
+        <div style="font-weight: 600; color: #9A3412; margin-bottom: 12px;">📥 拉取端服务 (Service B)</div>
+        <div class="arch-flow" style="justify-content: flex-start;">
+          <div class="arch-box arch-mq">Consumer Bean<br><small>{topic}.consumer</small></div>
+          <span class="arch-arrow">→</span>
+          <div class="arch-box" style="background: #fff; border: 1px solid #FED7AA; color: #9A3412;">SseConnectionManager<br><small>.publish(msg)</small></div>
+          <span class="arch-arrow">→</span>
+          <div class="arch-box" style="background: #fff; border: 1px solid #FED7AA; color: #9A3412;">Sink.emit()</div>
+          <span class="arch-arrow">→</span>
+          <div class="arch-box" style="background: #fff; border: 1px solid #FED7AA; color: #9A3412;">Flux&lt;Msg&gt;</div>
+          <span class="arch-arrow">→</span>
+          <div class="arch-box arch-client">SSE Client<br><small>GET /pull/{topic}</small></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <h3>MQ 队列自动创建机制</h3>
+  <p>框架利用 Spring Cloud Stream 的<strong>函数式绑定</strong>机制实现 MQ 基础设施的自动创建：</p>
+
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>阶段</th><th>触发时机</th><th>自动/手动</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Exchange 创建</strong></td>
+          <td>首次 <code>StreamBridge.send()</code></td>
+          <td style="color: #059669; font-weight: 600;">✅ 自动</td>
+          <td>Spring Cloud Stream 动态创建输出绑定，RabbitMQ 自动创建 Exchange</td>
+        </tr>
+        <tr>
+          <td><strong>Queue 创建</strong></td>
+          <td>Consumer Bean 注册后</td>
+          <td style="color: #059669; font-weight: 600;">✅ 自动</td>
+          <td>RabbitMQ 自动创建 Queue 并绑定到 Exchange</td>
+        </tr>
+        <tr>
+          <td><strong>Binding 映射</strong></td>
+          <td>应用启动时</td>
+          <td style="color: #DC2626; font-weight: 600;">❌ 手动</td>
+          <td>需配置 <code>destination</code> 将 Consumer 绑定到正确的 Topic</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">⚠️</span>
+    <div>
+      <strong>关键配置：destination 映射</strong>
+      <p>Consumer Bean 名称为 <code>{topic}.consumer</code>，Spring Cloud Stream 自动创建输入绑定 <code>{topic}.consumer-in-0</code>。但框架<strong>不会自动</strong>将此绑定与 destination 关联，需手动配置：</p>
+    </div>
+  </div>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">YAML</span>
+      <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+    </div>
+    <pre><code><span class="attr">spring</span>:
+  <span class="attr">cloud</span>:
+    <span class="attr">stream</span>:
+      <span class="attr">bindings</span>:
+        <span class="cm"># 发送端输出绑定（可选，默认使用 topic 名称）</span>
+        <span class="attr">order.update</span>:
+          <span class="attr">destination</span>: <span class="val">order.update</span>
+
+        <span class="cm"># 拉取端输入绑定（必须配置！）</span>
+        <span class="attr">order.update.consumer-in-0</span>:
+          <span class="attr">destination</span>: <span class="val">order.update</span></code></pre>
+  </div>
+
+  <h3>微服务部署模式</h3>
+  <p>框架原生支持发送端和拉取端分离部署，通过 <code>Definition</code> 接口实现灵活组合：</p>
+
+  <div class="card-grid" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="card">
+      <div class="card-icon">📤</div>
+      <h4>发送端服务</h4>
+      <p>实现 <code>PublisherDefinition</code>，仅创建 Publisher Bean。适合只负责接收 HTTP 请求并发送消息的服务。</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📥</div>
+      <h4>拉取端服务</h4>
+      <p>实现 <code>SubscriberDefinition</code>，创建 Consumer + Subscriber Bean。适合只负责 SSE 推送的服务。</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔄</div>
+      <h4>单进程服务</h4>
+      <p>实现 <code>TopicDefinition</code>，创建完整三组件。适合开发环境或小型应用。</p>
+    </div>
+  </div>
+
+  <h4>发送端示例</h4>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Java</span>
+      <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+    </div>
+    <pre><code><span class="cm">// Service A: 仅负责发送消息</span>
+<span class="ann">@Component</span>
+<span class="kw">public class</span> <span class="typ">OrderPublisherDefinition</span> <span class="kw">implements</span> <span class="typ">PublisherDefinition</span> {
+    <span class="ann">@Override</span>
+    <span class="kw">public</span> <span class="typ">String</span> <span class="fn">topic</span>() {
+        <span class="kw">return</span> <span class="str">"order.update"</span>;
+    }
+    <span class="cm">// 自动创建 Publisher，不会创建 Consumer/Subscriber</span>
+}</code></pre>
+  </div>
+
+  <h4>拉取端示例</h4>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Java</span>
+      <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+    </div>
+    <pre><code><span class="cm">// Service B: 仅负责 SSE 推送</span>
+<span class="ann">@Component</span>
+<span class="kw">public class</span> <span class="typ">OrderSubscriberDefinition</span> <span class="kw">implements</span> <span class="typ">SubscriberDefinition</span> {
+    <span class="ann">@Override</span>
+    <span class="kw">public</span> <span class="typ">String</span> <span class="fn">topic</span>() {
+        <span class="kw">return</span> <span class="str">"order.update"</span>;
+    }
+    <span class="cm">// 自动创建 Consumer + Subscriber，不会创建 Publisher</span>
+}</code></pre>
+  </div>
+
+  <h3>Bean 命名规则</h3>
+  <p>理解 Bean 命名规则有助于正确配置 Spring Cloud Stream binding：</p>
+
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>组件</th><th>Bean 名称</th><th>Spring Cloud Stream 绑定名</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Publisher</td>
+          <td><code>{topic}.publisher</code></td>
+          <td>输出绑定：<code>{topic}</code>（StreamBridge 动态创建）</td>
+        </tr>
+        <tr>
+          <td>Consumer</td>
+          <td><code>{topic}.consumer</code></td>
+          <td>输入绑定：<code>{topic}.consumer-in-0</code></td>
+        </tr>
+        <tr>
+          <td>Subscriber</td>
+          <td><code>{topic}.subscriber</code></td>
+          <td>无（不涉及 MQ）</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">💡</span>
+    <div>
+      <strong>多实例部署</strong>
+      <p>拉取端服务可部署多个实例，每个实例独立消费 MQ 消息并推送到本地 SSE 连接。Spring Cloud Stream 通过 Consumer Group 机制保证消息只被一个实例消费，实现负载均衡。</p>
     </div>
   </div>
 
