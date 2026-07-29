@@ -1,11 +1,11 @@
 package cn.gmlee.tools.im.sse;
 
+import cn.gmlee.tools.im.conf.SseProperties;
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.TopicMessage;
 import cn.gmlee.tools.im.sse.backpressure.BackpressureStrategy;
 import cn.gmlee.tools.im.sse.backpressure.BackpressureStrategyResolver;
 import cn.gmlee.tools.im.sse.internal.ConnectionCounter;
-import cn.gmlee.tools.im.conf.SseProperties;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Sinks;
@@ -26,6 +26,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li><b>连接存储</b>：connections 按 connectionId 索引，支持 O(1) 查找</li>
  *   <li><b>Topic 索引</b>：topicConnections 按 Topic 索引连接 ID 集合，支持快速按 Topic 清理</li>
  *   <li><b>Sink 管理</b>：topicSinks 使用 compute() 原子操作</li>
+ *   <li><b>空 Topic 追踪</b>：emptyTopics 独立记录空 Topic 及其首次变空时间，
+ *       避免 TTL 扫描时遍历全量 topicCounts（含大量历史零值条目）</li>
  * </ul>
  */
 @Slf4j
@@ -56,9 +58,15 @@ public class SseConnectionRegistry {
     private final ConcurrentHashMap<String, Set<String>> topicConnections = new ConcurrentHashMap<>();
 
     /**
-     * Topic -> 首次变空时间（用于 TTL 清理）
+     * 空 Topic 追踪：Topic -> 首次变空时间（毫秒）.
+     * <p>
+     * 仅包含当前连接数为 0 的 Topic，由 {@link #cleanupIfEmpty} 写入，
+     * 由 {@link #cleanupEmptyTopicsByTtl} 和 {@link #compactTopicCounts} 消费。
+     * 独立于 {@code counter.getTopicCounts()} 维护，避免 TTL 扫描时
+     * 遍历全量历史 Topic 条目（可能数万条），将扫描复杂度从 O(全部历史) 降为 O(当前空 Topic)。
+     * </p>
      */
-    private final ConcurrentHashMap<String, Long> emptySince = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Long> emptyTopics = new ConcurrentHashMap<>();
 
     /**
      * 是否正在关闭.
@@ -90,8 +98,8 @@ public class SseConnectionRegistry {
         connections.put(conn.getConnectionId(), conn);
         topicConnections.computeIfAbsent(conn.getTopic(), k -> ConcurrentHashMap.newKeySet())
                 .add(conn.getConnectionId());
-        // 清除 emptySince 标记（Topic 有新连接了）
-        emptySince.remove(conn.getTopic());
+        // Topic 有新连接，清除空 Topic 追踪
+        emptyTopics.remove(conn.getTopic());
     }
 
     /**
@@ -114,7 +122,7 @@ public class SseConnectionRegistry {
      * <ol>
      *   <li>尝试递减计数器（通过 ConnectionCounter.tryDecrement）</li>
      *   <li>从 maps 中移除连接</li>
-     *   <li>如果 Topic 为空，清理 Sink 和连接集合</li>
+     *   <li>如果 Topic 为空，清理 Sink 和连接集合，并追踪空 Topic</li>
      *   <li>清理该 Topic 的指标</li>
      * </ol>
      * </p>
@@ -143,6 +151,10 @@ public class SseConnectionRegistry {
      * 使用 computeIfAbsent 保证原子性，同一 Topic 的所有并发请求只会创建一个 Sink。
      * 关闭中（{@link #closing} = true）时返回 null，阻止创建新 Sink。
      * </p>
+     * <p>
+     * 缓冲区大小优先使用 {@code topicBufferOverrides} 中按 Topic 配置的值，
+     * 未命中则使用 {@code defaultBufferSize}。
+     * </p>
      *
      * @param topic Topic 名称
      * @return 对应的 Sink，关闭中返回 null
@@ -153,10 +165,30 @@ public class SseConnectionRegistry {
         }
         return topicSinks.computeIfAbsent(topic, t -> {
             BackpressureStrategy strategy = strategyResolver.resolve(t);
-            int bufferSize = properties.getBackpressure().getDefaultBufferSize();
+            int bufferSize = resolveBufferSize(t);
             log.debug("[Sink] 创建: topic={}, strategy={}, bufferSize={}", t, strategy.name(), bufferSize);
             return strategy.createSink(bufferSize);
         });
+    }
+
+    /**
+     * 解析 Topic 的缓冲区大小.
+     * <p>
+     * 优先查找 {@code topicBufferOverrides} 配置，未命中则使用默认值。
+     * </p>
+     *
+     * @param topic Topic 名称
+     * @return 缓冲区大小
+     */
+    private int resolveBufferSize(String topic) {
+        Map<String, Integer> overrides = properties.getBackpressure().getTopicBufferOverrides();
+        if (overrides != null) {
+            Integer override = overrides.get(topic);
+            if (override != null) {
+                return override;
+            }
+        }
+        return properties.getBackpressure().getDefaultBufferSize();
     }
 
     /**
@@ -170,12 +202,18 @@ public class SseConnectionRegistry {
      * computeIfAbsent() 产生竞态导致计数器漂移。代价是每个历史 Topic 保留一个
      * AtomicInteger（~40 字节），对 IM 场景可忽略。
      * </p>
+     * <p>
+     * 清理成功后通过 {@link #trackEmptyTopic} 记录空 Topic 到 {@link #emptyTopics}，
+     * 供 TTL 扫描和计数器压缩使用。
+     * </p>
      *
      * @param topic Topic 名称
      * @return 如果执行了清理返回 true
      */
     public boolean cleanupIfEmpty(String topic) {
-        final boolean[] cleaned = {false};
+        // 先记录清理前的 Sink 存在状态，compute 后对比判断是否由本次调用执行了清理
+        boolean sinkExistedBefore = topicSinks.containsKey(topic);
+
         counter.getTopicCounts().compute(topic, (k, v) -> {
             if (v == null || v.get() > 0) {
                 return v;
@@ -183,55 +221,71 @@ public class SseConnectionRegistry {
             // 计数为 0，清理 Sink 和连接集合，但保留计数器条目
             topicSinks.remove(k);
             topicConnections.remove(k);
-            emptySince.remove(k);
-            cleaned[0] = true;
             log.debug("[Topic] 清理空 Topic: {}", k);
             return v; // 保留计数器，避免与并发 subscribe 的竞态
         });
-        return cleaned[0];
+
+        // compute 内部已原子移除 Sink，通过前后对比判断本次是否执行了清理
+        // （若其他线程先完成清理，sinkExistedBefore 为 false，不会误判）
+        boolean cleaned = sinkExistedBefore && !topicSinks.containsKey(topic);
+        if (cleaned) {
+            trackEmptyTopic(topic);
+        }
+        return cleaned;
+    }
+
+    /**
+     * 记录空 Topic 首次变空时间.
+     * <p>
+     * 使用 putIfAbsent 保证仅首次调用设置时间戳，后续调用不会覆盖。
+     * </p>
+     *
+     * @param topic Topic 名称
+     */
+    private void trackEmptyTopic(String topic) {
+        emptyTopics.putIfAbsent(topic, System.currentTimeMillis());
     }
 
     /**
      * 基于 TTL 清理空 Topic.
      * <p>
-     * 仅当 Topic 为空超过指定 TTL 时才清理，防止抖动。
+     * 仅遍历 {@link #emptyTopics}（当前空 Topic 集合），而非全量 topicCounts，
+     * 在长期运行且 Topic 基数高的场景下性能显著优于全量扫描。
      * 保留 topicCounts 计数器条目，避免与并发 subscribe() 的竞态。
      * </p>
      *
-     * @param emptyTopicTtlMillis 空 Topic TTL（毫秒）
      * @return 被清理的 Topic 名称列表
      */
-    public List<String> cleanupEmptyTopicsByTtl(long emptyTopicTtlMillis) {
+    public List<String> cleanupEmptyTopicsByTtl() {
+        if (emptyTopics.isEmpty()) {
+            return Collections.emptyList();
+        }
+
         long now = System.currentTimeMillis();
+        long emptyTopicTtlMillis = properties.getCleanup().getEmptyTopicTtl().toMillis();
         List<String> cleaned = new ArrayList<>();
 
-        for (Map.Entry<String, java.util.concurrent.atomic.AtomicInteger> entry : counter.getTopicCounts().entrySet()) {
+        for (Map.Entry<String, Long> entry : emptyTopics.entrySet()) {
             String topic = entry.getKey();
-            java.util.concurrent.atomic.AtomicInteger count = entry.getValue();
+            Long since = entry.getValue();
+            if (since == null || (now - since) <= emptyTopicTtlMillis) {
+                continue;
+            }
 
-            if (count.get() == 0) {
-                // 首次标记为空
-                emptySince.putIfAbsent(topic, now);
-                Long since = emptySince.get(topic);
-                if (since != null && (now - since) > emptyTopicTtlMillis) {
-                    // 超过 TTL，清理 Sink 和连接集合（保留计数器）
-                    final boolean[] didClean = {false};
-                    counter.getTopicCounts().compute(topic, (k, v) -> {
-                        if (v != null && v.get() == 0) {
-                            topicSinks.remove(k);
-                            topicConnections.remove(k);
-                            didClean[0] = true;
-                        }
-                        return v; // 保留计数器
-                    });
-                    if (didClean[0]) {
-                        emptySince.remove(topic);
-                        cleaned.add(topic);
-                    }
+            // 超过 TTL，原子检查并清理
+            final boolean[] didClean = {false};
+            counter.getTopicCounts().compute(topic, (k, v) -> {
+                if (v != null && v.get() == 0) {
+                    topicSinks.remove(k);
+                    topicConnections.remove(k);
+                    didClean[0] = true;
                 }
-            } else {
-                // Topic 有连接，清除空标记
-                emptySince.remove(topic);
+                return v; // 保留计数器
+            });
+
+            emptyTopics.remove(topic);
+            if (didClean[0]) {
+                cleaned.add(topic);
             }
         }
 
@@ -241,6 +295,7 @@ public class SseConnectionRegistry {
     /**
      * 压缩长期为空的 Topic 计数器条目.
      * <p>
+     * 仅遍历 {@link #emptyTopics}（当前空 Topic 集合），而非全量 topicCounts。
      * 移除同时满足以下条件的条目：
      * <ol>
      *   <li>计数器值为 0</li>
@@ -253,23 +308,20 @@ public class SseConnectionRegistry {
      * @return 被移除的 Topic 数量
      */
     public int compactTopicCounts(long compactTtlMillis) {
-        if (compactTtlMillis <= 0) {
+        if (compactTtlMillis <= 0 || emptyTopics.isEmpty()) {
             return 0;
         }
+
         long now = System.currentTimeMillis();
         int compacted = 0;
 
-        for (Map.Entry<String, java.util.concurrent.atomic.AtomicInteger> entry : counter.getTopicCounts().entrySet()) {
+        for (Map.Entry<String, Long> entry : emptyTopics.entrySet()) {
             String topic = entry.getKey();
-            java.util.concurrent.atomic.AtomicInteger count = entry.getValue();
-
-            if (count.get() != 0) {
-                continue;
-            }
-            Long since = emptySince.get(topic);
+            Long since = entry.getValue();
             if (since == null || (now - since) < compactTtlMillis) {
                 continue;
             }
+
             // 原子检查并移除
             final boolean[] removed = {false};
             counter.getTopicCounts().compute(topic, (k, v) -> {
@@ -279,8 +331,9 @@ public class SseConnectionRegistry {
                 }
                 return v;
             });
+
+            emptyTopics.remove(topic);
             if (removed[0]) {
-                emptySince.remove(topic);
                 compacted++;
                 log.debug("[Topic] 压缩计数器: {}", topic);
             }
@@ -403,7 +456,7 @@ public class SseConnectionRegistry {
         topicSinks.clear();
         connections.clear();
         topicConnections.clear();
-        emptySince.clear();
+        emptyTopics.clear();
         counter.reset();
     }
 }

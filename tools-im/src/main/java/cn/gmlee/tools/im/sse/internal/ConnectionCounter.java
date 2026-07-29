@@ -105,16 +105,16 @@ public class ConnectionCounter {
     /**
      * 尝试递减计数器.
      * <p>
-     * 使用 countersDecrementGuard CAS 保证每个连接仅递减一次，
-     * 避免 doFinally 与 Reaper/forceClose 的双重递减。
+     * 使用 {@link SseConnection#tryAcquireCountersDecrement()}（位域 CAS）
+     * 保证每个连接仅递减一次，避免 doFinally 与 Reaper/forceClose 的双重递减。
      * </p>
      *
      * @param conn 连接记录
      * @return 如果执行了递减返回 true
      */
     public boolean tryDecrement(SseConnection conn) {
-        // CAS: 仅当 doFinally 尚未处理时执行递减
-        if (!conn.getCountersDecrementGuard().compareAndSet(false, true)) {
+        // 位域 CAS: 仅当计数器尚未递减时执行
+        if (!conn.tryAcquireCountersDecrement()) {
             return false;
         }
         totalConnections.decrementAndGet();

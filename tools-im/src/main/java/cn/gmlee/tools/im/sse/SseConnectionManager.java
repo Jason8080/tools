@@ -16,6 +16,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
@@ -27,7 +28,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * SSE 连接管理器（门面）.
  * <p>
  * 这是 SSE 连接管理的唯一公共入口，保持与旧版本相同的 API 签名以兼容下游代码。
- * 内部委托给 {@link SseConnectionRegistry}、{@link ConnectionReaper}、{@link SseMetrics} 等组件。
+ * 内部委托给 {@link SseConnectionRegistry}、{@link ConnectionReaper}、{@link SseMetrics}、
+ * {@link SseConnectionFluxBuilder} 等组件。
  * </p>
  *
  * <h3>核心特性</h3>
@@ -35,17 +37,24 @@ import java.util.concurrent.atomic.AtomicInteger;
  *   <li><b>无锁并发</b>：使用 CAS 循环保证连接数限制的原子性</li>
  *   <li><b>三层清理</b>：doFinally（响应式） + Reaper（定时） + Shutdown（强制）</li>
  *   <li><b>优雅关闭</b>：实现 SmartLifecycle，按阶段排空连接</li>
- *   <li><b>可观测性</b>：通过 SseMetrics 暴露 Micrometer 指标</li>
+ *   <li><b>可观测性</b>：通过 SseMetrics 暴露 Micrometer 指标，
+ *       通过 {@link SseConnectionListener} 暴露生命周期事件</li>
  * </ul>
+ *
+ * <h3>职责分离</h3>
+ * <p>
+ * 管理器专注于协调：预检查、计数器管理、生命周期控制。
+ * Flux 构建细节（Sink 创建、连接注册、生命周期钩子）委托给 {@link SseConnectionFluxBuilder}。
+ * </p>
  */
 @Slf4j
 public class SseConnectionManager implements SmartLifecycle {
 
     private final SseProperties properties;
     private final SseConnectionRegistry registry;
-    private final BackpressureStrategyResolver strategyResolver;
     private final SseMetrics metrics;
     private final ConnectionReaper reaper;
+    private final List<SseConnectionListener> listeners;
 
     /**
      * 生命周期调度器（daemon 线程）
@@ -70,34 +79,57 @@ public class SseConnectionManager implements SmartLifecycle {
     private volatile boolean running = false;
 
     /**
-     * 生命周期代数计数器
+     * 生命周期代数计数器.
+     * <p>
+     * 每次 {@link #start()} 递增，异步 drain 任务通过比较代数判断自身是否已过期
+     * （组件已被重启），过期任务跳过破坏性清理，避免影响新生命周期的状态。
+     * </p>
      */
     private final AtomicInteger drainGeneration = new AtomicInteger(0);
 
+    /**
+     * 创建连接管理器.
+     *
+     * @param properties       SSE 配置
+     * @param registry         连接注册表
+     * @param strategyResolver 背压策略解析器（保留参数以兼容旧 API，当前由 Registry 持有）
+     * @param metrics          指标收集器
+     * @param reaper           连接收割器
+     * @param listeners        连接生命周期监听器列表（可为空）
+     */
     public SseConnectionManager(SseProperties properties,
-                                 SseConnectionRegistry registry,
-                                 BackpressureStrategyResolver strategyResolver,
-                                 SseMetrics metrics,
-                                 ConnectionReaper reaper) {
+                                SseConnectionRegistry registry,
+                                BackpressureStrategyResolver strategyResolver,
+                                SseMetrics metrics,
+                                ConnectionReaper reaper,
+                                List<SseConnectionListener> listeners) {
         this.properties = properties;
         this.registry = registry;
-        this.strategyResolver = strategyResolver;
         this.metrics = metrics;
         this.reaper = reaper;
+        this.listeners = listeners != null ? listeners : Collections.emptyList();
     }
 
     // ==================== 公共 API ====================
 
     /**
      * 订阅 Topic.
+     * <p>
+     * 返回延迟执行的 Flux，在实际订阅时执行预检查和连接创建。
+     * 完整流程：
+     * <ol>
+     *   <li>预检查：是否接受新连接</li>
+     *   <li>计数器递增：CAS 循环检查全局/Topic 限制</li>
+     *   <li>二次检查：防止 CAS 期间进入关闭流程</li>
+     *   <li>Flux 构建：委托给 {@link SseConnectionFluxBuilder}</li>
+     * </ol>
+     * </p>
      *
      * @param topic Topic 名称
      * @return 消息流
      */
     public Flux<TopicMessage<Msg>> subscribe(String topic) {
         return Flux.defer(() -> {
-            long startTime = System.currentTimeMillis();
-
             // 1. 预检查
             if (!checkAccepting(topic)) {
                 return Flux.error(SseShutdownException.INSTANCE);
@@ -120,8 +152,8 @@ public class SseConnectionManager implements SmartLifecycle {
                 return Flux.error(SseShutdownException.INSTANCE);
             }
 
-            // 4. 构建连接流
-            return buildConnectionFlux(topic, startTime);
+            // 4. 构建连接流（委托给 FluxBuilder）
+            return SseConnectionFluxBuilder.build(topic, registry, metrics, listeners);
         });
     }
 
@@ -150,6 +182,7 @@ public class SseConnectionManager implements SmartLifecycle {
 
         if (result.isFailure()) {
             metrics.recordPublish(topic, "EMIT_FAILURE");
+            SseConnectionFluxBuilder.firePublishError(topic, result, listeners);
             log.warn("[Publish] 失败: topic={}, result={}", topic, result);
         } else {
             metrics.recordPublish(topic, "SUCCESS");
@@ -194,8 +227,13 @@ public class SseConnectionManager implements SmartLifecycle {
     public boolean forceClose(String connectionId) {
         SseConnection conn = registry.getConnection(connectionId);
         if (conn != null && conn.markClosed()) {
-            registry.cleanupConnection(conn, metrics);
-            conn.cancel();
+            try {
+                registry.cleanupConnection(conn, metrics);
+            } finally {
+                // 确保即使 cleanupConnection 抛出异常，订阅也被取消、状态也被置为 CLOSED
+                conn.cancel();
+                conn.completeClose();
+            }
             log.info("[ForceClose] 完成: connectionId={}", connectionId);
             return true;
         }
@@ -241,7 +279,8 @@ public class SseConnectionManager implements SmartLifecycle {
 
     @Override
     public void stop() {
-        stop(() -> {});
+        stop(() -> {
+        });
     }
 
     @Override
@@ -269,7 +308,6 @@ public class SseConnectionManager implements SmartLifecycle {
         log.debug("[Lifecycle] 已发送 Sink 完成信号");
 
         // 阶段 4-6: 异步执行
-        Duration drainTimeout = properties.getShutdown().getDrainTimeout();
         ScheduledExecutorService scheduler = this.lifecycleScheduler;
         int expectedGen = drainGeneration.get();
 
@@ -320,93 +358,6 @@ public class SseConnectionManager implements SmartLifecycle {
         metrics.recordSubscribe(topic, reason);
         log.info("[Subscribe] 拒绝({}): topic={}, current={}, max={}",
                 reason, topic, ex.getCurrentCount(), ex.getMaxAllowed());
-    }
-
-    /**
-     * 构建连接 Flux.
-     */
-    private Flux<TopicMessage<Msg>> buildConnectionFlux(String topic, long startTime) {
-        SseConnection conn = null;
-        try {
-            // 获取或创建 Sink
-            Sinks.Many<TopicMessage<Msg>> sink = registry.getOrCreateSink(topic);
-            if (sink == null) {
-                registry.getCounter().rollback(topic);
-                metrics.recordSubscribe(topic, "REJECTED_SHUTDOWN");
-                return Flux.error(SseShutdownException.INSTANCE);
-            }
-
-            // 创建连接记录
-            conn = new SseConnection(topic);
-            registry.register(conn);
-            metrics.recordSubscribe(topic, "SUCCESS");
-
-            long elapsed = System.currentTimeMillis() - startTime;
-            metrics.recordSubscribeDuration(topic, elapsed);
-
-            log.info("[Subscribe] 成功: topic={}, connectionId={}", topic, conn.getConnectionId());
-
-            // 构建数据流
-            return buildReactorFlux(sink, conn, topic);
-
-        } catch (Exception e) {
-            // 异常回滚
-            registry.getCounter().rollback(topic);
-            if (conn != null) {
-                registry.unregister(conn);
-                if (registry.cleanupIfEmpty(topic)) {
-                    metrics.cleanupTopic(topic);
-                }
-            }
-            metrics.recordError("subscribe_init");
-            log.error("[Subscribe] 初始化失败: topic={}", topic, e);
-            return Flux.error(e);
-        }
-    }
-
-    /**
-     * 构建 Reactor Flux 并附加生命周期钩子.
-     */
-    private Flux<TopicMessage<Msg>> buildReactorFlux(Sinks.Many<TopicMessage<Msg>> sink,
-                                                      SseConnection conn,
-                                                      String topic) {
-        return sink.asFlux()
-                .doOnSubscribe(sub -> handleOnSubscribe(conn, sub))
-                .doOnNext(msg -> conn.touch())
-                .doFinally(signal -> handleFinally(conn, topic, signal));
-    }
-
-    /**
-     * 处理 onSubscribe 回调.
-     */
-    private void handleOnSubscribe(SseConnection conn, org.reactivestreams.Subscription sub) {
-        conn.setSubscription(sub);
-        // 补偿检查：如果在 doOnSubscribe 前已被关闭
-        if (conn.isClosed()) {
-            sub.cancel();
-            return;
-        }
-        conn.activate();
-        conn.touch();
-    }
-
-    /**
-     * 处理 finally 回调.
-     */
-    private void handleFinally(SseConnection conn, String topic,
-                                reactor.core.publisher.SignalType signal) {
-        if (conn.markClosed()) {
-            // doFinally 赢得清理权
-            registry.cleanupConnection(conn, metrics);
-            conn.completeClose();
-            log.debug("[Cleanup] 完成: topic={}, connectionId={}, signal={}",
-                    topic, conn.getConnectionId(), signal);
-        } else {
-            // 其他层已清理，检查是否需要补偿递减
-            if (registry.isRegistered(conn)) {
-                registry.cleanupConnection(conn, metrics);
-            }
-        }
     }
 
     /**
@@ -470,8 +421,12 @@ public class SseConnectionManager implements SmartLifecycle {
         for (SseConnection conn : registry.snapshotConnections()) {
             try {
                 if (conn.markClosed()) {
-                    registry.cleanupConnection(conn, metrics);
-                    conn.cancel();
+                    try {
+                        registry.cleanupConnection(conn, metrics);
+                    } finally {
+                        conn.cancel();
+                        conn.completeClose();
+                    }
                     count++;
                 }
             } catch (Exception e) {

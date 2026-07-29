@@ -4,6 +4,7 @@ import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Subscriber;
 import cn.gmlee.tools.im.core.TopicRouter;
+import cn.gmlee.tools.im.sse.SseConnectionListener;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import cn.gmlee.tools.im.sse.SseConnectionRegistry;
 import cn.gmlee.tools.im.sse.SseMetrics;
@@ -69,8 +70,9 @@ public class ImAutoConfiguration {
                                                       SseConnectionRegistry registry,
                                                       BackpressureStrategyResolver strategyResolver,
                                                       SseMetrics metrics,
-                                                      ConnectionReaper reaper) {
-        return new SseConnectionManager(properties, registry, strategyResolver, metrics, reaper);
+                                                      ConnectionReaper reaper,
+                                                      @Autowired(required = false) List<SseConnectionListener> listeners) {
+        return new SseConnectionManager(properties, registry, strategyResolver, metrics, reaper, listeners);
     }
 
     @Bean

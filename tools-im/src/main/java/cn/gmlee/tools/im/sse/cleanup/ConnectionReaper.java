@@ -166,9 +166,8 @@ public class ConnectionReaper {
                 }
             }
 
-            // 清理空 Topic（基于 TTL）
-            long emptyTopicTtlMs = properties.getCleanup().getEmptyTopicTtl().toMillis();
-            List<String> cleanedTopics = registry.cleanupEmptyTopicsByTtl(emptyTopicTtlMs);
+            // 清理空 Topic（基于 TTL，仅遍历当前空 Topic 集合）
+            List<String> cleanedTopics = registry.cleanupEmptyTopicsByTtl();
 
             // 清理已销毁 Topic 的指标对象
             for (String topic : cleanedTopics) {
@@ -197,8 +196,13 @@ public class ConnectionReaper {
         if (conn.markClosed()) {
             log.debug("[Reaper] 强制关闭僵尸连接: topic={}, connectionId={}",
                     conn.getTopic(), conn.getConnectionId());
-            registry.cleanupConnection(conn, metrics);
-            conn.cancel();
+            try {
+                registry.cleanupConnection(conn, metrics);
+            } finally {
+                // 确保即使 cleanupConnection 抛出异常，订阅也被取消
+                conn.cancel();
+                conn.completeClose();
+            }
         }
     }
 

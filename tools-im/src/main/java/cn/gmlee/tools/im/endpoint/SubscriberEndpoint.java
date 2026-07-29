@@ -10,6 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 
 import java.io.Serializable;
@@ -56,17 +57,18 @@ public class SubscriberEndpoint implements Endpoint<Msg> {
 
         // 如果启用心跳，合并心跳注释流
         if (sseProperties.getHeartbeat().isEnabled()) {
-            // 使用 share() 使 dataFlux 可被多次订阅
-            Flux<ServerSentEvent<Msg>> sharedDataFlux = dataFlux.share();
-            Flux<ServerSentEvent<Msg>> heartbeatFlux = createHeartbeatFlux();
+            // autoConnect(2) 等待两个订阅者就绪后只连接一次底层 Sink，
+            // 第二个参数（cancelConsumer）在所有订阅者断开时取消上游订阅，
+            // 触发 doFinally 清理——语义等价于 share() 但避免了首次订阅即连接的时序问题
+            Flux<ServerSentEvent<Msg>> shared = dataFlux.publish()
+                    .autoConnect(2, Disposable::dispose);
+            Flux<ServerSentEvent<Msg>> heartbeat = createHeartbeatFlux()
+                    .takeUntilOther(shared.ignoreElements());
 
-            // 关键：当 dataFlux 完成时，心跳也必须停止
-            // takeUntilOther 在 dataFlux 完成时终止心跳流
+            // 关键：当数据流完成时，心跳也必须停止
+            // takeUntilOther 在 shared 完成时终止心跳流
             // 这样 Flux.merge 才能在连接关闭时正确完成
-            return Flux.merge(
-                    sharedDataFlux,
-                    heartbeatFlux.takeUntilOther(sharedDataFlux.ignoreElements())
-            );
+            return Flux.merge(shared, heartbeat);
         }
 
         return dataFlux;
