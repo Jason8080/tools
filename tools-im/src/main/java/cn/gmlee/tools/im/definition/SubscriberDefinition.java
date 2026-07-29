@@ -18,6 +18,11 @@ import java.util.function.Consumer;
  * 拉取端服务只需实现此接口，无需创建 Publisher 组件。
  * </p>
  *
+ * <h3>泛型参数</h3>
+ * <ul>
+ *   <li>{@code MSG} — 消息类型，必须实现 {@link Msg}</li>
+ * </ul>
+ *
  * <h3>微服务场景</h3>
  * <p>
  * 在微服务架构中，发送消息和拉取消息通常是两个独立的微服务进程：
@@ -33,10 +38,22 @@ import java.util.function.Consumer;
  *   <li><b>Subscriber（出）</b>：从 {@link SseConnectionManager} 获取 Flux，供 SSE pull 端点输出</li>
  * </ul>
  *
- * <h3>典型用法</h3>
+ * <h3>典型用法（使用默认类型）</h3>
  * <pre>{@code
  * @Component
- * public class OrderSubscriberDefinition implements SubscriberDefinition {
+ * public class OrderSubscriberDefinition implements SubscriberDefinition<Msg> {
+ *     @Override
+ *     public String topic() {
+ *         return "order.update";
+ *     }
+ *     // 使用默认实现，无需重写 createConsumer/createSubscriber
+ * }
+ * }</pre>
+ *
+ * <h3>自定义消息类型</h3>
+ * <pre>{@code
+ * @Component
+ * public class OrderSubscriberDefinition implements SubscriberDefinition<OrderMsg> {
  *     @Override
  *     public String topic() {
  *         return "order.update";
@@ -51,10 +68,10 @@ import java.util.function.Consumer;
  * </p>
  * <pre>{@code
  * @Override
- * public Consumer<TopicMessage<Msg>> createConsumer(SseConnectionManager sseConnectionManager) {
- *     return new AbstractStreamConsumer(sseConnectionManager) {
+ * public Consumer<TopicMessage<OrderMsg>> createConsumer(SseConnectionManager sseConnectionManager) {
+ *     return new AbstractStreamConsumer<OrderMsg>(sseConnectionManager) {
  *         @Override
- *         public void accept(TopicMessage<Msg> message) {
+ *         public void accept(TopicMessage<OrderMsg> message) {
  *             // 自定义消费逻辑（如添加日志、指标等）
  *             super.accept(message);
  *         }
@@ -62,13 +79,13 @@ import java.util.function.Consumer;
  * }
  *
  * @Override
- * public Subscriber<Msg> createSubscriber(SseConnectionManager sseConnectionManager) {
- *     return new AbstractSseSubscriber(sseConnectionManager) {
+ * public Subscriber<OrderMsg> createSubscriber(SseConnectionManager sseConnectionManager) {
+ *     return new AbstractSseSubscriber<OrderMsg>(sseConnectionManager) {
  *         @Override
  *         public String topic() { return OrderSubscriberDefinition.this.topic(); }
  *
  *         @Override
- *         public Flux<Msg> pull(MultiValueMap<String, String> urlParams) {
+ *         public Flux<OrderMsg> pull(MultiValueMap<String, String> urlParams) {
  *             // 自定义订阅逻辑（如根据 URL 参数过滤）
  *             return super.pull(urlParams);
  *         }
@@ -76,11 +93,12 @@ import java.util.function.Consumer;
  * }
  * }</pre>
  *
+ * @param <MSG> 消息类型
  * @see PublisherDefinition 发送端定义接口
  * @see TopicDefinition 单进程场景的完整定义接口
  * @since 5.6.0
  */
-public interface SubscriberDefinition extends Topic {
+public interface SubscriberDefinition<MSG extends Msg> extends Topic {
 
     /**
      * 创建消费者（转）.
@@ -91,8 +109,8 @@ public interface SubscriberDefinition extends Topic {
      * @param sseConnectionManager SSE 连接管理器
      * @return 消费者实例
      */
-    default Consumer<TopicMessage<Msg>> createConsumer(SseConnectionManager sseConnectionManager) {
-        return new AbstractStreamConsumer(sseConnectionManager) {};
+    default Consumer<TopicMessage<MSG>> createConsumer(SseConnectionManager sseConnectionManager) {
+        return new AbstractStreamConsumer<MSG>(sseConnectionManager) {};
     }
 
     /**
@@ -104,8 +122,8 @@ public interface SubscriberDefinition extends Topic {
      * @param sseConnectionManager SSE 连接管理器
      * @return 订阅者实例
      */
-    default Subscriber<Msg> createSubscriber(SseConnectionManager sseConnectionManager) {
-        return new AbstractSseSubscriber(sseConnectionManager) {
+    default Subscriber<MSG> createSubscriber(SseConnectionManager sseConnectionManager) {
+        return new AbstractSseSubscriber<MSG>(sseConnectionManager) {
             @Override
             public String topic() {
                 return SubscriberDefinition.this.topic();

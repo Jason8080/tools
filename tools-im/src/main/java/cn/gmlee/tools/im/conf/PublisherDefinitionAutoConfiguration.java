@@ -33,6 +33,7 @@ import java.util.List;
  * @see PublisherDefinition
  * @see SubscriberDefinitionAutoConfiguration
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 @Slf4j
 @Configuration
 @AutoConfiguration(after = ImAutoConfiguration.class)
@@ -65,7 +66,7 @@ public class PublisherDefinitionAutoConfiguration {
     }
 
     private void registerPublisher(PublisherDefinition definition, String topic) {
-        Publisher<Serializable, Msg> publisher = definition.createPublisher(streamBridge);
+        Publisher publisher = definition.createPublisher(streamBridge);
 
         String beanName = topic + ".publisher";
 

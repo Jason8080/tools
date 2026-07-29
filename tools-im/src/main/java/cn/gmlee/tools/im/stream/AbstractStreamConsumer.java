@@ -13,18 +13,25 @@ import java.util.function.Consumer;
  * 子类无需重写任何方法，只需通过构造器注入 {@link SseConnectionManager}。
  * </p>
  *
+ * <h3>泛型参数</h3>
+ * <ul>
+ *   <li>{@code MSG} — 消息类型，必须实现 {@link Msg}</li>
+ * </ul>
+ *
  * <h3>典型用法</h3>
  * <pre>{@code
  * @Component
- * public class OrderConsumer extends AbstractStreamConsumer {
+ * public class OrderConsumer extends AbstractStreamConsumer<Msg> {
  *     public OrderConsumer(SseConnectionManager sseConnectionManager) {
  *         super(sseConnectionManager);
  *     }
  *     // 无需重写 accept()，基类已实现
  * }
  * }</pre>
+ *
+ * @param <MSG> 消息类型
  */
-public abstract class AbstractStreamConsumer implements Consumer<TopicMessage<Msg>> {
+public abstract class AbstractStreamConsumer<MSG extends Msg> implements Consumer<TopicMessage<MSG>> {
 
     private final SseConnectionManager sseConnectionManager;
 
@@ -38,9 +45,10 @@ public abstract class AbstractStreamConsumer implements Consumer<TopicMessage<Ms
     }
 
     @Override
-    public void accept(TopicMessage<Msg> message) {
+    @SuppressWarnings("unchecked")
+    public void accept(TopicMessage<MSG> message) {
         if (message != null) {
-            sseConnectionManager.publish(message);
+            sseConnectionManager.publish((TopicMessage<Msg>) message);
         }
     }
 }

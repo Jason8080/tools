@@ -34,6 +34,7 @@ import java.util.function.Consumer;
  * @see SubscriberDefinition
  * @see PublisherDefinitionAutoConfiguration
  */
+@SuppressWarnings({"rawtypes", "unchecked"})
 @Slf4j
 @Configuration
 @AutoConfiguration(after = ImAutoConfiguration.class)
@@ -67,7 +68,7 @@ public class SubscriberDefinitionAutoConfiguration {
     }
 
     private void registerConsumer(SubscriberDefinition definition, String topic) {
-        Consumer<TopicMessage<Msg>> consumer = definition.createConsumer(sseConnectionManager);
+        Consumer consumer = definition.createConsumer(sseConnectionManager);
 
         String beanName = topic + ".consumer";
 
@@ -86,7 +87,7 @@ public class SubscriberDefinitionAutoConfiguration {
     }
 
     private void registerSubscriber(SubscriberDefinition definition, String topic) {
-        Subscriber<Msg> subscriber = definition.createSubscriber(sseConnectionManager);
+        Subscriber subscriber = definition.createSubscriber(sseConnectionManager);
 
         String beanName = topic + ".subscriber";
 

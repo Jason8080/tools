@@ -11,9 +11,10 @@ public interface Msg extends Serializable {
     /**
      * Build msg event.
      *
+     * @param <MSG>     the type parameter
      * @param urlParams the url params
      * @return the msg event
      */
-    TopicMessage<Msg> build(MultiValueMap<String, String> urlParams);
+    <MSG extends Msg> TopicMessage<MSG> build(MultiValueMap<String, String> urlParams);
 
 }

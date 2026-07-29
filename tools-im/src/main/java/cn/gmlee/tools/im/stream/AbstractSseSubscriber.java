@@ -14,10 +14,15 @@ import reactor.core.publisher.Flux;
  * 子类只需实现 {@link #topic()} 指定主题名称。
  * </p>
  *
+ * <h3>泛型参数</h3>
+ * <ul>
+ *   <li>{@code MSG} — 消息类型，必须实现 {@link Msg}</li>
+ * </ul>
+ *
  * <h3>典型用法</h3>
  * <pre>{@code
  * @Component
- * public class OrderSubscriber extends AbstractSseSubscriber {
+ * public class OrderSubscriber extends AbstractSseSubscriber<Msg> {
  *     public OrderSubscriber(SseConnectionManager sseConnectionManager) {
  *         super(sseConnectionManager);
  *     }
@@ -28,8 +33,10 @@ import reactor.core.publisher.Flux;
  *     }
  * }
  * }</pre>
+ *
+ * @param <MSG> 消息类型
  */
-public abstract class AbstractSseSubscriber implements Subscriber<Msg> {
+public abstract class AbstractSseSubscriber<MSG extends Msg> implements Subscriber<MSG> {
 
     private final SseConnectionManager sseConnectionManager;
 
@@ -43,8 +50,9 @@ public abstract class AbstractSseSubscriber implements Subscriber<Msg> {
     }
 
     @Override
-    public Flux<Msg> pull(MultiValueMap<String, String> urlParams) {
+    @SuppressWarnings("unchecked")
+    public Flux<MSG> pull(MultiValueMap<String, String> urlParams) {
         return sseConnectionManager.subscribe(topic())
-                .map(TopicMessage::getMsg);
+                .map(msg -> (MSG) msg.getMsg());
     }
 }

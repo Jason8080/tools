@@ -15,6 +15,12 @@ import java.io.Serializable;
  * 发送端服务只需实现此接口，无需创建 Consumer 和 Subscriber 组件。
  * </p>
  *
+ * <h3>泛型参数</h3>
+ * <ul>
+ *   <li>{@code ID} — 消息 ID 类型，必须实现 {@link Serializable}</li>
+ *   <li>{@code MSG} — 消息类型，必须实现 {@link Msg}</li>
+ * </ul>
+ *
  * <h3>微服务场景</h3>
  * <p>
  * 在微服务架构中，发送消息和拉取消息通常是两个独立的微服务进程：
@@ -24,10 +30,10 @@ import java.io.Serializable;
  *   <li><b>拉取端服务</b>：只需实现 {@link SubscriberDefinition}，负责从 MQ 接收并推送到 SSE</li>
  * </ul>
  *
- * <h3>典型用法</h3>
+ * <h3>典型用法（使用默认类型）</h3>
  * <pre>{@code
  * @Component
- * public class OrderPublisherDefinition implements PublisherDefinition {
+ * public class OrderPublisherDefinition implements PublisherDefinition<Serializable, Msg> {
  *     @Override
  *     public String topic() {
  *         return "order.update";
@@ -36,31 +42,40 @@ import java.io.Serializable;
  * }
  * }</pre>
  *
- * <h3>自定义场景</h3>
- * <p>
- * 如需自定义消息构建逻辑，可重写 {@link #createPublisher(StreamBridge)}：
- * </p>
+ * <h3>自定义消息类型</h3>
  * <pre>{@code
- * @Override
- * public Publisher<Serializable, Msg> createPublisher(StreamBridge streamBridge) {
- *     return new AbstractStreamPublisher(streamBridge) {
- *         @Override
- *         public String topic() { return OrderPublisherDefinition.this.topic(); }
+ * @Component
+ * public class OrderPublisherDefinition implements PublisherDefinition<Long, OrderMsg> {
+ *     @Override
+ *     public String topic() {
+ *         return "order.update";
+ *     }
  *
- *         @Override
- *         public Serializable push(MultiValueMap<String, String> urlParams, Msg msg) {
- *             // 自定义发布逻辑
- *             return super.push(urlParams, msg);
- *         }
- *     };
+ *     @Override
+ *     public Publisher<Long, OrderMsg> createPublisher(StreamBridge streamBridge) {
+ *         return new AbstractStreamPublisher<>(streamBridge) {
+ *             @Override
+ *             public String topic() { return OrderPublisherDefinition.this.topic(); }
+ *
+ *             @Override
+ *             public Long push(MultiValueMap<String, String> urlParams, OrderMsg msg) {
+ *                 // 自定义发布逻辑，返回自定义 ID 类型
+ *                 TopicMessage<OrderMsg> event = msg.build(urlParams);
+ *                 streamBridge.send(topic(), event);
+ *                 return event.getId() instanceof Long ? (Long) event.getId() : 0L;
+ *             }
+ *         };
+ *     }
  * }
  * }</pre>
  *
+ * @param <ID>  消息 ID 类型
+ * @param <MSG> 消息类型
  * @see SubscriberDefinition 拉取端定义接口
- * @see TopicDefinition 单进程场景的完整定义接口
+ * @see TopicDefinition       单进程场景的完整定义接口
  * @since 5.6.0
  */
-public interface PublisherDefinition extends Topic {
+public interface PublisherDefinition<ID extends Serializable, MSG extends Msg> extends Topic {
 
     /**
      * 创建发布者（进）.
@@ -71,8 +86,8 @@ public interface PublisherDefinition extends Topic {
      * @param streamBridge Spring Cloud Stream 桥接器
      * @return 发布者实例
      */
-    default Publisher<Serializable, Msg> createPublisher(StreamBridge streamBridge) {
-        return new AbstractStreamPublisher(streamBridge) {
+    default Publisher<ID, MSG> createPublisher(StreamBridge streamBridge) {
+        return new AbstractStreamPublisher<>(streamBridge) {
             @Override
             public String topic() {
                 return PublisherDefinition.this.topic();
