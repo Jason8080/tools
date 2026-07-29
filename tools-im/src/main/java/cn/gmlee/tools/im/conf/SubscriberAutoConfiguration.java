@@ -4,7 +4,7 @@ import cn.gmlee.tools.im.endpoint.SubscriberEndpoint;
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.TopicRouter;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
-import cn.gmlee.tools.im.topic.ImBroadcastSubscriber;
+import cn.gmlee.tools.im.stream.ImBroadcastSubscriber;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 

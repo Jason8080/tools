@@ -1,4 +1,4 @@
-package cn.gmlee.tools.im.topic;
+package cn.gmlee.tools.im.stream;
 
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.Subscriber;

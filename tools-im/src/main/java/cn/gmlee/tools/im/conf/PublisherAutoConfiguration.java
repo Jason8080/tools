@@ -3,7 +3,7 @@ package cn.gmlee.tools.im.conf;
 import cn.gmlee.tools.im.endpoint.PublisherEndpoint;
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.TopicRouter;
-import cn.gmlee.tools.im.topic.ImBroadcastPublisher;
+import cn.gmlee.tools.im.stream.ImBroadcastPublisher;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Bean;
