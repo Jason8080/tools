@@ -1,9 +1,5 @@
 package cn.gmlee.tools.im.conf;
 
-import cn.gmlee.tools.im.core.Msg;
-import cn.gmlee.tools.im.core.Publisher;
-import cn.gmlee.tools.im.core.Subscriber;
-import cn.gmlee.tools.im.core.TopicRouter;
 import cn.gmlee.tools.im.sse.SseConnectionListener;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import cn.gmlee.tools.im.sse.SseConnectionRegistry;
@@ -22,29 +18,30 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * IM 框架核心自动配置.
+ * <p>
+ * 注册 SSE 子系统核心 Bean（连接管理器、注册表、收割器、指标等）。
+ * 端点路由由 {@link EndpointAutoConfiguration} 负责。
+ * </p>
+ *
+ * @since 5.6.0
  */
 @Slf4j
 @AutoConfiguration
-@EnableConfigurationProperties({
-        ImProperties.class, StreamProperties.class, SseProperties.class,
-})
+@EnableConfigurationProperties({ImProperties.class, SseProperties.class})
 public class ImAutoConfiguration {
 
     @Bean
     public BackpressureStrategyResolver backpressureStrategyResolver(SseProperties properties) {
-        // 构建策略映射
         Map<String, BackpressureStrategy> strategyMap = new HashMap<>();
         strategyMap.put(BufferBackpressureStrategy.NAME, new BufferBackpressureStrategy());
         strategyMap.put(DropOldestBackpressureStrategy.NAME, new DropOldestBackpressureStrategy());
         strategyMap.put(ErrorBackpressureStrategy.NAME, new ErrorBackpressureStrategy());
-
         return new DefaultBackpressureStrategyResolver(properties, strategyMap);
     }
 
@@ -71,17 +68,8 @@ public class ImAutoConfiguration {
         return new SseConnectionManager(properties, registry, strategyResolver, metrics, reaper, listeners);
     }
 
-    @Bean
-    public TopicRouter<Serializable, Msg> topicRouter(List<Publisher<Serializable, Msg>> publishers,
-                                                      List<Subscriber<Msg>> subscribers) {
-        return new TopicRouter<>(publishers, subscribers);
-    }
-
     /**
      * Micrometer 可用时的指标收集器配置.
-     * <p>
-     * 当 classpath 中存在 MeterRegistry 时，使用基于 Micrometer 的实现。
-     * </p>
      */
     @Configuration
     @ConditionalOnClass(MeterRegistry.class)
@@ -98,10 +86,6 @@ public class ImAutoConfiguration {
 
     /**
      * 默认的指标收集器配置（降级方案）.
-     * <p>
-     * 当 Micrometer 配置类未创建 SseMetrics Bean 时（如 classpath 无 MeterRegistry），
-     * 使用 NoOp 实现。
-     * </p>
      */
     @Configuration
     @ConditionalOnMissingBean(SseMetrics.class)

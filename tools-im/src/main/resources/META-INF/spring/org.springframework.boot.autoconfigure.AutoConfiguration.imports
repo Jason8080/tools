@@ -1,5 +1,2 @@
 cn.gmlee.tools.im.conf.ImAutoConfiguration
-cn.gmlee.tools.im.conf.PublisherAutoConfiguration
-cn.gmlee.tools.im.conf.SubscriberAutoConfiguration
-cn.gmlee.tools.im.conf.PublisherDefinitionAutoConfiguration
-cn.gmlee.tools.im.conf.SubscriberDefinitionAutoConfiguration
+cn.gmlee.tools.im.conf.EndpointAutoConfiguration
