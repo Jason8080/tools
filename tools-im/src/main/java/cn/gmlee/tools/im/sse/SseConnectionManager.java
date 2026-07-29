@@ -124,9 +124,13 @@ public class SseConnectionManager implements SmartLifecycle {
      *   <li>Flux 构建：委托给 {@link SseConnectionFluxBuilder}</li>
      * </ol>
      * </p>
+     * <p>
+     * 返回的 Flux 通过 Reactor Context 携带连接引用，键为 {@link #CONTEXT_KEY_CONNECTION}。
+     * 调用方可通过 {@code Flux.deferContextual} 获取连接并执行操作（如心跳时调用 {@code touch()}）。
+     * </p>
      *
      * @param topic Topic 名称
-     * @return 消息流
+     * @return 消息流（Context 中携带连接引用）
      */
     public Flux<TopicMessage<Msg>> subscribe(String topic) {
         return Flux.defer(() -> {
@@ -153,9 +157,25 @@ public class SseConnectionManager implements SmartLifecycle {
             }
 
             // 4. 构建连接流（委托给 FluxBuilder）
-            return SseConnectionFluxBuilder.build(topic, registry, metrics, listeners);
+            SseSubscription sub = SseConnectionFluxBuilder.build(topic, registry, metrics, listeners);
+            // 将连接引用写入 Reactor Context
+            return sub.getFlux().contextWrite(ctx -> ctx.put(CONTEXT_KEY_CONNECTION, sub.getConnection()));
         });
     }
+
+    /**
+     * Reactor Context 中存储连接引用的键.
+     * <p>
+     * 调用方可通过此键从 Context 中获取 {@link SseConnection} 引用：
+     * <pre>{@code
+     * flux.deferContextual(ctx -> {
+     *     SseConnection conn = ctx.getOrDefault(SseConnectionManager.CONTEXT_KEY_CONNECTION, null);
+     *     // 使用 conn 执行操作
+     * })
+     * }</pre>
+     * </p>
+     */
+    public static final String CONTEXT_KEY_CONNECTION = "sse.connection";
 
     /**
      * 发布消息到 Topic.

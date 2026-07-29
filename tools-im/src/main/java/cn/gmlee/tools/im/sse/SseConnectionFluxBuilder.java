@@ -43,7 +43,7 @@ final class SseConnectionFluxBuilder {
     }
 
     /**
-     * 构建连接 Flux.
+     * 构建连接订阅结果.
      * <p>
      * 完整流程：
      * <ol>
@@ -60,12 +60,12 @@ final class SseConnectionFluxBuilder {
      * @param registry  连接注册表
      * @param metrics   指标收集器
      * @param listeners 连接监听器列表
-     * @return 消息流
+     * @return 订阅结果（包含消息流和连接引用）
      */
-    static Flux<TopicMessage<Msg>> build(String topic,
-                                          SseConnectionRegistry registry,
-                                          SseMetrics metrics,
-                                          List<SseConnectionListener> listeners) {
+    static SseSubscription build(String topic,
+                                  SseConnectionRegistry registry,
+                                  SseMetrics metrics,
+                                  List<SseConnectionListener> listeners) {
         SseConnection conn = null;
         try {
             // 1. 获取或创建 Sink
@@ -73,7 +73,7 @@ final class SseConnectionFluxBuilder {
             if (sink == null) {
                 registry.getCounter().rollback(topic);
                 metrics.recordSubscribe(topic, "REJECTED_SHUTDOWN");
-                return Flux.error(SseShutdownException.INSTANCE);
+                return new SseSubscription(Flux.error(SseShutdownException.INSTANCE), null);
             }
 
             // 2. 创建连接记录并注册
@@ -83,7 +83,8 @@ final class SseConnectionFluxBuilder {
             log.info("[Subscribe] 成功: topic={}, connectionId={}", topic, conn.getConnectionId());
 
             // 3. 构建带生命周期钩子的 Flux
-            return attachLifecycle(sink, conn, topic, registry, metrics, listeners);
+            Flux<TopicMessage<Msg>> flux = attachLifecycle(sink, conn, topic, registry, metrics, listeners);
+            return new SseSubscription(flux, conn);
 
         } catch (Exception e) {
             // 异常回滚：递减计数器、注销连接、清理空 Topic
@@ -96,7 +97,7 @@ final class SseConnectionFluxBuilder {
             }
             metrics.recordError("subscribe_init");
             log.error("[Subscribe] 初始化失败: topic={}", topic, e);
-            return Flux.error(e);
+            return new SseSubscription(Flux.error(e), null);
         }
     }
 

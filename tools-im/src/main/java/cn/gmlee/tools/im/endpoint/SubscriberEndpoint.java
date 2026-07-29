@@ -4,17 +4,16 @@ import cn.gmlee.tools.im.conf.SseProperties;
 import cn.gmlee.tools.im.core.Endpoint;
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.TopicRouter;
+import cn.gmlee.tools.im.sse.heartbeat.SseHeartbeatHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 
 import java.io.Serializable;
-import java.time.Duration;
 
 /**
  * 订阅者端点.
@@ -55,43 +54,7 @@ public class SubscriberEndpoint implements Endpoint<Msg> {
                         .data(msg)
                         .build());
 
-        // 如果启用心跳，合并心跳注释流
-        if (sseProperties.getHeartbeat().isEnabled()) {
-            // autoConnect(2) 等待两个订阅者就绪后只连接一次底层 Sink，
-            // 第二个参数（cancelConsumer）在所有订阅者断开时取消上游订阅，
-            // 触发 doFinally 清理——语义等价于 share() 但避免了首次订阅即连接的时序问题
-            Flux<ServerSentEvent<Msg>> shared = dataFlux.publish()
-                    .autoConnect(2, Disposable::dispose);
-            Flux<ServerSentEvent<Msg>> heartbeat = createHeartbeatFlux()
-                    .takeUntilOther(shared.ignoreElements());
-
-            // 关键：当数据流完成时，心跳也必须停止
-            // takeUntilOther 在 shared 完成时终止心跳流
-            // 这样 Flux.merge 才能在连接关闭时正确完成
-            return Flux.merge(shared, heartbeat);
-        }
-
-        return dataFlux;
-    }
-
-    /**
-     * 创建心跳事件流.
-     * <p>
-     * 定期发送 SSE 注释（comment），保持连接活性。
-     * SSE 注释以 {@code :} 开头，浏览器的 EventSource API 会忽略注释，
-     * 不会触发 onmessage 回调，但能防止反向代理因空闲超时而断开连接。
-     * </p>
-     *
-     * @return 心跳事件流
-     */
-    private Flux<ServerSentEvent<Msg>> createHeartbeatFlux() {
-        SseProperties.HeartbeatConfig config = sseProperties.getHeartbeat();
-        Duration interval = config.getInterval();
-        String comment = config.getComment();
-
-        return Flux.interval(interval)
-                .map(tick -> ServerSentEvent.<Msg>builder()
-                        .comment(comment)
-                        .build());
+        // 添加心跳支持（如果启用）
+        return SseHeartbeatHelper.wrapWithHeartbeat(dataFlux, sseProperties.getHeartbeat());
     }
 }

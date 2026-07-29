@@ -105,7 +105,7 @@ public class SseProperties {
         /**
          * 空闲超时阈值（超过此时间无数据活动视为僵尸连接）
          */
-        private Duration idleTimeout = Duration.ofMinutes(5);
+        private Duration idleTimeout = Duration.ofSeconds(3600);
 
         /**
          * 僵尸连接强制关闭前的宽限期
@@ -197,7 +197,7 @@ public class SseProperties {
         /**
          * 心跳发送间隔
          */
-        private Duration interval = Duration.ofSeconds(15);
+        private Duration interval = Duration.ofSeconds(30);
 
         /**
          * 心跳注释内容（SSE comment）
