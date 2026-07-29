@@ -39,6 +39,23 @@ import java.io.Serializable;
  *         return "order.update";
  *     }
  *     // 使用默认实现，无需重写 createPublisher
+ *     // destination() 默认返回 topic()，MQ destination 为 "order.update"
+ * }
+ * }</pre>
+ *
+ * <h3>自定义 MQ destination</h3>
+ * <pre>{@code
+ * @Component
+ * public class OrderPublisherDefinition implements PublisherDefinition<Serializable, Msg> {
+ *     @Override
+ *     public String topic() {
+ *         return "order.update";  // API 路由使用
+ *     }
+ *
+ *     @Override
+ *     public String destination() {
+ *         return "order-events";  // MQ destination，与 topic 不同
+ *     }
  * }
  * }</pre>
  *
@@ -78,6 +95,19 @@ import java.io.Serializable;
 public interface PublisherDefinition<ID extends Serializable, MSG extends Msg> extends Topic {
 
     /**
+     * 获取消息目标（MQ destination）.
+     * <p>
+     * 默认返回 {@link #topic()}，即 topic 名称同时作为 MQ destination。
+     * 如需将消息发送到不同的 MQ destination，可重写此方法。
+     * </p>
+     *
+     * @return MQ destination 名称
+     */
+    default String destination() {
+        return topic();
+    }
+
+    /**
      * 创建发布者（进）.
      * <p>
      * 默认实现使用 {@link AbstractStreamPublisher}，子类可重写以自定义发布逻辑。
@@ -91,6 +121,11 @@ public interface PublisherDefinition<ID extends Serializable, MSG extends Msg> e
             @Override
             public String topic() {
                 return PublisherDefinition.this.topic();
+            }
+
+            @Override
+            public String destination() {
+                return PublisherDefinition.this.destination();
             }
         };
     }

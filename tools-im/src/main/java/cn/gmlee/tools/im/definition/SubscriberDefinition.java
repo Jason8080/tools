@@ -47,6 +47,28 @@ import java.util.function.Consumer;
  *         return "order.update";
  *     }
  *     // 使用默认实现，无需重写 createConsumer/createSubscriber
+ *     // destination() 默认返回 topic()，从 "order.update" MQ destination 消费
+ * }
+ * }</pre>
+ *
+ * <h3>自定义 MQ destination 和消费者组</h3>
+ * <pre>{@code
+ * @Component
+ * public class OrderSubscriberDefinition implements SubscriberDefinition<Msg> {
+ *     @Override
+ *     public String topic() {
+ *         return "order.update";  // API 路由使用
+ *     }
+ *
+ *     @Override
+ *     public String destination() {
+ *         return "order-events";  // 从 "order-events" MQ destination 消费
+ *     }
+ *
+ *     @Override
+ *     public String group() {
+ *         return "order-service-group";  // 指定消费者组
+ *     }
  * }
  * }</pre>
  *
@@ -99,6 +121,35 @@ import java.util.function.Consumer;
  * @since 5.6.0
  */
 public interface SubscriberDefinition<MSG extends Msg> extends Topic {
+
+    /**
+     * 获取消息来源（MQ destination）.
+     * <p>
+     * 默认返回 {@link #topic()}，即从与 topic 同名的 MQ destination 消费消息。
+     * 如需从不同的 MQ destination 消费，可重写此方法。
+     * </p>
+     *
+     * @return MQ destination 名称
+     */
+    default String destination() {
+        return topic();
+    }
+
+    /**
+     * 获取消费者组名称.
+     * <p>
+     * 默认返回 {@code null}，表示使用应用名称作为消费者组。
+     * 同一消费者组的实例会负载均衡消费消息，不同组的实例会各自收到全部消息。
+     * </p>
+     * <p>
+     * 如需明确指定消费者组（如多实例部署时确保消息只被消费一次），可重写此方法。
+     * </p>
+     *
+     * @return 消费者组名称，或 null 使用默认值
+     */
+    default String group() {
+        return null;
+    }
 
     /**
      * 创建消费者（转）.
