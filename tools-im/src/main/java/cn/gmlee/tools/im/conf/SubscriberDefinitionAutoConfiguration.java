@@ -1,5 +1,6 @@
 package cn.gmlee.tools.im.conf;
 
+import cn.gmlee.tools.im.core.BindingNames;
 import cn.gmlee.tools.im.core.Subscriber;
 import cn.gmlee.tools.im.definition.TopicDefinition;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
@@ -35,7 +36,7 @@ import java.util.function.Consumer;
  * 对于每个 {@link SubscriberDefinition}，自动创建输入 binding 配置：
  * </p>
  * <ul>
- *   <li>Binding 名称：{@code {topic}.consumer-in-0}（与 Consumer Bean 名称对应）</li>
+ *   <li>Binding 名称：{@link cn.gmlee.tools.im.core.BindingNames#inputBinding(String)} 生成（与 Consumer Bean 名称对应）</li>
  *   <li>Destination：与 topic 同名</li>
  *   <li>Group：{@link SubscriberDefinition#group()}（默认为 null，使用应用名称）</li>
  * </ul>
@@ -82,8 +83,8 @@ public class SubscriberDefinitionAutoConfiguration {
     }
 
     private void registerBinding(String topic, String group) {
-        // Consumer Bean 名称为 {topic}.consumer，Spring Cloud Stream 会创建 {topic}.consumer-in-0 binding
-        String bindingName = topic + ".consumer-in-0";
+        // 输入 binding 名称由 Consumer Bean 名称派生（{beanName}-in-0）
+        String bindingName = BindingNames.inputBinding(topic);
 
         // 检查是否已配置
         if (bindingServiceProperties.getBindings().containsKey(bindingName)) {
@@ -105,7 +106,7 @@ public class SubscriberDefinitionAutoConfiguration {
     private void registerConsumer(SubscriberDefinition definition, String topic) {
         Consumer consumer = definition.createConsumer(sseConnectionManager);
 
-        String beanName = topic + ".consumer";
+        String beanName = BindingNames.consumerBean(topic);
 
         // 检查是否已注册（避免与 TopicDefinition 重复）
         if (registry.containsBeanDefinition(beanName)) {
@@ -124,7 +125,7 @@ public class SubscriberDefinitionAutoConfiguration {
     private void registerSubscriber(SubscriberDefinition definition, String topic) {
         Subscriber subscriber = definition.createSubscriber(sseConnectionManager);
 
-        String beanName = topic + ".subscriber";
+        String beanName = BindingNames.subscriberBean(topic);
 
         // 检查是否已注册（避免与 TopicDefinition 重复）
         if (registry.containsBeanDefinition(beanName)) {

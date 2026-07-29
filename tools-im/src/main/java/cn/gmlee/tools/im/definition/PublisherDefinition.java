@@ -63,7 +63,7 @@ import java.io.Serializable;
  *                 // 自定义发布逻辑，返回自定义 ID 类型
  *                 TopicMessage<OrderMsg> event = msg.build(urlParams);
  *                 event.setTopic(topic());  // 自定义 push() 需手动注入 topic
- *                 streamBridge.send(topic() + "-out-0", event);
+ *                 streamBridge.send(BindingNames.outputBinding(topic()), event);
  *                 return event.getId() instanceof Long ? (Long) event.getId() : 0L;
  *             }
  *         };

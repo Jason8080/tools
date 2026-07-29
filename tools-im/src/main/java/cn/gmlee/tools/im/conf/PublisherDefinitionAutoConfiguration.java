@@ -1,5 +1,6 @@
 package cn.gmlee.tools.im.conf;
 
+import cn.gmlee.tools.im.core.BindingNames;
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.definition.PublisherDefinition;
 import cn.gmlee.tools.im.definition.TopicDefinition;
@@ -34,7 +35,7 @@ import java.util.List;
  * 对于每个 {@link PublisherDefinition}，自动创建输出 binding 配置：
  * </p>
  * <ul>
- *   <li>Binding 名称：{@code {topic}-out-0}</li>
+ *   <li>Binding 名称：{@link cn.gmlee.tools.im.core.BindingNames#outputBinding(String)} 生成</li>
  *   <li>Destination：与 topic 同名</li>
  * </ul>
  *
@@ -78,7 +79,7 @@ public class PublisherDefinitionAutoConfiguration {
     }
 
     private void registerBinding(String topic) {
-        String bindingName = topic + "-out-0";
+        String bindingName = BindingNames.outputBinding(topic);
 
         // 检查是否已配置
         if (bindingServiceProperties.getBindings().containsKey(bindingName)) {
@@ -97,7 +98,7 @@ public class PublisherDefinitionAutoConfiguration {
     private void registerPublisher(PublisherDefinition definition, String topic) {
         Publisher publisher = definition.createPublisher(streamBridge);
 
-        String beanName = topic + ".publisher";
+        String beanName = BindingNames.publisherBean(topic);
 
         // 检查是否已注册（避免与 TopicDefinition 重复）
         if (registry.containsBeanDefinition(beanName)) {

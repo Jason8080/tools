@@ -1,5 +1,6 @@
 package cn.gmlee.tools.im.stream;
 
+import cn.gmlee.tools.im.core.BindingNames;
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.TopicMessage;
@@ -57,8 +58,8 @@ public abstract class AbstractStreamPublisher<ID extends Serializable, MSG exten
         TopicMessage<MSG> event = msg.build(urlParams);
         // 由框架注入 topic，消息类无需关心 topic 名称
         event.setTopic(topic());
-        // 使用 topic-out-0 作为 binding 名称，符合 Spring Cloud Stream 函数式绑定规范
-        String bindingName = topic() + "-out-0";
+        // 使用 BindingNames 统一管理 binding 命名规则
+        String bindingName = BindingNames.outputBinding(topic());
         streamBridge.send(bindingName, event);
         return (ID) event.getId();
     }
