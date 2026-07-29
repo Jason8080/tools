@@ -3,6 +3,7 @@ package cn.gmlee.tools.im.stream;
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Subscriber;
+import cn.gmlee.tools.im.core.Topic;
 import cn.gmlee.tools.im.core.TopicMessage;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import org.springframework.cloud.stream.function.StreamBridge;
@@ -16,6 +17,10 @@ import java.util.function.Consumer;
  * <p>
  * 将一个完整 Topic 的三个组件（Publisher/Consumer/Subscriber）聚合为单一接口，
  * 提供零样板代码的 Topic 定义方式。
+ * </p>
+ * <p>
+ * 继承 {@link Topic}，因此 TopicDefinition 本身也是一个 Topic 标识，
+ * 可在任何需要 Topic 的上下文中使用。
  * </p>
  *
  * <h3>典型用法</h3>
@@ -50,14 +55,7 @@ import java.util.function.Consumer;
  * }
  * }</pre>
  */
-public interface TopicDefinition {
-
-    /**
-     * 主题名称.
-     *
-     * @return 主题标识字符串
-     */
-    String topic();
+public interface TopicDefinition extends Topic {
 
     /**
      * 创建发布者（进）.
