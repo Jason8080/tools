@@ -1,8 +1,6 @@
 package cn.gmlee.tools.im.conf;
 
-import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.Subscriber;
-import cn.gmlee.tools.im.core.TopicMessage;
 import cn.gmlee.tools.im.definition.TopicDefinition;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import cn.gmlee.tools.im.definition.SubscriberDefinition;
@@ -38,7 +36,7 @@ import java.util.function.Consumer;
  * </p>
  * <ul>
  *   <li>Binding 名称：{@code {topic}.consumer-in-0}（与 Consumer Bean 名称对应）</li>
- *   <li>Destination：{@link SubscriberDefinition#destination()}（默认等于 topic）</li>
+ *   <li>Destination：与 topic 同名</li>
  *   <li>Group：{@link SubscriberDefinition#group()}（默认为 null，使用应用名称）</li>
  * </ul>
  *
@@ -75,16 +73,15 @@ public class SubscriberDefinitionAutoConfiguration {
     public void registerSubscriberComponents() {
         for (SubscriberDefinition definition : subscriberDefinitions) {
             String topic = definition.topic();
-            String destination = definition.destination();
             String group = definition.group();
-            log.info("[SubscriberDefinition] 注册订阅者主题: {}, destination: {}, group: {}", topic, destination, group);
-            registerBinding(definition, topic, destination, group);
+            log.info("[SubscriberDefinition] 注册订阅者主题: {}, group: {}", topic, group);
+            registerBinding(topic, group);
             registerConsumer(definition, topic);
             registerSubscriber(definition, topic);
         }
     }
 
-    private void registerBinding(SubscriberDefinition definition, String topic, String destination, String group) {
+    private void registerBinding(String topic, String group) {
         // Consumer Bean 名称为 {topic}.consumer，Spring Cloud Stream 会创建 {topic}.consumer-in-0 binding
         String bindingName = topic + ".consumer-in-0";
 
@@ -94,15 +91,15 @@ public class SubscriberDefinitionAutoConfiguration {
             return;
         }
 
-        // 创建 binding 配置
+        // 创建 binding 配置，destination 与 topic 同名
         var bindingProperties = new org.springframework.cloud.stream.config.BindingProperties();
-        bindingProperties.setDestination(destination);
+        bindingProperties.setDestination(topic);
         if (group != null && !group.isEmpty()) {
             bindingProperties.setGroup(group);
         }
         bindingServiceProperties.getBindings().put(bindingName, bindingProperties);
 
-        log.debug("[SubscriberDefinition] 注册 Binding: {} -> destination={}, group={}", bindingName, destination, group);
+        log.debug("[SubscriberDefinition] 注册 Binding: {} -> destination={}, group={}", bindingName, topic, group);
     }
 
     private void registerConsumer(SubscriberDefinition definition, String topic) {

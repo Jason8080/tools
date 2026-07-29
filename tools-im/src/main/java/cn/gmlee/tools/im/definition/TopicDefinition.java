@@ -89,24 +89,6 @@ import java.io.Serializable;
  * @see SubscriberDefinition 拉取端定义接口
  */
 public interface TopicDefinition<ID extends Serializable, MSG extends Msg> extends PublisherDefinition<ID, MSG>, SubscriberDefinition<MSG> {
-
-    /**
-     * 获取消息目标（MQ destination）.
-     * <p>
-     * 重写此方法以解决 {@link PublisherDefinition} 和 {@link SubscriberDefinition} 中
-     * {@code destination()} 方法的默认实现冲突。
-     * </p>
-     * <p>
-     * 对于单进程场景，发送和消费使用相同的 destination，默认返回 {@link #topic()}。
-     * </p>
-     *
-     * @return MQ destination 名称
-     */
-    @Override
-    default String destination() {
-        return topic();
-    }
-
     // 继承 PublisherDefinition.createPublisher()
     // 继承 SubscriberDefinition.createConsumer() 和 createSubscriber()
     // 无需定义任何新方法，零样板代码

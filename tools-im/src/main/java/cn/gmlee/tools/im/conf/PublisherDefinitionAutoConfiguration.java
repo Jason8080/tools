@@ -1,6 +1,5 @@
 package cn.gmlee.tools.im.conf;
 
-import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.definition.PublisherDefinition;
 import cn.gmlee.tools.im.definition.TopicDefinition;
@@ -10,8 +9,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.cloud.stream.binder.BinderFactory;
-import org.springframework.cloud.stream.binding.BindingService;
 import org.springframework.cloud.stream.config.BindingServiceProperties;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Configuration;
@@ -38,7 +35,7 @@ import java.util.List;
  * </p>
  * <ul>
  *   <li>Binding 名称：{@code {topic}-out-0}</li>
- *   <li>Destination：{@link PublisherDefinition#destination()}（默认等于 topic）</li>
+ *   <li>Destination：与 topic 同名</li>
  * </ul>
  *
  * @see PublisherDefinition
@@ -74,14 +71,13 @@ public class PublisherDefinitionAutoConfiguration {
     public void registerPublisherComponents() {
         for (PublisherDefinition definition : publisherDefinitions) {
             String topic = definition.topic();
-            String destination = definition.destination();
-            log.info("[PublisherDefinition] 注册发布者主题: {}, destination: {}", topic, destination);
-            registerBinding(definition, topic, destination);
+            log.info("[PublisherDefinition] 注册发布者主题: {}", topic);
+            registerBinding(topic);
             registerPublisher(definition, topic);
         }
     }
 
-    private void registerBinding(PublisherDefinition definition, String topic, String destination) {
+    private void registerBinding(String topic) {
         String bindingName = topic + "-out-0";
 
         // 检查是否已配置
@@ -90,12 +86,12 @@ public class PublisherDefinitionAutoConfiguration {
             return;
         }
 
-        // 创建 binding 配置
+        // 创建 binding 配置，destination 与 topic 同名
         var bindingProperties = new org.springframework.cloud.stream.config.BindingProperties();
-        bindingProperties.setDestination(destination);
+        bindingProperties.setDestination(topic);
         bindingServiceProperties.getBindings().put(bindingName, bindingProperties);
 
-        log.debug("[PublisherDefinition] 注册 Binding: {} -> destination={}", bindingName, destination);
+        log.debug("[PublisherDefinition] 注册 Binding: {} -> destination={}", bindingName, topic);
     }
 
     private void registerPublisher(PublisherDefinition definition, String topic) {
