@@ -12,7 +12,6 @@ import cn.gmlee.tools.im.sse.cleanup.ConnectionReaper;
 import cn.gmlee.tools.im.sse.metrics.MicrometerSseMetrics;
 import cn.gmlee.tools.im.sse.metrics.NoOpSseMetrics;
 import cn.gmlee.tools.im.sse.metrics.SseMetrics;
-import cn.gmlee.tools.im.stream.ImBroadcastConsumer;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,11 +70,6 @@ public class ImAutoConfiguration {
                                                       ConnectionReaper reaper,
                                                       @Autowired(required = false) List<SseConnectionListener> listeners) {
         return new SseConnectionManager(properties, registry, strategyResolver, metrics, reaper, listeners);
-    }
-
-    @Bean
-    public ImBroadcastConsumer imBroadcastConsumer(SseConnectionManager sseConnectionManager) {
-        return new ImBroadcastConsumer(sseConnectionManager);
     }
 
     @Bean
