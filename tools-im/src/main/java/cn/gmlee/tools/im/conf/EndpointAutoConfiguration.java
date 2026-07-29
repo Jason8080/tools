@@ -1,8 +1,9 @@
 package cn.gmlee.tools.im.conf;
 
 import cn.gmlee.tools.im.endpoint.EndpointRegistry;
-import cn.gmlee.tools.im.endpoint.DynamicEndpointRouter;
+import cn.gmlee.tools.im.endpoint.EndpointRouter;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
+import cn.gmlee.tools.im.topic.TopicFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -30,7 +31,7 @@ import java.util.List;
  * YAML im.endpoints
  *   → EndpointRegistry 注册端点配置
  *   → TopicFactory 按需创建 Stream binding + Consumer Bean
- *   → DynamicEndpointRouter 构建 RouterFunction
+ *   → EndpointRouter 构建 RouterFunction
  * </pre>
  *
  * @since 5.6.0
@@ -99,8 +100,8 @@ public class EndpointAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public DynamicEndpointRouter dynamicEndpointRouter(EndpointRegistry endpointRegistry) {
-        return new DynamicEndpointRouter(endpointRegistry, streamBridge, sseConnectionManager, sseProperties);
+    public EndpointRouter endpointRouter(EndpointRegistry endpointRegistry) {
+        return new EndpointRouter(endpointRegistry, streamBridge, sseConnectionManager, sseProperties);
     }
 
     /**
@@ -110,7 +111,7 @@ public class EndpointAutoConfiguration {
      * </p>
      */
     @Bean
-    public RouterFunction<ServerResponse> imRouterFunction(DynamicEndpointRouter router) {
+    public RouterFunction<ServerResponse> imRouterFunction(EndpointRouter router) {
         return router.build();
     }
 

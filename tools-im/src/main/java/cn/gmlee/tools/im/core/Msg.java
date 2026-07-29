@@ -42,7 +42,7 @@ public interface Msg extends Serializable {
      * 将消息自身包装为 {@link TopicMessage}.
      * <p>
      * 默认实现自动完成包装，消息类无需实现此方法。
-     * topic 名称由框架在 {@code DynamicEndpointRouter} 中注入。
+     * topic 名称由框架在 {@code EndpointRouter} 中注入。
      * </p>
      *
      * @param <MSG>     消息类型

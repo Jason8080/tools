@@ -1,5 +1,6 @@
-package cn.gmlee.tools.im.conf;
+package cn.gmlee.tools.im.topic;
 
+import cn.gmlee.tools.im.conf.EndpointProperties;
 import cn.gmlee.tools.im.core.BindingNames;
 import cn.gmlee.tools.im.core.EndpointMode;
 import cn.gmlee.tools.im.endpoint.EndpointRegistry;

@@ -47,7 +47,7 @@ import java.io.Serializable;
  * @since 5.6.0
  */
 @Slf4j
-public class DynamicEndpointRouter {
+public class EndpointRouter {
 
     private final EndpointRegistry registry;
     private final StreamBridge streamBridge;
@@ -62,10 +62,10 @@ public class DynamicEndpointRouter {
      * @param sseConnectionManager SSE 连接管理器
      * @param sseProperties        SSE 配置
      */
-    public DynamicEndpointRouter(EndpointRegistry registry,
-                                  StreamBridge streamBridge,
-                                  SseConnectionManager sseConnectionManager,
-                                  SseProperties sseProperties) {
+    public EndpointRouter(EndpointRegistry registry,
+                          StreamBridge streamBridge,
+                          SseConnectionManager sseConnectionManager,
+                          SseProperties sseProperties) {
         this.registry = registry;
         this.streamBridge = streamBridge;
         this.sseConnectionManager = sseConnectionManager;
@@ -98,14 +98,14 @@ public class DynamicEndpointRouter {
      * 请求分发：根据端点模式路由到 PUSH 或 PULL 处理器.
      */
     private Mono<ServerResponse> dispatch(ServerRequest request) {
-        EndpointProperties config = registry.resolve(request.path());
-        if (config == null) {
+        EndpointProperties props = registry.resolve(request.path());
+        if (props == null) {
             return ServerResponse.notFound().build();
         }
-        if (config.getMode() == EndpointMode.PUSH) {
-            return handlePush(request, config);
+        if (props.getMode() == EndpointMode.PUSH) {
+            return handlePush(request, props);
         } else {
-            return handlePull(request, config);
+            return handlePull(request, props);
         }
     }
 
