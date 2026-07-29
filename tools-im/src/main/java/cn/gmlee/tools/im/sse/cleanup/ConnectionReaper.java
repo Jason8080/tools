@@ -4,12 +4,12 @@ import cn.gmlee.tools.im.sse.ConnectionState;
 import cn.gmlee.tools.im.sse.SseConnection;
 import cn.gmlee.tools.im.sse.SseConnectionRegistry;
 import cn.gmlee.tools.im.sse.SseMetrics;
+import cn.gmlee.tools.im.sse.internal.SseExecutorFactory;
 import cn.gmlee.tools.im.conf.SseProperties;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -31,24 +31,19 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *
  * <h3>线程模型</h3>
  * <p>
- * 使用两个独立的线程池：
+ * 使用两个独立的线程池（通过 {@link SseExecutorFactory} 创建）：
  * <ul>
  *   <li><b>scheduler</b>（单线程）：负责定期扫描和调度延迟关闭任务</li>
  *   <li><b>forceCloseExecutor</b>（固定 2 线程）：执行实际的强制关闭操作</li>
  * </ul>
  * 分离的目的是防止大量僵尸连接同时触发关闭时阻塞扫描调度。
- * 100K 连接扫描约 3ms，CPU 占用可忽略（30s 间隔下约 0.01%）。
  * </p>
  */
 @Slf4j
 public class ConnectionReaper {
 
     /**
-     * 强制关闭线程池大小.
-     * <p>
-     * 2 个线程足以处理极端场景（10K+ 僵尸连接同时关闭），
-     * 因为 forceClose 本身是轻量操作（CAS + cancel）。
-     * </p>
+     * 强制关闭线程池大小
      */
     private static final int FORCE_CLOSE_THREADS = 2;
 
@@ -58,31 +53,15 @@ public class ConnectionReaper {
     private final AtomicBoolean running = new AtomicBoolean(false);
 
     /**
-     * 收割调度器（非 final，支持 stop/start 重建）.
-     * <p>
-     * 单线程，负责定期扫描和调度延迟关闭任务。
-     * stop() 会销毁调度器，start() 重新创建，避免在已终止的调度器上提交任务。
-     * volatile 保证 stop/start 跨线程可见性。
-     * </p>
+     * 收割调度器
      */
     private volatile ScheduledExecutorService scheduler;
 
     /**
-     * 强制关闭执行器（非 final，支持 stop/start 重建）.
-     * <p>
-     * 固定线程池，执行实际的强制关闭操作。
-     * 与调度器分离，防止大量延迟关闭任务阻塞扫描调度。
-     * </p>
+     * 强制关闭执行器
      */
     private volatile ExecutorService forceCloseExecutor;
 
-    /**
-     * 创建连接收割器.
-     *
-     * @param registry   连接注册表
-     * @param metrics    指标收集器
-     * @param properties 配置
-     */
     public ConnectionReaper(SseConnectionRegistry registry, SseMetrics metrics, SseProperties properties) {
         this.registry = registry;
         this.metrics = metrics;
@@ -91,52 +70,23 @@ public class ConnectionReaper {
 
     /**
      * 启动收割器.
-     * <p>
-     * 按配置的间隔定期执行扫描。
-     * 每次启动创建新的调度器和执行器，避免在已终止的线程池上提交任务。
-     * </p>
      */
     public void start() {
         if (!properties.getReaper().isEnabled()) {
-            log.info("SSE 连接收割器已禁用");
+            log.info("[Reaper] 已禁用");
             return;
         }
         if (!running.compareAndSet(false, true)) {
-            log.warn("SSE 连接收割器已在运行");
+            log.warn("[Reaper] 已在运行");
             return;
         }
 
-        scheduler = createScheduler();
-        forceCloseExecutor = createForceCloseExecutor();
+        scheduler = SseExecutorFactory.createSingleThreadScheduler("sse-reaper-scheduler");
+        forceCloseExecutor = SseExecutorFactory.createFixedThreadPool(FORCE_CLOSE_THREADS, "sse-reaper-force");
+
         long intervalMs = properties.getReaper().getInterval().toMillis();
         scheduler.scheduleAtFixedRate(this::scan, intervalMs, intervalMs, TimeUnit.MILLISECONDS);
-        log.info("SSE 连接收割器已启动，扫描间隔: {}ms", intervalMs);
-    }
-
-    /**
-     * 创建收割调度器.
-     *
-     * @return 新的 daemon 单线程调度器
-     */
-    private static ScheduledExecutorService createScheduler() {
-        return Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "sse-reaper-scheduler");
-            t.setDaemon(true);
-            return t;
-        });
-    }
-
-    /**
-     * 创建强制关闭执行器.
-     *
-     * @return 新的 daemon 固定线程池
-     */
-    private static ExecutorService createForceCloseExecutor() {
-        return Executors.newFixedThreadPool(FORCE_CLOSE_THREADS, r -> {
-            Thread t = new Thread(r, "sse-reaper-force-close");
-            t.setDaemon(true);
-            return t;
-        });
+        log.info("[Reaper] 启动完成: intervalMs={}", intervalMs);
     }
 
     /**
@@ -177,14 +127,11 @@ public class ConnectionReaper {
             }
         }
 
-        log.info("SSE 连接收割器已停止");
+        log.info("[Reaper] 已停止");
     }
 
     /**
      * 执行一次扫描.
-     * <p>
-     * 扫描所有连接，检测僵尸并清理。
-     * </p>
      */
     public void scan() {
         try {
@@ -205,13 +152,11 @@ public class ConnectionReaper {
             int zombieCount = 0;
 
             for (SseConnection conn : connections) {
-                // 检查是否空闲超时
                 if (conn.isIdle(idleTimeoutMs)) {
-                    // 尝试转换为 DRAINING 状态
-                    if (conn.transition(ConnectionState.ACTIVE, ConnectionState.DRAINING) ||
-                            conn.transition(ConnectionState.CREATED, ConnectionState.DRAINING)) {
-                        log.debug("检测到僵尸连接: {}, 空闲 {}ms", conn,
-                                System.currentTimeMillis() - conn.getLastActivityAt().get());
+                    if (conn.tryDrain()) {
+                        long idleMs = System.currentTimeMillis() - conn.getLastActivityAt().get();
+                        log.debug("[Reaper] 检测到僵尸连接: topic={}, connectionId={}, idleMs={}",
+                                conn.getTopic(), conn.getConnectionId(), idleMs);
 
                         // 调度延迟后提交到强制关闭执行器
                         s.schedule(() -> exec.submit(() -> forceClose(conn)),
@@ -230,48 +175,35 @@ public class ConnectionReaper {
                 metrics.cleanupTopic(topic);
             }
 
-            // 压缩长期为空的 Topic 计数器条目（回收内存）
+            // 压缩长期为空的 Topic 计数器条目
             long compactTtlMs = properties.getCleanup().getCompactTtl().toMillis();
             int compacted = registry.compactTopicCounts(compactTtlMs);
 
             if (zombieCount > 0 || !cleanedTopics.isEmpty() || compacted > 0) {
                 metrics.recordZombieReaped(zombieCount);
-                log.info("收割扫描完成: 僵尸连接={}, 清理 Topic={}, 压缩计数器={}",
+                log.info("[Reaper] 扫描完成: zombies={}, cleanedTopics={}, compacted={}",
                         zombieCount, cleanedTopics.size(), compacted);
             }
         } catch (Exception e) {
-            log.error("收割扫描异常", e);
+            log.error("[Reaper] 扫描异常", e);
             metrics.recordError("reaper_scan");
         }
     }
 
     /**
      * 强制关闭连接.
-     * <p>
-     * 通过 {@link SseConnectionRegistry#forceDecrementCounters} 原子递减计数器，
-     * 确保与 doFinally 之间不会双重递减。
-     * </p>
-     *
-     * @param conn 连接记录
      */
     private void forceClose(SseConnection conn) {
         if (conn.markClosed()) {
-            // 标记成功，执行完整清理（包括计数器递减）
-            log.debug("强制关闭僵尸连接: {}", conn);
-            if (registry.forceDecrementCounters(conn)) {
-                if (registry.cleanupIfEmpty(conn.getTopic())) {
-                    metrics.cleanupTopic(conn.getTopic());
-                }
-            }
-            // 主动取消 Flux 订阅，立即终止连接（而非等待客户端自行断开）
+            log.debug("[Reaper] 强制关闭僵尸连接: topic={}, connectionId={}",
+                    conn.getTopic(), conn.getConnectionId());
+            registry.cleanupConnection(conn, metrics);
             conn.cancel();
         }
     }
 
     /**
      * 检查是否正在运行.
-     *
-     * @return 运行中返回 true
      */
     public boolean isRunning() {
         return running.get();

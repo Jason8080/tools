@@ -110,6 +110,45 @@ public class SseConnection {
     }
 
     /**
+     * 激活连接（CREATED → ACTIVE）.
+     * <p>
+     * 在 Flux 的 doOnSubscribe 回调中调用，将连接标记为活跃状态。
+     * </p>
+     *
+     * @return 转换成功返回 true，已被关闭或状态不匹配返回 false
+     */
+    public boolean activate() {
+        return state.compareAndSet(ConnectionState.CREATED, ConnectionState.ACTIVE);
+    }
+
+    /**
+     * 尝试排空连接（ACTIVE/CREATED → DRAINING）.
+     * <p>
+     * 用于 Reaper 和 Shutdown 路径，将连接标记为排空中。
+     * 仅 ACTIVE 或 CREATED 状态的连接可转换为 DRAINING。
+     * </p>
+     *
+     * @return 转换成功返回 true，已是 DRAINING/CLOSED 或状态不匹配返回 false
+     */
+    public boolean tryDrain() {
+        ConnectionState current = state.get();
+        if (current == ConnectionState.DRAINING || current == ConnectionState.CLOSED) {
+            return false;
+        }
+        return state.compareAndSet(current, ConnectionState.DRAINING);
+    }
+
+    /**
+     * 完成关闭（* → CLOSED）.
+     * <p>
+     * 在清理完成后调用，将连接标记为已关闭。
+     * </p>
+     */
+    public void completeClose() {
+        state.set(ConnectionState.CLOSED);
+    }
+
+    /**
      * 更新最后活跃时间.
      *
      * @param epochMillis 当前时间（epoch 毫秒）

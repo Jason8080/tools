@@ -85,8 +85,8 @@ public class SseMetrics {
      * 绑定 Gauge 指标.
      */
     private void bindGauges() {
-        // 总连接数
-        registry.gauge(PREFIX + ".connections.total", connectionRegistry, r -> r.getTotalConnections().get());
+        // 总连接数（通过 ConnectionCounter）
+        registry.gauge(PREFIX + ".connections.total", connectionRegistry, r -> r.getCounter().getTotalConnections().get());
 
         // 活跃 Sink 数
         registry.gauge(PREFIX + ".sinks.active", connectionRegistry, SseConnectionRegistry::getActiveSinkCount);
