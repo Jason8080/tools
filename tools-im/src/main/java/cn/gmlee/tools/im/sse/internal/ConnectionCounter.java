@@ -83,7 +83,7 @@ public class ConnectionCounter {
             }
         } while (!topicCount.compareAndSet(currentTopic, currentTopic + 1));
 
-        return AcquireResult.success(topicCount);
+        return AcquireResult.success();
     }
 
     /**
@@ -159,35 +159,29 @@ public class ConnectionCounter {
      */
     public static class AcquireResult {
         private final boolean success;
-        private final AtomicInteger topicCount;
         private final SseConnectionLimitExceededException exception;
 
-        private AcquireResult(boolean success, AtomicInteger topicCount, SseConnectionLimitExceededException exception) {
+        private AcquireResult(boolean success, SseConnectionLimitExceededException exception) {
             this.success = success;
-            this.topicCount = topicCount;
             this.exception = exception;
         }
 
-        static AcquireResult success(AtomicInteger topicCount) {
-            return new AcquireResult(true, topicCount, null);
+        static AcquireResult success() {
+            return new AcquireResult(true, null);
         }
 
         static AcquireResult rejectedGlobal(int current, int max) {
-            return new AcquireResult(false, null,
+            return new AcquireResult(false,
                     new SseConnectionLimitExceededException("unknown", current, max, Scope.GLOBAL));
         }
 
         static AcquireResult rejectedTopic(String topic, int current, int max) {
-            return new AcquireResult(false, null,
+            return new AcquireResult(false,
                     new SseConnectionLimitExceededException(topic, current, max, Scope.PER_TOPIC));
         }
 
         public boolean isSuccess() {
             return success;
-        }
-
-        public AtomicInteger getTopicCount() {
-            return topicCount;
         }
 
         public SseConnectionLimitExceededException getException() {

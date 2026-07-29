@@ -121,7 +121,7 @@ public class SseConnectionManager implements SmartLifecycle {
             }
 
             // 4. 构建连接流
-            return buildConnectionFlux(topic, acquireResult.getTopicCount(), startTime);
+            return buildConnectionFlux(topic, startTime);
         });
     }
 
@@ -325,9 +325,7 @@ public class SseConnectionManager implements SmartLifecycle {
     /**
      * 构建连接 Flux.
      */
-    private Flux<TopicMessage<Msg>> buildConnectionFlux(String topic,
-                                                         java.util.concurrent.atomic.AtomicInteger topicCount,
-                                                         long startTime) {
+    private Flux<TopicMessage<Msg>> buildConnectionFlux(String topic, long startTime) {
         SseConnection conn = null;
         try {
             // 获取或创建 Sink
@@ -349,7 +347,7 @@ public class SseConnectionManager implements SmartLifecycle {
             log.info("[Subscribe] 成功: topic={}, connectionId={}", topic, conn.getConnectionId());
 
             // 构建数据流
-            return buildReactorFlux(sink, conn, topic, topicCount);
+            return buildReactorFlux(sink, conn, topic);
 
         } catch (Exception e) {
             // 异常回滚
@@ -371,12 +369,11 @@ public class SseConnectionManager implements SmartLifecycle {
      */
     private Flux<TopicMessage<Msg>> buildReactorFlux(Sinks.Many<TopicMessage<Msg>> sink,
                                                       SseConnection conn,
-                                                      String topic,
-                                                      java.util.concurrent.atomic.AtomicInteger topicCount) {
+                                                      String topic) {
         return sink.asFlux()
                 .doOnSubscribe(sub -> handleOnSubscribe(conn, sub))
                 .doOnNext(msg -> conn.touch())
-                .doFinally(signal -> handleFinally(conn, topic, topicCount, signal));
+                .doFinally(signal -> handleFinally(conn, topic, signal));
     }
 
     /**
@@ -397,7 +394,6 @@ public class SseConnectionManager implements SmartLifecycle {
      * 处理 finally 回调.
      */
     private void handleFinally(SseConnection conn, String topic,
-                                java.util.concurrent.atomic.AtomicInteger topicCount,
                                 reactor.core.publisher.SignalType signal) {
         if (conn.markClosed()) {
             // doFinally 赢得清理权
