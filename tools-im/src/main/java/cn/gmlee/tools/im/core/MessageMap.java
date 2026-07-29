@@ -12,7 +12,7 @@ import java.util.Map;
  *
  * <h3>用法</h3>
  * <pre>{@code
- * MsgMap msg = new MsgMap();
+ * MessageMap msg = new MessageMap();
  * msg.put("from", "alice");
  * msg.put("content", "hello");
  *
@@ -23,7 +23,7 @@ import java.util.Map;
  * <h3>JSON 映射</h3>
  * <pre>{@code
  * // JSON: {"from": "alice", "content": "hello"}
- * // Java: MsgMap{"from"="alice", "content"="hello"}
+ * // Java: MessageMap{"from"="alice", "content"="hello"}
  * }</pre>
  *
  * <h3>扩展方式</h3>
@@ -34,9 +34,6 @@ import java.util.Map;
  * @since 5.6.0
  */
 public class MessageMap extends HashMap<String, Object> implements Msg {
-
-    private static final long serialVersionUID = 1L;
-
     /**
      * 空消息.
      */

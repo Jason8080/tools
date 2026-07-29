@@ -1,6 +1,5 @@
 package cn.gmlee.tools.im.conf;
 
-import cn.gmlee.tools.im.core.EndpointConfig;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
@@ -46,5 +45,5 @@ public class ImProperties {
      * 框架在启动时加载此列表，自动注册端点和创建 Stream 资源。
      * </p>
      */
-    private List<EndpointConfig> endpoints = new ArrayList<>();
+    private List<EndpointProperties> endpoints = new ArrayList<>();
 }

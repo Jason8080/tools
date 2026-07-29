@@ -1,9 +1,8 @@
 package cn.gmlee.tools.im.conf;
 
 import cn.gmlee.tools.im.core.BindingNames;
-import cn.gmlee.tools.im.core.EndpointConfig;
 import cn.gmlee.tools.im.core.EndpointMode;
-import cn.gmlee.tools.im.core.EndpointRegistry;
+import cn.gmlee.tools.im.endpoint.EndpointRegistry;
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.TopicMessage;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
@@ -115,28 +114,28 @@ public class TopicFactory implements EndpointRegistry.ChangeListener {
     /**
      * 根据端点模式确保资源已创建.
      *
-     * @param config 端点配置
+     * @param props 端点配置
      */
-    public void ensureResources(EndpointConfig config) {
-        if (config.getMode() == EndpointMode.PUSH) {
-            ensureOutputBinding(config.getTopic());
-        } else if (config.getMode() == EndpointMode.PULL) {
-            ensureInputBinding(config.getTopic());
+    public void ensureResources(EndpointProperties props) {
+        if (props.getMode() == EndpointMode.PUSH) {
+            ensureOutputBinding(props.getTopic());
+        } else if (props.getMode() == EndpointMode.PULL) {
+            ensureInputBinding(props.getTopic());
         }
     }
 
     // ==================== EndpointRegistry.ChangeListener ====================
 
     @Override
-    public void onEndpointRegistered(EndpointConfig config) {
-        ensureResources(config);
+    public void onEndpointRegistered(EndpointProperties props) {
+        ensureResources(props);
     }
 
     @Override
-    public void onEndpointUnregistered(EndpointConfig config) {
+    public void onEndpointUnregistered(EndpointProperties props) {
         // 资源不随端点注销而销毁，避免影响其他共享同一 Topic 的端点。
         // Sink 由 SseConnectionManager 的空 Topic TTL 机制自动清理。
-        log.debug("[TopicFactory] 端点注销，保留 Topic 资源: topic={}", config.getTopic());
+        log.debug("[TopicFactory] 端点注销，保留 Topic 资源: topic={}", props.getTopic());
     }
 
     // ==================== 内部方法 ====================

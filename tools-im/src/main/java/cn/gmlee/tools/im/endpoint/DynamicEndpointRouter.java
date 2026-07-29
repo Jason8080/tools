@@ -3,9 +3,8 @@ package cn.gmlee.tools.im.endpoint;
 import cn.gmlee.tools.base.mod.R;
 import cn.gmlee.tools.im.conf.SseProperties;
 import cn.gmlee.tools.im.core.BindingNames;
-import cn.gmlee.tools.im.core.EndpointConfig;
+import cn.gmlee.tools.im.conf.EndpointProperties;
 import cn.gmlee.tools.im.core.EndpointMode;
-import cn.gmlee.tools.im.core.EndpointRegistry;
 import cn.gmlee.tools.im.core.MessageMap;
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.TopicMessage;
@@ -99,7 +98,7 @@ public class DynamicEndpointRouter {
      * 请求分发：根据端点模式路由到 PUSH 或 PULL 处理器.
      */
     private Mono<ServerResponse> dispatch(ServerRequest request) {
-        EndpointConfig config = registry.resolve(request.path());
+        EndpointProperties config = registry.resolve(request.path());
         if (config == null) {
             return ServerResponse.notFound().build();
         }
@@ -113,13 +112,14 @@ public class DynamicEndpointRouter {
     /**
      * PUSH 处理：解析 JSON → 发送 MQ → 返回消息 ID.
      */
-    private Mono<ServerResponse> handlePush(ServerRequest request, EndpointConfig config) {
+    private Mono<ServerResponse> handlePush(ServerRequest request, EndpointProperties props) {
+        MultiValueMap<String, String> urlParams = request.queryParams();
         return request.bodyToMono(MessageMap.class)
                 .defaultIfEmpty(new MessageMap())
                 .flatMap(msg -> {
-                    TopicMessage<MessageMap> event = msg.build(request.queryParams());
-                    event.setTopic(config.getTopic());
-                    String bindingName = BindingNames.outputBinding(config.getTopic());
+                    TopicMessage<MessageMap> event = msg.build(urlParams);
+                    event.setTopic(props.getTopic());
+                    String bindingName = BindingNames.outputBinding(props.getTopic());
                     streamBridge.send(bindingName, event);
                     Serializable id = event.getId();
                     return ServerResponse.ok()
@@ -131,18 +131,18 @@ public class DynamicEndpointRouter {
     /**
      * PULL 处理：SSE 订阅 → 带心跳的事件流.
      */
-    private Mono<ServerResponse> handlePull(ServerRequest request, EndpointConfig config) {
-        MultiValueMap<String, String> params = request.queryParams();
-        Flux<TopicMessage<Msg>> flux = sseConnectionManager.subscribe(config.getTopic());
+    private Mono<ServerResponse> handlePull(ServerRequest request, EndpointProperties props) {
+        MultiValueMap<String, String> urlParams = request.queryParams();
+        Flux<TopicMessage<Msg>> flux = sseConnectionManager.subscribe(props.getTopic());
         Flux<ServerSentEvent<MessageMap>> sseFlux = flux
                 .map(m -> {
                     Object payload = m.getMsg();
-                    MessageMap mapMsg = payload instanceof MessageMap
+                    MessageMap messageMap = payload instanceof MessageMap
                             ? (MessageMap) payload
                             : new MessageMap(java.util.Collections.singletonMap("data", payload));
                     return ServerSentEvent.<MessageMap>builder()
                             .id(String.valueOf(m.getId()))
-                            .data(mapMsg)
+                            .data(messageMap)
                             .build();
                 });
         Flux<ServerSentEvent<MessageMap>> withHeartbeat = SseHeartbeatHelper.wrapWithHeartbeat(

@@ -1,5 +1,6 @@
-package cn.gmlee.tools.im.core;
+package cn.gmlee.tools.im.endpoint;
 
+import cn.gmlee.tools.im.conf.EndpointProperties;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 端点注册表.
  * <p>
- * 管理所有端点配置（path → {@link EndpointConfig}），支持启动时 YAML 加载和运行时动态增删。
+ * 管理所有端点配置（path → {@link EndpointProperties}），支持启动时 YAML 加载和运行时动态增删。
  * 线程安全，所有操作通过 {@link ConcurrentHashMap} 保证原子性。
  * </p>
  *
@@ -29,9 +30,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class EndpointRegistry {
 
     /**
-     * path → EndpointConfig 映射
+     * path → EndpointProperties 映射
      */
-    private final Map<String, EndpointConfig> endpoints = new ConcurrentHashMap<>();
+    private final Map<String, EndpointProperties> endpoints = new ConcurrentHashMap<>();
 
     /**
      * 变更监听器列表
@@ -44,18 +45,18 @@ public class EndpointRegistry {
      * 如果路径已存在，旧配置会被覆盖。注册成功后触发 {@link ChangeListener#onEndpointRegistered} 回调。
      * </p>
      *
-     * @param config 端点配置
-     * @throws IllegalArgumentException 如果 config 或其必填字段为 null
+     * @param props 端点配置
+     * @throws IllegalArgumentException 如果 props 或其必填字段为 null
      */
-    public void register(EndpointConfig config) {
-        validate(config);
-        EndpointConfig old = endpoints.put(config.getPath(), config);
+    public void register(EndpointProperties props) {
+        validate(props);
+        EndpointProperties old = endpoints.put(props.getPath(), props);
         if (old == null) {
-            log.info("[EndpointRegistry] 注册端点: {} → topic={}, mode={}", config.getPath(), config.getTopic(), config.getMode());
+            log.info("[EndpointRegistry] 注册端点: {} → topic={}, mode={}", props.getPath(), props.getTopic(), props.getMode());
         } else {
-            log.info("[EndpointRegistry] 更新端点: {} → topic={}, mode={}", config.getPath(), config.getTopic(), config.getMode());
+            log.info("[EndpointRegistry] 更新端点: {} → topic={}, mode={}", props.getPath(), props.getTopic(), props.getMode());
         }
-        fireRegistered(config);
+        fireRegistered(props);
     }
 
     /**
@@ -67,8 +68,8 @@ public class EndpointRegistry {
      * @param path 请求路径
      * @return 被注销的端点配置，路径不存在返回 null
      */
-    public EndpointConfig unregister(String path) {
-        EndpointConfig removed = endpoints.remove(path);
+    public EndpointProperties unregister(String path) {
+        EndpointProperties removed = endpoints.remove(path);
         if (removed != null) {
             log.info("[EndpointRegistry] 注销端点: {}", path);
             fireUnregistered(removed);
@@ -82,7 +83,7 @@ public class EndpointRegistry {
      * @param path 请求路径
      * @return 端点配置，未注册返回 null
      */
-    public EndpointConfig resolve(String path) {
+    public EndpointProperties resolve(String path) {
         return endpoints.get(path);
     }
 
@@ -91,7 +92,7 @@ public class EndpointRegistry {
      *
      * @return 端点配置集合（不可变视图）
      */
-    public Collection<EndpointConfig> listAll() {
+    public Collection<EndpointProperties> listAll() {
         return Collections.unmodifiableCollection(endpoints.values());
     }
 
@@ -113,37 +114,37 @@ public class EndpointRegistry {
         listeners.add(listener);
     }
 
-    private void fireRegistered(EndpointConfig config) {
+    private void fireRegistered(EndpointProperties props) {
         for (ChangeListener listener : listeners) {
             try {
-                listener.onEndpointRegistered(config);
+                listener.onEndpointRegistered(props);
             } catch (Exception e) {
                 log.error("[EndpointRegistry] 监听器 onEndpointRegistered 异常", e);
             }
         }
     }
 
-    private void fireUnregistered(EndpointConfig config) {
+    private void fireUnregistered(EndpointProperties pros) {
         for (ChangeListener listener : listeners) {
             try {
-                listener.onEndpointUnregistered(config);
+                listener.onEndpointUnregistered(pros);
             } catch (Exception e) {
                 log.error("[EndpointRegistry] 监听器 onEndpointUnregistered 异常", e);
             }
         }
     }
 
-    private void validate(EndpointConfig config) {
-        if (config == null) {
-            throw new IllegalArgumentException("EndpointConfig 不能为 null");
+    private void validate(EndpointProperties props) {
+        if (props == null) {
+            throw new IllegalArgumentException("EndpointProperties 不能为 null");
         }
-        if (config.getPath() == null || config.getPath().isEmpty()) {
+        if (props.getPath() == null || props.getPath().isEmpty()) {
             throw new IllegalArgumentException("path 不能为空");
         }
-        if (config.getTopic() == null || config.getTopic().isEmpty()) {
+        if (props.getTopic() == null || props.getTopic().isEmpty()) {
             throw new IllegalArgumentException("topic 不能为空");
         }
-        if (config.getMode() == null) {
+        if (props.getMode() == null) {
             throw new IllegalArgumentException("mode 不能为 null");
         }
     }
@@ -156,15 +157,15 @@ public class EndpointRegistry {
         /**
          * 端点注册后触发.
          *
-         * @param config 新注册的端点配置
+         * @param props 新注册的端点配置
          */
-        default void onEndpointRegistered(EndpointConfig config) {}
+        default void onEndpointRegistered(EndpointProperties props) {}
 
         /**
          * 端点注销后触发.
          *
-         * @param config 被注销的端点配置
+         * @param props 被注销的端点配置
          */
-        default void onEndpointUnregistered(EndpointConfig config) {}
+        default void onEndpointUnregistered(EndpointProperties props) {}
     }
 }

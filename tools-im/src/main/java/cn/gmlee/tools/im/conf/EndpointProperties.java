@@ -1,5 +1,6 @@
-package cn.gmlee.tools.im.core;
+package cn.gmlee.tools.im.conf;
 
+import cn.gmlee.tools.im.core.EndpointMode;
 import lombok.Data;
 
 /**
@@ -19,7 +20,7 @@ import lombok.Data;
  * @since 5.6.0
  */
 @Data
-public class EndpointConfig {
+public class EndpointProperties {
 
     /**
      * 请求路径（如 /api/chat/stream）

@@ -1,10 +1,8 @@
 package cn.gmlee.tools.im.conf;
 
-import cn.gmlee.tools.im.core.EndpointConfig;
-import cn.gmlee.tools.im.core.EndpointRegistry;
+import cn.gmlee.tools.im.endpoint.EndpointRegistry;
 import cn.gmlee.tools.im.endpoint.DynamicEndpointRouter;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
-import cn.gmlee.tools.im.sse.SseConnectionRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -121,19 +119,19 @@ public class EndpointAutoConfiguration {
      */
     @PostConstruct
     public void registerYamlEndpoints() {
-        List<EndpointConfig> endpoints = imProperties.getEndpoints();
+        List<EndpointProperties> endpoints = imProperties.getEndpoints();
         if (endpoints == null || endpoints.isEmpty()) {
             log.debug("[EndpointAutoConfiguration] 无 YAML 端点配置");
             return;
         }
-        for (EndpointConfig config : endpoints) {
+        for (EndpointProperties props : endpoints) {
             try {
-                endpointRegistry.register(config);
-                topicFactory.ensureResources(config);
+                endpointRegistry.register(props);
+                topicFactory.ensureResources(props);
                 log.info("[EndpointAutoConfiguration] 加载端点: {} → topic={}, mode={}",
-                        config.getPath(), config.getTopic(), config.getMode());
+                        props.getPath(), props.getTopic(), props.getMode());
             } catch (Exception e) {
-                log.error("[EndpointAutoConfiguration] 加载端点失败: {}", config, e);
+                log.error("[EndpointAutoConfiguration] 加载端点失败: {}", props, e);
             }
         }
     }
