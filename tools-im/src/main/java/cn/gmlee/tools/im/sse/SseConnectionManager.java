@@ -34,7 +34,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <ul>
  *   <li><b>无锁并发</b>：使用 CAS 循环保证连接数限制的原子性</li>
  *   <li><b>三层清理</b>：doFinally（响应式） + Reaper（定时） + Shutdown（强制）</li>
- *   <li><b>心跳支持</b>：定期发送 SSE 注释保持连接活性</li>
  *   <li><b>优雅关闭</b>：实现 SmartLifecycle，按阶段排空连接</li>
  *   <li><b>可观测性</b>：通过 SseMetrics 暴露 Micrometer 指标</li>
  * </ul>
@@ -84,6 +83,7 @@ public class SseConnectionManager implements SmartLifecycle {
      * </ul>
      * </p>
      */
+    @Getter
     private volatile boolean closed = false;
 
     /**
@@ -401,19 +401,6 @@ public class SseConnectionManager implements SmartLifecycle {
      */
     public boolean isAccepting() {
         return accepting.get();
-    }
-
-    /**
-     * 检查管理器是否已完成关闭.
-     * <p>
-     * 与 {@link #isRunning()} 的区别：{@code isRunning()} 在 stop() 开始时返回 false，
-     * 而 {@code isClosed()} 在 closeAll() 执行后才返回 true。
-     * </p>
-     *
-     * @return 已关闭返回 true
-     */
-    public boolean isClosed() {
-        return closed;
     }
 
     // ============ SmartLifecycle 实现 ============

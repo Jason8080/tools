@@ -8,6 +8,7 @@ import cn.gmlee.tools.im.conf.SseProperties;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -28,14 +29,28 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *   <li>等待 gracePeriod 后强制关闭</li>
  * </ol>
  *
- * <h3>性能</h3>
+ * <h3>线程模型</h3>
  * <p>
- * 使用独立的单线程调度器（非事件循环），因为扫描是 O(n) 的管理任务。
- * 100K 连接约 3ms，CPU 占用可忽略（30s 间隔下约 0.01%）。
+ * 使用两个独立的线程池：
+ * <ul>
+ *   <li><b>scheduler</b>（单线程）：负责定期扫描和调度延迟关闭任务</li>
+ *   <li><b>forceCloseExecutor</b>（固定 2 线程）：执行实际的强制关闭操作</li>
+ * </ul>
+ * 分离的目的是防止大量僵尸连接同时触发关闭时阻塞扫描调度。
+ * 100K 连接扫描约 3ms，CPU 占用可忽略（30s 间隔下约 0.01%）。
  * </p>
  */
 @Slf4j
 public class ConnectionReaper {
+
+    /**
+     * 强制关闭线程池大小.
+     * <p>
+     * 2 个线程足以处理极端场景（10K+ 僵尸连接同时关闭），
+     * 因为 forceClose 本身是轻量操作（CAS + cancel）。
+     * </p>
+     */
+    private static final int FORCE_CLOSE_THREADS = 2;
 
     private final SseConnectionRegistry registry;
     private final SseMetrics metrics;
@@ -45,11 +60,21 @@ public class ConnectionReaper {
     /**
      * 收割调度器（非 final，支持 stop/start 重建）.
      * <p>
+     * 单线程，负责定期扫描和调度延迟关闭任务。
      * stop() 会销毁调度器，start() 重新创建，避免在已终止的调度器上提交任务。
      * volatile 保证 stop/start 跨线程可见性。
      * </p>
      */
     private volatile ScheduledExecutorService scheduler;
+
+    /**
+     * 强制关闭执行器（非 final，支持 stop/start 重建）.
+     * <p>
+     * 固定线程池，执行实际的强制关闭操作。
+     * 与调度器分离，防止大量延迟关闭任务阻塞扫描调度。
+     * </p>
+     */
+    private volatile ExecutorService forceCloseExecutor;
 
     /**
      * 创建连接收割器.
@@ -68,7 +93,7 @@ public class ConnectionReaper {
      * 启动收割器.
      * <p>
      * 按配置的间隔定期执行扫描。
-     * 每次启动创建新的调度器，避免在已终止的调度器上提交任务。
+     * 每次启动创建新的调度器和执行器，避免在已终止的线程池上提交任务。
      * </p>
      */
     public void start() {
@@ -82,6 +107,7 @@ public class ConnectionReaper {
         }
 
         scheduler = createScheduler();
+        forceCloseExecutor = createForceCloseExecutor();
         long intervalMs = properties.getReaper().getInterval().toMillis();
         scheduler.scheduleAtFixedRate(this::scan, intervalMs, intervalMs, TimeUnit.MILLISECONDS);
         log.info("SSE 连接收割器已启动，扫描间隔: {}ms", intervalMs);
@@ -94,7 +120,20 @@ public class ConnectionReaper {
      */
     private static ScheduledExecutorService createScheduler() {
         return Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "sse-connection-reaper");
+            Thread t = new Thread(r, "sse-reaper-scheduler");
+            t.setDaemon(true);
+            return t;
+        });
+    }
+
+    /**
+     * 创建强制关闭执行器.
+     *
+     * @return 新的 daemon 固定线程池
+     */
+    private static ExecutorService createForceCloseExecutor() {
+        return Executors.newFixedThreadPool(FORCE_CLOSE_THREADS, r -> {
+            Thread t = new Thread(r, "sse-reaper-force-close");
             t.setDaemon(true);
             return t;
         });
@@ -107,6 +146,8 @@ public class ConnectionReaper {
         if (!running.compareAndSet(true, false)) {
             return;
         }
+
+        // 停止调度器
         ScheduledExecutorService s = this.scheduler;
         this.scheduler = null;
         if (s != null) {
@@ -120,6 +161,22 @@ public class ConnectionReaper {
                 Thread.currentThread().interrupt();
             }
         }
+
+        // 停止强制关闭执行器
+        ExecutorService exec = this.forceCloseExecutor;
+        this.forceCloseExecutor = null;
+        if (exec != null) {
+            exec.shutdown();
+            try {
+                if (!exec.awaitTermination(5, TimeUnit.SECONDS)) {
+                    exec.shutdownNow();
+                }
+            } catch (InterruptedException e) {
+                exec.shutdownNow();
+                Thread.currentThread().interrupt();
+            }
+        }
+
         log.info("SSE 连接收割器已停止");
     }
 
@@ -138,7 +195,8 @@ public class ConnectionReaper {
 
             // 捕获本地引用，避免 stop() 并发置 null 后 NPE
             ScheduledExecutorService s = this.scheduler;
-            if (s == null || s.isShutdown()) {
+            ExecutorService exec = this.forceCloseExecutor;
+            if (s == null || s.isShutdown() || exec == null || exec.isShutdown()) {
                 return;
             }
 
@@ -155,8 +213,9 @@ public class ConnectionReaper {
                         log.debug("检测到僵尸连接: {}, 空闲 {}ms", conn,
                                 System.currentTimeMillis() - conn.getLastActivityAt().get());
 
-                        // 调度强制关闭
-                        s.schedule(() -> forceClose(conn), gracePeriodMs, TimeUnit.MILLISECONDS);
+                        // 调度延迟后提交到强制关闭执行器
+                        s.schedule(() -> exec.submit(() -> forceClose(conn)),
+                                gracePeriodMs, TimeUnit.MILLISECONDS);
                         zombieCount++;
                     }
                 }
@@ -171,9 +230,14 @@ public class ConnectionReaper {
                 metrics.cleanupTopic(topic);
             }
 
-            if (zombieCount > 0 || !cleanedTopics.isEmpty()) {
+            // 压缩长期为空的 Topic 计数器条目（回收内存）
+            long compactTtlMs = properties.getCleanup().getCompactTtl().toMillis();
+            int compacted = registry.compactTopicCounts(compactTtlMs);
+
+            if (zombieCount > 0 || !cleanedTopics.isEmpty() || compacted > 0) {
                 metrics.recordZombieReaped(zombieCount);
-                log.info("收割扫描完成: 僵尸连接={}, 清理 Topic={}", zombieCount, cleanedTopics.size());
+                log.info("收割扫描完成: 僵尸连接={}, 清理 Topic={}, 压缩计数器={}",
+                        zombieCount, cleanedTopics.size(), compacted);
             }
         } catch (Exception e) {
             log.error("收割扫描异常", e);

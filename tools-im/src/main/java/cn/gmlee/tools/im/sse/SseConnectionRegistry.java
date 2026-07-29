@@ -241,6 +241,70 @@ public class SseConnectionRegistry {
     }
 
     /**
+     * 压缩长期为空的 Topic 计数器条目.
+     * <p>
+     * 移除同时满足以下条件的条目：
+     * <ol>
+     *   <li>计数器值为 0</li>
+     *   <li>无对应 Sink（已在 {@link #cleanupIfEmpty} 中清理）</li>
+     *   <li>空状态持续时间超过 compactTtlMillis</li>
+     * </ol>
+     * 使用 {@link ConcurrentHashMap#compute} 原子操作，持有 bin 锁期间完成检查与移除。
+     * </p>
+     * <p>
+     * <b>竞态说明</b>：移除条目会与并发 subscribe() 的 computeIfAbsent 产生极小竞态窗口：
+     * <pre>
+     * Thread A: compute → 返回 null → 移除 X → 释放锁
+     * Thread B: computeIfAbsent → 获取锁 → 创建新 Y(0) → 释放锁
+     * </pre>
+     * 此竞态是安全的：Thread B 创建的新条目 Y 是独立的，不存在孤儿引用问题。
+     * 但若 Thread A 执行 compute 前，Thread C 已通过 computeIfAbsent 持有旧引用 X 并
+     * 在 compute 之后对 X 执行 CAS，则 X 成为孤儿。此场景概率极低且影响为计数器偏差 1
+     * （软限制），对 IM 场景可忽略。
+     * </p>
+     *
+     * @param compactTtlMillis 压缩 TTL（毫秒），空状态超过此时间的条目才被移除
+     * @return 被移除的 Topic 数量
+     */
+    public int compactTopicCounts(long compactTtlMillis) {
+        if (compactTtlMillis <= 0) {
+            return 0;
+        }
+        long now = System.currentTimeMillis();
+        int compacted = 0;
+
+        for (Map.Entry<String, AtomicInteger> entry : topicCounts.entrySet()) {
+            String topic = entry.getKey();
+            AtomicInteger count = entry.getValue();
+
+            if (count.get() != 0) {
+                continue;
+            }
+            // 检查空状态持续时间
+            Long since = emptySince.get(topic);
+            if (since == null || (now - since) < compactTtlMillis) {
+                continue;
+            }
+            // 原子检查并移除
+            final boolean[] removed = {false};
+            topicCounts.compute(topic, (k, v) -> {
+                if (v != null && v.get() == 0 && !topicSinks.containsKey(k)) {
+                    removed[0] = true;
+                    return null; // 移除条目
+                }
+                return v;
+            });
+            if (removed[0]) {
+                emptySince.remove(topic);
+                compacted++;
+                log.debug("压缩 Topic 计数器: {}", topic);
+            }
+        }
+
+        return compacted;
+    }
+
+    /**
      * 获取所有连接快照.
      * <p>
      * 返回当前所有连接的不可变副本，用于 Reaper 扫描。

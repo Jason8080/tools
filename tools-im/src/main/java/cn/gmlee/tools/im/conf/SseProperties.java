@@ -53,6 +53,11 @@ public class SseProperties {
     private CleanupConfig cleanup = new CleanupConfig();
 
     /**
+     * 心跳配置
+     */
+    private HeartbeatConfig heartbeat = new HeartbeatConfig();
+
+    /**
      * 背压策略配置
      */
     @Data
@@ -154,5 +159,49 @@ public class SseProperties {
          * 空 Topic 保留时间（防止抖动）
          */
         private Duration emptyTopicTtl = Duration.ofSeconds(60);
+
+        /**
+         * Topic 计数器压缩 TTL.
+         * <p>
+         * 空 Topic 的 AtomicInteger 计数器条目在内存中保留此时间后，
+         * 将被压缩移除以回收内存。设置为 0 或负数表示禁用压缩。
+         * </p>
+         * <p>
+         * <b>权衡</b>：移除条目会与并发 subscribe() 的 computeIfAbsent
+         * 产生极小的竞态窗口（见 {@link SseConnectionRegistry#compactTopicCounts}），
+         * 可能导致计数器偏差 1（软限制，影响可忽略）。
+         * 默认 1 小时，适用于动态高基数 Topic 场景。静态 Topic 场景可设大或禁用。
+         * </p>
+         */
+        private Duration compactTtl = Duration.ofHours(1);
+    }
+
+    /**
+     * 心跳配置.
+     * <p>
+     * 定期发送 SSE 注释（comment）保持连接活性，防止反向代理
+     * （Nginx、ALB 等）因空闲超时而断开 SSE 连接。
+     * </p>
+     * <p>
+     * 心跳以 SSE 注释形式发送（以 {@code :} 开头的行），
+     * 浏览器的 EventSource API 会忽略注释，不会触发 onmessage 回调。
+     * </p>
+     */
+    @Data
+    public static class HeartbeatConfig {
+        /**
+         * 是否启用心跳
+         */
+        private boolean enabled = true;
+
+        /**
+         * 心跳发送间隔
+         */
+        private Duration interval = Duration.ofSeconds(15);
+
+        /**
+         * 心跳注释内容（SSE comment）
+         */
+        private String comment = "heartbeat";
     }
 }

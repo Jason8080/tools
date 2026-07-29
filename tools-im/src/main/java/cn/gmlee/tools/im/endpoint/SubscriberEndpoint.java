@@ -1,9 +1,11 @@
 package cn.gmlee.tools.im.endpoint;
 
+import cn.gmlee.tools.im.conf.SseProperties;
 import cn.gmlee.tools.im.core.Endpoint;
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.TopicRouter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.util.MultiValueMap;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
 import java.io.Serializable;
+import java.time.Duration;
 
 /**
  * 订阅者端点.
@@ -26,11 +29,13 @@ import java.io.Serializable;
  * </ul>
  * </p>
  */
+@Slf4j
 @RequiredArgsConstructor
 @RequestMapping("${im.base-path:/}")
 public class SubscriberEndpoint implements Endpoint<Msg> {
 
     private final TopicRouter<Serializable, Msg> topicRouteServe;
+    private final SseProperties sseProperties;
 
     /**
      * SSE 拉取.
@@ -43,9 +48,39 @@ public class SubscriberEndpoint implements Endpoint<Msg> {
     public @ResponseBody Flux<ServerSentEvent<Msg>> sse(
             @PathVariable String topic,
             @RequestParam MultiValueMap<String, String> urlParams) {
-        return topicRouteServe.pull(topic, urlParams)
+
+        Flux<ServerSentEvent<Msg>> dataFlux = topicRouteServe.pull(topic, urlParams)
                 .map(msg -> ServerSentEvent.<Msg>builder()
                         .data(msg)
+                        .build());
+
+        // 如果启用心跳，合并心跳注释流
+        if (sseProperties.getHeartbeat().isEnabled()) {
+            Flux<ServerSentEvent<Msg>> heartbeatFlux = createHeartbeatFlux();
+            return Flux.merge(dataFlux, heartbeatFlux);
+        }
+
+        return dataFlux;
+    }
+
+    /**
+     * 创建心跳事件流.
+     * <p>
+     * 定期发送 SSE 注释（comment），保持连接活性。
+     * SSE 注释以 {@code :} 开头，浏览器的 EventSource API 会忽略注释，
+     * 不会触发 onmessage 回调，但能防止反向代理因空闲超时而断开连接。
+     * </p>
+     *
+     * @return 心跳事件流
+     */
+    private Flux<ServerSentEvent<Msg>> createHeartbeatFlux() {
+        SseProperties.HeartbeatConfig config = sseProperties.getHeartbeat();
+        Duration interval = config.getInterval();
+        String comment = config.getComment();
+
+        return Flux.interval(interval)
+                .map(tick -> ServerSentEvent.<Msg>builder()
+                        .comment(comment)
                         .build());
     }
 }

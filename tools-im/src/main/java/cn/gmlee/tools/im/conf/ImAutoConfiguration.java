@@ -74,9 +74,8 @@ public class ImAutoConfiguration {
     }
 
     @Bean
-    public ImBroadcastConsumer imBroadcastConsumer(SseConnectionManager sseConnectionManager,
-                                                    StreamProperties streamProperties) {
-        return new ImBroadcastConsumer(sseConnectionManager, streamProperties);
+    public ImBroadcastConsumer imBroadcastConsumer(SseConnectionManager sseConnectionManager) {
+        return new ImBroadcastConsumer(sseConnectionManager);
     }
 
     @Bean
