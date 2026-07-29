@@ -161,7 +161,7 @@ public class SseConnectionManager implements SmartLifecycle {
             }
 
             // 4. 构建连接流（委托给 FluxBuilder）
-            SseSubscription sub = SseConnectionFluxBuilder.build(topic, registry, metrics, listeners);
+            SseSubscription sub = SseConnectionFluxBuilder.build(topic, registry, metrics, properties, listeners);
             // 将连接引用写入 Reactor Context
             return sub.getFlux().contextWrite(ctx -> ctx.put(CONTEXT_KEY_CONNECTION, sub.getConnection()));
         });

@@ -1,5 +1,6 @@
 package cn.gmlee.tools.im.sse;
 
+import cn.gmlee.tools.im.conf.SseProperties;
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.TopicMessage;
 import cn.gmlee.tools.im.ex.SseShutdownException;
@@ -9,6 +10,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.SignalType;
 import reactor.core.publisher.Sinks;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 
@@ -56,15 +58,17 @@ final class SseConnectionFluxBuilder {
      * 调用方已保证计数器已递增（tryAcquire 成功）。
      * </p>
      *
-     * @param topic     Topic 名称
-     * @param registry  连接注册表
-     * @param metrics   指标收集器
-     * @param listeners 连接监听器列表
+     * @param topic      Topic 名称
+     * @param registry   连接注册表
+     * @param metrics    指标收集器
+     * @param properties SSE 配置
+     * @param listeners  连接监听器列表
      * @return 订阅结果（包含消息流和连接引用）
      */
     static SseSubscription build(String topic,
                                   SseConnectionRegistry registry,
                                   SseMetrics metrics,
+                                  SseProperties properties,
                                   List<SseConnectionListener> listeners) {
         SseConnection conn = null;
         try {
@@ -83,7 +87,7 @@ final class SseConnectionFluxBuilder {
             log.info("[Subscribe] 成功: topic={}, connectionId={}", topic, conn.getConnectionId());
 
             // 3. 构建带生命周期钩子的 Flux
-            Flux<TopicMessage<Msg>> flux = attachLifecycle(sink, conn, topic, registry, metrics, listeners);
+            Flux<TopicMessage<Msg>> flux = attachLifecycle(sink, conn, topic, registry, metrics, properties, listeners);
             return new SseSubscription(flux, conn);
 
         } catch (Exception e) {
@@ -104,20 +108,22 @@ final class SseConnectionFluxBuilder {
     /**
      * 附加生命周期钩子到 Sink Flux.
      * <p>
-     * 三个钩子构成响应式连接管理：
+     * 四个钩子构成响应式连接管理：
      * <ul>
      *   <li>{@code doOnSubscribe}：保存订阅引用、激活连接、触发监听器</li>
      *   <li>{@code doOnNext}：更新活跃时间（供 Reaper 判断空闲超时）</li>
+     *   <li>{@code take(maxConnectionLifetime)}：限制连接最大存活时间（可选）</li>
      *   <li>{@code doFinally}：清理连接（三层清理的第一层，处理 ~95% 的正常断开）</li>
      * </ul>
      * </p>
      *
-     * @param sink      Topic 对应的 Sink
-     * @param conn      连接记录
-     * @param topic     Topic 名称
-     * @param registry  连接注册表
-     * @param metrics   指标收集器
-     * @param listeners 连接监听器列表
+     * @param sink       Topic 对应的 Sink
+     * @param conn       连接记录
+     * @param topic      Topic 名称
+     * @param registry   连接注册表
+     * @param metrics    指标收集器
+     * @param properties SSE 配置
+     * @param listeners  连接监听器列表
      * @return 带生命周期钩子的 Flux
      */
     private static Flux<TopicMessage<Msg>> attachLifecycle(
@@ -126,12 +132,21 @@ final class SseConnectionFluxBuilder {
             String topic,
             SseConnectionRegistry registry,
             SseMetrics metrics,
+            SseProperties properties,
             List<SseConnectionListener> listeners) {
 
-        return sink.asFlux()
+        Flux<TopicMessage<Msg>> flux = sink.asFlux()
                 .doOnSubscribe(sub -> handleOnSubscribe(conn, sub, listeners))
-                .doOnNext(msg -> conn.touch())
-                .doFinally(signal -> handleFinally(conn, topic, signal, registry, metrics, listeners));
+                .doOnNext(msg -> conn.touch());
+
+        // 限制连接最大存活时间：到期后发送 onComplete，触发 doFinally 清理
+        // 客户端的 EventSource 会自动重连（SSE 标准行为）
+        Duration maxLifetime = properties.getMaxConnectionLifetime();
+        if (maxLifetime != null && !maxLifetime.isNegative() && !maxLifetime.isZero()) {
+            flux = flux.take(maxLifetime);
+        }
+
+        return flux.doFinally(signal -> handleFinally(conn, topic, signal, registry, metrics, listeners));
     }
 
     /**

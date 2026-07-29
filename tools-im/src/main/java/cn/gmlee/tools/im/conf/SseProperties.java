@@ -28,6 +28,19 @@ public class SseProperties {
     private int maxTotalConnections = 100_000;
 
     /**
+     * 连接最大存活时间.
+     * <p>
+     * 无论连接是否活跃，超过此时间的连接都会自动关闭。
+     * 利用 Reactor 的 {@code take(Duration)} 操作符实现，到期后发送 onComplete 信号，
+     * 触发 doFinally 清理流程，客户端的 EventSource 会自动重连。
+     * </p>
+     * <p>
+     * 设置为 0 或负数表示禁用此功能。
+     * </p>
+     */
+    private Duration maxConnectionLifetime = Duration.ofHours(24);
+
+    /**
      * 背压策略配置
      */
     private BackpressureConfig backpressure = new BackpressureConfig();
