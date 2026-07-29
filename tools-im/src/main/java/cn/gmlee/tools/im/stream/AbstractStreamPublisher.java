@@ -55,6 +55,8 @@ public abstract class AbstractStreamPublisher<ID extends Serializable, MSG exten
     @Override
     public ID push(MultiValueMap<String, String> urlParams, MSG msg) {
         TopicMessage<MSG> event = msg.build(urlParams);
+        // 由框架注入 topic，消息类无需关心 topic 名称
+        event.setTopic(topic());
         // 使用 topic-out-0 作为 binding 名称，符合 Spring Cloud Stream 函数式绑定规范
         String bindingName = topic() + "-out-0";
         streamBridge.send(bindingName, event);

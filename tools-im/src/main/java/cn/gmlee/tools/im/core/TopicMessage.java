@@ -1,6 +1,9 @@
 package cn.gmlee.tools.im.core;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.util.MultiValueMap;
 
 import java.io.Serializable;
@@ -9,6 +12,9 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class TopicMessage<MSG> implements Serializable {
 
     /**
@@ -21,11 +27,13 @@ public class TopicMessage<MSG> implements Serializable {
      */
     private static final AtomicLong ID_GENERATOR = new AtomicLong(System.currentTimeMillis());
 
+    @Builder.Default
     private Serializable id = ID_GENERATOR.incrementAndGet();
     private String topic;
     private MultiValueMap<String, String> urlParams;
     private MultiValueMap<String, String> headers;
     private MSG msg;
+    @Builder.Default
     private Map<String, Object> metadata = new HashMap<>();
     private boolean state; // 消息状态: true-已消费, false-未消费
     public String topic() {

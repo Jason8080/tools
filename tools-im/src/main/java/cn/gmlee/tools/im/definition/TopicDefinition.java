@@ -75,6 +75,7 @@ import java.io.Serializable;
  *         public Long push(MultiValueMap<String, String> urlParams, OrderMsg msg) {
  *             // 自定义发布逻辑
  *             TopicMessage<OrderMsg> event = msg.build(urlParams);
+ *             event.setTopic(topic());  // 自定义 push() 需手动注入 topic
  *             event.getMetadata().put("timestamp", System.currentTimeMillis());
  *             streamBridge.send(topic(), event);
  *             return event.getId() instanceof Long ? (Long) event.getId() : 0L;
