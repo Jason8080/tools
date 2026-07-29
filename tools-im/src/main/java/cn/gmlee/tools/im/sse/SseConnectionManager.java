@@ -128,6 +128,10 @@ public class SseConnectionManager implements SmartLifecycle {
      * 返回的 Flux 通过 Reactor Context 携带连接引用，键为 {@link #CONTEXT_KEY_CONNECTION}。
      * 调用方可通过 {@code Flux.deferContextual} 获取连接并执行操作（如心跳时调用 {@code touch()}）。
      * </p>
+     * <p>
+     * <b>注意</b>：返回的 Flux 必须被订阅。如果 Flux 创建后未被订阅（如客户端在订阅前断开），
+     * 连接会在 {@code reaper.idleTimeout}（默认 3600s）后被 Reaper 作为空闲连接清理。
+     * </p>
      *
      * @param topic Topic 名称
      * @return 消息流（Context 中携带连接引用）

@@ -3,6 +3,7 @@ package cn.gmlee.tools.im.sse.heartbeat;
 import cn.gmlee.tools.im.conf.SseProperties;
 import cn.gmlee.tools.im.sse.SseConnection;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.codec.ServerSentEvent;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
@@ -37,6 +38,7 @@ import java.time.Duration;
  *
  * @author tools-im
  */
+@Slf4j
 public final class SseHeartbeatHelper {
 
     private SseHeartbeatHelper() {
@@ -75,12 +77,15 @@ public final class SseHeartbeatHelper {
         // autoConnect(2) 等待两个订阅者就绪后只连接一次底层 Sink，
         // 第二个参数（cancelConsumer）在所有订阅者断开时取消上游订阅，
         // 触发 doFinally 清理——语义等价于 share() 但避免了首次订阅即连接的时序问题
-        Flux<ServerSentEvent<T>> shared = (Flux<ServerSentEvent<T>>) (Flux<?>) dataFlux.publish()
+        Flux<ServerSentEvent<T>> shared = dataFlux.publish()
                 .autoConnect(2, Disposable::dispose);
 
         // 心跳需要访问连接引用以调用 touch()，通过 deferContextual 获取
         Flux<ServerSentEvent<T>> heartbeat = (Flux<ServerSentEvent<T>>) (Flux<?>) Flux.deferContextual(ctx -> {
             SseConnection conn = ctx.getOrDefault(SseConnectionManager.CONTEXT_KEY_CONNECTION, null);
+            if (conn == null) {
+                log.warn("[Heartbeat] Context 中缺少连接引用，心跳将不会重置空闲计时器");
+            }
             return createHeartbeatFlux(conn, config);
         }).takeUntilOther(shared.ignoreElements());
 
@@ -107,7 +112,6 @@ public final class SseHeartbeatHelper {
      * @param <T>    消息类型
      * @return 心跳事件流
      */
-    @SuppressWarnings("unchecked")
     private static <T> Flux<ServerSentEvent<T>> createHeartbeatFlux(
             SseConnection conn,
             SseProperties.HeartbeatConfig config) {
@@ -116,7 +120,7 @@ public final class SseHeartbeatHelper {
         String comment = config.getComment();
 
         // 心跳只是 SSE 注释，不包含数据，类型参数不影响实际内容
-        ServerSentEvent<T> heartbeatEvent = (ServerSentEvent<T>) ServerSentEvent.builder()
+        ServerSentEvent<T> heartbeatEvent = ServerSentEvent.<T>builder()
                 .comment(comment)
                 .build();
 
