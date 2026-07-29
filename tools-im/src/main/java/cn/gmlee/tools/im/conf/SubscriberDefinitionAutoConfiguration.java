@@ -13,7 +13,6 @@ import org.springframework.beans.factory.support.GenericBeanDefinition;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.context.annotation.Configuration;
-import reactor.core.publisher.Flux;
 
 import jakarta.annotation.PostConstruct;
 import java.util.List;
@@ -87,7 +86,7 @@ public class SubscriberDefinitionAutoConfiguration {
     }
 
     private void registerSubscriber(SubscriberDefinition definition, String topic) {
-        Subscriber<Flux<Msg>> subscriber = definition.createSubscriber(sseConnectionManager);
+        Subscriber<Msg> subscriber = definition.createSubscriber(sseConnectionManager);
 
         String beanName = topic + ".subscriber";
 

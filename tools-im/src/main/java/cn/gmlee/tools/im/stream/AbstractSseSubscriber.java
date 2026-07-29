@@ -29,7 +29,7 @@ import reactor.core.publisher.Flux;
  * }
  * }</pre>
  */
-public abstract class AbstractSseSubscriber implements Subscriber<Flux<Msg>> {
+public abstract class AbstractSseSubscriber implements Subscriber<Msg> {
 
     private final SseConnectionManager sseConnectionManager;
 

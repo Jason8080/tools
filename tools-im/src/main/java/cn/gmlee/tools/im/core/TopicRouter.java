@@ -9,33 +9,33 @@ import java.util.List;
 /**
  * 主题路由服务.
  *
- * @param <ID>  the type parameter
- * @param <MSG> the type parameter
+ * @param <ID>  消息 ID 类型
+ * @param <MSG> 消息类型
  */
 @RequiredArgsConstructor
 public class TopicRouter<ID, MSG> implements Router {
 
     private final List<Publisher<ID, MSG>> publishers;
-    private final List<Subscriber<Flux<MSG>>> subscribers;
+    private final List<Subscriber<MSG>> subscribers;
 
     /**
-     * Push serializable.
+     * 推送消息.
      *
-     * @param topic     the topic
-     * @param urlParams the url params
-     * @param msg       the msg
-     * @return the serializable
+     * @param topic     主题名称
+     * @param urlParams URL 参数
+     * @param msg       消息内容
+     * @return 消息 ID
      */
     public ID push(String topic, MultiValueMap<String, String> urlParams, MSG msg) {
         return route(topic, publishers).push(urlParams, msg);
     }
 
     /**
-     * Pull flux.
+     * 拉取消息流.
      *
-     * @param topic     the topic
-     * @param urlParams the url params
-     * @return the flux
+     * @param topic     主题名称
+     * @param urlParams URL 参数
+     * @return 消息响应式流
      */
     public Flux<MSG> pull(String topic, MultiValueMap<String, String> urlParams) {
         return route(topic, subscribers).pull(urlParams);

@@ -21,7 +21,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import reactor.core.publisher.Flux;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -74,7 +73,7 @@ public class ImAutoConfiguration {
 
     @Bean
     public TopicRouter<Serializable, Msg> topicRouter(List<Publisher<Serializable, Msg>> publishers,
-                                                      List<Subscriber<Flux<Msg>>> subscribers) {
+                                                      List<Subscriber<Msg>> subscribers) {
         return new TopicRouter<>(publishers, subscribers);
     }
 

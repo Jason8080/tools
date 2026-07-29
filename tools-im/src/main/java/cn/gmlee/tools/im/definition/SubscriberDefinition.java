@@ -62,7 +62,7 @@ import java.util.function.Consumer;
  * }
  *
  * @Override
- * public Subscriber<Flux<Msg>> createSubscriber(SseConnectionManager sseConnectionManager) {
+ * public Subscriber<Msg> createSubscriber(SseConnectionManager sseConnectionManager) {
  *     return new AbstractSseSubscriber(sseConnectionManager) {
  *         @Override
  *         public String topic() { return OrderSubscriberDefinition.this.topic(); }
@@ -104,7 +104,7 @@ public interface SubscriberDefinition extends Topic {
      * @param sseConnectionManager SSE 连接管理器
      * @return 订阅者实例
      */
-    default Subscriber<Flux<Msg>> createSubscriber(SseConnectionManager sseConnectionManager) {
+    default Subscriber<Msg> createSubscriber(SseConnectionManager sseConnectionManager) {
         return new AbstractSseSubscriber(sseConnectionManager) {
             @Override
             public String topic() {
