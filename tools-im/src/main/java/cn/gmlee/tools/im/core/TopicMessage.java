@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Data
-public class TopicMessage<MSG> implements Topic, Serializable {
+public class TopicMessage<MSG> implements Serializable {
 
     /**
      * 全局自增 ID 生成器.
@@ -28,7 +28,6 @@ public class TopicMessage<MSG> implements Topic, Serializable {
     private MSG msg;
     private Map<String, Object> metadata = new HashMap<>();
     private boolean state; // 消息状态: true-已消费, false-未消费
-    @Override
     public String topic() {
         return topic;
     }
