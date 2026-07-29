@@ -1,11 +1,10 @@
 package cn.gmlee.tools.im.sse.cleanup;
 
-import cn.gmlee.tools.im.sse.ConnectionState;
+import cn.gmlee.tools.im.conf.SseProperties;
 import cn.gmlee.tools.im.sse.SseConnection;
 import cn.gmlee.tools.im.sse.SseConnectionRegistry;
-import cn.gmlee.tools.im.sse.SseMetrics;
 import cn.gmlee.tools.im.sse.internal.SseExecutorFactory;
-import cn.gmlee.tools.im.conf.SseProperties;
+import cn.gmlee.tools.im.sse.metrics.SseMetrics;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;

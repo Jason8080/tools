@@ -1,6 +1,7 @@
-package cn.gmlee.tools.im.sse;
+package cn.gmlee.tools.im.sse.metrics;
 
 import cn.gmlee.tools.im.conf.SseProperties;
+import cn.gmlee.tools.im.sse.SseConnectionRegistry;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -10,29 +11,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
- * SSE 指标收集器.
+ * 基于 Micrometer 的 SSE 指标收集器实现.
  * <p>
- * 封装所有 Micrometer 交互，核心代码不直接依赖 io.micrometer。
- * 如果 MeterRegistry 不可用，则使用 NoOp 实现。
+ * 封装所有 Micrometer 交互，核心代码通过 {@link SseMetrics} 接口间接依赖。
+ * 当 classpath 中存在 Micrometer 且 {@link MeterRegistry} 可用时，自动配置会选择此实现。
  * </p>
  *
- * <h3>暴露的指标</h3>
- * <ul>
- *   <li>im.sse.connections.total - 总连接数（Gauge）</li>
- *   <li>im.sse.connections.active - 每 Topic 连接数（Gauge）</li>
- *   <li>im.sse.subscribe.rate - 订阅尝试（Counter，标签：topic, result）</li>
- *   <li>im.sse.publish.rate - 发布尝试（Counter，标签：topic, result）</li>
- *   <li>im.sse.publish.no-subscribers - 无订阅者消息（Counter，标签：topic）</li>
- *   <li>im.sse.reaper.scans - 收割扫描次数（Counter）</li>
- *   <li>im.sse.reaper.zombies - 收割的僵尸连接（Counter）</li>
- *   <li>im.sse.sinks.active - 活跃 Sink 数（Gauge）</li>
- *   <li>im.sse.errors - 错误计数（Counter，标签：type）</li>
- *   <li>im.sse.subscribe.duration - 订阅延迟（Timer，标签：topic）</li>
- *   <li>im.sse.publish.duration - 发布延迟（Timer，标签：topic）</li>
- * </ul>
+ * @see SseMetrics
+ * @see NoOpSseMetrics
  */
 @Slf4j
-public class SseMetrics {
+public class MicrometerSseMetrics implements SseMetrics {
 
     private static final String PREFIX = "im.sse";
 
@@ -65,11 +54,11 @@ public class SseMetrics {
     /**
      * 创建指标收集器.
      *
-     * @param registry          Micrometer 注册表（可为 null 表示禁用）
+     * @param registry           Micrometer 注册表（可为 null 表示禁用）
      * @param connectionRegistry 连接注册表（用于 Gauge 回调）
-     * @param properties        配置
+     * @param properties         配置
      */
-    public SseMetrics(MeterRegistry registry, SseConnectionRegistry connectionRegistry, SseProperties properties) {
+    public MicrometerSseMetrics(MeterRegistry registry, SseConnectionRegistry connectionRegistry, SseProperties properties) {
         this.connectionRegistry = connectionRegistry;
         this.properties = properties;
         this.enabled = registry != null && properties.getMetrics().isEnabled();
@@ -107,12 +96,7 @@ public class SseMetrics {
                 .register(registry);
     }
 
-    /**
-     * 记录订阅结果.
-     *
-     * @param topic  Topic
-     * @param result 结果（SUCCESS / REJECTED_GLOBAL / REJECTED_TOPIC）
-     */
+    @Override
     public void recordSubscribe(String topic, String result) {
         if (!enabled) return;
         subscribeCounters.computeIfAbsent(topic + ":" + result, k ->
@@ -124,12 +108,7 @@ public class SseMetrics {
         ).increment();
     }
 
-    /**
-     * 记录发布结果.
-     *
-     * @param topic  Topic
-     * @param result 结果（SUCCESS / NO_SUBSCRIBERS / EMIT_FAILURE）
-     */
+    @Override
     public void recordPublish(String topic, String result) {
         if (!enabled) return;
         if ("NO_SUBSCRIBERS".equals(result)) {
@@ -149,34 +128,19 @@ public class SseMetrics {
         ).increment();
     }
 
-    /**
-     * 记录收割扫描.
-     */
+    @Override
     public void recordReaperScan() {
         if (!enabled) return;
         reaperScans.increment();
     }
 
-    /**
-     * 记录收割的僵尸连接.
-     *
-     * @param count 数量
-     */
+    @Override
     public void recordZombieReaped(int count) {
         if (!enabled) return;
         reaperZombies.increment(count);
     }
 
-    /**
-     * 记录错误.
-     * <p>
-     * 错误类型来自固定集合（如 reaper_scan、subscribe_init），数量有限。
-     * 当类型数超过 {@link #MAX_ERROR_TYPES} 时，新类型不再注册，防止 MeterRegistry 无限膨胀。
-     * 所有错误计数器在 {@link #shutdownCleanup()} 中统一清理。
-     * </p>
-     *
-     * @param type 错误类型
-     */
+    @Override
     public void recordError(String type) {
         if (!enabled) return;
         if (errorCounters.size() >= MAX_ERROR_TYPES && !errorCounters.containsKey(type)) {
@@ -191,12 +155,7 @@ public class SseMetrics {
         ).increment();
     }
 
-    /**
-     * 记录订阅延迟.
-     *
-     * @param topic      Topic
-     * @param durationMs 延迟（毫秒）
-     */
+    @Override
     public void recordSubscribeDuration(String topic, long durationMs) {
         if (!enabled) return;
         subscribeDurationTimers.computeIfAbsent(topic, k ->
@@ -207,12 +166,7 @@ public class SseMetrics {
         ).record(durationMs, TimeUnit.MILLISECONDS);
     }
 
-    /**
-     * 记录发布延迟.
-     *
-     * @param topic      Topic
-     * @param durationMs 延迟（毫秒）
-     */
+    @Override
     public void recordPublishDuration(String topic, long durationMs) {
         if (!enabled) return;
         publishDurationTimers.computeIfAbsent(topic, k ->
@@ -223,19 +177,7 @@ public class SseMetrics {
         ).record(durationMs, TimeUnit.MILLISECONDS);
     }
 
-    /**
-     * 清理指定 Topic 的所有指标.
-     * <p>
-     * 当 Topic 被销毁时调用，从本地缓存和 MeterRegistry 中移除该 Topic 的指标对象，
-     * 防止动态 Topic 场景下指标对象无限增长。
-     * </p>
-     * <p>
-     * 注意：errorCounters 按错误类型（而非 Topic）索引，类型数量有限且有上限保护
-     * （见 {@link #MAX_ERROR_TYPES}），不在此处清理。全量清理由 {@link #shutdownCleanup()} 负责。
-     * </p>
-     *
-     * @param topic 要清理的 Topic
-     */
+    @Override
     public void cleanupTopic(String topic) {
         if (!enabled) return;
 
@@ -274,13 +216,7 @@ public class SseMetrics {
         }
     }
 
-    /**
-     * 关闭时清理所有本地指标缓存.
-     * <p>
-     * 清理所有 Counter/Timer 的本地缓存引用，防止组件重启后旧指标对象残留。
-     * 在 {@link cn.gmlee.tools.im.sse.SseConnectionManager#stop} 的异步关闭任务中调用。
-     * </p>
-     */
+    @Override
     public void shutdownCleanup() {
         if (!enabled) return;
         subscribeCounters.clear();
@@ -291,11 +227,7 @@ public class SseMetrics {
         publishDurationTimers.clear();
     }
 
-    /**
-     * 检查是否启用指标.
-     *
-     * @return 启用返回 true
-     */
+    @Override
     public boolean isEnabled() {
         return enabled;
     }

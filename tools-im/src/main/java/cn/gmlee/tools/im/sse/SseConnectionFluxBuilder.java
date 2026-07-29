@@ -4,6 +4,7 @@ import cn.gmlee.tools.im.conf.SseProperties;
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.TopicMessage;
 import cn.gmlee.tools.im.ex.SseShutdownException;
+import cn.gmlee.tools.im.sse.metrics.SseMetrics;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscription;
 import reactor.core.publisher.Flux;
@@ -11,7 +12,6 @@ import reactor.core.publisher.SignalType;
 import reactor.core.publisher.Sinks;
 
 import java.time.Duration;
-import java.util.Collections;
 import java.util.List;
 
 /**
