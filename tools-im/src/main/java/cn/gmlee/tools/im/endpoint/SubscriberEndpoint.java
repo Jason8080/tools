@@ -56,8 +56,17 @@ public class SubscriberEndpoint implements Endpoint<Msg> {
 
         // 如果启用心跳，合并心跳注释流
         if (sseProperties.getHeartbeat().isEnabled()) {
+            // 使用 share() 使 dataFlux 可被多次订阅
+            Flux<ServerSentEvent<Msg>> sharedDataFlux = dataFlux.share();
             Flux<ServerSentEvent<Msg>> heartbeatFlux = createHeartbeatFlux();
-            return Flux.merge(dataFlux, heartbeatFlux);
+
+            // 关键：当 dataFlux 完成时，心跳也必须停止
+            // takeUntilOther 在 dataFlux 完成时终止心跳流
+            // 这样 Flux.merge 才能在连接关闭时正确完成
+            return Flux.merge(
+                    sharedDataFlux,
+                    heartbeatFlux.takeUntilOther(sharedDataFlux.ignoreElements())
+            );
         }
 
         return dataFlux;
