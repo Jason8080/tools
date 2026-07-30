@@ -1,10 +1,15 @@
 package cn.gmlee.tools.im.conf;
 
+import cn.gmlee.tools.im.core.Publisher;
+import cn.gmlee.tools.im.core.Repeater;
+import cn.gmlee.tools.im.core.Subscriber;
 import cn.gmlee.tools.im.endpoint.EndpointRegistry;
 import cn.gmlee.tools.im.endpoint.EndpointRouter;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import cn.gmlee.tools.im.topic.TopicFactory;
+import cn.gmlee.tools.im.topic.TopicRegistry;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -44,31 +49,22 @@ public class EndpointAutoConfiguration {
     private final ImProperties imProperties;
     private final ConfigurableListableBeanFactory beanFactory;
     private final BeanDefinitionRegistry beanDefinitionRegistry;
-    private final SseConnectionManager sseConnectionManager;
-    private final BindingServiceProperties bindingServiceProperties;
-    private final StreamBridge streamBridge;
     private final SseProperties sseProperties;
     private final EndpointRegistry endpointRegistry;
-    private final TopicFactory topicFactory;
+
+    @Autowired
+    private TopicFactory topicFactory;
 
     public EndpointAutoConfiguration(ImProperties imProperties,
                                       ConfigurableListableBeanFactory beanFactory,
                                       BeanDefinitionRegistry beanDefinitionRegistry,
-                                      SseConnectionManager sseConnectionManager,
-                                      BindingServiceProperties bindingServiceProperties,
-                                      StreamBridge streamBridge,
                                       SseProperties sseProperties,
-                                      EndpointRegistry endpointRegistry,
-                                      TopicFactory topicFactory) {
+                                      EndpointRegistry endpointRegistry) {
         this.imProperties = imProperties;
         this.beanFactory = beanFactory;
         this.beanDefinitionRegistry = beanDefinitionRegistry;
-        this.sseConnectionManager = sseConnectionManager;
-        this.bindingServiceProperties = bindingServiceProperties;
-        this.streamBridge = streamBridge;
         this.sseProperties = sseProperties;
         this.endpointRegistry = endpointRegistry;
-        this.topicFactory = topicFactory;
     }
 
     /**
@@ -81,6 +77,24 @@ public class EndpointAutoConfiguration {
     }
 
     /**
+     * Topic 组件注册表 Bean.
+     * <p>
+     * 自动发现自定义 {@link Publisher}、{@link Repeater}、{@link Subscriber} 实现，
+     * 并为未自定义的 Topic 创建默认实现。
+     * </p>
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public TopicRegistry topicRegistry(
+            @org.springframework.beans.factory.annotation.Autowired(required = false) List<Publisher> publishers,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) List<Repeater> repeaters,
+            @org.springframework.beans.factory.annotation.Autowired(required = false) List<Subscriber> subscribers,
+            StreamBridge streamBridge,
+            SseConnectionManager sseConnectionManager) {
+        return new TopicRegistry(publishers, repeaters, subscribers, streamBridge, sseConnectionManager);
+    }
+
+    /**
      * Topic 资源工厂 Bean.
      * <p>
      * 自动注册为 {@link EndpointRegistry} 的监听器，端点注册时按需创建 Stream 资源。
@@ -88,9 +102,11 @@ public class EndpointAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public TopicFactory topicFactory(EndpointRegistry endpointRegistry) {
+    public TopicFactory topicFactory(EndpointRegistry endpointRegistry,
+                                      BindingServiceProperties bindingServiceProperties,
+                                      TopicRegistry topicRegistry) {
         TopicFactory factory = new TopicFactory(
-                sseConnectionManager, bindingServiceProperties, beanDefinitionRegistry);
+                bindingServiceProperties, beanDefinitionRegistry, topicRegistry);
         endpointRegistry.addListener(factory);
         return factory;
     }
@@ -100,8 +116,9 @@ public class EndpointAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    public EndpointRouter endpointRouter(EndpointRegistry endpointRegistry) {
-        return new EndpointRouter(endpointRegistry, streamBridge, sseConnectionManager, sseProperties);
+    public EndpointRouter endpointRouter(EndpointRegistry endpointRegistry,
+                                          TopicRegistry topicRegistry) {
+        return new EndpointRouter(endpointRegistry, topicRegistry, sseProperties);
     }
 
     /**

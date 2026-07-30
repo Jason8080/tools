@@ -3,10 +3,10 @@ package cn.gmlee.tools.im.topic;
 import cn.gmlee.tools.im.conf.EndpointProperties;
 import cn.gmlee.tools.im.core.BindingNames;
 import cn.gmlee.tools.im.core.EndpointMode;
+import cn.gmlee.tools.im.core.Repeater;
 import cn.gmlee.tools.im.endpoint.EndpointRegistry;
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.TopicMessage;
-import cn.gmlee.tools.im.sse.SseConnectionManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
@@ -44,9 +44,9 @@ import java.util.function.Consumer;
 @Slf4j
 public class TopicFactory implements EndpointRegistry.ChangeListener {
 
-    private final SseConnectionManager sseConnectionManager;
     private final BindingServiceProperties bindingServiceProperties;
     private final BeanDefinitionRegistry beanDefinitionRegistry;
+    private final TopicRegistry topicRegistry;
 
     /**
      * 已创建输出 binding 的 Topic 集合
@@ -61,16 +61,16 @@ public class TopicFactory implements EndpointRegistry.ChangeListener {
     /**
      * 创建 Topic 资源工厂.
      *
-     * @param sseConnectionManager  SSE 连接管理器
      * @param bindingServiceProperties Spring Cloud Stream binding 配置
      * @param beanDefinitionRegistry   Spring Bean 定义注册表
+     * @param topicRegistry            Topic 组件注册表
      */
-    public TopicFactory(SseConnectionManager sseConnectionManager,
-                         BindingServiceProperties bindingServiceProperties,
-                         BeanDefinitionRegistry beanDefinitionRegistry) {
-        this.sseConnectionManager = sseConnectionManager;
+    public TopicFactory(BindingServiceProperties bindingServiceProperties,
+                         BeanDefinitionRegistry beanDefinitionRegistry,
+                         TopicRegistry topicRegistry) {
         this.bindingServiceProperties = bindingServiceProperties;
         this.beanDefinitionRegistry = beanDefinitionRegistry;
+        this.topicRegistry = topicRegistry;
     }
 
     /**
@@ -108,6 +108,8 @@ public class TopicFactory implements EndpointRegistry.ChangeListener {
         if (!inputBindingTopics.add(topic)) {
             return;
         }
+        // 确保 Repeater 已创建（Consumer Bean 需要它）
+        topicRegistry.ensureRepeater(topic);
         registerInputBinding(topic);
         registerConsumerBean(topic);
     }
@@ -161,7 +163,8 @@ public class TopicFactory implements EndpointRegistry.ChangeListener {
         }
 
         // 使用具体类（非 lambda）保证 Spring Cloud Stream 能通过 GenericTypeResolver 解析泛型
-        SseBridgeConsumer consumer = new SseBridgeConsumer(sseConnectionManager);
+        Repeater repeater = topicRegistry.getRepeater(topic);
+        SseBridgeConsumer consumer = new SseBridgeConsumer(repeater);
 
         GenericBeanDefinition beanDef = new GenericBeanDefinition();
         beanDef.setBeanClass(SseBridgeConsumer.class);
@@ -176,18 +179,21 @@ public class TopicFactory implements EndpointRegistry.ChangeListener {
      * 使用具体类（而非 lambda）保证 Spring Cloud Stream 能通过 {@code GenericTypeResolver}
      * 解析 {@code Consumer<TopicMessage<Msg>>} 的泛型参数，正确完成 JSON 反序列化。
      * </p>
+     * <p>
+     * 消息转发委托给 {@link Repeater}，支持自定义转发逻辑。
+     * </p>
      */
     static class SseBridgeConsumer implements Consumer<TopicMessage<Msg>> {
 
-        private final SseConnectionManager sseConnectionManager;
+        private final Repeater repeater;
 
-        SseBridgeConsumer(SseConnectionManager sseConnectionManager) {
-            this.sseConnectionManager = sseConnectionManager;
+        SseBridgeConsumer(Repeater repeater) {
+            this.repeater = repeater;
         }
 
         @Override
         public void accept(TopicMessage<Msg> message) {
-            sseConnectionManager.publish(message);
+            repeater.receive(message);
         }
     }
 }
