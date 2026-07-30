@@ -1,7 +1,7 @@
 package cn.gmlee.tools.im.core;
 
 /**
- * Topic 组件标记接口.
+ * Topic 标记接口.
  * <p>
  * {@link Publisher}、{@link Repeater}、{@link Subscriber} 的共同基接口，
  * 提供 {@link #topic()} 方法用于框架按 Topic 匹配组件实现。
@@ -9,7 +9,7 @@ package cn.gmlee.tools.im.core;
  *
  * @since 5.6.0
  */
-public interface TopicComponent {
+public interface Topic {
 
     /**
      * 所属 Topic 名称.

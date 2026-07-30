@@ -36,14 +36,7 @@ package cn.gmlee.tools.im.core;
  *
  * @since 5.6.0
  */
-public interface Repeater extends TopicComponent {
-
-    /**
-     * 所属 Topic 名称.
-     *
-     * @return Topic 名称（不可为 null）
-     */
-    String topic();
+public interface Repeater extends Topic {
 
     /**
      * 发送消息到 Stream (MQ).

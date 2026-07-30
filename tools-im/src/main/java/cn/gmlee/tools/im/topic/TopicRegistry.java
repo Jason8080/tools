@@ -3,7 +3,7 @@ package cn.gmlee.tools.im.topic;
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Repeater;
 import cn.gmlee.tools.im.core.Subscriber;
-import cn.gmlee.tools.im.core.TopicComponent;
+import cn.gmlee.tools.im.core.Topic;
 import cn.gmlee.tools.im.ex.TopicNotFoundException;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import lombok.extern.slf4j.Slf4j;
@@ -250,7 +250,7 @@ public class TopicRegistry {
     // ==================== 内部方法 ====================
 
     @SuppressWarnings("unchecked")
-    private static <T extends TopicComponent> Map<String, T> indexByTopic(List<T> list) {
+    private static <T extends Topic> Map<String, T> indexByTopic(List<T> list) {
         if (list == null || list.isEmpty()) {
             return Collections.emptyMap();
         }

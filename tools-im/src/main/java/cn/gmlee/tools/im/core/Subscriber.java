@@ -35,14 +35,7 @@ import reactor.core.publisher.Flux;
  *
  * @since 5.6.0
  */
-public interface Subscriber extends TopicComponent {
-
-    /**
-     * 所属 Topic 名称.
-     *
-     * @return Topic 名称（不可为 null）
-     */
-    String topic();
+public interface Subscriber extends Topic {
 
     /**
      * 订阅消息流.

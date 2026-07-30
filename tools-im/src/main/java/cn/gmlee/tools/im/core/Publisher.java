@@ -36,18 +36,7 @@ import java.io.Serializable;
  *
  * @since 5.6.0
  */
-public interface Publisher extends TopicComponent {
-
-    /**
-     * 所属 Topic 名称.
-     * <p>
-     * 框架通过此方法将自定义实现匹配到对应的 Topic。
-     * 同一 Topic 只能有一个 Publisher。
-     * </p>
-     *
-     * @return Topic 名称（不可为 null）
-     */
-    String topic();
+public interface Publisher extends Topic {
 
     /**
      * 发布消息.
