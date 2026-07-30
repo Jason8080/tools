@@ -29,7 +29,7 @@ import java.util.function.Supplier;
  *
  * @since 5.6.0
  */
-public interface PublisherFactory {
+public interface PublisherFactory extends ComponentFactory<Publisher, Supplier<Repeater>> {
 
     /**
      * 创建 Publisher 实例.

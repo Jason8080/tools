@@ -5,6 +5,7 @@ import cn.gmlee.tools.im.core.Repeater;
 import cn.gmlee.tools.im.model.TopicMessage;
 import org.springframework.util.MultiValueMap;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 /**
  * Repeater 拦截器.
@@ -48,32 +49,34 @@ import reactor.core.publisher.Flux;
 public interface RepeaterInterceptor {
 
     /**
-     * 发送前拦截.
+     * 发送前拦截（响应式）.
      * <p>
      * 在消息发送到 MQ 之前调用。可用于：消息持久化、审计日志、参数校验。
      * </p>
      * <p>
-     * 返回 {@code true} 允许发送，返回 {@code false} 拦截消息（不再发送）。
+     * 返回 {@code Mono.just(true)} 允许发送，返回 {@code Mono.just(false)} 拦截消息（不再发送）。
      * 多个拦截器任一返回 {@code false} 即终止发送。
      * </p>
      *
      * @param message 待发送的消息
-     * @return {@code true} 允许发送，{@code false} 拦截消息
+     * @return {@code Mono<Boolean>} - true 允许发送，false 拦截消息
      */
-    default boolean beforeSend(TopicMessage<Msg> message) {
-        return true;
+    default Mono<Boolean> beforeSend(TopicMessage<Msg> message) {
+        return Mono.just(true);
     }
 
     /**
-     * 接收后拦截（MQ 消费后、推送 SSE 前）.
+     * 接收后拦截（响应式）（MQ 消费后、推送 SSE 前）.
      * <p>
      * 在从 MQ 接收到消息后、推送到 SSE 连接之前调用。
      * 可用于：消息持久化、指标收集、日志记录。
      * </p>
      *
      * @param message 接收到的消息
+     * @return {@code Mono<Void>} 表示异步操作完成
      */
-    default void afterReceive(TopicMessage<Msg> message) {
+    default Mono<Void> afterReceive(TopicMessage<Msg> message) {
+        return Mono.empty();
     }
 
     /**

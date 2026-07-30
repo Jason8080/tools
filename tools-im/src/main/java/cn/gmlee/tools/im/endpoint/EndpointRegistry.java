@@ -129,10 +129,10 @@ public class EndpointRegistry {
         }
     }
 
-    private void fireUnregistered(EndpointProperties pros) {
+    private void fireUnregistered(EndpointProperties props) {
         for (EndpointChangeListener listener : listeners) {
             try {
-                listener.onEndpointUnregistered(pros);
+                listener.onEndpointUnregistered(props);
             } catch (Exception e) {
                 log.error("[EndpointRegistry] 监听器 onEndpointUnregistered 异常", e);
             }

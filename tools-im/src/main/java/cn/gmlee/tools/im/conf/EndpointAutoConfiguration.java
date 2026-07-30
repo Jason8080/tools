@@ -6,8 +6,10 @@ import cn.gmlee.tools.im.spi.interceptor.RepeaterInterceptor;
 import cn.gmlee.tools.im.spi.factory.SubscriberFactory;
 import cn.gmlee.tools.im.endpoint.EndpointRegistry;
 import cn.gmlee.tools.im.endpoint.EndpointRouter;
+import cn.gmlee.tools.im.endpoint.ImAdminController;
 import cn.gmlee.tools.im.spi.access.AccessFilter;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
+import cn.gmlee.tools.im.sse.metrics.SseMetrics;
 import cn.gmlee.tools.im.topic.TopicFactory;
 import cn.gmlee.tools.im.topic.TopicRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -131,6 +133,21 @@ public class EndpointAutoConfiguration {
                                           TopicRegistry topicRegistry,
                                           @Autowired(required = false) List<AccessFilter> filters) {
         return new EndpointRouter(endpointRegistry, topicRegistry, sseProperties, filters);
+    }
+
+    /**
+     * IM 管理控制器 Bean.
+     * <p>
+     * 提供运行时查询 API（端点、Topic、连接、统计信息）。
+     * </p>
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public ImAdminController imAdminController(EndpointRegistry endpointRegistry,
+                                                SseConnectionManager connectionManager,
+                                                TopicRegistry topicRegistry,
+                                                @Autowired(required = false) SseMetrics metrics) {
+        return new ImAdminController(endpointRegistry, connectionManager, topicRegistry, metrics);
     }
 
     /**

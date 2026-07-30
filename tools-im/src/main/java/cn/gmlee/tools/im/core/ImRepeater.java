@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.util.MultiValueMap;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -106,17 +107,25 @@ public abstract class ImRepeater implements Repeater {
      * 调用链：{@code beforeSend} → {@link #doSend(TopicMessage)}
      * </p>
      * <p>
-     * 如果任一拦截器的 {@code beforeSend} 返回 {@code false}，消息将被拦截，不再发送。
+     * 如果任一拦截器的 {@code beforeSend} 返回 {@code Mono.just(false)}，消息将被拦截，不再发送。
      * </p>
      */
     @Override
     public final Serializable send(TopicMessage<Msg> message) {
+        // 使用 Reactor 的链式调用处理异步拦截器
+        Mono<Boolean> chain = Mono.just(true);
         for (RepeaterInterceptor i : interceptors) {
-            if (!i.beforeSend(message)) {
-                log.debug("[ImRepeater] 消息被拦截器拦截: topic={}, id={}, interceptor={}",
-                        topic, message.getId(), i.getClass().getSimpleName());
-                return null;
-            }
+            chain = chain.flatMap(allowed -> {
+                if (!allowed) return Mono.just(false);
+                return i.beforeSend(message);
+            });
+        }
+
+        Boolean allowed = chain.block(); // 注意：这里需要同步等待结果
+        if (Boolean.FALSE.equals(allowed)) {
+            log.debug("[ImRepeater] 消息被拦截器拦截: topic={}, id={}, interceptor={}",
+                    topic, message.getId(), "chain");
+            return null;
         }
         return doSend(message);
     }
@@ -130,9 +139,16 @@ public abstract class ImRepeater implements Repeater {
     @Override
     public final void receive(TopicMessage<Msg> message) {
         doReceive(message);
+        // 异步执行拦截器，不阻塞主流程
+        Mono<Void> chain = Mono.empty();
         for (RepeaterInterceptor i : interceptors) {
-            i.afterReceive(message);
+            chain = chain.then(i.afterReceive(message));
         }
+        chain.subscribe(
+            unused -> {},
+            error -> log.error("[ImRepeater] afterReceive 拦截器异常: topic={}, id={}",
+                    topic, message.getId(), error)
+        );
     }
 
     /**

@@ -27,7 +27,7 @@ import cn.gmlee.tools.im.core.Repeater;
  * @since 5.6.0
  * @see RepeaterContext
  */
-public interface RepeaterFactory {
+public interface RepeaterFactory extends ComponentFactory<Repeater, RepeaterContext> {
 
     /**
      * 创建 Repeater 实例.

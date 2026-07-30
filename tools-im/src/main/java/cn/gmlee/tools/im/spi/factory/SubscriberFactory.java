@@ -29,7 +29,7 @@ import java.util.function.Supplier;
  *
  * @since 5.6.0
  */
-public interface SubscriberFactory {
+public interface SubscriberFactory extends ComponentFactory<Subscriber, Supplier<Repeater>> {
 
     /**
      * 创建 Subscriber 实例.
