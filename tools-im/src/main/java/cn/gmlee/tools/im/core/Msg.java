@@ -9,7 +9,7 @@ import java.io.Serializable;
  * <p>
  * 消息 POJO 实现此接口即可作为 Topic 消息载荷。
  * 默认的 {@link #build(MultiValueMap)} 实现自动将自身包装为 {@link TopicMessage}，
- * 消息类无需关心 topic 名称（由框架通过 {@code Publisher.topic()} 注入）。
+ * 消息类无需关心 topic 名称（由框架通过 {@code EndpointRouter} 注入）。
  * </p>
  *
  * <h3>典型用法</h3>
