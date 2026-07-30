@@ -1,12 +1,13 @@
 package cn.gmlee.tools.im.spi.factory;
 
+import cn.gmlee.tools.im.model.ConnectionMetadata;
 import cn.gmlee.tools.im.model.Msg;
 import cn.gmlee.tools.im.model.TopicMessage;
 import lombok.Getter;
 import reactor.core.publisher.Flux;
 
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * Repeater 创建上下文.
@@ -69,7 +70,7 @@ public class RepeaterContext {
      * 对应 {@code SseConnectionManager::subscribe} 方法。
      * </p>
      */
-    private final Function<String, Flux<TopicMessage<Msg>>> subscribeFunction;
+    private final BiFunction<String, ConnectionMetadata, Flux<TopicMessage<Msg>>> subscribeFunction;
 
     /**
      * 创建 Repeater 上下文.
@@ -78,7 +79,7 @@ public class RepeaterContext {
      * @param subscribeFunction SSE 订阅函数（不可为 null）
      */
     public RepeaterContext(Consumer<TopicMessage<Msg>> publishFunction,
-                           Function<String, Flux<TopicMessage<Msg>>> subscribeFunction) {
+                           BiFunction<String, ConnectionMetadata, Flux<TopicMessage<Msg>>> subscribeFunction) {
         if (publishFunction == null) {
             throw new IllegalArgumentException("publishFunction must not be null");
         }

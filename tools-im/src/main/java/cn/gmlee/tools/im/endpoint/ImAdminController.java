@@ -2,6 +2,7 @@ package cn.gmlee.tools.im.endpoint;
 
 import cn.gmlee.tools.base.mod.R;
 import cn.gmlee.tools.im.conf.EndpointProperties;
+import cn.gmlee.tools.im.model.ConnectionMetadata;
 import cn.gmlee.tools.im.sse.SseConnection;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import cn.gmlee.tools.im.sse.metrics.SseMetrics;
@@ -158,6 +159,11 @@ public class ImAdminController {
         map.put("topic", conn.getTopic());
         map.put("state", conn.getState().get().name());
         map.put("createdAt", conn.getCreatedAt().toString());
+
+        ConnectionMetadata metadata = conn.getMetadata();
+        if (metadata != null) {
+            map.put("userId", metadata.getUserId());
+        }
 
         // 计算连接时长
         Duration age = Duration.between(conn.getCreatedAt(), Instant.now());

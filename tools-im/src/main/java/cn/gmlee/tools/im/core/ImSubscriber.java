@@ -1,5 +1,6 @@
 package cn.gmlee.tools.im.core;
 
+import cn.gmlee.tools.im.model.ConnectionMetadata;
 import cn.gmlee.tools.im.model.Msg;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.MultiValueMap;
@@ -17,7 +18,7 @@ import java.util.function.Supplier;
  * <h3>扩展方式</h3>
  * <p>
  * 继承此类即可获得 Repeater 解析和日志能力。
- * 可重写 {@link #pull(MultiValueMap)} 自定义订阅逻辑。
+ * 可重写 {@link #pull(MultiValueMap, ConnectionMetadata)} 自定义订阅逻辑。
  * </p>
  *
  * @since 5.6.0
@@ -34,8 +35,8 @@ public abstract class ImSubscriber extends AbstractTopic implements Subscriber {
     }
 
     @Override
-    public Flux<Msg> pull(MultiValueMap<String, String> urlParams) {
+    public Flux<Msg> pull(MultiValueMap<String, String> urlParams, ConnectionMetadata metadata) {
         log.debug("[ImSubscriber] 订阅消息流: topic={}", topic);
-        return resolveRepeater().subscribe(urlParams);
+        return resolveRepeater().subscribe(urlParams, metadata);
     }
 }

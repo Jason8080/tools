@@ -1,11 +1,11 @@
 package cn.gmlee.tools.im.sse;
 
 import cn.gmlee.tools.im.conf.SseProperties;
+import cn.gmlee.tools.im.model.ConnectionMetadata;
 import cn.gmlee.tools.im.model.Msg;
 import cn.gmlee.tools.im.model.TopicMessage;
 import cn.gmlee.tools.im.ex.SseShutdownException;
 import cn.gmlee.tools.im.sse.metrics.SseMetrics;
-import cn.gmlee.tools.im.model.SseConnectionInfo;
 import cn.gmlee.tools.im.spi.listener.SseConnectionListener;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscription;
@@ -15,6 +15,7 @@ import reactor.core.publisher.Sinks;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Set;
 
 /**
  * SSE 连接 Flux 构建器.
@@ -61,6 +62,7 @@ final class SseConnectionFluxBuilder {
      * </p>
      *
      * @param topic      Topic 名称
+     * @param metadata   连接元数据（身份标识等）
      * @param registry   连接注册表
      * @param metrics    指标收集器
      * @param properties SSE 配置
@@ -68,6 +70,7 @@ final class SseConnectionFluxBuilder {
      * @return 订阅结果（包含消息流和连接引用）
      */
     static SseSubscription build(String topic,
+                                  ConnectionMetadata metadata,
                                   SseConnectionRegistry registry,
                                   SseMetrics metrics,
                                   SseProperties properties,
@@ -84,12 +87,13 @@ final class SseConnectionFluxBuilder {
 
             // 2. 创建连接记录并注册
             conn = new SseConnection(topic);
+            conn.setMetadata(metadata);
             registry.register(conn);
             metrics.recordSubscribe(topic, "SUCCESS");
             log.info("[Subscribe] 成功: topic={}, connectionId={}", topic, conn.getConnectionId());
 
             // 3. 构建带生命周期钩子的 Flux
-            Flux<TopicMessage<Msg>> flux = attachLifecycle(sink, conn, topic, registry, metrics, properties, listeners);
+            Flux<TopicMessage<Msg>> flux = attachLifecycle(sink, conn, topic, metadata, registry, metrics, properties, listeners);
             return new SseSubscription(flux, conn);
 
         } catch (Exception e) {
@@ -122,6 +126,7 @@ final class SseConnectionFluxBuilder {
      * @param sink       Topic 对应的 Sink
      * @param conn       连接记录
      * @param topic      Topic 名称
+     * @param metadata   连接元数据
      * @param registry   连接注册表
      * @param metrics    指标收集器
      * @param properties SSE 配置
@@ -132,13 +137,24 @@ final class SseConnectionFluxBuilder {
             Sinks.Many<TopicMessage<Msg>> sink,
             SseConnection conn,
             String topic,
+            ConnectionMetadata metadata,
             SseConnectionRegistry registry,
             SseMetrics metrics,
             SseProperties properties,
             List<SseConnectionListener> listeners) {
 
-        Flux<TopicMessage<Msg>> flux = sink.asFlux()
-                .doOnSubscribe(sub -> handleOnSubscribe(conn, sub, listeners))
+        Flux<TopicMessage<Msg>> flux = sink.asFlux();
+
+        // 定向投递过滤：广播消息（to 为空）通过所有连接；
+        // 定向消息仅通过 userId 匹配的连接
+        String userId = metadata != null ? metadata.getUserId() : null;
+        flux = flux.filter(msg -> {
+            Set<String> to = msg.getTo();
+            return (to == null || to.isEmpty())
+                    || (userId != null && to.contains(userId));
+        });
+
+        flux = flux.doOnSubscribe(sub -> handleOnSubscribe(conn, sub, listeners))
                 .doOnNext(msg -> conn.touch());
 
         // 限制连接最大存活时间：到期后发送 onComplete，触发 doFinally 清理
@@ -235,10 +251,10 @@ final class SseConnectionFluxBuilder {
         if (listeners == null || listeners.isEmpty()) {
             return;
         }
-        SseConnectionInfo info = new SseConnectionInfo(conn.getTopic(), conn.getConnectionId());
+        ConnectionMetadata metadata = conn.getMetadata();
         for (SseConnectionListener listener : listeners) {
             try {
-                listener.onConnected(info);
+                listener.onConnected(metadata);
             } catch (Exception e) {
                 log.warn("[Listener] onConnected 回调异常: listener={}, connectionId={}",
                         listener.getClass().getSimpleName(), conn.getConnectionId(), e);
@@ -259,10 +275,10 @@ final class SseConnectionFluxBuilder {
         if (listeners == null || listeners.isEmpty()) {
             return;
         }
-        SseConnectionInfo info = new SseConnectionInfo(conn.getTopic(), conn.getConnectionId());
+        ConnectionMetadata metadata = conn.getMetadata();
         for (SseConnectionListener listener : listeners) {
             try {
-                listener.onDisconnected(info, signal);
+                listener.onDisconnected(metadata, signal);
             } catch (Exception e) {
                 log.warn("[Listener] onDisconnected 回调异常: listener={}, connectionId={}",
                         listener.getClass().getSimpleName(), conn.getConnectionId(), e);

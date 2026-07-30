@@ -1,5 +1,6 @@
 package cn.gmlee.tools.im.sse;
 
+import cn.gmlee.tools.im.model.ConnectionMetadata;
 import cn.gmlee.tools.im.model.ConnectionState;
 import lombok.Getter;
 import org.reactivestreams.Subscription;
@@ -100,6 +101,15 @@ public class SseConnection {
      * </p>
      */
     private volatile Subscription subscription;
+
+    /**
+     * 连接元数据（userId、自定义属性等）.
+     * <p>
+     * 订阅时由 {@link SseConnectionManager} 设置，生命周期内不可变。
+     * volatile 保证跨线程可见性。
+     * </p>
+     */
+    private volatile ConnectionMetadata metadata;
 
     /**
      * 创建新连接.
@@ -262,6 +272,27 @@ public class SseConnection {
         if (s != null) {
             s.cancel();
         }
+    }
+
+    /**
+     * 获取连接元数据.
+     *
+     * @return 连接元数据（可能为 null）
+     */
+    public ConnectionMetadata getMetadata() {
+        return metadata;
+    }
+
+    /**
+     * 设置连接元数据.
+     * <p>
+     * 在 {@link SseConnectionManager#subscribe} 中调用，绑定用户身份到连接。
+     * </p>
+     *
+     * @param metadata 连接元数据
+     */
+    public void setMetadata(ConnectionMetadata metadata) {
+        this.metadata = metadata;
     }
 
     @Override

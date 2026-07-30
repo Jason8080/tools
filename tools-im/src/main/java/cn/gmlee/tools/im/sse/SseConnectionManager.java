@@ -1,6 +1,7 @@
 package cn.gmlee.tools.im.sse;
 
 import cn.gmlee.tools.im.conf.SseProperties;
+import cn.gmlee.tools.im.model.ConnectionMetadata;
 import cn.gmlee.tools.im.model.Msg;
 import cn.gmlee.tools.im.model.TopicMessage;
 import cn.gmlee.tools.im.ex.SseConnectionLimitExceededException;
@@ -134,10 +135,11 @@ public class SseConnectionManager implements SmartLifecycle {
      * 连接会在 {@code reaper.idleTimeout}（默认 3600s）后被 Reaper 作为空闲连接清理。
      * </p>
      *
-     * @param topic Topic 名称
+     * @param topic    Topic 名称
+     * @param metadata 连接元数据（身份标识等）
      * @return 消息流（Context 中携带连接引用）
      */
-    public Flux<TopicMessage<Msg>> subscribe(String topic) {
+    public Flux<TopicMessage<Msg>> subscribe(String topic, ConnectionMetadata metadata) {
         return Flux.defer(() -> {
             // 1. 预检查
             if (!checkAccepting(topic)) {
@@ -162,7 +164,7 @@ public class SseConnectionManager implements SmartLifecycle {
             }
 
             // 4. 构建连接流（委托给 FluxBuilder）
-            SseSubscription sub = SseConnectionFluxBuilder.build(topic, registry, metrics, properties, listeners);
+            SseSubscription sub = SseConnectionFluxBuilder.build(topic, metadata, registry, metrics, properties, listeners);
             // 将连接引用写入 Reactor Context
             return sub.getFlux().contextWrite(ctx -> ctx.put(CONTEXT_KEY_CONNECTION, sub.getConnection()));
         });

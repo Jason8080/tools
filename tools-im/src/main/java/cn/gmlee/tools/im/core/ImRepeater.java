@@ -1,5 +1,6 @@
 package cn.gmlee.tools.im.core;
 
+import cn.gmlee.tools.im.model.ConnectionMetadata;
 import cn.gmlee.tools.im.model.Msg;
 import cn.gmlee.tools.im.model.TopicMessage;
 import cn.gmlee.tools.im.spi.interceptor.RepeaterInterceptor;
@@ -13,8 +14,8 @@ import reactor.core.publisher.Mono;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * Repeater 框架骨架（IM 场景标准实现）.
@@ -25,7 +26,7 @@ import java.util.function.Function;
  * <ul>
  *   <li>{@link #send(TopicMessage)} — 织入 {@code beforeSend} → 调用 {@link #doSend(TopicMessage)}</li>
  *   <li>{@link #receive(TopicMessage)} — 调用 {@link #doReceive(TopicMessage)} → 织入 {@code afterReceive}</li>
- *   <li>{@link #subscribe(MultiValueMap)} — 调用 {@link #doSubscribe(MultiValueMap)} → 织入 {@code transformSubscribeStream}</li>
+ *   <li>{@link #subscribe(MultiValueMap, ConnectionMetadata)} — 调用 {@link #doSubscribe(MultiValueMap, ConnectionMetadata)} → 织入 {@code transformSubscribeStream}</li>
  * </ul>
  * <p>
  * 提供 IM 场景下的标准默认实现：
@@ -33,7 +34,7 @@ import java.util.function.Function;
  * <ul>
  *   <li>{@link #doSend(TopicMessage)} — 通过 {@link StreamBridge} 发送到 MQ</li>
  *   <li>{@link #doReceive(TopicMessage)} — 通过函数式接口转发到 SSE 连接</li>
- *   <li>{@link #doSubscribe(MultiValueMap)} — 通过函数式接口提供实时消息流</li>
+ *   <li>{@link #doSubscribe(MultiValueMap, ConnectionMetadata)} — 通过函数式接口提供实时消息流</li>
  * </ul>
  *
  * <h3>扩展方式</h3>
@@ -51,7 +52,7 @@ public abstract class ImRepeater implements Repeater {
     private final List<RepeaterInterceptor> interceptors;
     private final StreamBridge streamBridge;
     private final Consumer<TopicMessage<Msg>> publishFunction;
-    private final Function<String, Flux<TopicMessage<Msg>>> subscribeFunction;
+    private final BiFunction<String, ConnectionMetadata, Flux<TopicMessage<Msg>>> subscribeFunction;
 
     /**
      * 创建 Repeater（使用上下文对象）.
@@ -87,7 +88,7 @@ public abstract class ImRepeater implements Repeater {
     protected ImRepeater(String topic,
                          StreamBridge streamBridge,
                          Consumer<TopicMessage<Msg>> publishFunction,
-                         Function<String, Flux<TopicMessage<Msg>>> subscribeFunction,
+                         BiFunction<String, ConnectionMetadata, Flux<TopicMessage<Msg>>> subscribeFunction,
                          List<RepeaterInterceptor> interceptors) {
         this.topic = topic;
         this.streamBridge = streamBridge;
@@ -158,8 +159,8 @@ public abstract class ImRepeater implements Repeater {
      * </p>
      */
     @Override
-    public final Flux<Msg> subscribe(MultiValueMap<String, String> urlParams) {
-        Flux<Msg> stream = doSubscribe(urlParams);
+    public final Flux<Msg> subscribe(MultiValueMap<String, String> urlParams, ConnectionMetadata metadata) {
+        Flux<Msg> stream = doSubscribe(urlParams, metadata);
         for (RepeaterInterceptor i : interceptors) {
             stream = i.transformSubscribeStream(topic, stream, urlParams);
         }
@@ -204,9 +205,9 @@ public abstract class ImRepeater implements Repeater {
      * @param urlParams 客户端请求参数
      * @return 消息流
      */
-    protected Flux<Msg> doSubscribe(MultiValueMap<String, String> urlParams) {
+    protected Flux<Msg> doSubscribe(MultiValueMap<String, String> urlParams, ConnectionMetadata metadata) {
         log.debug("[ImRepeater] 订阅消息流: topic={}", topic);
-        return subscribeFunction.apply(topic)
+        return subscribeFunction.apply(topic, metadata)
                 .map(TopicMessage::getMsg);
     }
 }

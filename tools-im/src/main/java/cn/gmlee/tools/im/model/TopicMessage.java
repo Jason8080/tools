@@ -9,6 +9,7 @@ import org.springframework.util.MultiValueMap;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Data
@@ -41,6 +42,14 @@ public class TopicMessage<MSG> implements Serializable {
     @Builder.Default
     private Serializable id = ID_GENERATOR.incrementAndGet();
     private String topic;
+    /**
+     * 定向投递目标（用户标识集合）.
+     * <p>
+     * null 或空集 = 广播到 Topic 下所有连接；
+     * 非空 = 仅投递给 userId 匹配的连接。
+     * </p>
+     */
+    private Set<String> to;
     private MultiValueMap<String, String> urlParams;
     private MultiValueMap<String, String> headers;
     private MSG msg;

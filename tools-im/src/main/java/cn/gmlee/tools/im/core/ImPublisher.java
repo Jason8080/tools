@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.MultiValueMap;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.List;
 import java.util.function.Supplier;
 
 /**
@@ -38,6 +40,11 @@ public abstract class ImPublisher extends AbstractTopic implements Publisher {
     public Serializable push(MultiValueMap<String, String> urlParams, Msg msg) {
         TopicMessage<Msg> event = msg.build(urlParams);
         event.setTopic(topic);
+        // 从 URL 参数提取定向投递目标（?to=alice&to=bob）
+        List<String> toList = urlParams.get("to");
+        if (toList != null && !toList.isEmpty()) {
+            event.setTo(new HashSet<>(toList));
+        }
         Serializable id = resolveRepeater().send(event);
         log.debug("[ImPublisher] 发布消息: topic={}, id={}", topic, id);
         return id;

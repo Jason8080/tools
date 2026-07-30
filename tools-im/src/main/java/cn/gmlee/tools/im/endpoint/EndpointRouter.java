@@ -3,6 +3,7 @@ package cn.gmlee.tools.im.endpoint;
 import cn.gmlee.tools.base.mod.R;
 import cn.gmlee.tools.im.conf.SseProperties;
 import cn.gmlee.tools.im.conf.EndpointProperties;
+import cn.gmlee.tools.im.model.ConnectionMetadata;
 import cn.gmlee.tools.im.model.EndpointMode;
 import cn.gmlee.tools.im.model.MessageMap;
 import cn.gmlee.tools.im.model.Msg;
@@ -169,8 +170,9 @@ public class EndpointRouter {
      * PULL 处理：Subscriber 订阅 → 带心跳的事件流.
      */
     private Mono<ServerResponse> handlePull(ServerRequest request, EndpointProperties props, AccessContext context) {
+        ConnectionMetadata metadata = buildMetadata(props.getTopic(), context);
         Subscriber subscriber = topicRegistry.ensureSubscriber(props.getTopic());
-        Flux<Msg> msgFlux = subscriber.pull(request.queryParams());
+        Flux<Msg> msgFlux = subscriber.pull(request.queryParams(), metadata);
         Flux<ServerSentEvent<MessageMap>> sseFlux = msgFlux
                 .map(payload -> {
                     MessageMap messageMap = payload instanceof MessageMap
@@ -185,5 +187,31 @@ public class EndpointRouter {
         return ServerResponse.ok()
                 .contentType(MediaType.TEXT_EVENT_STREAM)
                 .body(withHeartbeat, ServerSentEvent.class);
+    }
+
+    /**
+     * 从 AccessContext 构建连接元数据.
+     * <p>
+     * 优先从 {@code principal}（由 AccessFilter 设置）提取 userId；
+     * 若 principal 不是 String，回退到 {@code X-User-Id} 请求头。
+     * </p>
+     *
+     * @param topic   Topic 名称
+     * @param context 访问上下文
+     * @return 连接元数据
+     */
+    private ConnectionMetadata buildMetadata(String topic, AccessContext context) {
+        String userId = null;
+        Object principal = context.getPrincipal();
+        if (principal instanceof String) {
+            userId = (String) principal;
+        }
+        if (userId == null) {
+            userId = context.getHeader("X-User-Id").orElse(null);
+        }
+        return ConnectionMetadata.builder()
+                .topic(topic)
+                .userId(userId)
+                .build();
     }
 }
