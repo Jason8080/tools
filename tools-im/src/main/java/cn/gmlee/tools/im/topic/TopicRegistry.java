@@ -3,6 +3,7 @@ package cn.gmlee.tools.im.topic;
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Repeater;
 import cn.gmlee.tools.im.spi.factory.PublisherFactory;
+import cn.gmlee.tools.im.spi.factory.RepeaterContext;
 import cn.gmlee.tools.im.spi.factory.RepeaterFactory;
 import cn.gmlee.tools.im.spi.interceptor.RepeaterInterceptor;
 import cn.gmlee.tools.im.spi.factory.SubscriberFactory;
@@ -128,19 +129,13 @@ public class TopicRegistry {
      * @return Publisher 实例
      */
     public Publisher ensurePublisher(String topic) {
-        return publishers.computeIfAbsent(topic, t -> {
-            for (PublisherFactory factory : publisherFactories) {
-                Publisher publisher = factory.create(t, () -> getRepeater(t));
-                if (publisher != null) {
-                    log.info("[TopicRegistry] 使用自定义 Publisher: topic={}, factory={}",
-                            t, factory.getClass().getSimpleName());
-                    return publisher;
-                }
-            }
-            Publisher def = new DefaultPublisher(t, () -> getRepeater(t));
-            log.info("[TopicRegistry] 创建默认 Publisher: topic={}", t);
-            return def;
-        });
+        return ensureComponent(
+                topic,
+                publishers,
+                publisherFactories,
+                t -> new DefaultPublisher(t, () -> getRepeater(t)),
+                "Publisher"
+        );
     }
 
     /**
@@ -151,8 +146,14 @@ public class TopicRegistry {
      */
     public Repeater ensureRepeater(String topic) {
         return repeaters.computeIfAbsent(topic, t -> {
+            // 创建 Repeater 上下文（封装 SSE 函数）
+            RepeaterContext context = new RepeaterContext(
+                    sseConnectionManager::publish,
+                    sseConnectionManager::subscribe
+            );
+
             for (RepeaterFactory factory : repeaterFactories) {
-                Repeater repeater = factory.create(t, streamBridge, sseConnectionManager, interceptors);
+                Repeater repeater = factory.create(t, context);
                 if (repeater != null) {
                     log.info("[TopicRegistry] 使用自定义 Repeater: topic={}, factory={}",
                             t, factory.getClass().getSimpleName());
@@ -172,17 +173,54 @@ public class TopicRegistry {
      * @return Subscriber 实例
      */
     public Subscriber ensureSubscriber(String topic) {
-        return subscribers.computeIfAbsent(topic, t -> {
-            for (SubscriberFactory factory : subscriberFactories) {
-                Subscriber subscriber = factory.create(t, () -> getRepeater(t));
-                if (subscriber != null) {
-                    log.info("[TopicRegistry] 使用自定义 Subscriber: topic={}, factory={}",
-                            t, factory.getClass().getSimpleName());
-                    return subscriber;
+        return ensureComponent(
+                topic,
+                subscribers,
+                subscriberFactories,
+                t -> new DefaultSubscriber(t, () -> getRepeater(t)),
+                "Subscriber"
+        );
+    }
+
+    /**
+     * 通用组件创建方法（消除重复代码）.
+     * <p>
+     * 遍历工厂列表，首个返回非 null 的工厂创建实例；所有工厂均返回 null，使用默认实现。
+     * </p>
+     *
+     * @param topic           Topic 名称
+     * @param cache           组件缓存
+     * @param factories       工厂列表（可为空）
+     * @param defaultFactory  默认工厂函数
+     * @param componentName   组件名称（用于日志）
+     * @param <T>             组件类型
+     * @return 组件实例
+     */
+    @SuppressWarnings("unchecked")
+    private <T> T ensureComponent(String topic,
+                                   ConcurrentHashMap<String, T> cache,
+                                   List<?> factories,
+                                   java.util.function.Function<String, T> defaultFactory,
+                                   String componentName) {
+        return cache.computeIfAbsent(topic, t -> {
+            for (Object factory : factories) {
+                Object component = null;
+
+                if (factory instanceof PublisherFactory) {
+                    component = ((PublisherFactory) factory).create(t, () -> getRepeater(t));
+                } else if (factory instanceof SubscriberFactory) {
+                    component = ((SubscriberFactory) factory).create(t, () -> getRepeater(t));
+                }
+
+                if (component != null) {
+                    log.info("[TopicRegistry] 使用自定义 {}: topic={}, factory={}",
+                            componentName, t, factory.getClass().getSimpleName());
+                    return (T) component;
                 }
             }
-            Subscriber def = new DefaultSubscriber(t, () -> getRepeater(t));
-            log.info("[TopicRegistry] 创建默认 Subscriber: topic={}", t);
+
+            T def = defaultFactory.apply(t);
+            log.info("[TopicRegistry] 创建默认 {}: topic={}", componentName, t);
             return def;
         });
     }

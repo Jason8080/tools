@@ -21,6 +21,7 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -81,13 +82,13 @@ public class SseConnectionManager implements SmartLifecycle {
     private volatile boolean running = false;
 
     /**
-     * 生命周期代数计数器.
+     * 异步 drain 任务.
      * <p>
-     * 每次 {@link #start()} 递增，异步 drain 任务通过比较代数判断自身是否已过期
-     * （组件已被重启），过期任务跳过破坏性清理，避免影响新生命周期的状态。
+     * 使用 CompletableFuture 管理异步关闭任务，支持取消操作。
+     * 每次 {@link #start()} 时取消旧任务，避免影响新生命周期。
      * </p>
      */
-    private final AtomicInteger drainGeneration = new AtomicInteger(0);
+    private volatile CompletableFuture<Void> currentDrainTask;
 
     /**
      * 创建连接管理器.
@@ -288,7 +289,12 @@ public class SseConnectionManager implements SmartLifecycle {
         running = true;
         closed = false;
         accepting.set(true);
-        drainGeneration.incrementAndGet();
+
+        // 取消旧的 drain 任务（如果有）
+        CompletableFuture<Void> oldTask = currentDrainTask;
+        if (oldTask != null && !oldTask.isDone()) {
+            oldTask.cancel(false);
+        }
 
         // 关闭旧调度器
         ScheduledExecutorService old = lifecycleScheduler;
@@ -333,7 +339,6 @@ public class SseConnectionManager implements SmartLifecycle {
 
         // 阶段 4-6: 异步执行
         ScheduledExecutorService scheduler = this.lifecycleScheduler;
-        int expectedGen = drainGeneration.get();
 
         if (scheduler == null) {
             log.warn("[Lifecycle] scheduler 为 null，跳过异步 drain");
@@ -341,8 +346,15 @@ public class SseConnectionManager implements SmartLifecycle {
             return;
         }
 
-        scheduler.schedule(() -> executeShutdownPhases(scheduler, expectedGen, callback),
-                0, TimeUnit.MILLISECONDS);
+        // 创建异步 drain 任务
+        currentDrainTask = CompletableFuture.runAsync(() -> {
+            try {
+                executeShutdownPhases(scheduler, callback);
+            } catch (Exception e) {
+                log.error("[Lifecycle] 异步关闭异常", e);
+                callback.run();
+            }
+        }, scheduler);
     }
 
     @Override
@@ -400,7 +412,7 @@ public class SseConnectionManager implements SmartLifecycle {
     /**
      * 执行关闭阶段.
      */
-    private void executeShutdownPhases(ScheduledExecutorService scheduler, int expectedGen, Runnable callback) {
+    private void executeShutdownPhases(ScheduledExecutorService scheduler, Runnable callback) {
         try {
             // 阶段 4: 等待排空超时
             Duration drainTimeout = properties.getShutdown().getDrainTimeout();
@@ -409,11 +421,12 @@ public class SseConnectionManager implements SmartLifecycle {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 log.debug("[Lifecycle] 排空等待被中断");
+                return; // 被中断，跳过后续阶段
             }
 
-            // 检查是否已被重启
-            if (drainGeneration.get() != expectedGen) {
-                log.debug("[Lifecycle] 检测到组件重启，跳过旧 drain");
+            // 检查任务是否被取消（组件已重启）
+            if (Thread.currentThread().isInterrupted()) {
+                log.debug("[Lifecycle] 检测到任务取消，跳过旧 drain");
                 return;
             }
 

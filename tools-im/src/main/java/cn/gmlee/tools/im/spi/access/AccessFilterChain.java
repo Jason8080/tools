@@ -1,5 +1,7 @@
 package cn.gmlee.tools.im.spi.access;
 
+import reactor.core.publisher.Mono;
+
 import java.util.List;
 
 /**
@@ -12,13 +14,10 @@ import java.util.List;
  * <h3>使用方式</h3>
  * <pre>{@code
  * // 在 AccessFilter 中调用
- * public void doFilter(AccessContext context, AccessFilterChain chain) {
+ * public Mono<Void> doFilter(AccessContext context, AccessFilterChain chain) {
  *     // 执行当前过滤器的逻辑
- *     if (!checkPermission(context)) {
- *         throw new AccessDeniedException("Permission denied");
- *     }
- *     // 继续下一个过滤器
- *     chain.doFilter(context);
+ *     return checkPermissionAsync(context)
+ *             .then(chain.doFilter(context));
  * }
  * }</pre>
  *
@@ -28,14 +27,15 @@ import java.util.List;
 public interface AccessFilterChain {
 
     /**
-     * 执行下一个过滤器.
+     * 执行下一个过滤器（响应式）.
      * <p>
      * 如果还有过滤器，执行下一个；否则过滤链结束，请求继续路由到处理器。
      * </p>
      *
      * @param context 访问上下文
+     * @return Mono 表示过滤链执行结果
      */
-    void doFilter(AccessContext context);
+    Mono<Void> doFilter(AccessContext context);
 
     /**
      * 创建过滤器链.
@@ -55,6 +55,7 @@ public interface AccessFilterChain {
  * 默认过滤器链实现.
  * <p>
  * 采用递归方式执行过滤器链，每个过滤器持有链的引用，决定是否继续。
+ * 使用 Reactor 的 flatMap 实现响应式链式调用，不阻塞事件循环。
  * </p>
  *
  * @since 5.6.0
@@ -83,10 +84,10 @@ class DefaultAccessFilterChain implements AccessFilterChain {
     }
 
     @Override
-    public void doFilter(AccessContext context) {
+    public Mono<Void> doFilter(AccessContext context) {
         // 所有过滤器执行完毕，过滤链结束
         if (currentPosition >= filters.size()) {
-            return;
+            return Mono.empty();
         }
 
         // 获取当前过滤器
@@ -95,7 +96,7 @@ class DefaultAccessFilterChain implements AccessFilterChain {
         // 创建下一个链（位置 +1）
         AccessFilterChain nextChain = new DefaultAccessFilterChain(filters, currentPosition + 1);
 
-        // 执行当前过滤器
-        currentFilter.doFilter(context, nextChain);
+        // 执行当前过滤器，返回 Mono
+        return currentFilter.doFilter(context, nextChain);
     }
 }

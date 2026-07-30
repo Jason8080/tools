@@ -117,7 +117,7 @@ public class EndpointRouter {
     }
 
     /**
-     * 请求分发：根据端点模式路由到 PUSH 或 PULL 处理器.
+     * 请求分发：根据端点模式路由到 PUSH 或 PULL 处理器（响应式）.
      */
     private Mono<ServerResponse> dispatch(ServerRequest request) {
         EndpointProperties props = registry.resolve(request.path());
@@ -128,27 +128,29 @@ public class EndpointRouter {
         // 创建访问上下文
         AccessContext context = new AccessContext(request, props);
 
-        try {
-            // 执行过滤器链
-            if (!filters.isEmpty()) {
-                AccessFilterChain chain = AccessFilterChain.create(filters);
-                chain.doFilter(context);
-            }
+        // 执行过滤器链（响应式）
+        Mono<Void> filterChain = filters.isEmpty()
+                ? Mono.empty()
+                : AccessFilterChain.create(filters).doFilter(context);
 
-            // 过滤器链执行成功，路由到处理器
-            if (props.getMode() == EndpointMode.PUSH) {
-                return handlePush(request, props, context);
-            } else {
-                return handlePull(request, props, context);
-            }
-        } catch (AccessDeniedException e) {
-            log.warn("[EndpointRouter] 访问被拒绝: path={}, reason={}, status={}",
-                    request.path(), e.getMessage(), e.getStatus());
-            return ServerResponse.status(e.getStatus()).build();
-        } catch (Exception e) {
-            log.error("[EndpointRouter] 过滤器执行异常: path={}", request.path(), e);
-            return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        return filterChain
+                .then(Mono.defer(() -> {
+                    // 过滤器链执行成功，路由到处理器
+                    if (props.getMode() == EndpointMode.PUSH) {
+                        return handlePush(request, props, context);
+                    } else {
+                        return handlePull(request, props, context);
+                    }
+                }))
+                .onErrorResume(AccessDeniedException.class, e -> {
+                    log.warn("[EndpointRouter] 访问被拒绝: path={}, reason={}, status={}",
+                            request.path(), e.getMessage(), e.getStatus());
+                    return ServerResponse.status(e.getStatus()).build();
+                })
+                .onErrorResume(Exception.class, e -> {
+                    log.error("[EndpointRouter] 过滤器执行异常: path={}", request.path(), e);
+                    return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                });
     }
 
     /**

@@ -1,11 +1,6 @@
 package cn.gmlee.tools.im.spi.factory;
 
 import cn.gmlee.tools.im.core.Repeater;
-import cn.gmlee.tools.im.spi.interceptor.RepeaterInterceptor;
-import cn.gmlee.tools.im.sse.SseConnectionManager;
-import org.springframework.cloud.stream.function.StreamBridge;
-
-import java.util.List;
 
 /**
  * Repeater 工厂.
@@ -20,11 +15,9 @@ import java.util.List;
  * @Component
  * public class CustomRepeaterFactory implements RepeaterFactory {
  *     @Override
- *     public Repeater create(String topic, StreamBridge streamBridge,
- *                            SseConnectionManager sseConnectionManager,
- *                            List<RepeaterInterceptor> interceptors) {
+ *     public Repeater create(String topic, RepeaterContext context) {
  *         if ("im.chat".equals(topic)) {
- *             return new ChatRepeater(topic, streamBridge, sseConnectionManager, interceptors);
+ *             return new ChatRepeater(topic, context);
  *         }
  *         return null; // 使用默认工厂
  *     }
@@ -32,20 +25,16 @@ import java.util.List;
  * }</pre>
  *
  * @since 5.6.0
+ * @see RepeaterContext
  */
 public interface RepeaterFactory {
 
     /**
      * 创建 Repeater 实例.
      *
-     * @param topic                Topic 名称
-     * @param streamBridge         Stream 桥接器
-     * @param sseConnectionManager SSE 连接管理器
-     * @param interceptors         拦截器列表
+     * @param topic   Topic 名称
+     * @param context Repeater 创建上下文（封装 SSE 发布/订阅函数）
      * @return Repeater 实例，返回 {@code null} 表示使用默认工厂
      */
-    Repeater create(String topic,
-                    StreamBridge streamBridge,
-                    SseConnectionManager sseConnectionManager,
-                    List<RepeaterInterceptor> interceptors);
+    Repeater create(String topic, RepeaterContext context);
 }

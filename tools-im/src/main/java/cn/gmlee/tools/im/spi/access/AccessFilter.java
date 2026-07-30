@@ -1,6 +1,7 @@
 package cn.gmlee.tools.im.spi.access;
 
 import cn.gmlee.tools.im.ex.AccessDeniedException;
+import reactor.core.publisher.Mono;
 
 /**
  * 端点访问过滤器.
@@ -12,8 +13,9 @@ import cn.gmlee.tools.im.ex.AccessDeniedException;
  * <h3>设计原则</h3>
  * <ul>
  *   <li><b>单一职责</b>：每个过滤器只关注一个安全方面</li>
+ *   <li><b>响应式</b>：返回 {@link Mono}，支持异步执行，不阻塞事件循环</li>
  *   <li><b>链式调用</b>：通过 {@code chain.doFilter(context)} 继续执行下一个过滤器</li>
- *   <li><b>异常中断</b>：抛出 {@link AccessDeniedException} 中断过滤链</li>
+ *   <li><b>异常中断</b>：抛出 {@link AccessDeniedException} 或返回 {@link Mono#error(Throwable)} 中断过滤链</li>
  *   <li><b>上下文共享</b>：通过 {@link AccessContext} 在过滤器间传递数据</li>
  * </ul>
  *
@@ -25,15 +27,14 @@ import cn.gmlee.tools.im.ex.AccessDeniedException;
  *     private JwtService jwtService;
  *
  *     @Override
- *     public void doFilter(AccessContext context, AccessFilterChain chain) {
- *         String token = context.getHeader("Authorization")
+ *     public Mono<Void> doFilter(AccessContext context, AccessFilterChain chain) {
+ *         return Mono.justOrEmpty(context.getHeader("Authorization"))
  *                 .filter(h -> h.startsWith("Bearer "))
  *                 .map(h -> h.substring(7))
- *                 .orElseThrow(() -> new AccessDeniedException("Missing token", HttpStatus.UNAUTHORIZED));
- *
- *         UserDetails user = jwtService.validate(token);
- *         context.setPrincipal(user);
- *         chain.doFilter(context); // 继续下一个过滤器
+ *                 .switchIfEmpty(Mono.error(new AccessDeniedException("Missing token", HttpStatus.UNAUTHORIZED)))
+ *                 .flatMap(token -> jwtService.validateAsync(token))
+ *                 .doOnNext(context::setPrincipal)
+ *                 .then(chain.doFilter(context));
  *     }
  * }
  * }</pre>
@@ -57,7 +58,7 @@ import cn.gmlee.tools.im.ex.AccessDeniedException;
 public interface AccessFilter {
 
     /**
-     * 执行过滤逻辑.
+     * 执行过滤逻辑（响应式）.
      * <p>
      * 过滤器可以：
      * </p>
@@ -65,14 +66,14 @@ public interface AccessFilter {
      *   <li>检查请求，决定是否允许访问</li>
      *   <li>修改上下文（如设置认证信息）</li>
      *   <li>调用 {@code chain.doFilter(context)} 继续下一个过滤器</li>
-     *   <li>抛出 {@link AccessDeniedException} 中断过滤链</li>
+     *   <li>返回 {@link Mono#error(Throwable)} 或抛出 {@link AccessDeniedException} 中断过滤链</li>
      * </ul>
      *
      * @param context 访问上下文
      * @param chain   过滤器链
-     * @throws AccessDeniedException 拒绝访问
+     * @return Mono 表示过滤结果，{@link Mono#empty()} 表示继续，{@link Mono#error(Throwable)} 表示中断
      */
-    void doFilter(AccessContext context, AccessFilterChain chain);
+    Mono<Void> doFilter(AccessContext context, AccessFilterChain chain);
 
     /**
      * 获取过滤器顺序.

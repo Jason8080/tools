@@ -16,7 +16,7 @@ import java.util.List;
  * 仅供 {@link TopicRegistry} 内部使用。
  * </p>
  * <p>
- * 自定义转发器应继承 {@link ImRepeater}，并通过 {@link RepeaterFactory} 创建。
+ * 自定义转发器应继承 {@link ImRepeater}，并通过 {@link cn.gmlee.tools.im.spi.factory.RepeaterFactory} 创建。
  * </p>
  *
  * @since 5.6.0

@@ -53,8 +53,32 @@ public abstract class ImRepeater implements Repeater {
     private final Function<String, Flux<TopicMessage<Msg>>> subscribeFunction;
 
     /**
+     * 创建 Repeater（使用上下文对象）.
+     * <p>
+     * 推荐用于自定义 Repeater 实现，通过 {@link RepeaterContext} 获取 SSE 能力。
+     * 此构造函数不包含 {@code streamBridge}，适用于不需要 MQ 发送的场景。
+     * 如需 MQ 发送能力，请重写 {@link #doSend(TopicMessage)} 方法。
+     * </p>
+     *
+     * @param topic     Topic 名称
+     * @param context   Repeater 上下文（封装 SSE 发布/订阅函数）
+     * @param interceptors 拦截器列表（可为 null）
+     */
+    protected ImRepeater(String topic,
+                         cn.gmlee.tools.im.spi.factory.RepeaterContext context,
+                         List<RepeaterInterceptor> interceptors) {
+        this(topic, null, context.getPublishFunction(), context.getSubscribeFunction(), interceptors);
+    }
+
+    /**
+     * 创建 Repeater（完整参数，框架内部使用）.
+     * <p>
+     * 此构造函数包含 {@code streamBridge}，用于默认实现的 MQ 发送。
+     * 自定义实现建议使用 {@link #ImRepeater(String, cn.gmlee.tools.im.spi.factory.RepeaterContext, List)}。
+     * </p>
+     *
      * @param topic               Topic 名称
-     * @param streamBridge        Stream 桥接器
+     * @param streamBridge        Stream 桥接器（可为 null）
      * @param publishFunction     SSE 发布函数（通常为 SseConnectionManager::publish）
      * @param subscribeFunction   SSE 订阅函数（通常为 SseConnectionManager::subscribe）
      * @param interceptors        拦截器列表（可为 null）
