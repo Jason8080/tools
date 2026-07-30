@@ -128,7 +128,7 @@ public class TopicRegistry {
                         t, custom.getClass().getSimpleName());
                 return custom;
             }
-            Publisher def = new DefaultPublisher(t, this);
+            Publisher def = new DefaultPublisher(t, () -> getRepeater(t));
             log.info("[TopicRegistry] 创建默认 Publisher: topic={}", t);
             return def;
         });
@@ -168,7 +168,7 @@ public class TopicRegistry {
                         t, custom.getClass().getSimpleName());
                 return custom;
             }
-            Subscriber def = new DefaultSubscriber(t, this);
+            Subscriber def = new DefaultSubscriber(t, () -> getRepeater(t));
             log.info("[TopicRegistry] 创建默认 Subscriber: topic={}", t);
             return def;
         });
@@ -233,7 +233,7 @@ public class TopicRegistry {
      * @return 默认 Publisher
      */
     public Publisher createDefaultPublisher(String topic) {
-        return new DefaultPublisher(topic, this);
+        return new DefaultPublisher(topic, () -> getRepeater(topic));
     }
 
     /**
@@ -253,7 +253,7 @@ public class TopicRegistry {
      * @return 默认 Subscriber
      */
     public Subscriber createDefaultSubscriber(String topic) {
-        return new DefaultSubscriber(topic, this);
+        return new DefaultSubscriber(topic, () -> getRepeater(topic));
     }
 
     // ==================== 内部方法 ====================
