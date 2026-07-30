@@ -1,9 +1,9 @@
 package cn.gmlee.tools.im.conf;
 
-import cn.gmlee.tools.im.core.Publisher;
-import cn.gmlee.tools.im.core.Repeater;
+import cn.gmlee.tools.im.spi.PublisherFactory;
+import cn.gmlee.tools.im.spi.RepeaterFactory;
 import cn.gmlee.tools.im.spi.RepeaterInterceptor;
-import cn.gmlee.tools.im.core.Subscriber;
+import cn.gmlee.tools.im.spi.SubscriberFactory;
 import cn.gmlee.tools.im.endpoint.EndpointRegistry;
 import cn.gmlee.tools.im.endpoint.EndpointRouter;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
@@ -80,20 +80,21 @@ public class EndpointAutoConfiguration {
     /**
      * Topic 组件注册表 Bean.
      * <p>
-     * 自动发现自定义 {@link Publisher}、{@link Repeater}、{@link Subscriber} 实现，
+     * 自动发现自定义 {@link PublisherFactory}、{@link RepeaterFactory}、{@link SubscriberFactory}，
      * 并为未自定义的 Topic 创建默认实现。
      * </p>
      */
     @Bean
     @ConditionalOnMissingBean
     public TopicRegistry topicRegistry(
-            @Autowired(required = false) List<Publisher> publishers,
-            @Autowired(required = false) List<Repeater> repeaters,
-            @Autowired(required = false) List<Subscriber> subscribers,
+            @Autowired(required = false) List<PublisherFactory> publisherFactories,
+            @Autowired(required = false) List<RepeaterFactory> repeaterFactories,
+            @Autowired(required = false) List<SubscriberFactory> subscriberFactories,
             StreamBridge streamBridge,
             SseConnectionManager sseConnectionManager,
             @Autowired(required = false) List<RepeaterInterceptor> interceptors) {
-        return new TopicRegistry(publishers, repeaters, subscribers, streamBridge, sseConnectionManager, interceptors);
+        return new TopicRegistry(publisherFactories, repeaterFactories, subscriberFactories,
+                streamBridge, sseConnectionManager, interceptors);
     }
 
     /**

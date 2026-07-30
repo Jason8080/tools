@@ -2,32 +2,33 @@ package cn.gmlee.tools.im.topic;
 
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Repeater;
+import cn.gmlee.tools.im.spi.PublisherFactory;
+import cn.gmlee.tools.im.spi.RepeaterFactory;
 import cn.gmlee.tools.im.spi.RepeaterInterceptor;
+import cn.gmlee.tools.im.spi.SubscriberFactory;
 import cn.gmlee.tools.im.core.Subscriber;
-import cn.gmlee.tools.im.core.Topic;
 import cn.gmlee.tools.im.ex.TopicNotFoundException;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.stream.function.StreamBridge;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Topic 组件注册表.
  * <p>
  * 管理每个 Topic 的 {@link Publisher}、{@link Repeater}、{@link Subscriber} 组件。
- * 支持自定义实现（Spring Bean 自动发现）和默认实现（自动创建）。
+ * 支持通过工厂模式创建自定义实现，否则使用默认实现。
  * </p>
  *
- * <h3>匹配规则</h3>
+ * <h3>工厂匹配规则</h3>
  * <ul>
- *   <li>自定义实现通过 {@code topic()} 方法匹配到对应 Topic</li>
- *   <li>如果某 Topic 无自定义实现，自动创建默认实现</li>
- *   <li>幂等：同一 Topic 的组件只创建/匹配一次</li>
+ *   <li>遍历所有 {@link PublisherFactory} / {@link RepeaterFactory} / {@link SubscriberFactory}</li>
+ *   <li>调用工厂的 {@code create()} 方法，返回非 {@code null} 即采用</li>
+ *   <li>所有工厂均返回 {@code null}，使用框架默认工厂</li>
+ *   <li>幂等：同一 Topic 的组件只创建一次</li>
  * </ul>
  *
  * <h3>线程安全</h3>
@@ -41,32 +42,32 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TopicRegistry {
 
     /**
-     * 自定义 Publisher 索引（topic → Publisher，不可变）
+     * Publisher 工厂列表（不可变）
      */
-    private final Map<String, Publisher> customPublishers;
+    private final List<PublisherFactory> publisherFactories;
 
     /**
-     * 自定义 Repeater 索引（topic → Repeater，不可变）
+     * Repeater 工厂列表（不可变）
      */
-    private final Map<String, Repeater> customRepeaters;
+    private final List<RepeaterFactory> repeaterFactories;
 
     /**
-     * 自定义 Subscriber 索引（topic → Subscriber，不可变）
+     * Subscriber 工厂列表（不可变）
      */
-    private final Map<String, Subscriber> customSubscribers;
+    private final List<SubscriberFactory> subscriberFactories;
 
     /**
-     * 已确保的 Publisher（topic → Publisher，含默认和自定义）
+     * 已确保的 Publisher（topic → Publisher）
      */
     private final ConcurrentHashMap<String, Publisher> publishers = new ConcurrentHashMap<>();
 
     /**
-     * 已确保的 Repeater（topic → Repeater，含默认和自定义）
+     * 已确保的 Repeater（topic → Repeater）
      */
     private final ConcurrentHashMap<String, Repeater> repeaters = new ConcurrentHashMap<>();
 
     /**
-     * 已确保的 Subscriber（topic → Subscriber，含默认和自定义）
+     * 已确保的 Subscriber（topic → Subscriber）
      */
     private final ConcurrentHashMap<String, Subscriber> subscribers = new ConcurrentHashMap<>();
 
@@ -88,22 +89,22 @@ public class TopicRegistry {
     /**
      * 创建 Topic 组件注册表.
      *
-     * @param customPublishers     自定义 Publisher 列表（Spring 注入，可为 null）
-     * @param customRepeaters      自定义 Repeater 列表（Spring 注入，可为 null）
-     * @param customSubscribers    自定义 Subscriber 列表（Spring 注入，可为 null）
+     * @param publisherFactories   Publisher 工厂列表（Spring 注入，可为 null）
+     * @param repeaterFactories    Repeater 工厂列表（Spring 注入，可为 null）
+     * @param subscriberFactories  Subscriber 工厂列表（Spring 注入，可为 null）
      * @param streamBridge         Stream 桥接器
      * @param sseConnectionManager SSE 连接管理器
      * @param interceptors         Repeater 拦截器列表（Spring 注入，可为 null）
      */
-    public TopicRegistry(List<Publisher> customPublishers,
-                         List<Repeater> customRepeaters,
-                         List<Subscriber> customSubscribers,
+    public TopicRegistry(List<PublisherFactory> publisherFactories,
+                         List<RepeaterFactory> repeaterFactories,
+                         List<SubscriberFactory> subscriberFactories,
                          StreamBridge streamBridge,
                          SseConnectionManager sseConnectionManager,
                          List<RepeaterInterceptor> interceptors) {
-        this.customPublishers = indexByTopic(customPublishers);
-        this.customRepeaters = indexByTopic(customRepeaters);
-        this.customSubscribers = indexByTopic(customSubscribers);
+        this.publisherFactories = publisherFactories != null ? publisherFactories : Collections.emptyList();
+        this.repeaterFactories = repeaterFactories != null ? repeaterFactories : Collections.emptyList();
+        this.subscriberFactories = subscriberFactories != null ? subscriberFactories : Collections.emptyList();
         this.streamBridge = streamBridge;
         this.sseConnectionManager = sseConnectionManager;
         this.interceptors = interceptors != null ? interceptors : Collections.emptyList();
@@ -114,7 +115,8 @@ public class TopicRegistry {
     /**
      * 确保 Topic 的 Publisher 已创建.
      * <p>
-     * 幂等：如果存在自定义 Publisher 则使用自定义实现，否则创建默认实现。
+     * 幂等：遍历工厂列表，首个返回非 {@code null} 的工厂创建实例；
+     * 所有工厂均返回 {@code null}，使用默认实现。
      * </p>
      *
      * @param topic Topic 名称
@@ -122,11 +124,13 @@ public class TopicRegistry {
      */
     public Publisher ensurePublisher(String topic) {
         return publishers.computeIfAbsent(topic, t -> {
-            Publisher custom = customPublishers.get(t);
-            if (custom != null) {
-                log.info("[TopicRegistry] 使用自定义 Publisher: topic={}, class={}",
-                        t, custom.getClass().getSimpleName());
-                return custom;
+            for (PublisherFactory factory : publisherFactories) {
+                Publisher publisher = factory.create(t, () -> getRepeater(t));
+                if (publisher != null) {
+                    log.info("[TopicRegistry] 使用自定义 Publisher: topic={}, factory={}",
+                            t, factory.getClass().getSimpleName());
+                    return publisher;
+                }
             }
             Publisher def = new DefaultPublisher(t, () -> getRepeater(t));
             log.info("[TopicRegistry] 创建默认 Publisher: topic={}", t);
@@ -142,11 +146,13 @@ public class TopicRegistry {
      */
     public Repeater ensureRepeater(String topic) {
         return repeaters.computeIfAbsent(topic, t -> {
-            Repeater custom = customRepeaters.get(t);
-            if (custom != null) {
-                log.info("[TopicRegistry] 使用自定义 Repeater: topic={}, class={}",
-                        t, custom.getClass().getSimpleName());
-                return custom;
+            for (RepeaterFactory factory : repeaterFactories) {
+                Repeater repeater = factory.create(t, streamBridge, sseConnectionManager, interceptors);
+                if (repeater != null) {
+                    log.info("[TopicRegistry] 使用自定义 Repeater: topic={}, factory={}",
+                            t, factory.getClass().getSimpleName());
+                    return repeater;
+                }
             }
             Repeater def = new DefaultRepeater(t, streamBridge, sseConnectionManager, interceptors);
             log.info("[TopicRegistry] 创建默认 Repeater: topic={}", t);
@@ -162,11 +168,13 @@ public class TopicRegistry {
      */
     public Subscriber ensureSubscriber(String topic) {
         return subscribers.computeIfAbsent(topic, t -> {
-            Subscriber custom = customSubscribers.get(t);
-            if (custom != null) {
-                log.info("[TopicRegistry] 使用自定义 Subscriber: topic={}, class={}",
-                        t, custom.getClass().getSimpleName());
-                return custom;
+            for (SubscriberFactory factory : subscriberFactories) {
+                Subscriber subscriber = factory.create(t, () -> getRepeater(t));
+                if (subscriber != null) {
+                    log.info("[TopicRegistry] 使用自定义 Subscriber: topic={}, factory={}",
+                            t, factory.getClass().getSimpleName());
+                    return subscriber;
+                }
             }
             Subscriber def = new DefaultSubscriber(t, () -> getRepeater(t));
             log.info("[TopicRegistry] 创建默认 Subscriber: topic={}", t);
@@ -254,22 +262,5 @@ public class TopicRegistry {
      */
     public Subscriber createDefaultSubscriber(String topic) {
         return new DefaultSubscriber(topic, () -> getRepeater(topic));
-    }
-
-    // ==================== 内部方法 ====================
-
-    @SuppressWarnings("unchecked")
-    private static <T extends Topic> Map<String, T> indexByTopic(List<T> list) {
-        if (list == null || list.isEmpty()) {
-            return Collections.emptyMap();
-        }
-        Map<String, T> map = new HashMap<>();
-        for (T component : list) {
-            String topic = component.topic();
-            if (topic != null) {
-                map.put(topic, component);
-            }
-        }
-        return map;
     }
 }

@@ -6,15 +6,18 @@ import cn.gmlee.tools.im.core.Repeater;
 import java.util.function.Supplier;
 
 /**
- * 默认消息发布器.
+ * 默认消息发布器（包级私有）.
  * <p>
  * 继承 {@link ImPublisher} 框架骨架，所有逻辑（TopicMessage 构建、Repeater 委托、日志）
- * 由骨架提供。自定义发布器可继承此类并重写 {@code push()} 方法。
+ * 由骨架提供。仅供 {@link TopicRegistry} 内部使用。
+ * </p>
+ * <p>
+ * 自定义发布器应继承 {@link ImPublisher}，并通过 {@link PublisherFactory} 创建。
  * </p>
  *
  * @since 5.6.0
  */
-public class DefaultPublisher extends ImPublisher {
+class DefaultPublisher extends ImPublisher {
 
     public DefaultPublisher(String topic, Repeater repeater) {
         super(topic, repeater);
