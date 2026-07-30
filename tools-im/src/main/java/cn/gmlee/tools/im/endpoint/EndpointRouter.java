@@ -192,8 +192,12 @@ public class EndpointRouter {
     /**
      * 从 AccessContext 构建连接元数据.
      * <p>
-     * 优先从 {@code principal}（由 AccessFilter 设置）提取 userId；
-     * 若 principal 不是 String，回退到 {@code X-User-Id} 请求头。
+     * 三层提取，优先级从高到低：
+     * <ol>
+     *   <li>{@code principal}（由 AccessFilter 设置，如 JWT 解析后的 userId）</li>
+     *   <li>{@code X-User-Id} 请求头（服务端调用、fetch-based SSE 客户端）</li>
+     *   <li>{@code userId} URL 参数（EventSource 等无法自定义请求头的客户端）</li>
+     * </ol>
      * </p>
      *
      * @param topic   Topic 名称
@@ -208,6 +212,9 @@ public class EndpointRouter {
         }
         if (userId == null) {
             userId = context.getHeader("X-User-Id").orElse(null);
+        }
+        if (userId == null) {
+            userId = context.getQueryParam("userId").orElse(null);
         }
         return ConnectionMetadata.builder()
                 .topic(topic)
