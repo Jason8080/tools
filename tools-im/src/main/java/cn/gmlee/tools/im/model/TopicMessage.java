@@ -1,4 +1,4 @@
-package cn.gmlee.tools.im.core;
+package cn.gmlee.tools.im.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

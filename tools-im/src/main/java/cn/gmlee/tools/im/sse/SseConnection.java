@@ -1,6 +1,6 @@
 package cn.gmlee.tools.im.sse;
 
-import cn.gmlee.tools.im.core.ConnectionState;
+import cn.gmlee.tools.im.model.ConnectionState;
 import lombok.Getter;
 import org.reactivestreams.Subscription;
 

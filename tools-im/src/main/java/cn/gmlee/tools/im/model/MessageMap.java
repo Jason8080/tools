@@ -1,4 +1,4 @@
-package cn.gmlee.tools.im.core;
+package cn.gmlee.tools.im.model;
 
 import java.util.HashMap;
 import java.util.Map;

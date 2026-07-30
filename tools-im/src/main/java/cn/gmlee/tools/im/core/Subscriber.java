@@ -1,5 +1,6 @@
 package cn.gmlee.tools.im.core;
 
+import cn.gmlee.tools.im.model.Msg;
 import org.springframework.util.MultiValueMap;
 import reactor.core.publisher.Flux;
 

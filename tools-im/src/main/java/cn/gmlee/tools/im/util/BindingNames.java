@@ -1,10 +1,10 @@
-package cn.gmlee.tools.im.core;
+package cn.gmlee.tools.im.util;
 
 /**
  * Spring Cloud Stream binding 与 Bean 命名规则.
  * <p>
  * 集中管理所有 binding 名称和 Bean 名称的生成逻辑，避免命名规则散落在各处导致不一致。
- * 所有名称均基于 topic 派生，修改命名规则只需改此类。
+ * 所有名称均基于 topic 衍生，修改命名规则只需改此类。
  * </p>
  *
  * <h3>命名规则</h3>

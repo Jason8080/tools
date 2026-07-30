@@ -1,6 +1,6 @@
 package cn.gmlee.tools.im.topic;
 
-import cn.gmlee.tools.im.core.Msg;
+import cn.gmlee.tools.im.model.Msg;
 import cn.gmlee.tools.im.core.Repeater;
 import cn.gmlee.tools.im.core.Subscriber;
 import lombok.extern.slf4j.Slf4j;

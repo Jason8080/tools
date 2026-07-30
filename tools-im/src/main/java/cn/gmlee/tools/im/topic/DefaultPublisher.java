@@ -1,9 +1,9 @@
 package cn.gmlee.tools.im.topic;
 
-import cn.gmlee.tools.im.core.Msg;
+import cn.gmlee.tools.im.model.Msg;
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Repeater;
-import cn.gmlee.tools.im.core.TopicMessage;
+import cn.gmlee.tools.im.model.TopicMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.MultiValueMap;
 

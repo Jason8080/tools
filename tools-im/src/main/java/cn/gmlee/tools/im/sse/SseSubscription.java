@@ -1,7 +1,7 @@
 package cn.gmlee.tools.im.sse;
 
-import cn.gmlee.tools.im.core.Msg;
-import cn.gmlee.tools.im.core.TopicMessage;
+import cn.gmlee.tools.im.model.Msg;
+import cn.gmlee.tools.im.model.TopicMessage;
 import lombok.Getter;
 import reactor.core.publisher.Flux;
 

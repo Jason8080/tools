@@ -1,4 +1,4 @@
-package cn.gmlee.tools.im.core;
+package cn.gmlee.tools.im.model;
 
 /**
  * SSE 连接状态枚举.

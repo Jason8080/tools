@@ -1,5 +1,7 @@
 package cn.gmlee.tools.im.core;
 
+import cn.gmlee.tools.im.model.Msg;
+import cn.gmlee.tools.im.model.TopicMessage;
 import org.springframework.util.MultiValueMap;
 
 import java.io.Serializable;

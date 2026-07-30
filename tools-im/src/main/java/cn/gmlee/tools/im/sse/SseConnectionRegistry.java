@@ -1,8 +1,8 @@
 package cn.gmlee.tools.im.sse;
 
 import cn.gmlee.tools.im.conf.SseProperties;
-import cn.gmlee.tools.im.core.Msg;
-import cn.gmlee.tools.im.core.TopicMessage;
+import cn.gmlee.tools.im.model.Msg;
+import cn.gmlee.tools.im.model.TopicMessage;
 import cn.gmlee.tools.im.sse.backpressure.BackpressureStrategy;
 import cn.gmlee.tools.im.sse.backpressure.BackpressureStrategyResolver;
 import cn.gmlee.tools.im.sse.internal.ConnectionCounter;

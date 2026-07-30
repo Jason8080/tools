@@ -1,6 +1,6 @@
 package cn.gmlee.tools.im.conf;
 
-import cn.gmlee.tools.im.core.EndpointMode;
+import cn.gmlee.tools.im.model.EndpointMode;
 import lombok.Data;
 
 /**
