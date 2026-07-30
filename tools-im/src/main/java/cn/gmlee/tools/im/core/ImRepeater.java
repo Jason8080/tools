@@ -81,11 +81,18 @@ public abstract class ImRepeater implements Repeater {
      * <p>
      * 调用链：{@code beforeSend} → {@link #doSend(TopicMessage)}
      * </p>
+     * <p>
+     * 如果任一拦截器的 {@code beforeSend} 返回 {@code false}，消息将被拦截，不再发送。
+     * </p>
      */
     @Override
     public final Serializable send(TopicMessage<Msg> message) {
         for (RepeaterInterceptor i : interceptors) {
-            i.beforeSend(message);
+            if (!i.beforeSend(message)) {
+                log.debug("[ImRepeater] 消息被拦截器拦截: topic={}, id={}, interceptor={}",
+                        topic, message.getId(), i.getClass().getSimpleName());
+                return null;
+            }
         }
         return doSend(message);
     }

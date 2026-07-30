@@ -13,8 +13,8 @@ import reactor.core.publisher.Flux;
  * 遵循拦截器模式（Interceptor Pattern），所有方法提供默认空实现，按需重写。
  * </p>
  * <p>
- * <b>注意</b>：拦截器异常会中断调用链（与 Servlet Filter 语义一致）。
- * {@code beforeSend} 抛出异常可阻止消息发送，适合参数校验场景。
+ * <b>注意</b>：{@code beforeSend} 返回 {@code false} 可阻止消息发送，适合参数校验、限流等场景。
+ * 拦截器异常会中断调用链（与 Servlet Filter 语义一致）。
  * </p>
  *
  * <h3>使用示例</h3>
@@ -25,9 +25,10 @@ import reactor.core.publisher.Flux;
  *     private RedisTemplate<String, byte[]> redisTemplate;
  *
  *     @Override
- *     public void beforeSend(TopicMessage<Msg> message) {
+ *     public boolean beforeSend(TopicMessage<Msg> message) {
  *         // 发送前持久化到 Redis
  *         redisTemplate.opsForList().rightPush(key(message.getTopic()), serialize(message));
+ *         return true; // 允许发送
  *     }
  *
  *     @Override
@@ -50,12 +51,17 @@ public interface RepeaterInterceptor {
      * 发送前拦截.
      * <p>
      * 在消息发送到 MQ 之前调用。可用于：消息持久化、审计日志、参数校验。
-     * 抛出异常可阻止发送。
+     * </p>
+     * <p>
+     * 返回 {@code true} 允许发送，返回 {@code false} 拦截消息（不再发送）。
+     * 多个拦截器任一返回 {@code false} 即终止发送。
      * </p>
      *
      * @param message 待发送的消息
+     * @return {@code true} 允许发送，{@code false} 拦截消息
      */
-    default void beforeSend(TopicMessage<Msg> message) {
+    default boolean beforeSend(TopicMessage<Msg> message) {
+        return true;
     }
 
     /**
