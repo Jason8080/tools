@@ -18,10 +18,10 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest(classes = {ImAutoConfiguration.class, EndpointAutoConfiguration.class})
 @TestPropertySource(properties = {
-    "im.endpoints[0].path=/api/chat/stream",
+    "im.endpoints[0].path=/api/chat/pull",
     "im.endpoints[0].topic=im.chat",
     "im.endpoints[0].mode=pull",
-    "im.endpoints[1].path=/api/chat/send",
+    "im.endpoints[1].path=/api/chat/push",
     "im.endpoints[1].topic=im.chat",
     "im.endpoints[1].mode=push",
     "spring.cloud.stream.bindings.im.chat-out-0.destination=im.chat",
@@ -48,13 +48,13 @@ class EndToEndIntegrationTest {
         assertNotNull(endpointRegistry);
 
         // 验证 PULL 端点
-        EndpointProperties pullEndpoint = endpointRegistry.resolve("/api/chat/stream");
+        EndpointProperties pullEndpoint = endpointRegistry.resolve("/api/chat/pull");
         assertNotNull(pullEndpoint);
         assertEquals("im.chat", pullEndpoint.getTopic());
         assertEquals(EndpointMode.PULL, pullEndpoint.getMode());
 
         // 验证 PUSH 端点
-        EndpointProperties pushEndpoint = endpointRegistry.resolve("/api/chat/send");
+        EndpointProperties pushEndpoint = endpointRegistry.resolve("/api/chat/push");
         assertNotNull(pushEndpoint);
         assertEquals("im.chat", pushEndpoint.getTopic());
         assertEquals(EndpointMode.PUSH, pushEndpoint.getMode());

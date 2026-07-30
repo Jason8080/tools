@@ -16,10 +16,10 @@ import java.util.List;
  * <pre>{@code
  * im:
  *   endpoints:
- *     - path: /api/chat/stream
+ *     - path: /api/chat/pull
  *       topic: im.chat
  *       mode: pull
- *     - path: /api/chat/send
+ *     - path: /api/chat/push
  *       topic: im.chat
  *       mode: push
  * }</pre>

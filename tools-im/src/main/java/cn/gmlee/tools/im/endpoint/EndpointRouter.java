@@ -49,7 +49,7 @@ import java.util.List;
  * <h3>路径与 Topic 解耦</h3>
  * <p>
  * URL 路径由开发者自定义，内部 Topic 名称不暴露在请求中。
- * 例如 {@code /api/chat/stream} 可映射到 Topic {@code im.chat}。
+ * 例如 {@code /api/chat/pull} 可映射到 Topic {@code im.chat}。
  * </p>
  *
  * <h3>访问控制</h3>

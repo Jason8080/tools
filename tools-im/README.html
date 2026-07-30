@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Im Framework - 基于主题的即时通讯框架</title>
+<title>SseIm Framework - 配置驱动的即时通讯框架</title>
 <style>
 /* ========== Reset & Base ========== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -176,89 +176,6 @@ body {
   color: #6B7280;
   margin: 0;
 }
-.header-content { position: relative; z-index: 1; max-width: 1000px; margin: 0 auto; }
-.logo {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 100px;
-  height: 100px;
-  background: rgba(255, 255, 255, 0.15);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 28px;
-  margin-bottom: 32px;
-  backdrop-filter: blur(20px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-}
-.logo svg {
-  width: 60px;
-  height: 60px;
-}
-.site-header h1 {
-  font-size: 64px;
-  font-weight: 900;
-  letter-spacing: -2px;
-  margin-bottom: 20px;
-  color: #fff;
-  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
-}
-.site-header .tagline {
-  font-size: 24px;
-  color: rgba(255, 255, 255, 0.9);
-  margin-bottom: 40px;
-  font-weight: 400;
-  line-height: 1.6;
-  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.2);
-}
-.badges { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
-.badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 20px;
-  border-radius: 24px;
-  font-size: 14px;
-  font-weight: 600;
-  background: rgba(255, 255, 255, 0.15);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(10px);
-}
-.header-actions { display: flex; gap: 12px; justify-content: center; }
-.header-actions { display: flex; gap: 16px; justify-content: center; }
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 16px 36px;
-  background: #fff;
-  color: #4F46E5;
-  border-radius: 12px;
-  text-decoration: none;
-  font-weight: 700;
-  font-size: 16px;
-  transition: all 0.3s;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-}
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3); }
-.btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 16px 36px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  border-radius: 12px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 16px;
-  transition: all 0.3s;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  cursor: pointer;
-  backdrop-filter: blur(10px);
-}
-.btn-secondary:hover { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.5); transform: translateY(-2px); }
 
 /* ========== Tab Navigation ========== */
 .tab-nav-wrapper {
@@ -471,30 +388,6 @@ td code { font-size: 13px; }
 .arch-client { background: #FDF2F8; color: #9D174D; border: 1px solid #FBCFE8; }
 .arch-arrow { color: #9CA3AF; font-size: 20px; }
 
-/* ========== State Diagram ========== */
-.state-flow {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  flex-wrap: wrap;
-  padding: 24px;
-  background: #F9FAFB;
-  border-radius: 10px;
-  margin-bottom: 20px;
-}
-.state-box {
-  padding: 8px 18px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-}
-.state-created { background: #DBEAFE; color: #1E40AF; }
-.state-active { background: #D1FAE5; color: #065F46; }
-.state-draining { background: #FEF3C7; color: #92400E; }
-.state-closed { background: #FEE2E2; color: #991B1B; }
-.state-arrow { color: #9CA3AF; font-size: 16px; }
-
 /* ========== Steps ========== */
 .steps { counter-reset: step; margin-bottom: 32px; }
 .step {
@@ -572,7 +465,7 @@ td code { font-size: 13px; }
 </head>
 <body>
 
-<!-- ==================== Landing Page (全屏门户) ==================== -->
+<!-- ==================== Landing Page ==================== -->
 <div class="landing-page">
   <div class="landing-content">
     <div class="landing-logo">
@@ -584,40 +477,40 @@ td code { font-size: 13px; }
         <path d="M38 16C39.1046 16 40 16.8954 40 18V30C40 32.2091 38.2091 34 36 34H34" stroke="white" stroke-opacity="0.6" stroke-width="2" stroke-linecap="round"/>
       </svg>
     </div>
-    <h1 class="landing-title">Im Framework</h1>
-    <p class="landing-tagline">基于 Spring Boot WebFlux + SSE 的轻量级即时通讯框架</p>
+    <h1 class="landing-title">SseIm Framework</h1>
+    <p class="landing-tagline">配置驱动的即时通讯框架<br>零代码开箱 · 渐进式扩展 · 响应式全链路</p>
     <div class="landing-badges">
-      <span class="landing-badge">Spring Boot 3.x</span>
+      <span class="landing-badge">Spring Boot 4.x</span>
       <span class="landing-badge">JDK 17+</span>
       <span class="landing-badge">v5.6.0-SNAPSHOT</span>
       <span class="landing-badge">Reactive</span>
     </div>
     <div class="landing-actions">
       <button class="btn-primary" onclick="enterReadingMode('quick-start')">&#x1F680; 快速开始</button>
-      <button class="btn-secondary" onclick="enterReadingMode('core-concepts')">&#x1F4D6; 核心概念</button>
+      <button class="btn-secondary" onclick="enterReadingMode('architecture')">&#x1F4D6; 架构详解</button>
     </div>
   </div>
 </div>
 
-<!-- ==================== Reading Mode (阅读模式) ==================== -->
+<!-- ==================== Reading Mode ==================== -->
 <div class="reading-mode">
   <header class="reading-header">
     <div class="reading-header-content">
-      <h2>Im Framework</h2>
-      <p>基于 Spring Boot WebFlux + SSE 的轻量级即时通讯框架</p>
+      <h2>SseIm Framework</h2>
+      <p>配置驱动的即时通讯框架 · 零代码开箱 · 渐进式扩展</p>
     </div>
   </header>
 
   <!-- Tab Navigation -->
   <nav class="tab-nav-wrapper">
     <div class="tab-nav">
-      <button class="tab-btn" data-tab="home">首页</button>
-      <button class="tab-btn active" data-tab="quick-start">快速开始</button>
-      <button class="tab-btn" data-tab="core-concepts">核心概念</button>
+      <button class="tab-btn active" data-tab="home">首页</button>
+      <button class="tab-btn" data-tab="quick-start">快速开始</button>
       <button class="tab-btn" data-tab="architecture">架构详解</button>
       <button class="tab-btn" data-tab="configuration">配置参考</button>
-      <button class="tab-btn" data-tab="advanced">高级功能</button>
-      <button class="tab-btn" data-tab="client-integration">客户端集成</button>
+      <button class="tab-btn" data-tab="spi-extension">SPI 扩展</button>
+      <button class="tab-btn" data-tab="advanced">高阶用法</button>
+      <button class="tab-btn" data-tab="monitoring">监控运维</button>
       <button class="tab-btn" data-tab="troubleshooting">故障排查</button>
     </div>
   </nav>
@@ -625,17 +518,30 @@ td code { font-size: 13px; }
 <!-- ==================== Tab Content ==================== -->
 <main class="tab-content">
 
-<!-- ==================== Tab 1: 首页 ==================== -->
+<!-- ==================== Tab: 首页 ==================== -->
 <div class="tab-panel active" id="home">
 
-  <h2>为什么选择 TOOLS IM?</h2>
-  <p class="section-desc">面向现代应用的实时消息推送框架，开箱即用的发布/订阅模型，原生支持百万级 SSE 长连接。</p>
+  <h2>为什么选择 SseIm Framework?</h2>
+  <p class="section-desc">基于 Spring Boot WebFlux + SSE 的配置驱动即时通讯框架。3 行 YAML 配置，零 Java 代码即可获得实时消息推送能力。</p>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">&#x1F4A1;</span>
+    <div>
+      <strong>框架定位</strong>
+      <p>SseIm Framework 是即时通讯的基础设施，专注于消息的实时推送。它解决"如何把消息从服务端实时推送到客户端"，提供可插拔的 MQ 桥接和 SSE 推送能力。</p>
+    </div>
+  </div>
 
   <div class="card-grid">
     <div class="card">
-      <div class="card-icon">&#x1F4E1;</div>
-      <h4>发布 / 订阅模型</h4>
-      <p>基于主题路由的发布订阅架构，自动发现 Publisher 和 Subscriber，按 Topic 名称智能路由。</p>
+      <div class="card-icon">&#x2699;</div>
+      <h4>配置驱动</h4>
+      <p>3 行 YAML 配置 = 端点注册 + Stream 绑定 + SSE 连接管理。零 Java 代码开箱即用。</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#x1F504;</div>
+      <h4>进-转-出三段式</h4>
+      <p>Publisher → Repeater → Subscriber 职责分离，每层可独立替换，架构清晰可扩展。</p>
     </div>
     <div class="card">
       <div class="card-icon">&#x1F50C;</div>
@@ -643,78 +549,168 @@ td code { font-size: 13px; }
       <p>原生 Server-Sent Events 支持，浏览器 EventSource 直连，无需额外客户端 SDK。</p>
     </div>
     <div class="card">
-      <div class="card-icon">&#x1F30A;</div>
-      <h4>可插拔背压策略</h4>
-      <p>buffer / drop-oldest / error 三种策略，支持按 Topic 覆盖，适配不同业务场景。</p>
+      <div class="card-icon">&#x1F9E9;</div>
+      <h4>SPI 扩展点</h4>
+      <p>Factory / Interceptor / AccessFilter / Listener，零侵入扩展，按需渐进式自定义。</p>
+    </div>
+  </div>
+
+  <h3>核心架构</h3>
+  <p>框架由核心组件协同工作，实现进-转-出的三段式消息流水线：</p>
+
+  <!-- 组件全景图 -->
+  <div style="background: #fff; border-radius: 12px; padding: 40px 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #F3F4F6; overflow-x: auto;">
+
+    <!-- 三阶段流水线 -->
+    <div style="display: flex; align-items: stretch; gap: 16px; min-width: max-content;">
+
+      <!-- ① Push 侧 -->
+      <div style="flex: 1; background: #EEF2FF; border: 2px solid #C7D2FE; border-radius: 12px; padding: 20px;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <div style="background: #fff; padding: 10px 18px; border-radius: 8px; text-align: center; width: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+            <div style="font-weight: 600; color: #1E293B; font-size: 14px;">EndpointRegistry</div>
+            <div style="font-size: 11px; color: #6B7280; margin-top: 2px;">path &#x2192; topic + mode</div>
+          </div>
+          <div style="color: #A5B4FC; font-size: 16px;">&#x25BC;</div>
+          <div style="background: #fff; padding: 10px 18px; border-radius: 8px; text-align: center; width: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+            <div style="font-weight: 600; color: #1E293B; font-size: 14px;">EndpointRouter</div>
+            <div style="font-size: 11px; color: #6B7280; margin-top: 2px;">POST &#x2192; Publisher.push()</div>
+          </div>
+          <div style="color: #A5B4FC; font-size: 16px;">&#x25BC;</div>
+          <div style="background: #4338CA; color: #fff; padding: 10px 18px; border-radius: 8px; text-align: center; width: 100%; font-weight: 600; font-size: 14px;">
+            Publisher
+          </div>
+          <div style="font-size: 11px; color: #6366F1; margin-top: 2px;">POST /api/chat/push</div>
+        </div>
+      </div>
+
+      <!-- 箭头 -->
+      <div style="display: flex; align-items: center; color: #9CA3AF; font-size: 28px; flex-shrink: 0;">&#x27A1;</div>
+
+      <!-- ② MQ 桥接 -->
+      <div style="flex: 0 0 110px; background: #F0FDF4; border: 2px solid #BBF7D0; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+        <div style="background: #166534; color: #fff; width: 80px; height: 80px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(22,101,52,0.3);">
+          <div style="font-size: 28px;">&#x1F42F;</div>
+          <div style="font-size: 11px; font-weight: 600; margin-top: 2px;">MQ</div>
+        </div>
+        <div style="margin-top: 12px; background: #fff; padding: 6px 14px; border-radius: 6px; font-weight: 600; color: #1E293B; font-size: 13px; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+          Repeater
+        </div>
+        <div style="font-size: 11px; color: #16A34A; margin-top: 4px;">拦截器链处理</div>
+      </div>
+
+      <!-- 箭头 -->
+      <div style="display: flex; align-items: center; color: #9CA3AF; font-size: 28px; flex-shrink: 0;">&#x27A1;</div>
+
+      <!-- ③ Pull 侧 -->
+      <div style="flex: 1; background: #FFF7ED; border: 2px solid #FED7AA; border-radius: 12px; padding: 20px;">
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+          <div style="background: #9A3412; color: #fff; padding: 10px 18px; border-radius: 8px; text-align: center; width: 100%; font-weight: 600; font-size: 14px;">
+            Subscriber
+          </div>
+          <div style="color: #FDBA74; font-size: 16px;">&#x25BC;</div>
+          <div style="background: #fff; padding: 10px 18px; border-radius: 8px; text-align: center; width: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+            <div style="font-weight: 600; color: #1E293B; font-size: 14px;">SseConnectionManager</div>
+            <div style="font-size: 11px; color: #6B7280; margin-top: 2px;">连接管理 + 背压 + 心跳</div>
+          </div>
+          <div style="color: #FDBA74; font-size: 16px;">&#x25BC;</div>
+          <div style="background: #fff; padding: 10px 18px; border-radius: 8px; text-align: center; width: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+            <div style="font-weight: 600; color: #1E293B; font-size: 14px;">SSE EventStream</div>
+            <div style="font-size: 11px; color: #6B7280; margin-top: 2px;">text/event-stream</div>
+          </div>
+          <div style="font-size: 11px; color: #EA580C; margin-top: 2px;">GET /api/chat/pull</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 组件说明 -->
+  <div class="card-grid" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="card">
+      <div class="card-icon">&#x1F4CB;</div>
+      <h4>EndpointRegistry</h4>
+      <p>端点注册表。存储 path &#x2192; topic + mode 映射，支持运行时动态增删。</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#x1F6E3;</div>
+      <h4>EndpointRouter</h4>
+      <p>动态路由器。RouterFunction 实现，按 mode 分发 PUSH / PULL 请求，织入 AccessFilter 链。</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#x1F3ED;</div>
+      <h4>TopicRegistry</h4>
+      <p>Topic 组件注册表。通过工厂模式按需创建 Publisher / Repeater / Subscriber。</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#x1F4E4;</div>
+      <h4>Publisher</h4>
+      <p>消息发布器（进）。接收 POST 请求，构建 TopicMessage 经 Repeater 发送到 MQ。</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#x1F504;</div>
+      <h4>Repeater</h4>
+      <p>消息转发器（转）。桥接 MQ 两端，send → StreamBridge，receive → 拦截器链 → SSE 推送。</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#x1F4E5;</div>
+      <h4>Subscriber</h4>
+      <p>消息订阅器（出）。构建带生命周期钩子的 Reactor Flux，交付 SseConnectionManager 推送。</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#x1F4F1;</div>
+      <h4>SseConnectionManager</h4>
+      <p>SSE 连接管理器。连接注册/注销、背压策略、心跳保活、僵尸清理、优雅关闭。</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#x1F9E9;</div>
+      <h4>SPI 扩展点</h4>
+      <p>Factory / Interceptor / AccessFilter / Listener，零侵入扩展，按需渐进式自定义。</p>
     </div>
     <div class="card">
       <div class="card-icon">&#x1F4CA;</div>
-      <h4>Micrometer 指标</h4>
-      <p>连接数、订阅/发布速率、错误计数等全维度指标，无缝接入 Prometheus / Grafana。</p>
+      <h4>可插拔指标</h4>
+      <p>Micrometer 指标自动暴露，连接数 / 订阅速率 / 发布速率 / 僵尸清理，无缝接入 Prometheus。</p>
     </div>
   </div>
 
-  <h3>数据流架构</h3>
-  <div class="arch-diagram">
-    <div class="arch-flow">
-      <div class="arch-box arch-publisher">&#x1F4E4; Publisher<br><small>POST /push/{topic}</small></div>
-      <span class="arch-arrow">&#x2192;</span>
-      <div class="arch-box arch-mq">&#x1F42F; RabbitMQ<br><small>Spring Cloud Stream</small></div>
-      <span class="arch-arrow">&#x2192;</span>
-      <div class="arch-box arch-subscriber">&#x1F4E5; Consumer<br><small>SseConnectionManager</small></div>
-      <span class="arch-arrow">&#x2192;</span>
-      <div class="arch-box arch-client">&#x1F4F1; SSE Client<br><small>GET /pull/{topic}</small></div>
+  <div class="callout callout-info">
+    <span class="callout-icon">&#x1F504;</span>
+    <div>
+      <strong>数据流一览</strong>
+      <p><code>POST /api/chat/push</code> &#x2192; EndpointRouter &#x2192; Publisher.push() &#x2192; Repeater.send() &#x2192; StreamBridge &#x2192; <strong>MQ</strong> &#x2192; Repeater.receive() &#x2192; 拦截器链 &#x2192; SseConnectionManager.publish() &#x2192; Sink &#x2192; <code>GET /api/chat/pull</code> SSE 客户端</p>
     </div>
   </div>
 
-  <h3>技术栈</h3>
-  <div class="tech-stack">
-    <span class="tech-tag">&#x1F343; Spring Boot 3.x</span>
-    <span class="tech-tag">&#x26A1; Spring WebFlux</span>
-    <span class="tech-tag">&#x1F504; Spring Cloud Stream</span>
-    <span class="tech-tag">&#x1F300; Project Reactor</span>
-    <span class="tech-tag">&#x1F430; RabbitMQ</span>
-    <span class="tech-tag">&#x1F4C8; Micrometer</span>
-    <span class="tech-tag">&#x1F512; Java 17+</span>
-  </div>
-
-  <h3>核心特性</h3>
+  <h3>设计哲学</h3>
   <div class="card-grid">
     <div class="card">
-      <div class="card-icon">&#x1F6E1;</div>
-      <h4>三层连接清理</h4>
-      <p>doFinally（响应式）+ Reaper（定时扫描）+ Shutdown（优雅关闭），确保零连接泄漏。</p>
+      <h4>声明式优于编程式</h4>
+      <p>开发者说"我要什么"，框架决定"怎么做"。配置驱动，人类负责意图，机器负责执行。</p>
     </div>
     <div class="card">
-      <div class="card-icon">&#x1F493;</div>
-      <h4>SSE 心跳保活</h4>
-      <p>定期发送心跳注释，防止 Nginx / ALB 等反向代理因空闲超时断开 SSE 连接。</p>
+      <h4>可组合优于可配置</h4>
+      <p>小组件通过组合产生无限可能，而非通过配置膨胀。Factory + Interceptor + Filter 自由组合。</p>
     </div>
     <div class="card">
-      <div class="card-icon">&#x23F0;</div>
-      <h4>连接生命周期管理</h4>
-      <p>最大存活时间自动终止、空闲超时回收、优雅排空，全生命周期覆盖。</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">&#x1F514;</div>
-      <h4>事件监听器</h4>
-      <p>SseConnectionListener 接口，监听连接建立、断开、发布异常，零侵入扩展。</p>
+      <h4>渐进式复杂度披露</h4>
+      <p>零代码 → 拦截器 → 工厂 → 完全自定义。入门门槛低，天花板高，按需展开。</p>
     </div>
   </div>
 
 </div>
 
-<!-- ==================== Tab 2: 快速开始 ==================== -->
+<!-- ==================== Tab: 快速开始 ==================== -->
 <div class="tab-panel" id="quick-start">
 
   <h2>快速开始</h2>
-  <p class="section-desc">三步集成 TOOLS IM 到你的 Spring Boot 应用，实现实时消息推送。</p>
+  <p class="section-desc">三步集成 SseIm Framework 到你的 Spring Boot 应用，实现实时消息推送。零 Java 代码。</p>
 
   <div class="callout callout-info">
     <span class="callout-icon">&#x1F4CB;</span>
     <div>
       <strong>前置条件</strong>
-      <p>JDK 17+、Spring Boot 3.x、RabbitMQ（或其他 Spring Cloud Stream 支持的 Binder）</p>
+      <p>JDK 17+、Spring Boot 4.x、RabbitMQ（或其他 Spring Cloud Stream 支持的 Binder）</p>
     </div>
   </div>
 
@@ -722,7 +718,6 @@ td code { font-size: 13px; }
 
     <div class="step">
       <h4>添加 Maven 依赖</h4>
-      <p>在你的 <code>pom.xml</code> 中添加：</p>
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">XML</span>
@@ -732,15 +727,13 @@ td code { font-size: 13px; }
     <span class="tag">&lt;groupId&gt;</span><span class="val">cn.gmlee.tools</span><span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span><span class="val">tools-im</span><span class="tag">&lt;/artifactId&gt;</span>
     <span class="tag">&lt;version&gt;</span><span class="val">5.6.0-SNAPSHOT</span><span class="tag">&lt;/version&gt;</span>
-<span class="tag">&lt;/dependency&gt;</span></code></pre>
-      </div>
-      <p>同时确保引入 WebFlux 和 Spring Cloud Stream 依赖：</p>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">XML</span>
-          <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
-        </div>
-        <pre><code><span class="tag">&lt;dependency&gt;</span>
+<span class="tag">&lt;/dependency&gt;</span>
+<span class="tag">&lt;dependency&gt;</span>
+    <span class="tag">&lt;groupId&gt;</span><span class="val">cn.gmlee.tools</span><span class="tag">&lt;/groupId&gt;</span>
+    <span class="tag">&lt;artifactId&gt;</span><span class="val">tools-base</span><span class="tag">&lt;/artifactId&gt;</span>
+    <span class="tag">&lt;version&gt;</span><span class="val">5.6.0-SNAPSHOT</span><span class="tag">&lt;/version&gt;</span>
+<span class="tag">&lt;/dependency&gt;</span>
+<span class="tag">&lt;dependency&gt;</span>
     <span class="tag">&lt;groupId&gt;</span><span class="val">org.springframework.boot</span><span class="tag">&lt;/groupId&gt;</span>
     <span class="tag">&lt;artifactId&gt;</span><span class="val">spring-boot-starter-webflux</span><span class="tag">&lt;/artifactId&gt;</span>
 <span class="tag">&lt;/dependency&gt;</span>
@@ -753,244 +746,67 @@ td code { font-size: 13px; }
 
     <div class="step">
       <h4>配置 application.yml</h4>
-      <p>配置 RabbitMQ 连接和 SSE 参数：</p>
+      <p>3 行配置定义端点，框架自动完成端点注册、Stream 绑定、SSE 连接管理：</p>
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">YAML</span>
           <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
         </div>
-        <pre><code><span class="attr">spring</span>:
+        <pre><code><span class="attr">im</span>:
+  <span class="attr">endpoints</span>:
+    - <span class="attr">path</span>: <span class="val">/api/chat/push</span>
+      <span class="attr">topic</span>: <span class="val">im.chat</span>
+      <span class="attr">mode</span>: <span class="val">push</span>          <span class="cm"># POST 接收消息 → 发送到 MQ</span>
+    - <span class="attr">path</span>: <span class="val">/api/chat/pull</span>
+      <span class="attr">topic</span>: <span class="val">im.chat</span>
+      <span class="attr">mode</span>: <span class="val">pull</span>          <span class="cm"># GET 订阅 SSE 流</span>
+
+<span class="attr">spring</span>:
   <span class="attr">rabbitmq</span>:
     <span class="attr">host</span>: <span class="val">localhost</span>
-    <span class="attr">port</span>: <span class="num">5672</span>
-    <span class="attr">username</span>: <span class="val">guest</span>
-    <span class="attr">password</span>: <span class="val">guest</span>
-
-<span class="attr">im</span>:
-  <span class="attr">base-path</span>: <span class="val">/</span>          <span class="cm"># 端点基础路径</span>
-  <span class="attr">sse</span>:
-    <span class="attr">max-total-connections</span>: <span class="num">100000</span>
-    <span class="attr">max-connections-per-topic</span>: <span class="num">10000</span>
-    <span class="attr">heartbeat</span>:
-      <span class="attr">enabled</span>: <span class="val">true</span>
-      <span class="attr">interval</span>: <span class="val">30s</span></code></pre>
+    <span class="attr">port</span>: <span class="num">5672</span></code></pre>
       </div>
-    </div>
-
-    <div class="step">
-      <h4>发布消息（服务端）</h4>
-      <p>注入 <code>TopicRouter</code> 即可发布消息：</p>
-      <div class="code-block">
-        <div class="code-header">
-          <span class="code-lang">Java</span>
-          <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+      <div class="callout callout-tip">
+        <span class="callout-icon">&#x2705;</span>
+        <div>
+          <strong>完成！</strong>
+          <p>零 Java 代码。框架自动创建 RabbitMQ binding、注册端点路由、管理 SSE 连接。</p>
         </div>
-        <pre><code><span class="ann">@RestController</span>
-<span class="kw">public class</span> <span class="typ">ChatController</span> {
-
-    <span class="ann">@Autowired</span>
-    <span class="kw">private</span> <span class="typ">TopicRouter</span>&lt;<span class="typ">Serializable</span>, <span class="typ">Msg</span>&gt; topicRouter;
-
-    <span class="ann">@PostMapping</span>(<span class="str">"/chat/send"</span>)
-    <span class="kw">public</span> <span class="typ">R</span>&lt;<span class="typ">Long</span>&gt; <span class="fn">sendMessage</span>(<span class="ann">@RequestBody</span> <span class="typ">ChatMessage</span> chatMsg) {
-        <span class="cm">// 构建消息</span>
-        <span class="typ">Msg</span> msg = () -&gt; <span class="typ">TopicMessage</span>.&lt;<span class="typ">Msg</span>&gt;<span class="fn">builder</span>()
-            .<span class="fn">topic</span>(<span class="str">"im.broadcast"</span>)
-            .<span class="fn">msg</span>(chatMsg)
-            .<span class="fn">build</span>();
-
-        <span class="cm">// 发布消息，返回消息 ID</span>
-        <span class="typ">Serializable</span> msgId = topicRouter.<span class="fn">push</span>(<span class="str">"im.broadcast"</span>, msg);
-        <span class="kw">return</span> <span class="typ">R</span>.<span class="fn">ok</span>(msgId);
-    }
-}</code></pre>
       </div>
     </div>
 
     <div class="step">
-      <h4>订阅消息（浏览器端）</h4>
-      <p>使用浏览器原生 <code>EventSource</code> 订阅：</p>
+      <h4>客户端使用</h4>
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">JavaScript</span>
           <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
         </div>
-        <pre><code><span class="cm">// 创建 SSE 连接</span>
-<span class="kw">const</span> eventSource = <span class="kw">new</span> <span class="fn">EventSource</span>(<span class="str">'/pull/im.broadcast'</span>);
+        <pre><code><span class="cm">// 订阅消息流（SSE）</span>
+<span class="kw">const</span> es = <span class="kw">new</span> <span class="fn">EventSource</span>(<span class="str">'/api/chat/pull'</span>);
+es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</span>(<span class="typ">JSON</span>.<span class="fn">parse</span>(e.data));
 
-<span class="cm">// 接收消息</span>
-eventSource.<span class="fn">onmessage</span> = (event) =&gt; {
-  <span class="kw">const</span> message = <span class="typ">JSON</span>.<span class="fn">parse</span>(event.data);
-  console.<span class="fn">log</span>(<span class="str">'收到消息:'</span>, message);
-};
-
-<span class="cm">// 连接成功</span>
-eventSource.<span class="fn">onopen</span> = () =&gt; {
-  console.<span class="fn">log</span>(<span class="str">'SSE 连接已建立'</span>);
-};
-
-<span class="cm">// 错误处理（连接断开会自动重连）</span>
-eventSource.<span class="fn">onerror</span> = (error) =&gt; {
-  console.<span class="fn">error</span>(<span class="str">'SSE 错误:'</span>, error);
-};</code></pre>
+<span class="cm">// 发送消息</span>
+<span class="fn">fetch</span>(<span class="str">'/api/chat/push'</span>, {
+  method: <span class="str">'POST'</span>,
+  headers: {<span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>},
+  body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'alice'</span>, content: <span class="str">'hello'</span>})
+});</code></pre>
       </div>
     </div>
 
   </div>
 
-  <div class="callout callout-tip">
-    <span class="callout-icon">&#x1F389;</span>
-    <div>
-      <strong>完成！</strong>
-      <p>现在你可以通过 <code>POST /push/im.broadcast</code> 发布消息，浏览器通过 <code>GET /pull/im.broadcast</code> 实时接收。</p>
-    </div>
-  </div>
-
-</div>
-
-<!-- ==================== Tab 3: 核心概念 ==================== -->
-<div class="tab-panel" id="core-concepts">
-
-  <h2>核心概念</h2>
-  <p class="section-desc">理解 TOOLS IM 的核心抽象，快速构建自定义主题。</p>
-
-  <h3>Topic（主题）</h3>
-  <p>所有发布者和订阅者都通过<strong>主题字符串</strong>标识。框架通过主题名称匹配路由，忽略大小写。</p>
-  <div class="code-block">
-    <div class="code-header">
-      <span class="code-lang">Java</span>
-      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
-    </div>
-    <pre><code><span class="cm">// Topic 接口</span>
-<span class="kw">public interface</span> <span class="typ">Topic</span> <span class="kw">extends</span> <span class="typ">Serializable</span> {
-    <span class="typ">String</span> <span class="fn">topic</span>();  <span class="cm">// 返回主题标识</span>
-}</code></pre>
-  </div>
-
-  <h3>Publisher（发布者）</h3>
-  <p>实现 <code>Publisher</code> 接口定义消息发布逻辑：</p>
-  <div class="code-block">
-    <div class="code-header">
-      <span class="code-lang">Java</span>
-      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
-    </div>
-    <pre><code><span class="ann">@Component</span>
-<span class="kw">public class</span> <span class="typ">OrderPublisher</span> <span class="kw">implements</span> <span class="typ">Publisher</span>&lt;<span class="typ">Long</span>, <span class="typ">OrderMsg</span>&gt; {
-
-    <span class="ann">@Override</span>
-    <span class="kw">public</span> <span class="typ">String</span> <span class="fn">topic</span>() {
-        <span class="kw">return</span> <span class="str">"order.update"</span>;
-    }
-
-    <span class="ann">@Override</span>
-    <span class="kw">public</span> <span class="typ">Long</span> <span class="fn">push</span>(<span class="typ">MultiValueMap</span>&lt;<span class="typ">String</span>, <span class="typ">String</span>&gt; urlParams, <span class="typ">OrderMsg</span> msg) {
-        <span class="cm">// 自定义发布逻辑（写入数据库、发送 MQ 等）</span>
-        <span class="kw">return</span> orderId;
-    }
-}</code></pre>
-  </div>
-
-  <h3>Subscriber（订阅者）</h3>
-  <p>实现 <code>Subscriber</code> 接口定义消息订阅逻辑。注意 <code>pull()</code> 返回 <code>Flux&lt;MSG&gt;</code>，表示消息流：</p>
-  <div class="code-block">
-    <div class="code-header">
-      <span class="code-lang">Java</span>
-      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
-    </div>
-    <pre><code><span class="ann">@Component</span>
-<span class="kw">public class</span> <span class="typ">OrderSubscriber</span> <span class="kw">implements</span> <span class="typ">Subscriber</span>&lt;<span class="typ">OrderMsg</span>&gt; {
-
-    <span class="ann">@Override</span>
-    <span class="kw">public</span> <span class="typ">String</span> <span class="fn">topic</span>() {
-        <span class="kw">return</span> <span class="str">"order.update"</span>;
-    }
-
-    <span class="ann">@Override</span>
-    <span class="kw">public</span> <span class="typ">Flux</span>&lt;<span class="typ">OrderMsg</span>&gt; <span class="fn">pull</span>(<span class="typ">MultiValueMap</span>&lt;<span class="typ">String</span>, <span class="typ">String</span>&gt; urlParams) {
-        <span class="cm">// 返回消息流（SSE 场景）</span>
-        <span class="kw">return</span> sseConnectionManager.<span class="fn">subscribe</span>(<span class="fn">topic</span>())
-                .<span class="fn">map</span>(<span class="typ">TopicMessage</span>::<span class="fn">getMsg</span>);
-    }
-}</code></pre>
-  </div>
-
-  <div class="callout callout-info">
-    <span class="callout-icon">&#x1F4A1;</span>
-    <div>
-      <strong>自动发现</strong>
-      <p>只需将 Publisher 和 Subscriber 注册为 Spring Bean，<code>TopicRouter</code> 会自动发现并通过 <code>topic()</code> 匹配路由。无需手动注册。</p>
-    </div>
-  </div>
-
-  <h3>TopicRouter（路由器）</h3>
-  <p><code>TopicRouter</code> 是核心路由组件，构造器注入所有 Publisher 和 Subscriber Bean，按主题名分派 <code>push</code> / <code>pull</code> 调用。</p>
-  <div class="code-block">
-    <div class="code-header">
-      <span class="code-lang">Java</span>
-      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
-    </div>
-    <pre><code><span class="cm">// TopicRouter 自动注入所有 Publisher 和 Subscriber</span>
-<span class="ann">@Autowired</span>
-<span class="typ">TopicRouter</span>&lt;<span class="typ">Serializable</span>, <span class="typ">Msg</span>&gt; topicRouter;
-
-<span class="cm">// 发布消息</span>
-topicRouter.<span class="fn">push</span>(<span class="str">"order.update"</span>, msg);
-
-<span class="cm">// 订阅消息（返回 Flux）</span>
-<span class="typ">Flux</span>&lt;<span class="typ">OrderMsg</span>&gt; flux = topicRouter.<span class="fn">pull</span>(<span class="str">"order.update"</span>, params);</code></pre>
-  </div>
-
-  <h3>SSE 连接生命周期</h3>
-  <p>每个 SSE 连接经历以下状态转换：</p>
-  <div class="state-flow">
-    <span class="state-box state-created">CREATED</span>
-    <span class="state-arrow">&#x2192;</span>
-    <span class="state-box state-active">ACTIVE</span>
-    <span class="state-arrow">&#x2192;</span>
-    <span class="state-box state-draining">DRAINING</span>
-    <span class="state-arrow">&#x2192;</span>
-    <span class="state-box state-closed">CLOSED</span>
-  </div>
-  <ul>
-    <li><strong>CREATED</strong> — 连接对象已创建，Flux 尚未被订阅</li>
-    <li><strong>ACTIVE</strong> — Flux 已被订阅，连接正在收发数据</li>
-    <li><strong>DRAINING</strong> — 排空中（Reaper / Shutdown 触发），等待自然关闭</li>
-    <li><strong>CLOSED</strong> — 连接已关闭，资源已释放</li>
-  </ul>
-
-  <h3>三层清理机制</h3>
-  <p>确保连接不泄漏的三道防线：</p>
-  <div class="table-wrapper">
-    <table>
-      <thead><tr><th>层级</th><th>触发方式</th><th>覆盖场景</th><th>占比</th></tr></thead>
-      <tbody>
-        <tr>
-          <td><strong>第一层：doFinally</strong></td>
-          <td>响应式回调</td>
-          <td>客户端主动断开、连接超时、正常完成</td>
-          <td>~95%</td>
-        </tr>
-        <tr>
-          <td><strong>第二层：Reaper</strong></td>
-          <td>定时扫描（默认 30s）</td>
-          <td>僵尸连接（空闲超时）、过期连接</td>
-          <td>~4%</td>
-        </tr>
-        <tr>
-          <td><strong>第三层：Shutdown</strong></td>
-          <td>SmartLifecycle 关闭</td>
-          <td>应用关闭时强制清理所有连接</td>
-          <td>~1%</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="callout callout-warn">
-    <span class="callout-icon">&#x26A0;</span>
-    <div>
-      <strong>并发安全</strong>
-      <p>三层清理通过<strong>位域双守卫</strong>保证并发安全：单个 <code>AtomicInteger</code> 的 bit 0 竞争清理执行权，bit 1 保证计数器仅递减一次。</p>
+  <h3>数据流</h3>
+  <div class="arch-diagram">
+    <div class="arch-flow">
+      <div class="arch-box arch-publisher">POST /api/chat/push</div>
+      <span class="arch-arrow">&#x2192;</span>
+      <div class="arch-box arch-mq">MQ (im.chat)</div>
+      <span class="arch-arrow">&#x2192;</span>
+      <div class="arch-box arch-subscriber">Repeater</div>
+      <span class="arch-arrow">&#x2192;</span>
+      <div class="arch-box arch-client">GET /api/chat/pull (SSE)</div>
     </div>
   </div>
 
@@ -1000,221 +816,265 @@ topicRouter.<span class="fn">push</span>(<span class="str">"order.update"</span>
 <div class="tab-panel" id="architecture">
 
   <h2>架构详解</h2>
-  <p class="section-desc">深入理解 TOOLS IM 的消息流转机制、MQ 自动创建原理和微服务部署模式。</p>
+  <p class="section-desc">配置驱动 · 三段式解耦 · 零侵入扩展</p>
 
-  <h3>消息流转全链路</h3>
-  <p>框架采用<strong>进-转-出</strong>三段式架构，通过 Spring Cloud Stream 实现跨进程消息传递：</p>
-
-  <div class="arch-diagram">
-    <div style="display: flex; flex-direction: column; gap: 24px;">
-
-      <!-- 发送端 -->
-      <div style="background: #EEF2FF; border: 1px solid #C7D2FE; border-radius: 12px; padding: 20px;">
-        <div style="font-weight: 600; color: #4338CA; margin-bottom: 12px;">📤 发送端服务 (Service A)</div>
-        <div class="arch-flow" style="justify-content: flex-start;">
-          <div class="arch-box" style="background: #fff; border: 1px solid #C7D2FE; color: #4338CA;">HTTP POST<br><small>/push/{topic}</small></div>
-          <span class="arch-arrow">→</span>
-          <div class="arch-box" style="background: #fff; border: 1px solid #C7D2FE; color: #4338CA;">PublisherEndpoint</div>
-          <span class="arch-arrow">→</span>
-          <div class="arch-box" style="background: #fff; border: 1px solid #C7D2FE; color: #4338CA;">TopicRouter</div>
-          <span class="arch-arrow">→</span>
-          <div class="arch-box" style="background: #fff; border: 1px solid #C7D2FE; color: #4338CA;">YourPublisher</div>
-          <span class="arch-arrow">→</span>
-          <div class="arch-box arch-mq">StreamBridge<br><small>.send(topic, msg)</small></div>
-        </div>
-      </div>
-
-      <!-- MQ -->
-      <div style="text-align: center; font-size: 32px; color: #059669;">⬇️</div>
-
-      <div style="background: #F0FDF4; border: 2px solid #86EFAC; border-radius: 12px; padding: 20px; text-align: center;">
-        <div style="font-weight: 700; color: #166534; font-size: 18px; margin-bottom: 8px;">🐰 RabbitMQ / Spring Cloud Stream</div>
-        <div style="color: #166534; font-size: 14px;">
-          Exchange: <code>{topic}</code> &nbsp;|&nbsp; Queue: 自动创建 &nbsp;|&nbsp; Binding: 自动绑定
-        </div>
-      </div>
-
-      <div style="text-align: center; font-size: 32px; color: #059669;">⬇️</div>
-
-      <!-- 拉取端 -->
-      <div style="background: #FFF7ED; border: 1px solid #FED7AA; border-radius: 12px; padding: 20px;">
-        <div style="font-weight: 600; color: #9A3412; margin-bottom: 12px;">📥 拉取端服务 (Service B)</div>
-        <div class="arch-flow" style="justify-content: flex-start;">
-          <div class="arch-box arch-mq">Consumer Bean<br><small>{topic}.consumer</small></div>
-          <span class="arch-arrow">→</span>
-          <div class="arch-box" style="background: #fff; border: 1px solid #FED7AA; color: #9A3412;">SseConnectionManager<br><small>.publish(msg)</small></div>
-          <span class="arch-arrow">→</span>
-          <div class="arch-box" style="background: #fff; border: 1px solid #FED7AA; color: #9A3412;">Sink.emit()</div>
-          <span class="arch-arrow">→</span>
-          <div class="arch-box" style="background: #fff; border: 1px solid #FED7AA; color: #9A3412;">Flux&lt;Msg&gt;</div>
-          <span class="arch-arrow">→</span>
-          <div class="arch-box arch-client">SSE Client<br><small>GET /pull/{topic}</small></div>
-        </div>
-      </div>
-
+  <h3>设计哲学</h3>
+  <div class="card-grid" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="card">
+      <h4>&#x1F3AF; 声明式优于编程式</h4>
+      <p>开发者表达"意图"，框架负责"执行"。3 行 YAML 配置即可完成端点注册、Stream 绑定、连接管理。</p>
+    </div>
+    <div class="card">
+      <h4>&#x1F504; 三段式解耦</h4>
+      <p>进（Publisher）- 转（Repeater）- 出（Subscriber），每层职责单一，可独立替换，组合出无限可能。</p>
+    </div>
+    <div class="card">
+      <h4>&#x1F9E9; 渐进式扩展</h4>
+      <p>零代码开箱 → 拦截器扩展 → 工厂自定义 → 完全替换链路。入门门槛低，天花板高。</p>
     </div>
   </div>
 
-  <h3>MQ 队列自动创建机制</h3>
-  <p>框架利用 Spring Cloud Stream 的<strong>函数式绑定</strong>机制实现 MQ 基础设施的自动创建：</p>
+  <h3>全景架构</h3>
+  <p>从开发者配置到客户端接收的完整链路：</p>
 
+  <div class="arch-diagram" style="padding: 60px 40px;">
+    <!-- 开发者配置层 -->
+    <div style="text-align: center; margin-bottom: 40px;">
+      <div style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 40px; border-radius: 16px; font-size: 16px; font-weight: 600; box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);">
+        &#x1F4DD; 开发者配置<br>
+        <code style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 6px; margin-top: 8px; display: inline-block; font-size: 13px;">im.endpoints: [{path, topic, mode}]</code>
+      </div>
+    </div>
+
+    <div style="text-align: center; font-size: 32px; color: #9CA3AF; margin-bottom: 20px;">&#x2B07;</div>
+
+    <!-- 框架核心层 -->
+    <div style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); border-radius: 20px; padding: 40px; margin-bottom: 40px; border: 2px solid #e2e8f0;">
+      <div style="text-align: center; font-size: 18px; font-weight: 700; color: #1e293b; margin-bottom: 30px;">&#x2699; SseIm Framework 核心引擎</div>
+
+      <div style="display: flex; justify-content: space-around; align-items: center; flex-wrap: wrap; gap: 20px;">
+        <!-- 配置解析 -->
+        <div style="text-align: center;">
+          <div style="background: #fff; padding: 16px 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #10b981;">
+            <div style="font-size: 24px; margin-bottom: 8px;">&#x1F50D;</div>
+            <div style="font-weight: 600; color: #1e293b; font-size: 14px;">配置解析</div>
+            <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">YAML → EndpointProperties</div>
+          </div>
+        </div>
+
+        <!-- 箭头 -->
+        <div style="font-size: 24px; color: #9CA3AF;">&#x27A1;</div>
+
+        <!-- 端点注册 -->
+        <div style="text-align: center;">
+          <div style="background: #fff; padding: 16px 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #3b82f6;">
+            <div style="font-size: 24px; margin-bottom: 8px;">&#x1F4CB;</div>
+            <div style="font-weight: 600; color: #1e293b; font-size: 14px;">端点注册</div>
+            <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">EndpointRegistry</div>
+          </div>
+        </div>
+
+        <!-- 箭头 -->
+        <div style="font-size: 24px; color: #9CA3AF;">&#x27A1;</div>
+
+        <!-- 资源创建 -->
+        <div style="text-align: center;">
+          <div style="background: #fff; padding: 16px 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #8b5cf6;">
+            <div style="font-size: 24px; margin-bottom: 8px;">&#x1F3ED;</div>
+            <div style="font-weight: 600; color: #1e293b; font-size: 14px;">资源创建</div>
+            <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">Stream + Components</div>
+          </div>
+        </div>
+
+        <!-- 箭头 -->
+        <div style="font-size: 24px; color: #9CA3AF;">&#x27A1;</div>
+
+        <!-- 动态路由 -->
+        <div style="text-align: center;">
+          <div style="background: #fff; padding: 16px 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-left: 4px solid #f59e0b;">
+            <div style="font-size: 24px; margin-bottom: 8px;">&#x1F6E3;</div>
+            <div style="font-weight: 600; color: #1e293b; font-size: 14px;">动态路由</div>
+            <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">EndpointRouter</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 消息流 -->
+    <div style="display: flex; justify-content: space-between; align-items: stretch; gap: 40px; margin-bottom: 40px;">
+      <!-- 发送端 -->
+      <div style="flex: 1; background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%); border-radius: 16px; padding: 30px; border: 2px solid #C7D2FE;">
+        <div style="text-align: center; font-size: 16px; font-weight: 700; color: #4338CA; margin-bottom: 20px;">&#x1F4E4; 消息发送</div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="background: #fff; padding: 12px 16px; border-radius: 8px; text-align: center; font-size: 13px; font-weight: 500;">
+            POST /api/chat/push
+          </div>
+          <div style="text-align: center; color: #6366f1;">&#x2B07;</div>
+          <div style="background: #fff; padding: 12px 16px; border-radius: 8px; text-align: center; font-size: 13px; font-weight: 500;">
+            Publisher.push()
+          </div>
+          <div style="text-align: center; color: #6366f1;">&#x2B07;</div>
+          <div style="background: #4338CA; color: white; padding: 12px 16px; border-radius: 8px; text-align: center; font-size: 13px; font-weight: 600;">
+            StreamBridge → MQ
+          </div>
+        </div>
+      </div>
+
+      <!-- 中间 MQ -->
+      <div style="flex: 0 0 120px; display: flex; align-items: center; justify-content: center;">
+        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 24px 20px; border-radius: 50%; width: 100px; height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(16, 185, 129, 0.4);">
+          <div style="font-size: 32px;">&#x1F42F;</div>
+          <div style="font-size: 12px; font-weight: 600; margin-top: 4px;">MQ</div>
+        </div>
+      </div>
+
+      <!-- 接收端 -->
+      <div style="flex: 1; background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%); border-radius: 16px; padding: 30px; border: 2px solid #FED7AA;">
+        <div style="text-align: center; font-size: 16px; font-weight: 700; color: #9A3412; margin-bottom: 20px;">&#x1F4E5; 消息接收</div>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="background: #9A3412; color: white; padding: 12px 16px; border-radius: 8px; text-align: center; font-size: 13px; font-weight: 600;">
+            MQ → Repeater.receive()
+          </div>
+          <div style="text-align: center; color: #ea580c;">&#x2B07;</div>
+          <div style="background: #fff; padding: 12px 16px; border-radius: 8px; text-align: center; font-size: 13px; font-weight: 500;">
+            拦截器链处理
+          </div>
+          <div style="text-align: center; color: #ea580c;">&#x2B07;</div>
+          <div style="background: #fff; padding: 12px 16px; border-radius: 8px; text-align: center; font-size: 13px; font-weight: 500;">
+            SSE 推送
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align: center; font-size: 32px; color: #9CA3AF; margin-bottom: 20px;">&#x2B07;</div>
+
+    <!-- 客户端 -->
+    <div style="text-align: center;">
+      <div style="display: inline-block; background: linear-gradient(135deg, #ec4899 0%, #be185d 100%); color: white; padding: 20px 40px; border-radius: 16px; font-size: 16px; font-weight: 600; box-shadow: 0 8px 32px rgba(236, 72, 153, 0.4);">
+        &#x1F4F1; 客户端实时接收<br>
+        <code style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 6px; margin-top: 8px; display: inline-block; font-size: 13px;">GET /api/chat/pull (SSE)</code>
+      </div>
+    </div>
+  </div>
+
+  <h3>关键设计决策</h3>
   <div class="table-wrapper">
     <table>
-      <thead><tr><th>阶段</th><th>触发时机</th><th>自动/手动</th><th>说明</th></tr></thead>
+      <thead><tr><th>决策</th><th>原因</th><th>收益</th></tr></thead>
       <tbody>
         <tr>
-          <td><strong>Exchange 创建</strong></td>
-          <td>首次 <code>StreamBridge.send()</code></td>
-          <td style="color: #059669; font-weight: 600;">✅ 自动</td>
-          <td>Spring Cloud Stream 动态创建输出绑定，RabbitMQ 自动创建 Exchange</td>
+          <td><strong>路径与 Topic 解耦</strong></td>
+          <td>URL 是对外契约，Topic 是内部实现。两者独立演进，互不影响。</td>
+          <td>URL 可以 RESTful 化、版本化；Topic 可以按业务语义命名</td>
         </tr>
         <tr>
-          <td><strong>Queue 创建</strong></td>
-          <td>Consumer Bean 注册后</td>
-          <td style="color: #059669; font-weight: 600;">✅ 自动</td>
-          <td>RabbitMQ 自动创建 Queue 并绑定到 Exchange</td>
+          <td><strong>进-转-出三段式</strong></td>
+          <td>职责分离，每层可独立替换。Publisher 专注接入，Repeater 专注转发，Subscriber 专注分发。</td>
+          <td>高内聚低耦合，支持细粒度自定义</td>
         </tr>
         <tr>
-          <td><strong>Binding 映射</strong></td>
-          <td>应用启动时</td>
-          <td style="color: #DC2626; font-weight: 600;">❌ 手动</td>
-          <td>需配置 <code>destination</code> 将 Consumer 绑定到正确的 Topic</td>
+          <td><strong>响应式全链路</strong></td>
+          <td>WebFlux 环境下，同步阻塞会阻塞事件循环。全链路响应式保证高并发下的吞吐量。</td>
+          <td>非阻塞、高吞吐、资源利用率高</td>
+        </tr>
+        <tr>
+          <td><strong>SPI 扩展点</strong></td>
+          <td>不同场景有不同的定制需求。Factory / Interceptor / Filter / Listener 覆盖主要扩展场景。</td>
+          <td>零侵入扩展，按需渐进式自定义</td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <div class="callout callout-warn">
-    <span class="callout-icon">⚠️</span>
-    <div>
-      <strong>关键配置：destination 映射</strong>
-      <p>Consumer Bean 名称为 <code>{topic}.consumer</code>，Spring Cloud Stream 自动创建输入绑定 <code>{topic}.consumer-in-0</code>。但框架<strong>不会自动</strong>将此绑定与 destination 关联，需手动配置：</p>
-    </div>
-  </div>
+  <h3>配置驱动原理</h3>
+  <p>框架通过 <code>im.endpoints</code> 配置自动完成所有基础设施创建：</p>
 
   <div class="code-block">
     <div class="code-header">
       <span class="code-lang">YAML</span>
-      <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
     </div>
-    <pre><code><span class="attr">spring</span>:
-  <span class="attr">cloud</span>:
-    <span class="attr">stream</span>:
-      <span class="attr">bindings</span>:
-        <span class="cm"># 发送端输出绑定（可选，默认使用 topic 名称）</span>
-        <span class="attr">order.update</span>:
-          <span class="attr">destination</span>: <span class="val">order.update</span>
-
-        <span class="cm"># 拉取端输入绑定（必须配置！）</span>
-        <span class="attr">order.update.consumer-in-0</span>:
-          <span class="attr">destination</span>: <span class="val">order.update</span></code></pre>
+    <pre><code><span class="attr">im</span>:
+  <span class="attr">endpoints</span>:
+    - <span class="attr">path</span>: <span class="val">/api/chat/pull</span>   <span class="cm"># URL 路径（对外契约）</span>
+      <span class="attr">topic</span>: <span class="val">im.chat</span>           <span class="cm"># 内部 Topic（业务语义）</span>
+      <span class="attr">mode</span>: <span class="val">pull</span>               <span class="cm"># PUSH 或 PULL</span></code></pre>
   </div>
 
-  <h3>微服务部署模式</h3>
-  <p>框架原生支持发送端和拉取端分离部署，通过 <code>Definition</code> 接口实现灵活组合：</p>
-
-  <div class="card-grid" style="grid-template-columns: repeat(3, 1fr);">
-    <div class="card">
-      <div class="card-icon">📤</div>
-      <h4>发送端服务</h4>
-      <p>实现 <code>PublisherDefinition</code>，仅创建 Publisher Bean。适合只负责接收 HTTP 请求并发送消息的服务。</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">📥</div>
-      <h4>拉取端服务</h4>
-      <p>实现 <code>SubscriberDefinition</code>，创建 Consumer + Subscriber Bean。适合只负责 SSE 推送的服务。</p>
-    </div>
-    <div class="card">
-      <div class="card-icon">🔄</div>
-      <h4>单进程服务</h4>
-      <p>实现 <code>TopicDefinition</code>，创建完整三组件。适合开发环境或小型应用。</p>
+  <div class="callout callout-info">
+    <span class="callout-icon">&#x1F4A1;</span>
+    <div>
+      <strong>路径与 Topic 解耦</strong>
+      <p>URL 路径是对外契约，可以随意设计（RESTful、版本化）；Topic 是内部实现，可以随意命名。两者互不影响，独立演进。</p>
     </div>
   </div>
 
-  <h4>发送端示例</h4>
-  <div class="code-block">
-    <div class="code-header">
-      <span class="code-lang">Java</span>
-      <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
-    </div>
-    <pre><code><span class="cm">// Service A: 仅负责发送消息</span>
-<span class="ann">@Component</span>
-<span class="kw">public class</span> <span class="typ">OrderPublisherDefinition</span> <span class="kw">implements</span> <span class="typ">PublisherDefinition</span> {
-    <span class="ann">@Override</span>
-    <span class="kw">public</span> <span class="typ">String</span> <span class="fn">topic</span>() {
-        <span class="kw">return</span> <span class="str">"order.update"</span>;
-    }
-    <span class="cm">// 自动创建 Publisher，不会创建 Consumer/Subscriber</span>
-}</code></pre>
-  </div>
-
-  <h4>拉取端示例</h4>
-  <div class="code-block">
-    <div class="code-header">
-      <span class="code-lang">Java</span>
-      <button class="copy-btn" onclick="copyCode(this)">📋 复制</button>
-    </div>
-    <pre><code><span class="cm">// Service B: 仅负责 SSE 推送</span>
-<span class="ann">@Component</span>
-<span class="kw">public class</span> <span class="typ">OrderSubscriberDefinition</span> <span class="kw">implements</span> <span class="typ">SubscriberDefinition</span> {
-    <span class="ann">@Override</span>
-    <span class="kw">public</span> <span class="typ">String</span> <span class="fn">topic</span>() {
-        <span class="kw">return</span> <span class="str">"order.update"</span>;
-    }
-    <span class="cm">// 自动创建 Consumer + Subscriber，不会创建 Publisher</span>
-}</code></pre>
-  </div>
-
-  <h3>Bean 命名规则</h3>
-  <p>理解 Bean 命名规则有助于正确配置 Spring Cloud Stream binding：</p>
+  <h4>自动创建链路</h4>
+  <p>启动时，<code>EndpointAutoConfiguration</code> 自动完成以下工作：</p>
 
   <div class="table-wrapper">
     <table>
-      <thead><tr><th>组件</th><th>Bean 名称</th><th>Spring Cloud Stream 绑定名</th></tr></thead>
+      <thead><tr><th>阶段</th><th>组件</th><th>动作</th></tr></thead>
       <tbody>
         <tr>
-          <td>Publisher</td>
-          <td><code>{topic}.publisher</code></td>
-          <td>输出绑定：<code>{topic}</code>（StreamBridge 动态创建）</td>
+          <td><strong>1</strong></td>
+          <td><code>EndpointRegistry</code></td>
+          <td>注册端点配置（path → topic + mode）</td>
         </tr>
         <tr>
-          <td>Consumer</td>
-          <td><code>{topic}.consumer</code></td>
-          <td>输入绑定：<code>{topic}.consumer-in-0</code></td>
+          <td><strong>2</strong></td>
+          <td><code>TopicFactory</code></td>
+          <td>按需创建 Stream binding（输出或输入）+ Consumer Bean</td>
         </tr>
         <tr>
-          <td>Subscriber</td>
-          <td><code>{topic}.subscriber</code></td>
-          <td>无（不涉及 MQ）</td>
+          <td><strong>3</strong></td>
+          <td><code>TopicRegistry</code></td>
+          <td>按需创建 Publisher / Repeater / Subscriber 组件</td>
+        </tr>
+        <tr>
+          <td><strong>4</strong></td>
+          <td><code>EndpointRouter</code></td>
+          <td>构建 RouterFunction，动态路由请求到 PUSH / PULL 处理器</td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <div class="callout callout-tip">
-    <span class="callout-icon">💡</span>
-    <div>
-      <strong>多实例部署</strong>
-      <p>拉取端服务可部署多个实例，每个实例独立消费 MQ 消息并推送到本地 SSE 连接。Spring Cloud Stream 通过 Consumer Group 机制保证消息只被一个实例消费，实现负载均衡。</p>
-    </div>
-  </div>
-
 </div>
 
-<!-- ==================== Tab 4: 配置参考 ==================== -->
+<!-- ==================== Tab: 配置参考 ==================== -->
 <div class="tab-panel" id="configuration">
 
   <h2>配置参考</h2>
-  <p class="section-desc">所有配置项前缀为 <code>im.sse</code>，通过 <code>application.yml</code> 配置。</p>
+  <p class="section-desc">所有配置项通过 <code>application.yml</code> 配置。</p>
 
-  <h3>连接限制</h3>
+  <h3>端点配置（核心）</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">YAML</span>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+    </div>
+    <pre><code><span class="attr">im</span>:
+  <span class="attr">endpoints</span>:
+    - <span class="attr">path</span>: <span class="val">/api/chat/push</span>
+      <span class="attr">topic</span>: <span class="val">im.chat</span>
+      <span class="attr">mode</span>: <span class="val">push</span>              <span class="cm"># PUSH: POST → MQ</span>
+    - <span class="attr">path</span>: <span class="val">/api/chat/pull</span>
+      <span class="attr">topic</span>: <span class="val">im.chat</span>
+      <span class="attr">mode</span>: <span class="val">pull</span>              <span class="cm"># PULL: GET → SSE</span></code></pre>
+  </div>
+
+  <h3>SSE 连接配置</h3>
   <div class="table-wrapper">
     <table>
       <thead><tr><th>配置路径</th><th>类型</th><th>默认值</th><th>说明</th></tr></thead>
       <tbody>
-        <tr><td><code>max-total-connections</code></td><td>int</td><td><code>100000</code></td><td>全局最大连接数</td></tr>
-        <tr><td><code>max-connections-per-topic</code></td><td>int</td><td><code>10000</code></td><td>单 Topic 最大连接数</td></tr>
-        <tr><td><code>max-connection-lifetime</code></td><td>Duration</td><td><code>24h</code></td><td>连接最大存活时间，到期自动关闭（设 0 禁用）</td></tr>
+        <tr><td><code>im.sse.max-total-connections</code></td><td>int</td><td><code>100000</code></td><td>全局最大连接数</td></tr>
+        <tr><td><code>im.sse.max-connections-per-topic</code></td><td>int</td><td><code>10000</code></td><td>单 Topic 最大连接数</td></tr>
+        <tr><td><code>im.sse.max-connection-lifetime</code></td><td>Duration</td><td><code>24h</code></td><td>连接最大存活时间（设 0 禁用）</td></tr>
+        <tr><td><code>im.sse.heartbeat.enabled</code></td><td>boolean</td><td><code>true</code></td><td>是否启用心跳</td></tr>
+        <tr><td><code>im.sse.heartbeat.interval</code></td><td>Duration</td><td><code>30s</code></td><td>心跳间隔</td></tr>
       </tbody>
     </table>
   </div>
@@ -1224,425 +1084,244 @@ topicRouter.<span class="fn">push</span>(<span class="str">"order.update"</span>
     <table>
       <thead><tr><th>配置路径</th><th>类型</th><th>默认值</th><th>说明</th></tr></thead>
       <tbody>
-        <tr><td><code>backpressure.default-strategy</code></td><td>String</td><td><code>drop-oldest</code></td><td>默认策略：buffer / drop-oldest / error</td></tr>
-        <tr><td><code>backpressure.default-buffer-size</code></td><td>int</td><td><code>1024</code></td><td>默认缓冲区大小</td></tr>
-        <tr><td><code>backpressure.topic-overrides</code></td><td>Map</td><td><code>{}</code></td><td>按 Topic 覆盖策略（key=topic, value=strategy）</td></tr>
-        <tr><td><code>backpressure.topic-buffer-overrides</code></td><td>Map</td><td><code>{}</code></td><td>按 Topic 覆盖缓冲区大小</td></tr>
+        <tr><td><code>im.sse.backpressure.default-strategy</code></td><td>String</td><td><code>drop-oldest</code></td><td>默认策略：buffer / drop-oldest / error</td></tr>
+        <tr><td><code>im.sse.backpressure.default-buffer-size</code></td><td>int</td><td><code>1024</code></td><td>默认缓冲区大小</td></tr>
+        <tr><td><code>im.sse.backpressure.topic-overrides</code></td><td>Map</td><td><code>{}</code></td><td>按 Topic 覆盖策略</td></tr>
       </tbody>
     </table>
   </div>
 
-  <h3>收割器</h3>
+  <h3>Reaper（僵尸连接清理）</h3>
   <div class="table-wrapper">
     <table>
       <thead><tr><th>配置路径</th><th>类型</th><th>默认值</th><th>说明</th></tr></thead>
       <tbody>
-        <tr><td><code>reaper.enabled</code></td><td>boolean</td><td><code>true</code></td><td>是否启用收割器</td></tr>
-        <tr><td><code>reaper.interval</code></td><td>Duration</td><td><code>30s</code></td><td>扫描间隔</td></tr>
-        <tr><td><code>reaper.idle-timeout</code></td><td>Duration</td><td><code>3600s</code></td><td>空闲超时阈值（超过此时间无活动视为僵尸连接）</td></tr>
-        <tr><td><code>reaper.grace-period</code></td><td>Duration</td><td><code>5s</code></td><td>僵尸连接强制关闭前的宽限期</td></tr>
+        <tr><td><code>im.sse.reaper.enabled</code></td><td>boolean</td><td><code>true</code></td><td>是否启用</td></tr>
+        <tr><td><code>im.sse.reaper.interval</code></td><td>Duration</td><td><code>30s</code></td><td>扫描间隔</td></tr>
+        <tr><td><code>im.sse.reaper.idle-timeout</code></td><td>Duration</td><td><code>3600s</code></td><td>空闲超时</td></tr>
       </tbody>
     </table>
-  </div>
-
-  <h3>优雅关闭</h3>
-  <div class="table-wrapper">
-    <table>
-      <thead><tr><th>配置路径</th><th>类型</th><th>默认值</th><th>说明</th></tr></thead>
-      <tbody>
-        <tr><td><code>shutdown.drain-timeout</code></td><td>Duration</td><td><code>30s</code></td><td>排空超时（等待连接自然关闭的最长时间）</td></tr>
-        <tr><td><code>shutdown.send-goodbye</code></td><td>boolean</td><td><code>true</code></td><td>关闭时是否发送告别消息</td></tr>
-        <tr><td><code>shutdown.reject-new</code></td><td>boolean</td><td><code>true</code></td><td>关闭时是否拒绝新连接</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <h3>心跳</h3>
-  <div class="table-wrapper">
-    <table>
-      <thead><tr><th>配置路径</th><th>类型</th><th>默认值</th><th>说明</th></tr></thead>
-      <tbody>
-        <tr><td><code>heartbeat.enabled</code></td><td>boolean</td><td><code>true</code></td><td>是否启用心跳</td></tr>
-        <tr><td><code>heartbeat.interval</code></td><td>Duration</td><td><code>30s</code></td><td>心跳发送间隔</td></tr>
-        <tr><td><code>heartbeat.comment</code></td><td>String</td><td><code>"heartbeat"</code></td><td>心跳注释内容（SSE comment）</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <h3>指标</h3>
-  <div class="table-wrapper">
-    <table>
-      <thead><tr><th>配置路径</th><th>类型</th><th>默认值</th><th>说明</th></tr></thead>
-      <tbody>
-        <tr><td><code>metrics.enabled</code></td><td>boolean</td><td><code>true</code></td><td>是否启用指标收集</td></tr>
-        <tr><td><code>metrics.prefix</code></td><td>String</td><td><code>"im.sse"</code></td><td>指标前缀</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <h3>清理</h3>
-  <div class="table-wrapper">
-    <table>
-      <thead><tr><th>配置路径</th><th>类型</th><th>默认值</th><th>说明</th></tr></thead>
-      <tbody>
-        <tr><td><code>cleanup.empty-topic-ttl</code></td><td>Duration</td><td><code>60s</code></td><td>空 Topic 保留时间（防止抖动）</td></tr>
-        <tr><td><code>cleanup.compact-ttl</code></td><td>Duration</td><td><code>1h</code></td><td>Topic 计数器压缩 TTL（设 0 禁用）</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <h3>完整配置示例</h3>
-  <div class="code-block">
-    <div class="code-header">
-      <span class="code-lang">YAML</span>
-      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
-    </div>
-    <pre><code><span class="attr">im</span>:
-  <span class="attr">base-path</span>: <span class="val">/</span>
-  <span class="attr">sse</span>:
-    <span class="attr">max-total-connections</span>: <span class="num">100000</span>
-    <span class="attr">max-connections-per-topic</span>: <span class="num">10000</span>
-    <span class="attr">max-connection-lifetime</span>: <span class="val">24h</span>
-    <span class="attr">backpressure</span>:
-      <span class="attr">default-strategy</span>: <span class="val">drop-oldest</span>
-      <span class="attr">default-buffer-size</span>: <span class="num">1024</span>
-      <span class="attr">topic-overrides</span>:
-        <span class="attr">order.update</span>: <span class="val">buffer</span>
-      <span class="attr">topic-buffer-overrides</span>:
-        <span class="attr">order.update</span>: <span class="num">2048</span>
-    <span class="attr">reaper</span>:
-      <span class="attr">enabled</span>: <span class="val">true</span>
-      <span class="attr">interval</span>: <span class="val">30s</span>
-      <span class="attr">idle-timeout</span>: <span class="val">3600s</span>
-      <span class="attr">grace-period</span>: <span class="val">5s</span>
-    <span class="attr">shutdown</span>:
-      <span class="attr">drain-timeout</span>: <span class="val">30s</span>
-      <span class="attr">send-goodbye</span>: <span class="val">true</span>
-      <span class="attr">reject-new</span>: <span class="val">true</span>
-    <span class="attr">heartbeat</span>:
-      <span class="attr">enabled</span>: <span class="val">true</span>
-      <span class="attr">interval</span>: <span class="val">30s</span>
-      <span class="attr">comment</span>: <span class="val">heartbeat</span>
-    <span class="attr">metrics</span>:
-      <span class="attr">enabled</span>: <span class="val">true</span>
-      <span class="attr">prefix</span>: <span class="val">im.sse</span>
-    <span class="attr">cleanup</span>:
-      <span class="attr">empty-topic-ttl</span>: <span class="val">60s</span>
-      <span class="attr">compact-ttl</span>: <span class="val">1h</span></code></pre>
   </div>
 
 </div>
 
-<!-- ==================== Tab 5: 高级功能 ==================== -->
-<div class="tab-panel" id="advanced">
+<!-- ==================== Tab: SPI 扩展 ==================== -->
+<div class="tab-panel" id="spi-extension">
 
-  <h2>高级功能</h2>
-  <p class="section-desc">深入了解背压策略、连接清理、心跳、指标监听等高级特性。</p>
+  <h2>SPI 扩展点</h2>
+  <p class="section-desc">零侵入扩展，按需渐进式自定义。</p>
 
-  <h3>背压策略</h3>
-  <p>当消息发送速率超过客户端消费速率时，背压策略决定如何处理积压的消息。</p>
-  <div class="card-grid" style="grid-template-columns: repeat(3, 1fr);">
-    <div class="card">
-      <h4 style="color: #059669;">drop-oldest（默认）</h4>
-      <p>仅保留最新 1 条消息，旧消息被丢弃。适合实时性要求高、允许丢失的场景（如行情推送）。</p>
-    </div>
-    <div class="card">
-      <h4 style="color: #2563EB;">buffer</h4>
-      <p>缓冲指定数量的消息（默认 1024）。适合客户端能短暂吸收突发的场景（如日志流）。</p>
-    </div>
-    <div class="card">
-      <h4 style="color: #DC2626;">error</h4>
-      <p>零缓冲区，立即报错。适合严格要求不丢消息、需要客户端重连的场景。</p>
-    </div>
-  </div>
+  <h3>1. Factory 模式（组件级自定义）</h3>
+  <p>通过工厂模式替换默认实现：</p>
 
-  <h4>按 Topic 覆盖策略</h4>
   <div class="code-block">
     <div class="code-header">
-      <span class="code-lang">YAML</span>
+      <span class="code-lang">Java</span>
       <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
     </div>
-    <pre><code><span class="attr">im</span>:
-  <span class="attr">sse</span>:
-    <span class="attr">backpressure</span>:
-      <span class="attr">default-strategy</span>: <span class="val">drop-oldest</span>        <span class="cm"># 全局默认</span>
-      <span class="attr">topic-overrides</span>:
-        <span class="attr">order.update</span>: <span class="val">buffer</span>             <span class="cm"># 订单 Topic 使用 buffer</span>
-        <span class="attr">chat.message</span>: <span class="val">error</span>              <span class="cm"># 聊天 Topic 使用 error</span>
-      <span class="attr">topic-buffer-overrides</span>:
-        <span class="attr">order.update</span>: <span class="num">2048</span>               <span class="cm"># 订单 Topic 缓冲区 2048</span></code></pre>
+    <pre><code><span class="cm">// 1. 继承骨架类</span>
+<span class="kw">public class</span> <span class="typ">ChatPublisher</span> <span class="kw">extends</span> <span class="typ">ImPublisher</span> {
+    <span class="kw">public</span> <span class="fn">ChatPublisher</span>(<span class="typ">String</span> topic, <span class="typ">Supplier</span>&lt;<span class="typ">Repeater</span>&gt; repeaterSupplier) {
+        <span class="kw">super</span>(topic, repeaterSupplier);
+    }
+
+    <span class="ann">@Override</span>
+    <span class="kw">public</span> <span class="typ">Serializable</span> <span class="fn">push</span>(<span class="typ">MultiValueMap</span>&lt;<span class="typ">String</span>, <span class="typ">String</span>&gt; urlParams, <span class="typ">Msg</span> msg) {
+        log.<span class="fn">info</span>(<span class="str">"[ChatPublisher] 推送聊天消息"</span>);
+        <span class="kw">return super</span>.<span class="fn">push</span>(urlParams, msg);
+    }
+}
+
+<span class="cm">// 2. 实现工厂</span>
+<span class="ann">@Component</span>
+<span class="kw">public class</span> <span class="typ">ChatPublisherFactory</span> <span class="kw">implements</span> <span class="typ">PublisherFactory</span> {
+    <span class="ann">@Override</span>
+    <span class="kw">public</span> <span class="typ">Publisher</span> <span class="fn">create</span>(<span class="typ">String</span> topic, <span class="typ">Supplier</span>&lt;<span class="typ">Repeater</span>&gt; repeaterSupplier) {
+        <span class="kw">if</span> (<span class="str">"im.chat"</span>.<span class="fn">equals</span>(topic)) {
+            <span class="kw">return new</span> <span class="fn">ChatPublisher</span>(topic, repeaterSupplier);
+        }
+        <span class="kw">return null</span>; <span class="cm">// 其他 Topic 使用默认实现</span>
+    }
+}</code></pre>
   </div>
 
-  <h3>连接收割器（Connection Reaper）</h3>
-  <p>定时扫描所有连接，检测并清理僵尸连接（空闲超过阈值）。</p>
-  <div class="table-wrapper">
-    <table>
-      <thead><tr><th>检测条件</th><th>配置项</th><th>默认值</th><th>处理方式</th></tr></thead>
-      <tbody>
-        <tr><td>空闲超时</td><td><code>reaper.idle-timeout</code></td><td>3600s</td><td>标记 DRAINING → 等待 grace-period → 强制关闭</td></tr>
-        <tr><td>超过最大存活时间</td><td><code>max-connection-lifetime</code></td><td>24h</td><td>通过 Flux.take(Duration) 自动终止</td></tr>
-      </tbody>
-    </table>
-  </div>
+  <h3>2. RepeaterInterceptor（消息拦截器）</h3>
+  <p>拦截消息流的关键节点，用于审计、持久化、历史回放：</p>
 
-  <div class="callout callout-tip">
-    <span class="callout-icon">&#x1F4A1;</span>
-    <div>
-      <strong>心跳与 Reaper 的关系</strong>
-      <p>心跳发送时会调用 <code>conn.touch()</code> 重置空闲计时器。因此活跃连接不会被 Reaper 误判为僵尸连接。心跳间隔（默认 30s）应小于 Reaper 空闲超时（默认 3600s）。</p>
-    </div>
-  </div>
-
-  <h3>连接监听器</h3>
-  <p>实现 <code>SseConnectionListener</code> 接口监听连接生命周期事件，注册为 Spring Bean 即可：</p>
   <div class="code-block">
     <div class="code-header">
       <span class="code-lang">Java</span>
       <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
     </div>
     <pre><code><span class="ann">@Component</span>
-<span class="kw">public class</span> <span class="typ">ConnectionAuditListener</span> <span class="kw">implements</span> <span class="typ">SseConnectionListener</span> {
+<span class="kw">public class</span> <span class="typ">RedisReplayInterceptor</span> <span class="kw">implements</span> <span class="typ">RepeaterInterceptor</span> {
+    <span class="ann">@Autowired</span>
+    <span class="kw">private</span> <span class="typ">RedisTemplate</span>&lt;<span class="typ">String</span>, <span class="kw">byte</span[]>> redisTemplate;
 
     <span class="ann">@Override</span>
-    <span class="kw">public void</span> <span class="fn">onConnected</span>(<span class="typ">SseConnection</span> conn) {
-        log.<span class="fn">info</span>(<span class="str">"连接建立: topic={}, id={}"</span>,
-            conn.<span class="fn">getTopic</span>(), conn.<span class="fn">getConnectionId</span>());
+    <span class="kw">public</span> <span class="typ">Mono</span>&lt;<span class="typ">Boolean</span>&gt; <span class="fn">beforeSend</span>(<span class="typ">TopicMessage</span>&lt;<span class="typ">Msg</span>&gt; message) {
+        <span class="cm">// 发送前持久化到 Redis</span>
+        redisTemplate.<span class="fn">opsForList</span>().<span class="fn">rightPush</span>(key(message.<span class="fn">getTopic</span>()), serialize(message));
+        <span class="kw">return</span> <span class="typ">Mono</span>.<span class="fn">just</span>(<span class="kw">true</span>); <span class="cm">// false 拦截消息</span>
     }
 
     <span class="ann">@Override</span>
-    <span class="kw">public void</span> <span class="fn">onDisconnected</span>(<span class="typ">SseConnection</span> conn, <span class="typ">SignalType</span> signal) {
-        log.<span class="fn">info</span>(<span class="str">"连接断开: topic={}, id={}, signal={}"</span>,
-            conn.<span class="fn">getTopic</span>(), conn.<span class="fn">getConnectionId</span>(), signal);
-    }
-
-    <span class="ann">@Override</span>
-    <span class="kw">public void</span> <span class="fn">onPublishError</span>(<span class="typ">String</span> topic, <span class="typ">Sinks.EmitResult</span> result) {
-        log.<span class="fn">warn</span>(<span class="str">"发布异常: topic={}, result={}"</span>, topic, result);
+    <span class="kw">public</span> <span class="typ">Flux</span>&lt;<span class="typ">Msg</span>&gt; <span class="fn">transformSubscribeStream</span>(<span class="typ">String</span> topic, <span class="typ">Flux</span>&lt;<span class="typ">Msg</span>&gt; stream, ...) {
+        <span class="cm">// 订阅时先回放历史消息</span>
+        <span class="typ">Flux</span>&lt;<span class="typ">Msg</span>&gt; history = <span class="fn">loadFromRedis</span>(topic);
+        <span class="kw">return</span> <span class="typ">Flux</span>.<span class="fn">concat</span>(history, stream);
     }
 }</code></pre>
   </div>
 
-  <h3>Micrometer 指标</h3>
-  <p>自动暴露以下指标（前缀 <code>im.sse</code>），无缝接入 Prometheus / Grafana：</p>
-  <div class="table-wrapper">
-    <table>
-      <thead><tr><th>指标名</th><th>类型</th><th>标签</th><th>说明</th></tr></thead>
-      <tbody>
-        <tr><td><code>connections.total</code></td><td>Gauge</td><td>—</td><td>当前总连接数</td></tr>
-        <tr><td><code>connections.max-total</code></td><td>Gauge</td><td>—</td><td>全局连接数上限</td></tr>
-        <tr><td><code>connections.active</code></td><td>Gauge</td><td>topic</td><td>每个 Topic 的连接数</td></tr>
-        <tr><td><code>subscribe.rate</code></td><td>Counter</td><td>topic, result</td><td>订阅尝试（SUCCESS / REJECTED_*）</td></tr>
-        <tr><td><code>publish.rate</code></td><td>Counter</td><td>topic, result</td><td>发布尝试（SUCCESS / NO_SUBSCRIBERS / EMIT_FAILURE）</td></tr>
-        <tr><td><code>subscribe.duration</code></td><td>Timer</td><td>topic</td><td>订阅延迟</td></tr>
-        <tr><td><code>publish.duration</code></td><td>Timer</td><td>topic</td><td>发布延迟</td></tr>
-        <tr><td><code>reaper.scans</code></td><td>Counter</td><td>—</td><td>收割器扫描次数</td></tr>
-        <tr><td><code>reaper.zombies</code></td><td>Counter</td><td>—</td><td>清理的僵尸连接数</td></tr>
-        <tr><td><code>sinks.active</code></td><td>Gauge</td><td>—</td><td>活跃 Sink 数量</td></tr>
-        <tr><td><code>errors</code></td><td>Counter</td><td>type（上限 50 种）</td><td>错误计数</td></tr>
-      </tbody>
-    </table>
-  </div>
+  <h3>3. AccessFilter（端点访问控制）</h3>
+  <p>Pipeline-Filter 模式的安全扩展：</p>
 
-  <h3>优雅关闭</h3>
-  <p><code>SseConnectionManager</code> 实现了 <code>SmartLifecycle</code>，应用关闭时自动执行以下流程：</p>
-  <ol>
-    <li>拒绝新连接（<code>accepting = false</code>）</li>
-    <li>所有连接转换为 DRAINING 状态</li>
-    <li>向所有 Sink 发送完成信号</li>
-    <li>等待 <code>drainTimeout</code>（默认 30s），让连接自然关闭</li>
-    <li>强制关闭剩余连接</li>
-    <li>清理所有资源（Registry、Reaper、Metrics）</li>
-  </ol>
-
-  <div class="callout callout-info">
-    <span class="callout-icon">&#x1F504;</span>
-    <div>
-      <strong>连接超时后的客户端行为</strong>
-      <p>连接超过 <code>maxConnectionLifetime</code> 后，服务端发送 <code>onComplete</code> 关闭连接。客户端 EventSource 检测到断开后会自动重连（SSE 标准行为），建立新连接。</p>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Java</span>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
     </div>
+    <pre><code><span class="ann">@Component</span>
+<span class="ann">@Order</span>(<span class="num">10</span>)
+<span class="kw">public class</span> <span class="typ">JwtAuthFilter</span> <span class="kw">implements</span> <span class="typ">AccessFilter</span> {
+    <span class="ann">@Autowired</span>
+    <span class="kw">private</span> <span class="typ">JwtService</span> jwtService;
+
+    <span class="ann">@Override</span>
+    <span class="kw">public void</span> <span class="fn">doFilter</span>(<span class="typ">AccessContext</span> context, <span class="typ">AccessFilterChain</span> chain) {
+        <span class="typ">String</span> token = context.<span class="fn">getHeader</span>(<span class="str">"Authorization"</span>)
+                .<span class="fn">filter</span>(h -&gt; h.<span class="fn">startsWith</span>(<span class="str">"Bearer "</span>))
+                .<span class="fn">map</span>(h -&gt; h.<span class="fn">substring</span>(<span class="num">7</span>))
+                .<span class="fn">orElseThrow</span>(() -&gt; <span class="kw">new</span> <span class="typ">AccessDeniedException</span>(<span class="str">"Missing token"</span>, <span class="typ">HttpStatus</span>.UNAUTHORIZED));
+
+        <span class="typ">UserDetails</span> user = jwtService.<span class="fn">validate</span>(token);
+        context.<span class="fn">setPrincipal</span>(user);
+        chain.<span class="fn">doFilter</span>(context);
+    }
+}</code></pre>
   </div>
 
 </div>
 
-<!-- ==================== Tab 6: 客户端集成 ==================== -->
-<div class="tab-panel" id="client-integration">
+<!-- ==================== Tab: 高阶用法 ==================== -->
+<div class="tab-panel" id="advanced">
 
-  <h2>客户端集成</h2>
-  <p class="section-desc">覆盖浏览器、Node.js 等主流客户端的集成方案和最佳实践。</p>
+  <h2>高阶用法</h2>
+  <p class="section-desc">运行时动态注册、自定义消息类型、完全替换消息链路。</p>
 
-  <h3>浏览器 EventSource（基础用法）</h3>
-  <p>使用浏览器原生 <code>EventSource</code> API：</p>
+  <h3>运行时动态注册端点</h3>
   <div class="code-block">
     <div class="code-header">
-      <span class="code-lang">JavaScript</span>
+      <span class="code-lang">Java</span>
       <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
     </div>
-    <pre><code><span class="kw">const</span> eventSource = <span class="kw">new</span> <span class="fn">EventSource</span>(<span class="str">'/pull/im.broadcast'</span>);
+    <pre><code><span class="ann">@RestController</span>
+<span class="kw">public class</span> <span class="typ">AdminController</span> {
+    <span class="ann">@Autowired</span>
+    <span class="kw">private</span> <span class="typ">EndpointRegistry</span> endpointRegistry;
 
-<span class="cm">// 连接成功</span>
-eventSource.<span class="fn">onopen</span> = () =&gt; {
-  console.<span class="fn">log</span>(<span class="str">'SSE 连接已建立'</span>);
-};
+    <span class="ann">@PostMapping</span>(<span class="str">"/admin/endpoint"</span>)
+    <span class="kw">public</span> <span class="typ">R</span>&lt;?&gt; <span class="fn">addEndpoint</span>(<span class="ann">@RequestBody</span> <span class="typ">EndpointProperties</span> config) {
+        endpointRegistry.<span class="fn">register</span>(config);  <span class="cm">// 即时生效</span>
+        <span class="kw">return</span> <span class="typ">R</span>.<span class="fn">ok</span>();
+    }
+}</code></pre>
+  </div>
 
-<span class="cm">// 接收消息</span>
-eventSource.<span class="fn">onmessage</span> = (event) =&gt; {
-  <span class="kw">const</span> message = <span class="typ">JSON</span>.<span class="fn">parse</span>(event.data);
-  console.<span class="fn">log</span>(<span class="str">'收到消息:'</span>, message);
-};
+  <h3>自定义消息类型</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Java</span>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+    </div>
+    <pre><code><span class="ann">@Data</span>
+<span class="kw">public class</span> <span class="typ">ChatMsg</span> <span class="kw">implements</span> <span class="typ">Msg</span> {
+    <span class="kw">private</span> <span class="typ">String</span> from;
+    <span class="kw">private</span> <span class="typ">String</span> content;
+    <span class="kw">private long</span> timestamp;
+    <span class="cm">// 无需实现 build()，框架提供默认实现</span>
+}</code></pre>
+  </div>
 
-<span class="cm">// 错误处理</span>
-eventSource.<span class="fn">onerror</span> = (error) =&gt; {
-  <span class="kw">if</span> (eventSource.readyState === <span class="typ">EventSource</span>.CONNECTING) {
-    console.<span class="fn">log</span>(<span class="str">'连接断开，正在自动重连...'</span>);
-  } <span class="kw">else if</span> (eventSource.readyState === <span class="typ">EventSource</span>.CLOSED) {
-    console.<span class="fn">error</span>(<span class="str">'连接已关闭，不会自动重连'</span>);
-  }
-};</code></pre>
+  <h3>完全自定义 Repeater（绕过 MQ）</h3>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Java</span>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+    </div>
+    <pre><code><span class="kw">public class</span> <span class="typ">DirectRepeater</span> <span class="kw">implements</span> <span class="typ">Repeater</span> {
+    <span class="ann">@Override</span>
+    <span class="kw">public</span> <span class="typ">Serializable</span> <span class="fn">send</span>(<span class="typ">TopicMessage</span>&lt;<span class="typ">Msg</span>&gt; message) {
+        <span class="cm">// 直接推送到 Redis Pub/Sub，绕过 MQ</span>
+        redisTemplate.<span class="fn">convertAndSend</span>(message.<span class="fn">getTopic</span>(), serialize(message));
+        <span class="kw">return</span> message.<span class="fn">getId</span>();
+    }
+
+    <span class="ann">@Override</span>
+    <span class="kw">public void</span> <span class="fn">receive</span>(<span class="typ">TopicMessage</span>&lt;<span class="typ">Msg</span>&gt; message) {
+        <span class="cm">// 从 Redis 接收后推送到 SSE</span>
+        sseConnectionManager.<span class="fn">publish</span>(message.<span class="fn">getTopic</span>(), message);
+    }
+
+    <span class="ann">@Override</span>
+    <span class="kw">public</span> <span class="typ">Flux</span>&lt;<span class="typ">Msg</span>&gt; <span class="fn">subscribe</span>(<span class="typ">MultiValueMap</span>&lt;<span class="typ">String</span>, <span class="typ">String</span>&gt; urlParams) {
+        <span class="cm">// 从 Redis 订阅实时流</span>
+        <span class="kw">return</span> redisReactiveTemplate.<span class="fn">listenToChannel</span>(topic()).<span class="fn">map</span>(<span class="kw">this</span>::deserialize);
+    }
+}</code></pre>
+  </div>
+
+</div>
+
+<!-- ==================== Tab: 监控运维 ==================== -->
+<div class="tab-panel" id="monitoring">
+
+  <h2>监控运维</h2>
+  <p class="section-desc">运行时查询 API、Micrometer 指标、日志级别。</p>
+
+  <h3>运行时查询 API</h3>
+  <p>框架提供 <code>ImAdminController</code>，暴露以下接口：</p>
+
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>接口</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><code>GET /im/admin/endpoints</code></td><td>查询所有已注册端点</td></tr>
+        <tr><td><code>GET /im/admin/topics</code></td><td>查询所有活跃 Topic 及连接数</td></tr>
+        <tr><td><code>GET /im/admin/connections/{topic}</code></td><td>查询指定 Topic 的连接详情</td></tr>
+        <tr><td><code>GET /im/admin/stats</code></td><td>查询全局统计信息</td></tr>
+      </tbody>
+    </table>
   </div>
 
   <div class="callout callout-warn">
     <span class="callout-icon">&#x26A0;</span>
     <div>
-      <strong>自动重连 vs 手动重试</strong>
-      <p>
-        <strong>自动重连</strong>（readyState = CONNECTING）：服务端发送 onComplete、网络中断恢复、服务端强制关闭 → EventSource 自动重连。<br>
-        <strong>手动重试</strong>（readyState = CLOSED）：限流拒绝、服务不可用（HTTP 错误）→ 需要客户端代码手动重试。
-      </p>
+      <strong>安全提醒</strong>
+      <p>生产环境应通过 <code>AccessFilter</code> 为 <code>/im/admin/**</code> 添加访问控制（认证、授权、IP 白名单）。</p>
     </div>
   </div>
 
-  <h3>带重试的 EventSource 封装</h3>
-  <p>处理 HTTP 错误（限流、服务不可用）场景的健壮封装：</p>
-  <div class="code-block">
-    <div class="code-header">
-      <span class="code-lang">JavaScript</span>
-      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
-    </div>
-    <pre><code><span class="kw">function</span> <span class="fn">createResilientEventSource</span>(url, options = {}) {
-  <span class="kw">const</span> {
-    maxRetries = <span class="typ">Infinity</span>,
-    retryDelay = <span class="num">3000</span>,
-    maxRetryDelay = <span class="num">30000</span>,
-    onMessage,
-    onOpen,
-    onError
-  } = options;
+  <h3>Micrometer 指标</h3>
+  <p>自动暴露以下指标（前缀 <code>im.sse</code>），无缝接入 Prometheus / Grafana：</p>
 
-  <span class="kw">let</span> retryCount = <span class="num">0</span>;
-  <span class="kw">let</span> currentDelay = retryDelay;
-  <span class="kw">let</span> eventSource;
-
-  <span class="kw">function</span> <span class="fn">connect</span>() {
-    eventSource = <span class="kw">new</span> <span class="fn">EventSource</span>(url);
-
-    eventSource.<span class="fn">onopen</span> = () =&gt; {
-      console.<span class="fn">log</span>(<span class="str">'SSE 连接成功'</span>);
-      retryCount = <span class="num">0</span>;
-      currentDelay = retryDelay;
-      onOpen?.();
-    };
-
-    eventSource.<span class="fn">onmessage</span> = (event) =&gt; {
-      onMessage?.(<span class="typ">JSON</span>.<span class="fn">parse</span>(event.data));
-    };
-
-    eventSource.<span class="fn">onerror</span> = (error) =&gt; {
-      <span class="kw">if</span> (eventSource.readyState === <span class="typ">EventSource</span>.CLOSED) {
-        <span class="cm">// HTTP 错误（限流 / 服务不可用），手动重试</span>
-        retryCount++;
-        <span class="kw">if</span> (retryCount &lt;= maxRetries) {
-          console.<span class="fn">log</span>(<span class="str">`将在 <span class="op">${</span>currentDelay<span class="op">}</span>ms 后重试 (<span class="op">${</span>retryCount<span class="op">}</span>/<span class="op">${</span>maxRetries<span class="op">}</span>)`</span>);
-          <span class="fn">setTimeout</span>(() =&gt; {
-            eventSource.<span class="fn">close</span>();
-            <span class="fn">connect</span>();
-            currentDelay = <span class="typ">Math</span>.<span class="fn">min</span>(currentDelay * <span class="num">2</span>, maxRetryDelay);
-          }, currentDelay);
-        } <span class="kw">else</span> {
-          console.<span class="fn">error</span>(<span class="str">'SSE 重试次数已达上限'</span>);
-          onError?.(error);
-        }
-      }
-      <span class="cm">// CONNECTING 状态会自动重连，无需处理</span>
-    };
-  }
-
-  <span class="fn">connect</span>();
-  <span class="kw">return</span> {
-    close: () =&gt; eventSource?.<span class="fn">close</span>(),
-    getSource: () =&gt; eventSource
-  };
-}
-
-<span class="cm">// 使用示例</span>
-<span class="kw">const</span> sse = <span class="fn">createResilientEventSource</span>(<span class="str">'/pull/im.broadcast'</span>, {
-  maxRetries: <span class="num">10</span>,
-  retryDelay: <span class="num">3000</span>,
-  onMessage: (data) =&gt; console.<span class="fn">log</span>(<span class="str">'消息:'</span>, data),
-  onError: (err) =&gt; alert(<span class="str">'连接失败，请刷新页面重试'</span>)
-});</code></pre>
-  </div>
-
-  <h3>Node.js SSE 客户端</h3>
-  <p>使用 <code>fetch</code> + <code>ReadableStream</code> 实现 Node.js SSE 客户端：</p>
-  <div class="code-block">
-    <div class="code-header">
-      <span class="code-lang">JavaScript</span>
-      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
-    </div>
-    <pre><code><span class="kw">async function</span> <span class="fn">connectSSE</span>(url) {
-  <span class="kw">const</span> response = <span class="kw">await</span> <span class="fn">fetch</span>(url, {
-    headers: { <span class="str">'Accept'</span>: <span class="str">'text/event-stream'</span> }
-  });
-
-  <span class="kw">const</span> reader = response.body.<span class="fn">getReader</span>();
-  <span class="kw">const</span> decoder = <span class="kw">new</span> <span class="typ">TextDecoder</span>();
-  <span class="kw">let</span> buffer = <span class="str">''</span>;
-
-  <span class="kw">while</span> (<span class="kw">true</span>) {
-    <span class="kw">const</span> { done, value } = <span class="kw">await</span> reader.<span class="fn">read</span>();
-    <span class="kw">if</span> (done) <span class="kw">break</span>;
-
-    buffer += decoder.<span class="fn">decode</span>(value, { stream: <span class="kw">true</span> });
-    <span class="kw">const</span> lines = buffer.<span class="fn">split</span>(<span class="str">'\n'</span>);
-    buffer = lines.<span class="fn">pop</span>() || <span class="str">''</span>;  <span class="cm">// 保留未完成的行</span>
-
-    <span class="kw">for</span> (<span class="kw">const</span> line <span class="kw">of</span> lines) {
-      <span class="kw">if</span> (line.<span class="fn">startsWith</span>(<span class="str">'data:'</span>)) {
-        <span class="kw">const</span> data = line.<span class="fn">slice</span>(<span class="num">5</span>).<span class="fn">trim</span>();
-        console.<span class="fn">log</span>(<span class="str">'收到消息:'</span>, <span class="typ">JSON</span>.<span class="fn">parse</span>(data));
-      }
-      <span class="cm">// 忽略心跳注释（以 : 开头的行）</span>
-    }
-  }
-}
-
-<span class="cm">// 使用</span>
-<span class="fn">connectSSE</span>(<span class="str">'http://localhost:8080/pull/im.broadcast'</span>);</code></pre>
-  </div>
-
-  <h3>最佳实践</h3>
-  <div class="card-grid">
-    <div class="card">
-      <h4>&#x1F504; 断线重连</h4>
-      <p>实现指数退避重试策略，避免重连风暴。初始延迟 3s，最大延迟 30s。</p>
-    </div>
-    <div class="card">
-      <h4>&#x1F5D1; 页面卸载清理</h4>
-      <p>监听 <code>beforeunload</code> 事件，调用 <code>eventSource.close()</code> 释放连接。</p>
-    </div>
-    <div class="card">
-      <h4>&#x1F4CA; 重连监控</h4>
-      <p>记录重连次数，超过阈值时告警。频繁重连可能表示服务端或网络问题。</p>
-    </div>
-    <div class="card">
-      <h4>&#x1F512; 消息幂等</h4>
-      <p>重连可能丢失消息（drop-oldest 策略下）。客户端应通过消息 ID 实现幂等处理。</p>
-    </div>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>指标名</th><th>类型</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><code>connections.total</code></td><td>Gauge</td><td>当前总连接数</td></tr>
+        <tr><td><code>connections.active</code></td><td>Gauge</td><td>按 Topic 的活跃连接数</td></tr>
+        <tr><td><code>subscribe.rate</code></td><td>Counter</td><td>订阅速率</td></tr>
+        <tr><td><code>publish.rate</code></td><td>Counter</td><td>发布速率</td></tr>
+        <tr><td><code>reaper.zombies</code></td><td>Counter</td><td>清理的僵尸连接数</td></tr>
+      </tbody>
+    </table>
   </div>
 
 </div>
 
-<!-- ==================== Tab 7: 故障排查 ==================== -->
+<!-- ==================== Tab: 故障排查 ==================== -->
 <div class="tab-panel" id="troubleshooting">
 
   <h2>故障排查</h2>
@@ -1655,64 +1334,29 @@ eventSource.<span class="fn">onerror</span> = (error) =&gt; {
       <tbody>
         <tr>
           <td><strong>SSE 连接无法建立</strong></td>
-          <td>Topic 未注册（无 Publisher / Subscriber Bean）</td>
-          <td>确认 Publisher 和 Subscriber 已注册为 Spring Bean，且 <code>topic()</code> 返回值一致</td>
-        </tr>
-        <tr>
-          <td><strong>SSE 连接无法建立</strong></td>
-          <td>连接数达到上限</td>
-          <td>检查 <code>im.sse.max-total-connections</code> 和 <code>im.sse.max-connections-per-topic</code>，考虑扩容</td>
+          <td>端点未配置</td>
+          <td>检查 <code>im.endpoints</code> 配置，确认 <code>mode: pull</code> 的端点存在</td>
         </tr>
         <tr>
           <td><strong>消息未收到</strong></td>
-          <td>Spring Cloud Stream binding 未配置</td>
-          <td>确认 RabbitMQ binder 已配置，<code>imBroadcastConsumer-in-0</code> binding 正常</td>
-        </tr>
-        <tr>
-          <td><strong>消息未收到</strong></td>
-          <td>背压策略丢弃消息</td>
-          <td>默认 drop-oldest 策略会丢弃旧消息。如需保证消息不丢失，改用 buffer 策略</td>
+          <td>RabbitMQ binding 未创建</td>
+          <td>查看启动日志中 <code>[TopicFactory]</code> 相关日志，确认 binding 已创建</td>
         </tr>
         <tr>
           <td><strong>连接频繁断开</strong></td>
           <td>反向代理空闲超时</td>
-          <td>确认 Nginx <code>proxy_read_timeout</code> 大于心跳间隔（默认 30s）。建议设为 60s+</td>
-        </tr>
-        <tr>
-          <td><strong>连接频繁断开</strong></td>
-          <td>Reaper 误判为僵尸连接</td>
-          <td>确认心跳已启用（<code>im.sse.heartbeat.enabled=true</code>）。心跳会重置空闲计时器</td>
+          <td>确认 Nginx <code>proxy_read_timeout</code> 大于心跳间隔（默认 30s）</td>
         </tr>
         <tr>
           <td><strong>连接数持续增长</strong></td>
           <td>客户端未正确关闭连接</td>
-          <td>确认页面卸载时调用 <code>eventSource.close()</code>。Reaper 最终会清理空闲连接</td>
+          <td>确认页面卸载时调用 <code>eventSource.close()</code>。Reaper 会清理空闲连接</td>
         </tr>
-        <tr>
-          <td><strong>内存持续增长</strong></td>
-          <td>动态 Topic 过多，计数器条目堆积</td>
-          <td>确认 <code>im.sse.cleanup.compact-ttl</code> 未设为 0，让 Reaper 定期压缩空 Topic 条目</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <h3>监控建议</h3>
-  <p>生产环境建议监控以下关键指标：</p>
-  <div class="table-wrapper">
-    <table>
-      <thead><tr><th>指标</th><th>告警阈值</th><th>说明</th></tr></thead>
-      <tbody>
-        <tr><td><code>im.sse.connections.total</code></td><td>&gt; 80% max</td><td>总连接数接近上限，考虑扩容</td></tr>
-        <tr><td><code>im.sse.subscribe.rate{result="REJECTED_*"}</code></td><td>&gt; 0</td><td>有连接被拒绝，检查容量</td></tr>
-        <tr><td><code>im.sse.reaper.zombies</code></td><td>持续增长</td><td>僵尸连接增多，检查心跳配置</td></tr>
-        <tr><td><code>im.sse.errors</code></td><td>&gt; 0</td><td>有异常发生，检查日志</td></tr>
       </tbody>
     </table>
   </div>
 
   <h3>日志级别</h3>
-  <p>开发调试时开启 DEBUG 日志，排查连接生命周期细节：</p>
   <div class="code-block">
     <div class="code-header">
       <span class="code-lang">YAML</span>
@@ -1721,16 +1365,7 @@ eventSource.<span class="fn">onerror</span> = (error) =&gt; {
     <pre><code><span class="attr">logging</span>:
   <span class="attr">level</span>:
     <span class="attr">cn.gmlee.tools.im</span>: <span class="val">DEBUG</span>      <span class="cm"># 框架核心日志</span>
-    <span class="attr">cn.gmlee.tools.im.sse</span>: <span class="val">DEBUG</span>  <span class="cm"># SSE 连接管理日志</span>
-    <span class="attr">cn.gmlee.tools.im.sse.cleanup</span>: <span class="val">DEBUG</span>  <span class="cm"># Reaper 清理日志</span></code></pre>
-  </div>
-
-  <div class="callout callout-danger">
-    <span class="callout-icon">&#x1F6A8;</span>
-    <div>
-      <strong>性能提醒</strong>
-      <p>DEBUG 日志在高连接数场景下会产生大量输出，仅用于开发调试。生产环境请使用 INFO 或 WARN 级别。</p>
-    </div>
+    <span class="attr">cn.gmlee.tools.im.sse</span>: <span class="val">DEBUG</span>  <span class="cm"># SSE 连接管理日志</span></code></pre>
   </div>
 
 </div>
@@ -1739,7 +1374,7 @@ eventSource.<span class="fn">onerror</span> = (error) =&gt; {
 
 <!-- ==================== Footer ==================== -->
 <footer class="site-footer">
-  <p>Im Framework (IF) &middot; Based on Spring Boot WebFlux + SSE &middot; v5.6.0-SNAPSHOT</p>
+  <p>SseIm Framework &middot; 配置驱动的即时通讯框架 &middot; v5.6.0-SNAPSHOT</p>
 </footer>
 
 </div> <!-- End Reading Mode -->
@@ -1792,7 +1427,6 @@ function copyCode(btn) {
       btn.innerHTML = '&#x1F4CB; 复制';
     }, 2000);
   }).catch(() => {
-    // Fallback for older browsers
     const textarea = document.createElement('textarea');
     textarea.value = text;
     document.body.appendChild(textarea);

@@ -8,7 +8,7 @@ import lombok.Data;
  * <p>
  * 一个端点由三要素定义：
  * <ul>
- *   <li>{@code path} — 对外暴露的 URL 路径（如 {@code /api/chat/stream}）</li>
+ *   <li>{@code path} — 对外暴露的 URL 路径（如 {@code /api/chat/pull}）</li>
  *   <li>{@code topic} — 内部 Topic 名称（如 {@code im.chat}），不暴露在 URL 中</li>
  *   <li>{@code mode} — 端点模式：{@link EndpointMode#PUSH 推送} 或 {@link EndpointMode#PULL 拉取}</li>
  * </ul>
@@ -23,7 +23,7 @@ import lombok.Data;
 public class EndpointProperties {
 
     /**
-     * 请求路径（如 /api/chat/stream）
+     * 请求路径（如 /api/chat/pull）
      */
     private String path;
 
