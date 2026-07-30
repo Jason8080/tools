@@ -509,6 +509,7 @@ td code { font-size: 13px; }
       <button class="tab-btn" data-tab="architecture">架构详解</button>
       <button class="tab-btn" data-tab="configuration">配置参考</button>
       <button class="tab-btn" data-tab="spi-extension">SPI 扩展</button>
+      <button class="tab-btn" data-tab="targeted-delivery">定向投递</button>
       <button class="tab-btn" data-tab="advanced">高阶用法</button>
       <button class="tab-btn" data-tab="monitoring">监控运维</button>
       <button class="tab-btn" data-tab="troubleshooting">故障排查</button>
@@ -1277,6 +1278,332 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
         <span class="kw">return</span> redisReactiveTemplate.<span class="fn">listenToChannel</span>(topic()).<span class="fn">map</span>(<span class="kw">this</span>::deserialize);
     }
 }</code></pre>
+  </div>
+
+</div>
+
+<!-- ==================== Tab: 定向投递 ==================== -->
+<div class="tab-panel" id="targeted-delivery">
+
+  <h2>定向投递</h2>
+  <p class="section-desc">将消息精准送达指定用户，而非广播给所有人。框架内置支持，零额外依赖。</p>
+
+  <!-- ===== 1. 核心概念 ===== -->
+  <h3>核心概念</h3>
+  <p>定向投递涉及两个对象，职责分明：</p>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>对象</th><th>职责</th><th>关键字段</th><th>类比</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>ConnectionMetadata</code></td><td>连接的运行时身份</td><td><code>userId</code> — 决定"我是谁"</td><td>信封上的寄件人</td></tr>
+        <tr><td><code>TopicMessage.to</code></td><td>消息的路由意图</td><td><code>Set&lt;String&gt;</code> — 决定"送给谁"</td><td>信封上的收件人</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">&#x1F4A1;</span>
+    <div>
+      <strong>路由规则</strong>
+      <p><code>to</code> 为空 → <b>广播</b>，所有连接收到。<code>to</code> 非空 → <b>定向</b>，仅 <code>userId</code> 在 <code>to</code> 中的连接收到。</p>
+    </div>
+  </div>
+
+  <!-- ===== 2. 快速体验 ===== -->
+  <h3>快速体验（零 Java 代码）</h3>
+  <p>假设你已配置好 <code>/api/chat/push</code>（PUSH）和 <code>/api/chat/pull</code>（PULL）两个端点。只需 3 步：</p>
+
+  <div class="steps">
+    <div class="step">
+      <h4>alice 建立 SSE 连接，声明身份</h4>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript</span>
+          <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+        </div>
+        <pre><code><span class="cm">// 浏览器原生 EventSource — 通过 URL 参数传递身份</span>
+<span class="kw">const</span> es = <span class="kw">new</span> <span class="fn">EventSource</span>(<span class="str">'/api/chat/pull?userId=alice'</span>);
+es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</span>(<span class="str">'收到:'</span>, <span class="typ">JSON</span>.<span class="fn">parse</span>(e.data));</code></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <h4>bob 建立 SSE 连接，声明身份</h4>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">JavaScript</span>
+          <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+        </div>
+        <pre><code><span class="kw">const</span> es = <span class="kw">new</span> <span class="fn">EventSource</span>(<span class="str">'/api/chat/pull?userId=bob'</span>);
+es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</span>(<span class="str">'收到:'</span>, <span class="typ">JSON</span>.<span class="fn">parse</span>(e.data));</code></pre>
+      </div>
+    </div>
+
+    <div class="step">
+      <h4>发送定向消息 — 只有 alice 收到</h4>
+      <div class="code-block">
+        <div class="code-header">
+          <span class="code-lang">HTTP</span>
+          <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+        </div>
+        <pre><code><span class="cm"># URL 参数 to=alice 指定收件人</span>
+<span class="fn">POST</span> <span class="str">/api/chat/push?to=alice</span>
+Content-Type: application/json
+
+{"from": "bob", "content": "你好，这条消息只有你能看到"}</code></pre>
+      </div>
+      <p>alice 的控制台输出：<code>收到: {from: "bob", content: "你好，这条消息只有你能看到"}</code><br>
+      bob 的控制台：<i>（无任何输出）</i></p>
+    </div>
+  </div>
+
+  <!-- ===== 3. 身份建立 ===== -->
+  <h3>身份建立</h3>
+  <p>定向投递的前提是：每个 SSE 连接都有明确的身份标识（<code>userId</code>）。框架通过三层提取自动完成，优先级从高到低：</p>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>优先级</th><th>来源</th><th>适用场景</th><th>示例</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><b>①</b></td>
+          <td><code>AccessFilter</code> 设置的 <code>principal</code></td>
+          <td>生产环境 — JWT / OAuth 认证</td>
+          <td>JWT Filter 解析 token → <code>setPrincipal(userId)</code></td>
+        </tr>
+        <tr>
+          <td><b>②</b></td>
+          <td><code>X-User-Id</code> 请求头</td>
+          <td>服务端调用、Postman 测试、fetch-based SSE</td>
+          <td><code>curl -H 'X-User-Id: alice' ...</code></td>
+        </tr>
+        <tr>
+          <td><b>③</b></td>
+          <td><code>userId</code> URL 参数</td>
+          <td>浏览器 EventSource（无法自定义请求头）</td>
+          <td><code>EventSource('/api/chat/pull?userId=alice')</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">&#x26A0;&#xFE0F;</span>
+    <div>
+      <strong>安全提示</strong>
+      <p>URL 参数（<code>?userId=alice</code>）和请求头（<code>X-User-Id</code>）均为纯声明，无认证能力。适用于开发调试。生产环境应通过 <code>AccessFilter</code> 实现 JWT 等认证机制，确保身份不可伪造。</p>
+    </div>
+  </div>
+
+  <!-- ===== 4. 发送定向消息 ===== -->
+  <h3>发送定向消息</h3>
+  <p>两种路径，殊途同归：</p>
+
+  <h4 style="margin-top: 24px;">路径 A — HTTP 端点（零 Java 代码）</h4>
+  <p>通过 URL 参数 <code>to</code> 指定目标用户：</p>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">JavaScript</span>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+    </div>
+    <pre><code><span class="cm">// 定向投递给 alice</span>
+<span class="fn">fetch</span>(<span class="str">'/api/chat/push?to=alice'</span>, {
+  method: <span class="str">'POST'</span>,
+  headers: {<span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>},
+  body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'bob'</span>, content: <span class="str">'hi alice'</span>})
+});
+
+<span class="cm">// 批量定向 — 同时投递给 alice 和 bob</span>
+<span class="fn">fetch</span>(<span class="str">'/api/chat/push?to=alice&amp;to=bob'</span>, {
+  method: <span class="str">'POST'</span>,
+  headers: {<span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>},
+  body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'server'</span>, content: <span class="str">'群发通知'</span>})
+});
+
+<span class="cm">// 不带 to 参数 = 广播（所有连接收到）</span>
+<span class="fn">fetch</span>(<span class="str">'/api/chat/push'</span>, {
+  method: <span class="str">'POST'</span>,
+  headers: {<span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>},
+  body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'system'</span>, content: <span class="str">'全体通知'</span>})
+});</code></pre>
+  </div>
+
+  <h4 style="margin-top: 24px;">路径 B — Java API（服务端内部调用）</h4>
+  <p>在 Java 代码中直接构建 <code>TopicMessage</code>，设置 <code>to</code> 字段：</p>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Java</span>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+    </div>
+    <pre><code><span class="ann">@Autowired</span>
+<span class="kw">private</span> <span class="typ">TopicRegistry</span> topicRegistry;
+
+<span class="kw">public void</span> <span class="fn">sendPrivateMessage</span>(<span class="typ">String</span> toUserId, <span class="typ">ChatMsg</span> msg) {
+    <span class="typ">TopicMessage</span>&lt;<span class="typ">ChatMsg</span>&gt; envelope = <span class="typ">TopicMessage</span>.&lt;<span class="typ">ChatMsg</span>&gt;<span class="fn">builder</span>()
+            .<span class="fn">topic</span>(<span class="str">"im.chat"</span>)
+            .<span class="fn">msg</span>(msg)
+            .<span class="fn">to</span>(<span class="typ">Set</span>.<span class="fn">of</span>(toUserId))    <span class="cm">// 定向投递</span>
+            .<span class="fn">build</span>();
+    topicRegistry.<span class="fn">ensureRepeater</span>(<span class="str">"im.chat"</span>).<span class="fn">send</span>(envelope);
+}</code></pre>
+  </div>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">&#x1F4CB;</span>
+    <div>
+      <strong>两条路径的等价关系</strong>
+      <p>HTTP 端点的 <code>?to=alice</code> 最终由框架提取并设入 <code>TopicMessage.to</code>，与 Java API 直接设置 <code>to</code> 完全等价。开发者可根据场景自由选择。</p>
+    </div>
+  </div>
+
+  <!-- ===== 5. 路由原理 ===== -->
+  <h3>路由原理</h3>
+  <p>定向投递的路由在<b>订阅侧</b>完成，发布侧零改动。消息经 MQ 回到框架后，进入共享 Sink，Sink 将消息广播给所有连接。每个连接在自己的 Flux 链上通过 <code>filter</code> 判断是否接收：</p>
+
+  <div class="arch-diagram" style="padding: 40px 24px;">
+    <div style="text-align: center; margin-bottom: 24px; font-weight: 600; color: #4F46E5;">消息路由流程</div>
+    <div class="arch-flow">
+      <div class="arch-box arch-publisher">sink.tryEmitNext(message)<br><small>to = {alice}</small></div>
+      <span class="arch-arrow">→</span>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="arch-box" style="background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; padding: 8px 16px; min-width: 100px;">
+            <b>alice</b><br><small>userId ∈ to ✅</small>
+          </div>
+          <span class="arch-arrow">→</span>
+          <div class="arch-box arch-client" style="padding: 8px 16px; min-width: 80px;">收到消息</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="arch-box" style="background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 8px 16px; min-width: 100px;">
+            <b>bob</b><br><small>userId ∉ to ❌</small>
+          </div>
+          <span class="arch-arrow">→</span>
+          <div class="arch-box" style="background: #F9FAFB; border: 1px solid #E5E7EB; color: #9CA3AF; padding: 8px 16px; min-width: 80px;">filter 拦截</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div class="arch-box" style="background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; padding: 8px 16px; min-width: 100px;">
+            <b>alice-2</b><br><small>userId ∈ to ✅</small>
+          </div>
+          <span class="arch-arrow">→</span>
+          <div class="arch-box arch-client" style="padding: 8px 16px; min-width: 80px;">收到消息</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <p>核心过滤逻辑（<code>SseConnectionFluxBuilder.attachLifecycle</code>）：</p>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Java</span>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+    </div>
+    <pre><code><span class="cm">// 每个连接在订阅时自动织入 filter</span>
+<span class="typ">Flux</span>&lt;<span class="typ">TopicMessage</span>&lt;<span class="typ">Msg</span>&gt;&gt; flux = sink.<span class="fn">asFlux</span>()
+    .<span class="fn">filter</span>(msg -&gt; {
+        <span class="typ">Set</span>&lt;<span class="typ">String</span>&gt; to = msg.<span class="fn">getTo</span>();
+        <span class="kw">return</span> (to == <span class="kw">null</span> || to.<span class="fn">isEmpty</span>())            <span class="cm">// 广播 → 全通过</span>
+            || (userId != <span class="kw">null</span> &amp;&amp; to.<span class="fn">contains</span>(userId));  <span class="cm">// 定向 → 匹配才过</span>
+    })
+    .<span class="fn">doOnSubscribe</span>(...)
+    .<span class="fn">doOnNext</span>(...)
+    .<span class="fn">doFinally</span>(...);</code></pre>
+  </div>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">&#x1F4A1;</span>
+    <div>
+      <strong>设计优势</strong>
+      <p>路由在订阅侧意味着：发布侧完全感知不到定向/广播的区别，广播和定向走同一通道。架构零侵入，逻辑清晰。</p>
+    </div>
+  </div>
+
+  <!-- ===== 6. 完整数据流 ===== -->
+  <h3>完整数据流</h3>
+  <div class="arch-diagram" style="padding: 40px 24px;">
+    <div style="text-align: center; margin-bottom: 24px; font-weight: 600; color: #4F46E5;">定向投递全链路</div>
+    <div class="arch-flow">
+      <div class="arch-box arch-publisher">POST /push<b>?to=alice</b><br><small>ImPublisher<br>提取 to</small></div>
+      <span class="arch-arrow">→</span>
+      <div class="arch-box" style="background: #EEF2FF; color: #4338CA; border: 1px solid #C7D2FE;">
+        <b>TopicMessage</b><br><small>msg={content:"hi"}<br>to={alice}</small>
+      </div>
+      <span class="arch-arrow">→</span>
+      <div class="arch-box arch-mq">MQ<br><small>to 随消息<br>完整保留</small></div>
+      <span class="arch-arrow">→</span>
+      <div class="arch-box arch-subscriber">Sink<br><small>广播给<br>所有连接</small></div>
+      <span class="arch-arrow">→</span>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div class="arch-box" style="background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; padding: 8px 16px; font-size: 13px;">alice 连接 ✅<br><small>filter 通过</small></div>
+        <div class="arch-box" style="background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 8px 16px; font-size: 13px;">bob 连接 ❌<br><small>filter 拦截</small></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 7. 生产环境建议 ===== -->
+  <h3>生产环境建议</h3>
+
+  <div class="callout callout-danger">
+    <span class="callout-icon">&#x1F6E1;&#xFE0F;</span>
+    <div>
+      <strong>身份认证不可省略</strong>
+      <p><code>?userId=alice</code> 和 <code>X-User-Id: alice</code> 均为纯声明，任何人可伪造。生产环境必须通过 <code>AccessFilter</code> 实现认证（如 JWT），确保身份不可篡改。</p>
+    </div>
+  </div>
+
+  <p>以下是一个最小可用的 JWT 认证过滤器示例：</p>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Java</span>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+    </div>
+    <pre><code><span class="ann">@Component</span>
+<span class="ann">@Order</span>(<span class="num">10</span>)
+<span class="kw">public class</span> <span class="typ">JwtAuthFilter</span> <span class="kw">implements</span> <span class="typ">AccessFilter</span> {
+
+    <span class="ann">@Autowired</span>
+    <span class="kw">private</span> <span class="typ">JwtService</span> jwtService;
+
+    <span class="ann">@Override</span>
+    <span class="kw">public void</span> <span class="fn">doFilter</span>(<span class="typ">AccessContext</span> context, <span class="typ">AccessFilterChain</span> chain) {
+        <span class="typ">String</span> token = context.<span class="fn">getHeader</span>(<span class="str">"Authorization"</span>)
+                .<span class="fn">filter</span>(h -&gt; h.<span class="fn">startsWith</span>(<span class="str">"Bearer "</span>))
+                .<span class="fn">map</span>(h -&gt; h.<span class="fn">substring</span>(<span class="num">7</span>))
+                .<span class="fn">orElseThrow</span>(() -&gt; <span class="kw">new</span> <span class="typ">AccessDeniedException</span>(
+                        <span class="str">"Missing token"</span>, <span class="typ">HttpStatus</span>.UNAUTHORIZED));
+
+        <span class="typ">String</span> userId = jwtService.<span class="fn">parseUserId</span>(token);
+        context.<span class="fn">setPrincipal</span>(userId);  <span class="cm">// 框架自动提取为 ConnectionMetadata.userId</span>
+        chain.<span class="fn">doFilter</span>(context);
+    }
+}</code></pre>
+  </div>
+
+  <p>注册为 Spring Bean 后自动生效，无需额外配置。此时客户端的 SSE 连接改为通过请求头传 token：</p>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">JavaScript</span>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+    </div>
+    <pre><code><span class="cm">// fetch-based SSE 客户端（支持自定义请求头）</span>
+<span class="kw">import</span> { fetchEventSource } <span class="kw">from</span> <span class="str">'@microsoft/fetch-event-source'</span>;
+
+<span class="kw">await</span> <span class="fn">fetchEventSource</span>(<span class="str">'/api/chat/pull'</span>, {
+  headers: { <span class="str">'Authorization'</span>: <span class="str">'Bearer eyJhbG...'</span> },
+  onmessage(ev) { console.<span class="fn">log</span>(<span class="typ">JSON</span>.<span class="fn">parse</span>(ev.data)); }
+});</code></pre>
+  </div>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">&#x1F504;</span>
+    <div>
+      <strong>三层提取的优先级保证</strong>
+      <p>当 <code>AccessFilter</code> 设置了 <code>principal</code> 后，框架优先使用该值作为 <code>userId</code>，URL 参数和 <code>X-User-Id</code> 头不会被触达。开发者无需关心兜底逻辑的冲突问题。</p>
+    </div>
   </div>
 
 </div>
