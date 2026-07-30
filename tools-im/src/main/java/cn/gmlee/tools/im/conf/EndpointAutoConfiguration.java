@@ -2,7 +2,7 @@ package cn.gmlee.tools.im.conf;
 
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Repeater;
-import cn.gmlee.tools.im.core.RepeaterInterceptor;
+import cn.gmlee.tools.im.spi.RepeaterInterceptor;
 import cn.gmlee.tools.im.core.Subscriber;
 import cn.gmlee.tools.im.endpoint.EndpointRegistry;
 import cn.gmlee.tools.im.endpoint.EndpointRouter;

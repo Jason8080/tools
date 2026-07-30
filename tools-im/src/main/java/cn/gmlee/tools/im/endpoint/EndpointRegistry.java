@@ -1,6 +1,7 @@
 package cn.gmlee.tools.im.endpoint;
 
 import cn.gmlee.tools.im.conf.EndpointProperties;
+import cn.gmlee.tools.im.spi.EndpointChangeListener;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -21,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * <ul>
  *   <li>路径解析：根据请求路径查找对应的端点配置</li>
  *   <li>生命周期管理：注册、注销、查询端点</li>
- *   <li>变更通知：注册/注销时触发回调（供 {@code TopicFactory} 按需创建资源）</li>
+ *   <li>变更通知：注册/注销时触发回调（供 {@link EndpointChangeListener} 按需响应）</li>
  * </ul>
  *
  * @since 5.6.0
@@ -37,12 +38,12 @@ public class EndpointRegistry {
     /**
      * 变更监听器列表
      */
-    private final List<ChangeListener> listeners = new ArrayList<>();
+    private final List<EndpointChangeListener> listeners = new ArrayList<>();
 
     /**
      * 注册端点.
      * <p>
-     * 如果路径已存在，旧配置会被覆盖。注册成功后触发 {@link ChangeListener#onEndpointRegistered} 回调。
+     * 如果路径已存在，旧配置会被覆盖。注册成功后触发 {@link EndpointChangeListener#onEndpointRegistered} 回调。
      * </p>
      *
      * @param props 端点配置
@@ -62,7 +63,7 @@ public class EndpointRegistry {
     /**
      * 注销端点.
      * <p>
-     * 注销成功后触发 {@link ChangeListener#onEndpointUnregistered} 回调。
+     * 注销成功后触发 {@link EndpointChangeListener#onEndpointUnregistered} 回调。
      * </p>
      *
      * @param path 请求路径
@@ -110,12 +111,12 @@ public class EndpointRegistry {
      *
      * @param listener 监听器
      */
-    public void addListener(ChangeListener listener) {
+    public void addListener(EndpointChangeListener listener) {
         listeners.add(listener);
     }
 
     private void fireRegistered(EndpointProperties props) {
-        for (ChangeListener listener : listeners) {
+        for (EndpointChangeListener listener : listeners) {
             try {
                 listener.onEndpointRegistered(props);
             } catch (Exception e) {
@@ -125,7 +126,7 @@ public class EndpointRegistry {
     }
 
     private void fireUnregistered(EndpointProperties pros) {
-        for (ChangeListener listener : listeners) {
+        for (EndpointChangeListener listener : listeners) {
             try {
                 listener.onEndpointUnregistered(pros);
             } catch (Exception e) {
@@ -147,25 +148,5 @@ public class EndpointRegistry {
         if (props.getMode() == null) {
             throw new IllegalArgumentException("mode 不能为 null");
         }
-    }
-
-    /**
-     * 端点变更监听器.
-     */
-    public interface ChangeListener {
-
-        /**
-         * 端点注册后触发.
-         *
-         * @param props 新注册的端点配置
-         */
-        default void onEndpointRegistered(EndpointProperties props) {}
-
-        /**
-         * 端点注销后触发.
-         *
-         * @param props 被注销的端点配置
-         */
-        default void onEndpointUnregistered(EndpointProperties props) {}
     }
 }

@@ -2,7 +2,7 @@ package cn.gmlee.tools.im.topic;
 
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Repeater;
-import cn.gmlee.tools.im.core.RepeaterInterceptor;
+import cn.gmlee.tools.im.spi.RepeaterInterceptor;
 import cn.gmlee.tools.im.core.Subscriber;
 import cn.gmlee.tools.im.core.Topic;
 import cn.gmlee.tools.im.ex.TopicNotFoundException;

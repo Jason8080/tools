@@ -1,5 +1,8 @@
-package cn.gmlee.tools.im.core;
+package cn.gmlee.tools.im.spi;
 
+import cn.gmlee.tools.im.core.Msg;
+import cn.gmlee.tools.im.core.Repeater;
+import cn.gmlee.tools.im.core.TopicMessage;
 import org.springframework.util.MultiValueMap;
 import reactor.core.publisher.Flux;
 
@@ -8,6 +11,10 @@ import reactor.core.publisher.Flux;
  * <p>
  * 拦截消息流的关键节点，用于审计、持久化、回放等横切关注点。
  * 遵循拦截器模式（Interceptor Pattern），所有方法提供默认空实现，按需重写。
+ * </p>
+ * <p>
+ * <b>注意</b>：拦截器异常会中断调用链（与 Servlet Filter 语义一致）。
+ * {@code beforeSend} 抛出异常可阻止消息发送，适合参数校验场景。
  * </p>
  *
  * <h3>使用示例</h3>

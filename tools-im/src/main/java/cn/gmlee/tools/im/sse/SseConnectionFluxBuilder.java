@@ -5,6 +5,8 @@ import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.TopicMessage;
 import cn.gmlee.tools.im.ex.SseShutdownException;
 import cn.gmlee.tools.im.sse.metrics.SseMetrics;
+import cn.gmlee.tools.im.spi.SseConnectionInfo;
+import cn.gmlee.tools.im.spi.SseConnectionListener;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscription;
 import reactor.core.publisher.Flux;
@@ -233,9 +235,10 @@ final class SseConnectionFluxBuilder {
         if (listeners == null || listeners.isEmpty()) {
             return;
         }
+        SseConnectionInfo info = new SseConnectionInfo(conn.getTopic(), conn.getConnectionId());
         for (SseConnectionListener listener : listeners) {
             try {
-                listener.onConnected(conn);
+                listener.onConnected(info);
             } catch (Exception e) {
                 log.warn("[Listener] onConnected 回调异常: listener={}, connectionId={}",
                         listener.getClass().getSimpleName(), conn.getConnectionId(), e);
@@ -256,9 +259,10 @@ final class SseConnectionFluxBuilder {
         if (listeners == null || listeners.isEmpty()) {
             return;
         }
+        SseConnectionInfo info = new SseConnectionInfo(conn.getTopic(), conn.getConnectionId());
         for (SseConnectionListener listener : listeners) {
             try {
-                listener.onDisconnected(conn, signal);
+                listener.onDisconnected(info, signal);
             } catch (Exception e) {
                 log.warn("[Listener] onDisconnected 回调异常: listener={}, connectionId={}",
                         listener.getClass().getSimpleName(), conn.getConnectionId(), e);

@@ -10,6 +10,7 @@ import cn.gmlee.tools.im.sse.cleanup.ConnectionReaper;
 import cn.gmlee.tools.im.sse.internal.ConnectionCounter;
 import cn.gmlee.tools.im.sse.internal.SseExecutorFactory;
 import cn.gmlee.tools.im.sse.metrics.SseMetrics;
+import cn.gmlee.tools.im.spi.SseConnectionListener;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.SmartLifecycle;

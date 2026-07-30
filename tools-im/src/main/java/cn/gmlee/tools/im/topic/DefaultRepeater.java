@@ -3,7 +3,7 @@ package cn.gmlee.tools.im.topic;
 import cn.gmlee.tools.im.core.BindingNames;
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.Repeater;
-import cn.gmlee.tools.im.core.RepeaterInterceptor;
+import cn.gmlee.tools.im.spi.RepeaterInterceptor;
 import cn.gmlee.tools.im.core.TopicMessage;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import lombok.extern.slf4j.Slf4j;

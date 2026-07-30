@@ -5,6 +5,7 @@ import cn.gmlee.tools.im.core.BindingNames;
 import cn.gmlee.tools.im.core.EndpointMode;
 import cn.gmlee.tools.im.core.Repeater;
 import cn.gmlee.tools.im.endpoint.EndpointRegistry;
+import cn.gmlee.tools.im.spi.EndpointChangeListener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
@@ -33,13 +34,13 @@ import java.util.concurrent.ConcurrentHashMap;
  * <h3>创建时机</h3>
  * <p>
  * YAML 配置的端点在启动时批量注册，TopicFactory 在 {@code @PostConstruct} 阶段为它们创建资源。
- * 运行时通过 API 注册的端点触发 {@link EndpointRegistry.ChangeListener} 回调，实时创建资源。
+ * 运行时通过 API 注册的端点触发 {@link EndpointChangeListener} 回调，实时创建资源。
  * </p>
  *
  * @since 5.6.0
  */
 @Slf4j
-public class TopicFactory implements EndpointRegistry.ChangeListener {
+public class TopicFactory implements EndpointChangeListener {
 
     private final BindingServiceProperties bindingServiceProperties;
     private final BeanDefinitionRegistry beanDefinitionRegistry;
@@ -124,7 +125,7 @@ public class TopicFactory implements EndpointRegistry.ChangeListener {
         }
     }
 
-    // ==================== EndpointRegistry.ChangeListener ====================
+    // ==================== EndpointChangeListener ====================
 
     @Override
     public void onEndpointRegistered(EndpointProperties props) {

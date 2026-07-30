@@ -1,6 +1,6 @@
 package cn.gmlee.tools.im.conf;
 
-import cn.gmlee.tools.im.sse.SseConnectionListener;
+import cn.gmlee.tools.im.spi.SseConnectionListener;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import cn.gmlee.tools.im.sse.SseConnectionRegistry;
 import cn.gmlee.tools.im.sse.backpressure.BackpressureStrategy;
