@@ -30,6 +30,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 动态端点路由.
@@ -83,13 +84,14 @@ public class EndpointRouter {
         this.registry = registry;
         this.topicRegistry = topicRegistry;
         this.sseProperties = sseProperties;
-        this.filters = filters != null ? filters : Collections.emptyList();
 
-        // 按 Order 排序过滤器
-        this.filters.sort(Comparator.comparingInt(AccessFilter::getOrder));
-
-        if (!this.filters.isEmpty()) {
+        // 按 Order 排序过滤器，存储为不可变列表
+        if (filters != null && !filters.isEmpty()) {
+            this.filters = filters.stream()
+                    .sorted(Comparator.comparingInt(AccessFilter::getOrder)).toList();
             log.info("[EndpointRouter] 加载 {} 个访问过滤器", this.filters.size());
+        } else {
+            this.filters = Collections.emptyList();
         }
     }
 

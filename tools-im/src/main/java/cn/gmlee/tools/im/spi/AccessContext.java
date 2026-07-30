@@ -2,7 +2,6 @@ package cn.gmlee.tools.im.spi;
 
 import cn.gmlee.tools.im.conf.EndpointProperties;
 import lombok.Getter;
-import lombok.Setter;
 import org.springframework.web.reactive.function.server.ServerRequest;
 
 import java.net.InetSocketAddress;
@@ -47,23 +46,6 @@ public class AccessContext {
      * </p>
      */
     private final Map<String, Object> attributes = new ConcurrentHashMap<>();
-
-    /**
-     * 是否已认证.
-     * <p>
-     * volatile 保证跨线程可见性。
-     * </p>
-     * -- GETTER --
-     *  检查是否已认证.
-     * <p>
-     *
-     * -- SETTER --
-     *  设置认证状态.
-     *
-     */
-    @Setter
-    @Getter
-    private volatile boolean authenticated = false;
 
     /**
      * 认证主体（用户信息）.
@@ -142,16 +124,24 @@ public class AccessContext {
     // ==================== 认证状态 ====================
 
     /**
+     * 检查是否已认证.
+     *
+     * @return 如果 principal 不为 null 返回 true
+     */
+    public boolean isAuthenticated() {
+        return principal != null;
+    }
+
+    /**
      * 设置认证主体.
      * <p>
-     * 自动设置 {@code authenticated = (principal != null)}。
+     * 设置非 null 值表示已认证，设置 null 表示未认证。
      * </p>
      *
      * @param principal 认证主体
      */
     public void setPrincipal(Object principal) {
         this.principal = principal;
-        this.authenticated = (principal != null);
     }
 
     /**

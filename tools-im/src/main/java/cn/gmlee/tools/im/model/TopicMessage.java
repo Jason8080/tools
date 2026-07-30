@@ -22,11 +22,22 @@ public class TopicMessage<MSG> implements Serializable {
      * <p>
      * 使用 AtomicLong 替代 System.currentTimeMillis()，避免同一毫秒内
      * 创建多条消息时 ID 冲突。序列号从当前时间戳开始，保证跨 JVM 重启后
-     *  ID 仍然单调递增（大部分情况下）。
+     * ID 仍然单调递增（大部分情况下）。
+     * </p>
+     * <p>
+     * <b>唯一性范围</b>：仅保证单 JVM 生命周期内唯一。分布式环境下可能存在 ID 冲突，
+     * 建议开发者根据场景自定义 ID 生成策略（如 UUID、雪花算法），通过
+     * {@code TopicMessage.builder().id(customId).build()} 覆盖默认值。
      * </p>
      */
     private static final AtomicLong ID_GENERATOR = new AtomicLong(System.currentTimeMillis());
 
+    /**
+     * 消息 ID.
+     * <p>
+     * 默认使用全局自增 ID（单 JVM 唯一）。分布式场景建议自定义。
+     * </p>
+     */
     @Builder.Default
     private Serializable id = ID_GENERATOR.incrementAndGet();
     private String topic;

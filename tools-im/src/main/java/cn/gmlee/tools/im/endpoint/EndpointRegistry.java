@@ -4,12 +4,12 @@ import cn.gmlee.tools.im.conf.EndpointProperties;
 import cn.gmlee.tools.im.spi.EndpointChangeListener;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * 端点注册表.
@@ -36,9 +36,13 @@ public class EndpointRegistry {
     private final Map<String, EndpointProperties> endpoints = new ConcurrentHashMap<>();
 
     /**
-     * 变更监听器列表
+     * 变更监听器列表（线程安全）.
+     * <p>
+     * 使用 {@link CopyOnWriteArrayList} 保证并发安全性。
+     * 适用于读多写少场景（启动时注册，运行时触发回调）。
+     * </p>
      */
-    private final List<EndpointChangeListener> listeners = new ArrayList<>();
+    private final List<EndpointChangeListener> listeners = new CopyOnWriteArrayList<>();
 
     /**
      * 注册端点.

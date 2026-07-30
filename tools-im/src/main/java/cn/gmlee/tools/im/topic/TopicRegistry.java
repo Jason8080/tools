@@ -118,6 +118,11 @@ public class TopicRegistry {
      * 幂等：遍历工厂列表，首个返回非 {@code null} 的工厂创建实例；
      * 所有工厂均返回 {@code null}，使用默认实现。
      * </p>
+     * <p>
+     * <b>延迟解析机制</b>：Publisher 通过 {@code Supplier<Repeater>} 延迟获取 Repeater，
+     * 避免构造时的循环依赖（Publisher → Repeater → Publisher）。首次调用
+     * {@link cn.gmlee.tools.im.core.AbstractTopic#resolveRepeater()} 时才解析 Repeater 实例。
+     * </p>
      *
      * @param topic Topic 名称
      * @return Publisher 实例
