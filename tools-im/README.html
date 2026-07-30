@@ -786,11 +786,18 @@ td code { font-size: 13px; }
 <span class="kw">const</span> es = <span class="kw">new</span> <span class="fn">EventSource</span>(<span class="str">'/api/chat/pull'</span>);
 es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</span>(<span class="typ">JSON</span>.<span class="fn">parse</span>(e.data));
 
-<span class="cm">// 发送消息</span>
+<span class="cm">// 广播消息</span>
 <span class="fn">fetch</span>(<span class="str">'/api/chat/push'</span>, {
   method: <span class="str">'POST'</span>,
   headers: {<span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>},
   body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'alice'</span>, content: <span class="str">'hello'</span>})
+});
+
+<span class="cm">// 定向投递（仅 alice 和 bob 收到）</span>
+<span class="fn">fetch</span>(<span class="str">'/api/chat/push?to=alice&amp;to=bob'</span>, {
+  method: <span class="str">'POST'</span>,
+  headers: {<span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>},
+  body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'alice'</span>, content: <span class="str">'private msg'</span>})
 });</code></pre>
       </div>
     </div>
