@@ -20,6 +20,7 @@ package cn.gmlee.tools.im.sse.metrics;
  *   <li>im.sse.errors - 错误计数（Counter，标签：type）</li>
  *   <li>im.sse.subscribe.duration - 订阅延迟（Timer，标签：topic）</li>
  *   <li>im.sse.publish.duration - 发布延迟（Timer，标签：topic）</li>
+ *   <li>im.sse.topics.compacted - Topic 计数器压缩次数（Counter）</li>
  * </ul>
  *
  * @see MicrometerSseMetrics
@@ -64,6 +65,18 @@ public interface SseMetrics {
      * @param type 错误类型
      */
     void recordError(String type);
+
+    /**
+     * 记录 Topic 计数器压缩.
+     * <p>
+     * 当空 Topic 的计数器条目被移除时调用。
+     * 此指标用于监控动态高基数 Topic 场景下的内存回收情况。
+     * </p>
+     *
+     * @param count 被压缩的 Topic 数量
+     * @see SseConnectionRegistry#compactTopicCounts(long)
+     */
+    void recordTopicCompaction(int count);
 
     /**
      * 记录订阅延迟.

@@ -16,6 +16,7 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.cloud.stream.binding.BindingService;
 import org.springframework.cloud.stream.config.BindingServiceProperties;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Bean;
@@ -101,15 +102,17 @@ public class EndpointAutoConfiguration {
      * Topic 资源工厂 Bean.
      * <p>
      * 自动注册为 {@link EndpointRegistry} 的监听器，端点注册时按需创建 Stream 资源。
+     * 支持运行时动态注册端点，无需重启应用。
      * </p>
      */
     @Bean
     @ConditionalOnMissingBean
     public TopicFactory topicFactory(EndpointRegistry endpointRegistry,
                                       BindingServiceProperties bindingServiceProperties,
+                                      BindingService bindingService,
                                       TopicRegistry topicRegistry) {
         TopicFactory factory = new TopicFactory(
-                bindingServiceProperties, beanDefinitionRegistry, topicRegistry);
+                bindingServiceProperties, bindingService, beanDefinitionRegistry, topicRegistry);
         endpointRegistry.addListener(factory);
         return factory;
     }

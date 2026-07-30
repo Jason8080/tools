@@ -51,6 +51,16 @@ public class SseConnectionRegistry {
     private final ConnectionCounter counter;
 
     /**
+     * 指标收集器（延迟设置，避免循环依赖）.
+     * <p>
+     * SseMetrics 需要 SseConnectionRegistry 来注册 Gauge，
+     * 而 SseConnectionRegistry 需要 SseMetrics 来记录压缩指标。
+     * 通过 setter 注入打破循环依赖。
+     * </p>
+     */
+    private SseMetrics metrics;
+
+    /**
      * Topic -> Sink 映射
      */
     private final ConcurrentHashMap<String, Sinks.Many<TopicMessage<Msg>>> topicSinks = new ConcurrentHashMap<>();
@@ -95,6 +105,18 @@ public class SseConnectionRegistry {
         this.properties = properties;
         this.strategyResolver = strategyResolver;
         this.counter = new ConnectionCounter();
+    }
+
+    /**
+     * 设置指标收集器（延迟注入，避免循环依赖）.
+     * <p>
+     * 由 {@link ImAutoConfiguration} 在创建 SseMetrics 后调用。
+     * </p>
+     *
+     * @param metrics 指标收集器
+     */
+    public void setMetrics(SseMetrics metrics) {
+        this.metrics = metrics;
     }
 
     /**
@@ -345,6 +367,11 @@ public class SseConnectionRegistry {
                 compacted++;
                 log.debug("[Topic] 压缩计数器: {}", topic);
             }
+        }
+
+        // 记录压缩指标
+        if (compacted > 0 && metrics != null) {
+            metrics.recordTopicCompaction(compacted);
         }
 
         return compacted;

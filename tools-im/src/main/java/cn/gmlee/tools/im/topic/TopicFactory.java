@@ -9,6 +9,7 @@ import cn.gmlee.tools.im.spi.EndpointChangeListener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
+import org.springframework.cloud.stream.binding.BindingService;
 import org.springframework.cloud.stream.config.BindingProperties;
 import org.springframework.cloud.stream.config.BindingServiceProperties;
 
@@ -43,6 +44,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TopicFactory implements EndpointChangeListener {
 
     private final BindingServiceProperties bindingServiceProperties;
+    private final BindingService bindingService;
     private final BeanDefinitionRegistry beanDefinitionRegistry;
     private final TopicRegistry topicRegistry;
 
@@ -60,13 +62,16 @@ public class TopicFactory implements EndpointChangeListener {
      * 创建 Topic 资源工厂.
      *
      * @param bindingServiceProperties Spring Cloud Stream binding 配置
+     * @param bindingService           Spring Cloud Stream binding 服务（用于运行时启动 binding）
      * @param beanDefinitionRegistry   Spring Bean 定义注册表
      * @param topicRegistry            Topic 组件注册表
      */
     public TopicFactory(BindingServiceProperties bindingServiceProperties,
+                         BindingService bindingService,
                          BeanDefinitionRegistry beanDefinitionRegistry,
                          TopicRegistry topicRegistry) {
         this.bindingServiceProperties = bindingServiceProperties;
+        this.bindingService = bindingService;
         this.beanDefinitionRegistry = beanDefinitionRegistry;
         this.topicRegistry = topicRegistry;
     }
@@ -100,6 +105,9 @@ public class TopicFactory implements EndpointChangeListener {
      * 幂等：同一 Topic 多次调用只创建一次。Consumer Bean 即 {@link Repeater} 自身
      * （实现 {@link java.util.function.Consumer Consumer&lt;TopicMessage&lt;Msg&gt;&gt;}）。
      * </p>
+     * <p>
+     * 运行时注册的端点会立即启动 Consumer binding，无需重启应用。
+     * </p>
      *
      * @param topic Topic 名称
      */
@@ -110,6 +118,9 @@ public class TopicFactory implements EndpointChangeListener {
         topicRegistry.ensureRepeater(topic);
         registerInputBinding(topic);
         registerConsumerBean(topic);
+
+        // 运行时启动 Consumer binding（Spring Cloud Stream 不会自动发现运行时注册的 Bean）
+        startConsumerBinding(topic);
     }
 
     /**
@@ -169,5 +180,33 @@ public class TopicFactory implements EndpointChangeListener {
         beanDef.setInstanceSupplier(() -> repeater);
         beanDefinitionRegistry.registerBeanDefinition(beanName, beanDef);
         log.info("[TopicFactory] 注册 Consumer Bean: {} → Repeater", beanName);
+    }
+
+    /**
+     * 启动 Consumer binding（运行时动态注册场景）.
+     * <p>
+     * Spring Cloud Stream 在启动时自动发现 Consumer Bean 并创建 binding。
+     * 但运行时注册的 Consumer Bean 不会被自动发现，需要手动调用 {@link BindingService} 启动。
+     * </p>
+     * <p>
+     * 注意：此方法仅在运行时注册端点时调用。启动时注册的端点由 Spring Cloud Stream 自动处理。
+     * </p>
+     *
+     * @param topic Topic 名称
+     */
+    private void startConsumerBinding(String topic) {
+        String bindingName = BindingNames.inputBinding(topic);
+        try {
+            // 从 TopicRegistry 获取 Repeater（它实现了 Consumer<TopicMessage<Msg>>）
+            Repeater repeater = topicRegistry.getRepeater(topic);
+            // BindingService.bindConsumer 需要 Consumer 实例和 binding 名称
+            bindingService.bindConsumer(repeater, bindingName);
+            log.info("[TopicFactory] 启动 Consumer binding: {}", bindingName);
+        } catch (Exception e) {
+            log.error("[TopicFactory] 启动 Consumer binding 失败: {}", bindingName, e);
+            // 回滚：移除已注册的资源
+            inputBindingTopics.remove(topic);
+            throw new RuntimeException("启动 Consumer binding 失败: " + bindingName, e);
+        }
     }
 }

@@ -41,6 +41,11 @@ public class NoOpSseMetrics implements SseMetrics {
     }
 
     @Override
+    public void recordTopicCompaction(int count) {
+        // No-op
+    }
+
+    @Override
     public void recordError(String type) {
         // No-op
     }

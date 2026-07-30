@@ -50,6 +50,7 @@ public class MicrometerSseMetrics implements SseMetrics {
 
     private Counter reaperScans;
     private Counter reaperZombies;
+    private Counter topicCompacted;
 
     /**
      * 创建指标收集器.
@@ -93,6 +94,9 @@ public class MicrometerSseMetrics implements SseMetrics {
                 .register(registry);
         reaperZombies = Counter.builder(PREFIX + ".reaper.zombies")
                 .description("SSE 收割器清理的僵尸连接数")
+                .register(registry);
+        topicCompacted = Counter.builder(PREFIX + ".topics.compacted")
+                .description("Topic 计数器压缩次数（空 Topic 计数器条目移除）")
                 .register(registry);
     }
 
@@ -138,6 +142,12 @@ public class MicrometerSseMetrics implements SseMetrics {
     public void recordZombieReaped(int count) {
         if (!enabled) return;
         reaperZombies.increment(count);
+    }
+
+    @Override
+    public void recordTopicCompaction(int count) {
+        if (!enabled) return;
+        topicCompacted.increment(count);
     }
 
     @Override

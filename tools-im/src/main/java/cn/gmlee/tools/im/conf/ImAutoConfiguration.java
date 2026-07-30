@@ -84,7 +84,10 @@ public class ImAutoConfiguration {
         public SseMetrics sseMetrics(@Autowired(required = false) MeterRegistry meterRegistry,
                                       SseConnectionRegistry registry,
                                       SseProperties properties) {
-            return new MicrometerSseMetrics(meterRegistry, registry, properties);
+            MicrometerSseMetrics metrics = new MicrometerSseMetrics(meterRegistry, registry, properties);
+            // 延迟注入 metrics 到 registry，避免循环依赖
+            registry.setMetrics(metrics);
+            return metrics;
         }
     }
 
@@ -96,9 +99,12 @@ public class ImAutoConfiguration {
     static class NoOpMetricsConfiguration {
 
         @Bean
-        public SseMetrics sseMetrics() {
+        public SseMetrics sseMetrics(SseConnectionRegistry registry) {
             log.debug("[Metrics] 使用 NoOp 指标收集器（Micrometer 不可用或未配置）");
-            return NoOpSseMetrics.INSTANCE;
+            NoOpSseMetrics metrics = NoOpSseMetrics.INSTANCE;
+            // 延迟注入 metrics 到 registry，避免循环依赖
+            registry.setMetrics(metrics);
+            return metrics;
         }
     }
 }
