@@ -1,6 +1,7 @@
-package cn.gmlee.tools.im.spi;
+package cn.gmlee.tools.im.spi.factory;
 
 import cn.gmlee.tools.im.core.Repeater;
+import cn.gmlee.tools.im.spi.interceptor.RepeaterInterceptor;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import org.springframework.cloud.stream.function.StreamBridge;
 

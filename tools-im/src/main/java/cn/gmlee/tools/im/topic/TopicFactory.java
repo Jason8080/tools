@@ -5,7 +5,7 @@ import cn.gmlee.tools.im.util.BindingNames;
 import cn.gmlee.tools.im.model.EndpointMode;
 import cn.gmlee.tools.im.core.Repeater;
 import cn.gmlee.tools.im.endpoint.EndpointRegistry;
-import cn.gmlee.tools.im.spi.EndpointChangeListener;
+import cn.gmlee.tools.im.spi.listener.EndpointChangeListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;

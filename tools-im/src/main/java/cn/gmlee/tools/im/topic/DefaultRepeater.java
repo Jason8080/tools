@@ -1,7 +1,7 @@
 package cn.gmlee.tools.im.topic;
 
 import cn.gmlee.tools.im.core.ImRepeater;
-import cn.gmlee.tools.im.spi.RepeaterInterceptor;
+import cn.gmlee.tools.im.spi.interceptor.RepeaterInterceptor;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.stream.function.StreamBridge;

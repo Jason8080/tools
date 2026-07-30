@@ -1,6 +1,6 @@
 package cn.gmlee.tools.im.ex;
 
-import cn.gmlee.tools.im.spi.AccessFilter;
+import cn.gmlee.tools.im.spi.access.AccessFilter;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 

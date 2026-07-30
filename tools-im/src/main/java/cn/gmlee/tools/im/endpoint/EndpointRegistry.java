@@ -1,7 +1,7 @@
 package cn.gmlee.tools.im.endpoint;
 
 import cn.gmlee.tools.im.conf.EndpointProperties;
-import cn.gmlee.tools.im.spi.EndpointChangeListener;
+import cn.gmlee.tools.im.spi.listener.EndpointChangeListener;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;

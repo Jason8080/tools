@@ -9,10 +9,10 @@ import cn.gmlee.tools.im.model.Msg;
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Subscriber;
 import cn.gmlee.tools.im.sse.heartbeat.SseHeartbeatHelper;
-import cn.gmlee.tools.im.spi.AccessContext;
+import cn.gmlee.tools.im.spi.access.AccessContext;
 import cn.gmlee.tools.im.ex.AccessDeniedException;
-import cn.gmlee.tools.im.spi.AccessFilter;
-import cn.gmlee.tools.im.spi.AccessFilterChain;
+import cn.gmlee.tools.im.spi.access.AccessFilter;
+import cn.gmlee.tools.im.spi.access.AccessFilterChain;
 import cn.gmlee.tools.im.topic.TopicRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -30,7 +30,6 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * 动态端点路由.

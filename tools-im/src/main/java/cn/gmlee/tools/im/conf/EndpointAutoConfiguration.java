@@ -1,12 +1,12 @@
 package cn.gmlee.tools.im.conf;
 
-import cn.gmlee.tools.im.spi.PublisherFactory;
-import cn.gmlee.tools.im.spi.RepeaterFactory;
-import cn.gmlee.tools.im.spi.RepeaterInterceptor;
-import cn.gmlee.tools.im.spi.SubscriberFactory;
+import cn.gmlee.tools.im.spi.factory.PublisherFactory;
+import cn.gmlee.tools.im.spi.factory.RepeaterFactory;
+import cn.gmlee.tools.im.spi.interceptor.RepeaterInterceptor;
+import cn.gmlee.tools.im.spi.factory.SubscriberFactory;
 import cn.gmlee.tools.im.endpoint.EndpointRegistry;
 import cn.gmlee.tools.im.endpoint.EndpointRouter;
-import cn.gmlee.tools.im.spi.AccessFilter;
+import cn.gmlee.tools.im.spi.access.AccessFilter;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import cn.gmlee.tools.im.topic.TopicFactory;
 import cn.gmlee.tools.im.topic.TopicRegistry;

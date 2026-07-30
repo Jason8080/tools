@@ -1,4 +1,4 @@
-package cn.gmlee.tools.im.spi;
+package cn.gmlee.tools.im.spi.access;
 
 import java.util.List;
 

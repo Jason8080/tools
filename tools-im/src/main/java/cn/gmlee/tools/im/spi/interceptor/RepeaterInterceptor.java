@@ -1,4 +1,4 @@
-package cn.gmlee.tools.im.spi;
+package cn.gmlee.tools.im.spi.interceptor;
 
 import cn.gmlee.tools.im.model.Msg;
 import cn.gmlee.tools.im.core.Repeater;

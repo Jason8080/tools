@@ -2,10 +2,10 @@ package cn.gmlee.tools.im.topic;
 
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Repeater;
-import cn.gmlee.tools.im.spi.PublisherFactory;
-import cn.gmlee.tools.im.spi.RepeaterFactory;
-import cn.gmlee.tools.im.spi.RepeaterInterceptor;
-import cn.gmlee.tools.im.spi.SubscriberFactory;
+import cn.gmlee.tools.im.spi.factory.PublisherFactory;
+import cn.gmlee.tools.im.spi.factory.RepeaterFactory;
+import cn.gmlee.tools.im.spi.interceptor.RepeaterInterceptor;
+import cn.gmlee.tools.im.spi.factory.SubscriberFactory;
 import cn.gmlee.tools.im.core.Subscriber;
 import cn.gmlee.tools.im.ex.TopicNotFoundException;
 import cn.gmlee.tools.im.sse.SseConnectionManager;

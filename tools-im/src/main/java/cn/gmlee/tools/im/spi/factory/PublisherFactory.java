@@ -1,4 +1,4 @@
-package cn.gmlee.tools.im.spi;
+package cn.gmlee.tools.im.spi.factory;
 
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Repeater;

@@ -2,7 +2,7 @@ package cn.gmlee.tools.im.core;
 
 import cn.gmlee.tools.im.model.Msg;
 import cn.gmlee.tools.im.model.TopicMessage;
-import cn.gmlee.tools.im.spi.RepeaterInterceptor;
+import cn.gmlee.tools.im.spi.interceptor.RepeaterInterceptor;
 import org.springframework.util.MultiValueMap;
 import reactor.core.publisher.Flux;
 
