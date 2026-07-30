@@ -119,7 +119,7 @@ public class TopicRegistry {
                         t, custom.getClass().getSimpleName());
                 return custom;
             }
-            Publisher def = new DefaultPublisher(t, streamBridge);
+            Publisher def = new DefaultPublisher(t, this);
             log.info("[TopicRegistry] 创建默认 Publisher: topic={}", t);
             return def;
         });
@@ -224,7 +224,7 @@ public class TopicRegistry {
      * @return 默认 Publisher
      */
     public Publisher createDefaultPublisher(String topic) {
-        return new DefaultPublisher(topic, streamBridge);
+        return new DefaultPublisher(topic, this);
     }
 
     /**

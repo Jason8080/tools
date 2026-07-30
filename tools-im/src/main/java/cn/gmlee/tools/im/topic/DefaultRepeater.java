@@ -8,6 +8,8 @@ import cn.gmlee.tools.im.sse.SseConnectionManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.stream.function.StreamBridge;
 
+import java.io.Serializable;
+
 /**
  * 默认消息转发器.
  * <p>
@@ -41,12 +43,13 @@ public class DefaultRepeater implements Repeater {
     }
 
     @Override
-    public void send(Msg msg) {
+    public Serializable send(Msg msg) {
         TopicMessage<Msg> event = msg.build(null);
         event.setTopic(topic);
         String bindingName = BindingNames.outputBinding(topic);
         streamBridge.send(bindingName, event);
         log.debug("[DefaultRepeater] 发送到 Stream: topic={}, id={}", topic, event.getId());
+        return event.getId();
     }
 
     @Override

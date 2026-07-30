@@ -1,5 +1,6 @@
 package cn.gmlee.tools.im.core;
 
+import java.io.Serializable;
 import java.util.function.Consumer;
 
 /**
@@ -27,10 +28,10 @@ import java.util.function.Consumer;
  * @Component
  * public class AuditRepeater implements Repeater {
  *     @Override public String topic() { return "im.chat"; }
- *     @Override public void send(Msg msg) {
+ *     @Override public Serializable send(Msg msg) {
  *         auditLog.record("send", msg);  // 审计日志
  *         Repeater delegate = topicRegistry.createDefaultRepeater(topic());
- *         delegate.send(msg);            // 委托默认实现
+ *         return delegate.send(msg);     // 委托默认实现
  *     }
  *     @Override public void receive(TopicMessage<Msg> message) {
  *         auditLog.record("receive", message);
@@ -52,8 +53,9 @@ public interface Repeater extends Topic, Consumer<TopicMessage<Msg>> {
      * </p>
      *
      * @param msg 消息载荷
+     * @return 消息 ID
      */
-    void send(Msg msg);
+    Serializable send(Msg msg);
 
     /**
      * 接收 Stream 消息并转发到 SSE.
