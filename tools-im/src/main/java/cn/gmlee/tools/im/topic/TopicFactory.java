@@ -5,8 +5,6 @@ import cn.gmlee.tools.im.core.BindingNames;
 import cn.gmlee.tools.im.core.EndpointMode;
 import cn.gmlee.tools.im.core.Repeater;
 import cn.gmlee.tools.im.endpoint.EndpointRegistry;
-import cn.gmlee.tools.im.core.Msg;
-import cn.gmlee.tools.im.core.TopicMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
@@ -15,7 +13,6 @@ import org.springframework.cloud.stream.config.BindingServiceProperties;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 
 /**
  * Topic 资源工厂.
@@ -99,7 +96,8 @@ public class TopicFactory implements EndpointRegistry.ChangeListener {
     /**
      * 确保 Topic 的输入 binding 和 Consumer Bean 已创建.
      * <p>
-     * 幂等：同一 Topic 多次调用只创建一次。Consumer Bean 接收 MQ 消息并委托给 {@link Repeater}。
+     * 幂等：同一 Topic 多次调用只创建一次。Consumer Bean 即 {@link Repeater} 自身
+     * （实现 {@link java.util.function.Consumer Consumer&lt;TopicMessage&lt;Msg&gt;&gt;}）。
      * </p>
      *
      * @param topic Topic 名称
@@ -108,7 +106,6 @@ public class TopicFactory implements EndpointRegistry.ChangeListener {
         if (!inputBindingTopics.add(topic)) {
             return;
         }
-        // 确保 Repeater 已创建（Consumer Bean 需要它）
         topicRegistry.ensureRepeater(topic);
         registerInputBinding(topic);
         registerConsumerBean(topic);
@@ -162,38 +159,14 @@ public class TopicFactory implements EndpointRegistry.ChangeListener {
             return;
         }
 
-        // 使用具体类（非 lambda）保证 Spring Cloud Stream 能通过 GenericTypeResolver 解析泛型
+        // Repeater 自身实现 Consumer<TopicMessage<Msg>>，直接作为 Consumer Bean 注册。
+        // 使用具体接口类型（而非 lambda）保证 Spring Cloud Stream 能通过 GenericTypeResolver 解析泛型。
         Repeater repeater = topicRegistry.getRepeater(topic);
-        SseBridgeConsumer consumer = new SseBridgeConsumer(repeater);
 
         GenericBeanDefinition beanDef = new GenericBeanDefinition();
-        beanDef.setBeanClass(SseBridgeConsumer.class);
-        beanDef.setInstanceSupplier(() -> consumer);
+        beanDef.setBeanClass(Repeater.class);
+        beanDef.setInstanceSupplier(() -> repeater);
         beanDefinitionRegistry.registerBeanDefinition(beanName, beanDef);
-        log.info("[TopicFactory] 注册 Consumer Bean: {}", beanName);
-    }
-
-    /**
-     * MQ → SSE 桥接 Consumer.
-     * <p>
-     * 使用具体类（而非 lambda）保证 Spring Cloud Stream 能通过 {@code GenericTypeResolver}
-     * 解析 {@code Consumer<TopicMessage<Msg>>} 的泛型参数，正确完成 JSON 反序列化。
-     * </p>
-     * <p>
-     * 消息转发委托给 {@link Repeater}，支持自定义转发逻辑。
-     * </p>
-     */
-    static class SseBridgeConsumer implements Consumer<TopicMessage<Msg>> {
-
-        private final Repeater repeater;
-
-        SseBridgeConsumer(Repeater repeater) {
-            this.repeater = repeater;
-        }
-
-        @Override
-        public void accept(TopicMessage<Msg> message) {
-            repeater.receive(message);
-        }
+        log.info("[TopicFactory] 注册 Consumer Bean: {} → Repeater", beanName);
     }
 }
