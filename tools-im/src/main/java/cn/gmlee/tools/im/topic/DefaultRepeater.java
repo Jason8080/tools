@@ -7,17 +7,19 @@ import cn.gmlee.tools.im.core.TopicMessage;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.stream.function.StreamBridge;
+import reactor.core.publisher.Flux;
 
 import java.io.Serializable;
 
 /**
  * 默认消息转发器.
  * <p>
- * 双向桥接：
+ * 三向桥接：
  * </p>
  * <ul>
  *   <li>{@link #send(TopicMessage)} — 通过 {@link StreamBridge} 将消息发送到 MQ</li>
- *   <li>{@link #receive(TopicMessage)} — 通过 {@link SseConnectionManager} 将消息转发到 SSE 连接</li>
+ *   <li>{@link #receive(TopicMessage)} — 通过 {@link SseConnectionManager} 将 MQ 消息转发到 SSE 连接</li>
+ *   <li>{@link #subscribe()} — 通过 {@link SseConnectionManager} 提供 SSE 实时消息流</li>
  * </ul>
  *
  * @since 5.6.0
@@ -54,5 +56,12 @@ public class DefaultRepeater implements Repeater {
     public void receive(TopicMessage<Msg> message) {
         sseConnectionManager.publish(message);
         log.debug("[DefaultRepeater] 转发到 SSE: topic={}, id={}", topic, message.getId());
+    }
+
+    @Override
+    public Flux<Msg> subscribe() {
+        log.debug("[DefaultRepeater] 订阅消息流: topic={}", topic);
+        return sseConnectionManager.subscribe(topic)
+                .map(TopicMessage::getMsg);
     }
 }

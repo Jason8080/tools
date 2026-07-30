@@ -159,7 +159,7 @@ public class TopicRegistry {
                         t, custom.getClass().getSimpleName());
                 return custom;
             }
-            Subscriber def = new DefaultSubscriber(t, sseConnectionManager);
+            Subscriber def = new DefaultSubscriber(t, this);
             log.info("[TopicRegistry] 创建默认 Subscriber: topic={}", t);
             return def;
         });
@@ -244,7 +244,7 @@ public class TopicRegistry {
      * @return 默认 Subscriber
      */
     public Subscriber createDefaultSubscriber(String topic) {
-        return new DefaultSubscriber(topic, sseConnectionManager);
+        return new DefaultSubscriber(topic, this);
     }
 
     // ==================== 内部方法 ====================

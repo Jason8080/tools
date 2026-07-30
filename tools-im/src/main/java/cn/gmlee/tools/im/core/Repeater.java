@@ -1,16 +1,19 @@
 package cn.gmlee.tools.im.core;
 
+import reactor.core.publisher.Flux;
+
 import java.io.Serializable;
 import java.util.function.Consumer;
 
 /**
  * 消息转发器（转/Transform）.
  * <p>
- * Topic 的消息桥接层，聚合了 MQ 发送与消费两端的职责：
+ * Topic 的消息枢纽，聚合了发送、消费、订阅三端的职责：
  * </p>
  * <ul>
- *   <li>{@link #send(Msg)} — 将消息发送到 Stream (MQ)，用于编程式发送</li>
+ *   <li>{@link #send(TopicMessage)} — 将消息发送到 Stream (MQ)</li>
  *   <li>{@link #receive(TopicMessage)} — MQ 消费后转发到 SSE 连接</li>
+ *   <li>{@link #subscribe()} — 提供 SSE 实时消息流</li>
  *   <li>{@link #accept(TopicMessage)} — {@link Consumer} 入口，MQ 消费者回调，默认委托给 {@link #receive}</li>
  * </ul>
  * <p>
@@ -56,6 +59,18 @@ public interface Repeater extends Topic, Consumer<TopicMessage<Msg>> {
      * @return 消息 ID
      */
     Serializable send(TopicMessage<Msg> message);
+
+    /**
+     * 订阅 Topic 的实时消息流.
+     * <p>
+     * 返回 {@code Flux<Msg>}，供 {@link Subscriber#pull} 构建 SSE 响应。
+     * 默认实现委托 {@code SseConnectionManager.subscribe()} 并解包 {@link TopicMessage} 信封。
+     * 自定义实现可在实时流前拼接历史回放流。
+     * </p>
+     *
+     * @return 消息流
+     */
+    Flux<Msg> subscribe();
 
     /**
      * 接收 Stream 消息并转发到 SSE.
