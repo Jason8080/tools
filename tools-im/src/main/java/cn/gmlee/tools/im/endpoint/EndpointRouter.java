@@ -110,34 +110,17 @@ public class EndpointRouter {
     }
 
     /**
-     * Request attribute key for caching endpoint properties.
-     */
-    private static final String ATTR_ENDPOINT_PROPS = "im.endpoint.props";
-
-    /**
      * 路由匹配：检查请求路径是否在注册表中.
      */
     private boolean matchEndpoint(ServerRequest request) {
-        EndpointProperties props = registry.resolve(request.path());
-        if (props != null) {
-            // 缓存到 request attributes，避免 dispatch 中重复解析
-            request.attributes().put(ATTR_ENDPOINT_PROPS, props);
-            return true;
-        }
-        return false;
+        return registry.resolve(request.path()) != null;
     }
 
     /**
      * 请求分发：根据端点模式路由到 PUSH 或 PULL 处理器（响应式）.
      */
     private Mono<ServerResponse> dispatch(ServerRequest request) {
-        // 从 attributes 中获取缓存的 props
-        EndpointProperties props = (EndpointProperties) request.attributes().get(ATTR_ENDPOINT_PROPS);
-        if (props == null) {
-            // 理论上不应发生（matchEndpoint 已检查），但作为防御性编程
-            return ServerResponse.notFound().build();
-        }
-
+        EndpointProperties props = registry.resolve(request.path());
         // 创建访问上下文
         AccessContext context = new AccessContext(request, props);
 
