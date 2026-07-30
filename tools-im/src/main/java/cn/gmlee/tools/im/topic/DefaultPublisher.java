@@ -12,39 +12,28 @@ import java.io.Serializable;
 /**
  * 默认消息发布器.
  * <p>
- * 发送完全委托给 {@link Repeater#send(Msg)}，自身仅返回消息 ID。
+ * 发送完全委托给 {@link Repeater#send(TopicMessage)}，自身仅返回消息 ID。
  * </p>
  * <p>
  * Repeater 由 {@link TopicRegistry} 在创建时注入；若构造时未注入（如通过
  * {@link TopicRegistry#createDefaultPublisher(String)} 工厂方法创建），
- * 则在首次 {@link #push} 时延迟解析。
+ * 则在首次 {@link #push} 时通过 {@link #resolveRepeater()} 延迟解析。
  * </p>
  *
  * @since 5.6.0
  */
 @Slf4j
-public class DefaultPublisher implements Publisher {
-
-    private final String topic;
-    private volatile Repeater repeater;
-    private TopicRegistry topicRegistry;
+public class DefaultPublisher extends AbstractTopicComponent implements Publisher {
 
     public DefaultPublisher(String topic, Repeater repeater) {
-        this.topic = topic;
-        this.repeater = repeater;
+        super(topic, repeater);
     }
 
     /**
      * 供 {@link TopicRegistry} 工厂方法使用，延迟解析 Repeater.
      */
     DefaultPublisher(String topic, TopicRegistry topicRegistry) {
-        this.topic = topic;
-        this.topicRegistry = topicRegistry;
-    }
-
-    @Override
-    public String topic() {
-        return topic;
+        super(topic, topicRegistry);
     }
 
     @Override
@@ -54,19 +43,5 @@ public class DefaultPublisher implements Publisher {
         Serializable id = resolveRepeater().send(event);
         log.debug("[DefaultPublisher] 发布消息: topic={}, id={}", topic, id);
         return id;
-    }
-
-    private Repeater resolveRepeater() {
-        Repeater r = this.repeater;
-        if (r != null) {
-            return r;
-        }
-        synchronized (this) {
-            if (this.repeater != null) {
-                return this.repeater;
-            }
-            this.repeater = topicRegistry.getRepeater(topic);
-            return this.repeater;
-        }
     }
 }

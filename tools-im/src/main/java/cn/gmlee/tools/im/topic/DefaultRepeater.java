@@ -20,7 +20,7 @@ import java.io.Serializable;
  * <ul>
  *   <li>{@link #send(TopicMessage)} — 通过 {@link StreamBridge} 将消息发送到 MQ</li>
  *   <li>{@link #receive(TopicMessage)} — 通过 {@link SseConnectionManager} 将 MQ 消息转发到 SSE 连接</li>
- *   <li>{@link #subscribe()} — 通过 {@link SseConnectionManager} 提供 SSE 实时消息流</li>
+ *   <li>{@link #subscribe(MultiValueMap)} — 通过 {@link SseConnectionManager} 提供 SSE 实时消息流</li>
  * </ul>
  *
  * @since 5.6.0
