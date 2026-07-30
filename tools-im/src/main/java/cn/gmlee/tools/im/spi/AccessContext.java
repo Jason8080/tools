@@ -2,6 +2,7 @@ package cn.gmlee.tools.im.spi;
 
 import cn.gmlee.tools.im.conf.EndpointProperties;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.reactive.function.server.ServerRequest;
 
 import java.net.InetSocketAddress;
@@ -25,18 +26,18 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @since 5.6.0
  */
+@Getter
+@RequiredArgsConstructor
 public class AccessContext {
 
     /**
      * HTTP 请求
      */
-    @Getter
     private final ServerRequest request;
 
     /**
      * 端点配置
      */
-    @Getter
     private final EndpointProperties endpoint;
 
     /**
@@ -59,17 +60,6 @@ public class AccessContext {
      */
     @Getter
     private volatile Object principal;
-
-    /**
-     * 创建访问上下文.
-     *
-     * @param request  HTTP 请求
-     * @param endpoint 端点配置
-     */
-    public AccessContext(ServerRequest request, EndpointProperties endpoint) {
-        this.request = request;
-        this.endpoint = endpoint;
-    }
 
     // ==================== 属性操作 ====================
 

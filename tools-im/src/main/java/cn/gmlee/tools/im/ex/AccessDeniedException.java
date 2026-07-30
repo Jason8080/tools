@@ -1,6 +1,7 @@
 package cn.gmlee.tools.im.ex;
 
 import cn.gmlee.tools.im.spi.AccessFilter;
+import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -19,6 +20,7 @@ public class AccessDeniedException extends RuntimeException {
     /**
      * HTTP 状态码
      */
+    @Getter
     private final HttpStatus status;
 
     /**
@@ -51,14 +53,5 @@ public class AccessDeniedException extends RuntimeException {
     public AccessDeniedException(String message, Throwable cause, HttpStatus status) {
         super(message, cause);
         this.status = status;
-    }
-
-    /**
-     * 获取 HTTP 状态码.
-     *
-     * @return HTTP 状态码
-     */
-    public HttpStatus getStatus() {
-        return status;
     }
 }

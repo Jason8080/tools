@@ -1,11 +1,14 @@
 package cn.gmlee.tools.im.ex;
 
+import lombok.Getter;
+
 /**
  * 连接数超限异常.
  * <p>
  * 当全局连接数或单 Topic 连接数达到上限时抛出。
  * </p>
  */
+@Getter
 public class SseConnectionLimitExceededException extends SseException {
 
     /**
@@ -36,21 +39,5 @@ public class SseConnectionLimitExceededException extends SseException {
             case GLOBAL -> String.format("SSE 全局连接数已达上限: %d/%d", currentCount, maxAllowed);
             case PER_TOPIC -> String.format("SSE 主题 [%s] 连接数已达上限: %d/%d", topic, currentCount, maxAllowed);
         };
-    }
-
-    public String getTopic() {
-        return topic;
-    }
-
-    public int getCurrentCount() {
-        return currentCount;
-    }
-
-    public int getMaxAllowed() {
-        return maxAllowed;
-    }
-
-    public Scope getScope() {
-        return scope;
     }
 }

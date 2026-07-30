@@ -6,6 +6,7 @@ import cn.gmlee.tools.im.model.EndpointMode;
 import cn.gmlee.tools.im.core.Repeater;
 import cn.gmlee.tools.im.endpoint.EndpointRegistry;
 import cn.gmlee.tools.im.spi.EndpointChangeListener;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
@@ -41,6 +42,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 5.6.0
  */
 @Slf4j
+@RequiredArgsConstructor
 public class TopicFactory implements EndpointChangeListener {
 
     private final BindingServiceProperties bindingServiceProperties;
@@ -57,24 +59,6 @@ public class TopicFactory implements EndpointChangeListener {
      * 已创建输入 binding + Consumer Bean 的 Topic 集合
      */
     private final Set<String> inputBindingTopics = ConcurrentHashMap.newKeySet();
-
-    /**
-     * 创建 Topic 资源工厂.
-     *
-     * @param bindingServiceProperties Spring Cloud Stream binding 配置
-     * @param bindingService           Spring Cloud Stream binding 服务（用于运行时启动 binding）
-     * @param beanDefinitionRegistry   Spring Bean 定义注册表
-     * @param topicRegistry            Topic 组件注册表
-     */
-    public TopicFactory(BindingServiceProperties bindingServiceProperties,
-                         BindingService bindingService,
-                         BeanDefinitionRegistry beanDefinitionRegistry,
-                         TopicRegistry topicRegistry) {
-        this.bindingServiceProperties = bindingServiceProperties;
-        this.bindingService = bindingService;
-        this.beanDefinitionRegistry = beanDefinitionRegistry;
-        this.topicRegistry = topicRegistry;
-    }
 
     /**
      * 确保 Topic 的输出 binding 已创建.

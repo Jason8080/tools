@@ -5,6 +5,7 @@ import cn.gmlee.tools.im.sse.SseConnection;
 import cn.gmlee.tools.im.sse.SseConnectionRegistry;
 import cn.gmlee.tools.im.sse.internal.SseExecutorFactory;
 import cn.gmlee.tools.im.sse.metrics.SseMetrics;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -39,6 +40,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * </p>
  */
 @Slf4j
+@RequiredArgsConstructor
 public class ConnectionReaper {
 
     /**
@@ -60,12 +62,6 @@ public class ConnectionReaper {
      * 强制关闭执行器
      */
     private volatile ExecutorService forceCloseExecutor;
-
-    public ConnectionReaper(SseConnectionRegistry registry, SseMetrics metrics, SseProperties properties) {
-        this.registry = registry;
-        this.metrics = metrics;
-        this.properties = properties;
-    }
 
     /**
      * 启动收割器.

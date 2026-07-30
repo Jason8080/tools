@@ -1,5 +1,7 @@
 package cn.gmlee.tools.im.model;
 
+import lombok.Value;
+
 /**
  * SSE 连接信息（轻量 DTO）.
  * <p>
@@ -9,32 +11,16 @@ package cn.gmlee.tools.im.model;
  *
  * @since 5.6.0
  */
+@Value
 public class SseConnectionInfo {
 
-    private final String topic;
-    private final String connectionId;
-
-    public SseConnectionInfo(String topic, String connectionId) {
-        this.topic = topic;
-        this.connectionId = connectionId;
-    }
+    /**
+     * 所属 Topic
+     */
+    String topic;
 
     /**
-     * 所属 Topic.
+     * 连接唯一 ID
      */
-    public String getTopic() {
-        return topic;
-    }
-
-    /**
-     * 连接唯一 ID.
-     */
-    public String getConnectionId() {
-        return connectionId;
-    }
-
-    @Override
-    public String toString() {
-        return "SseConnectionInfo{topic='" + topic + "', connectionId='" + connectionId + "'}";
-    }
+    String connectionId;
 }

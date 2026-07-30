@@ -3,6 +3,8 @@ package cn.gmlee.tools.im.sse.internal;
 import cn.gmlee.tools.im.ex.SseConnectionLimitExceededException;
 import cn.gmlee.tools.im.ex.SseConnectionLimitExceededException.Scope;
 import cn.gmlee.tools.im.sse.SseConnection;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -157,14 +159,11 @@ public class ConnectionCounter {
     /**
      * 连接许可获取结果.
      */
+    @Getter
+    @AllArgsConstructor(access = AccessLevel.PRIVATE)
     public static class AcquireResult {
         private final boolean success;
         private final SseConnectionLimitExceededException exception;
-
-        private AcquireResult(boolean success, SseConnectionLimitExceededException exception) {
-            this.success = success;
-            this.exception = exception;
-        }
 
         static AcquireResult success() {
             return new AcquireResult(true, null);
@@ -178,14 +177,6 @@ public class ConnectionCounter {
         static AcquireResult rejectedTopic(String topic, int current, int max) {
             return new AcquireResult(false,
                     new SseConnectionLimitExceededException(topic, current, max, Scope.PER_TOPIC));
-        }
-
-        public boolean isSuccess() {
-            return success;
-        }
-
-        public SseConnectionLimitExceededException getException() {
-            return exception;
         }
     }
 }
