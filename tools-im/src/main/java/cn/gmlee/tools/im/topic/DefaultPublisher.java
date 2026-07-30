@@ -3,6 +3,7 @@ package cn.gmlee.tools.im.topic;
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Repeater;
+import cn.gmlee.tools.im.core.TopicMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.MultiValueMap;
 
@@ -48,7 +49,9 @@ public class DefaultPublisher implements Publisher {
 
     @Override
     public Serializable push(MultiValueMap<String, String> urlParams, Msg msg) {
-        Serializable id = resolveRepeater().send(msg);
+        TopicMessage<Msg> event = msg.build(urlParams);
+        event.setTopic(topic);
+        Serializable id = resolveRepeater().send(event);
         log.debug("[DefaultPublisher] 发布消息: topic={}, id={}", topic, id);
         return id;
     }

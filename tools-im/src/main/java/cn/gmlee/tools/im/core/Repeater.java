@@ -28,10 +28,10 @@ import java.util.function.Consumer;
  * @Component
  * public class AuditRepeater implements Repeater {
  *     @Override public String topic() { return "im.chat"; }
- *     @Override public Serializable send(Msg msg) {
- *         auditLog.record("send", msg);  // 审计日志
+ *     @Override public Serializable send(TopicMessage<Msg> message) {
+ *         auditLog.record("send", message);  // 审计日志
  *         Repeater delegate = topicRegistry.createDefaultRepeater(topic());
- *         return delegate.send(msg);     // 委托默认实现
+ *         return delegate.send(message);     // 委托默认实现
  *     }
  *     @Override public void receive(TopicMessage<Msg> message) {
  *         auditLog.record("receive", message);
@@ -48,14 +48,14 @@ public interface Repeater extends Topic, Consumer<TopicMessage<Msg>> {
     /**
      * 发送消息到 Stream (MQ).
      * <p>
-     * 将消息包装为 {@link TopicMessage} 并通过 StreamBridge 发送到 MQ。
+     * 将 {@link TopicMessage} 通过 StreamBridge 发送到 MQ。
      * 用于编程式发送（非 HTTP 入口场景）。
      * </p>
      *
-     * @param msg 消息载荷
+     * @param message 消息信封
      * @return 消息 ID
      */
-    Serializable send(Msg msg);
+    Serializable send(TopicMessage<Msg> message);
 
     /**
      * 接收 Stream 消息并转发到 SSE.

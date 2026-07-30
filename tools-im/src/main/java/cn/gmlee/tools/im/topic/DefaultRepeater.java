@@ -16,7 +16,7 @@ import java.io.Serializable;
  * 双向桥接：
  * </p>
  * <ul>
- *   <li>{@link #send(Msg)} — 通过 {@link StreamBridge} 将消息发送到 MQ</li>
+ *   <li>{@link #send(TopicMessage)} — 通过 {@link StreamBridge} 将消息发送到 MQ</li>
  *   <li>{@link #receive(TopicMessage)} — 通过 {@link SseConnectionManager} 将消息转发到 SSE 连接</li>
  * </ul>
  *
@@ -43,13 +43,11 @@ public class DefaultRepeater implements Repeater {
     }
 
     @Override
-    public Serializable send(Msg msg) {
-        TopicMessage<Msg> event = msg.build(null);
-        event.setTopic(topic);
-        String bindingName = BindingNames.outputBinding(topic);
-        streamBridge.send(bindingName, event);
-        log.debug("[DefaultRepeater] 发送到 Stream: topic={}, id={}", topic, event.getId());
-        return event.getId();
+    public Serializable send(TopicMessage<Msg> message) {
+        String bindingName = BindingNames.outputBinding(message.getTopic());
+        streamBridge.send(bindingName, message);
+        log.debug("[DefaultRepeater] 发送到 Stream: topic={}, id={}", message.getTopic(), message.getId());
+        return message.getId();
     }
 
     @Override
