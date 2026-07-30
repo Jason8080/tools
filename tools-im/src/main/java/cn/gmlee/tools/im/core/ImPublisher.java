@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 /**
  * Publisher 框架骨架.
  * <p>
- * 提供 Topic 管理、Repeater 延迟解析（双检锁）和日志记录。
+ * 继承 {@link AbstractTopic}，提供 TopicMessage 构建、Repeater 委托和日志记录。
  * 子类只需提供构造器即可组成可用的默认发布器。
  * </p>
  *
@@ -24,39 +24,14 @@ import java.util.function.Supplier;
  * @since 5.6.0
  */
 @Slf4j
-public abstract class ImPublisher implements Publisher {
+public abstract class ImPublisher extends AbstractTopic implements Publisher {
 
-    protected final String topic;
-    private volatile Repeater repeater;
-    private final Supplier<Repeater> repeaterSupplier;
-
-    /**
-     * 直接注入 Repeater.
-     *
-     * @param topic    Topic 名称
-     * @param repeater 已解析的 Repeater 实例
-     */
     protected ImPublisher(String topic, Repeater repeater) {
-        this.topic = topic;
-        this.repeater = repeater;
-        this.repeaterSupplier = null;
+        super(topic, repeater);
     }
 
-    /**
-     * 延迟解析 Repeater.
-     *
-     * @param topic            Topic 名称
-     * @param repeaterSupplier Repeater 解析器（首次使用时调用）
-     */
     protected ImPublisher(String topic, Supplier<Repeater> repeaterSupplier) {
-        this.topic = topic;
-        this.repeater = null;
-        this.repeaterSupplier = repeaterSupplier;
-    }
-
-    @Override
-    public final String topic() {
-        return topic;
+        super(topic, repeaterSupplier);
     }
 
     @Override
@@ -66,24 +41,5 @@ public abstract class ImPublisher implements Publisher {
         Serializable id = resolveRepeater().send(event);
         log.debug("[ImPublisher] 发布消息: topic={}, id={}", topic, id);
         return id;
-    }
-
-    /**
-     * 获取 Repeater 实例（双检锁延迟解析）.
-     *
-     * @return Repeater 实例
-     */
-    protected final Repeater resolveRepeater() {
-        Repeater r = this.repeater;
-        if (r != null) {
-            return r;
-        }
-        synchronized (this) {
-            if (this.repeater != null) {
-                return this.repeater;
-            }
-            this.repeater = repeaterSupplier.get();
-            return this.repeater;
-        }
     }
 }
