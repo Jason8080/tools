@@ -5,7 +5,7 @@ import cn.gmlee.tools.im.model.Msg;
 import cn.gmlee.tools.im.model.TopicMessage;
 import cn.gmlee.tools.im.ex.SseShutdownException;
 import cn.gmlee.tools.im.sse.metrics.SseMetrics;
-import cn.gmlee.tools.im.spi.SseConnectionInfo;
+import cn.gmlee.tools.im.model.SseConnectionInfo;
 import cn.gmlee.tools.im.spi.SseConnectionListener;
 import lombok.extern.slf4j.Slf4j;
 import org.reactivestreams.Subscription;

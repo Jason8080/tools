@@ -1,5 +1,6 @@
 package cn.gmlee.tools.im.spi;
 
+import cn.gmlee.tools.im.model.SseConnectionInfo;
 import reactor.core.publisher.SignalType;
 
 /**
