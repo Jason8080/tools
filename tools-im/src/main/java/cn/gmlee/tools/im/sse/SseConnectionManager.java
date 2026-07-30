@@ -5,7 +5,7 @@ import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.TopicMessage;
 import cn.gmlee.tools.im.ex.SseConnectionLimitExceededException;
 import cn.gmlee.tools.im.ex.SseShutdownException;
-import cn.gmlee.tools.im.sse.backpressure.BackpressureStrategyResolver;
+
 import cn.gmlee.tools.im.sse.cleanup.ConnectionReaper;
 import cn.gmlee.tools.im.sse.internal.ConnectionCounter;
 import cn.gmlee.tools.im.sse.internal.SseExecutorFactory;
@@ -93,14 +93,12 @@ public class SseConnectionManager implements SmartLifecycle {
      *
      * @param properties       SSE 配置
      * @param registry         连接注册表
-     * @param strategyResolver 背压策略解析器（保留参数以兼容旧 API，当前由 Registry 持有）
      * @param metrics          指标收集器
      * @param reaper           连接收割器
      * @param listeners        连接生命周期监听器列表（可为空）
      */
     public SseConnectionManager(SseProperties properties,
                                 SseConnectionRegistry registry,
-                                BackpressureStrategyResolver strategyResolver,
                                 SseMetrics metrics,
                                 ConnectionReaper reaper,
                                 List<SseConnectionListener> listeners) {

@@ -31,14 +31,6 @@ import java.util.List;
 public class ImProperties {
 
     /**
-     * 控制器根路径，默认 /.
-     *
-     * @deprecated 新架构下端点路径由 {@link #endpoints} 独立配置，此属性仅保留用于兼容。
-     */
-    @Deprecated
-    private String basePath = "/";
-
-    /**
      * 端点配置列表.
      * <p>
      * 每个端点定义一个 URL 路径到内部 Topic 的映射。

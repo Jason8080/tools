@@ -3,7 +3,12 @@ package cn.gmlee.tools.im.conf;
 import cn.gmlee.tools.im.sse.SseConnectionListener;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import cn.gmlee.tools.im.sse.SseConnectionRegistry;
-import cn.gmlee.tools.im.sse.backpressure.*;
+import cn.gmlee.tools.im.sse.backpressure.BackpressureStrategy;
+import cn.gmlee.tools.im.sse.backpressure.BackpressureStrategyResolver;
+import cn.gmlee.tools.im.sse.backpressure.BufferBackpressureStrategy;
+import cn.gmlee.tools.im.sse.backpressure.DefaultBackpressureStrategyResolver;
+import cn.gmlee.tools.im.sse.backpressure.DropOldestBackpressureStrategy;
+import cn.gmlee.tools.im.sse.backpressure.ErrorBackpressureStrategy;
 import cn.gmlee.tools.im.sse.cleanup.ConnectionReaper;
 import cn.gmlee.tools.im.sse.metrics.MicrometerSseMetrics;
 import cn.gmlee.tools.im.sse.metrics.NoOpSseMetrics;
@@ -61,11 +66,10 @@ public class ImAutoConfiguration {
     @Bean
     public SseConnectionManager sseConnectionManager(SseProperties properties,
                                                       SseConnectionRegistry registry,
-                                                      BackpressureStrategyResolver strategyResolver,
                                                       SseMetrics metrics,
                                                       ConnectionReaper reaper,
                                                       @Autowired(required = false) List<SseConnectionListener> listeners) {
-        return new SseConnectionManager(properties, registry, strategyResolver, metrics, reaper, listeners);
+        return new SseConnectionManager(properties, registry, metrics, reaper, listeners);
     }
 
     /**

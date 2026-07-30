@@ -99,7 +99,7 @@ public class TopicFactory implements EndpointRegistry.ChangeListener {
     /**
      * 确保 Topic 的输入 binding 和 Consumer Bean 已创建.
      * <p>
-     * 幂等：同一 Topic 多次调用只创建一次。Consumer Bean 接收 MQ 消息并转发到 {@link SseConnectionManager}。
+     * 幂等：同一 Topic 多次调用只创建一次。Consumer Bean 接收 MQ 消息并委托给 {@link Repeater}。
      * </p>
      *
      * @param topic Topic 名称
