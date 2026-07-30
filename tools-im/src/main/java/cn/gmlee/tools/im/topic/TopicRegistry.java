@@ -2,6 +2,7 @@ package cn.gmlee.tools.im.topic;
 
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Repeater;
+import cn.gmlee.tools.im.core.RepeaterInterceptor;
 import cn.gmlee.tools.im.core.Subscriber;
 import cn.gmlee.tools.im.core.Topic;
 import cn.gmlee.tools.im.ex.TopicNotFoundException;
@@ -80,6 +81,11 @@ public class TopicRegistry {
     private final SseConnectionManager sseConnectionManager;
 
     /**
+     * Repeater 拦截器列表（用于创建默认实现）
+     */
+    private final List<RepeaterInterceptor> interceptors;
+
+    /**
      * 创建 Topic 组件注册表.
      *
      * @param customPublishers     自定义 Publisher 列表（Spring 注入，可为 null）
@@ -87,17 +93,20 @@ public class TopicRegistry {
      * @param customSubscribers    自定义 Subscriber 列表（Spring 注入，可为 null）
      * @param streamBridge         Stream 桥接器
      * @param sseConnectionManager SSE 连接管理器
+     * @param interceptors         Repeater 拦截器列表（Spring 注入，可为 null）
      */
     public TopicRegistry(List<Publisher> customPublishers,
                          List<Repeater> customRepeaters,
                          List<Subscriber> customSubscribers,
                          StreamBridge streamBridge,
-                         SseConnectionManager sseConnectionManager) {
+                         SseConnectionManager sseConnectionManager,
+                         List<RepeaterInterceptor> interceptors) {
         this.customPublishers = indexByTopic(customPublishers);
         this.customRepeaters = indexByTopic(customRepeaters);
         this.customSubscribers = indexByTopic(customSubscribers);
         this.streamBridge = streamBridge;
         this.sseConnectionManager = sseConnectionManager;
+        this.interceptors = interceptors != null ? interceptors : Collections.emptyList();
     }
 
     // ==================== Ensure 方法（幂等，供框架内部使用） ====================
@@ -139,7 +148,7 @@ public class TopicRegistry {
                         t, custom.getClass().getSimpleName());
                 return custom;
             }
-            Repeater def = new DefaultRepeater(t, streamBridge, sseConnectionManager);
+            Repeater def = new DefaultRepeater(t, streamBridge, sseConnectionManager, interceptors);
             log.info("[TopicRegistry] 创建默认 Repeater: topic={}", t);
             return def;
         });
@@ -234,7 +243,7 @@ public class TopicRegistry {
      * @return 默认 Repeater
      */
     public Repeater createDefaultRepeater(String topic) {
-        return new DefaultRepeater(topic, streamBridge, sseConnectionManager);
+        return new DefaultRepeater(topic, streamBridge, sseConnectionManager, interceptors);
     }
 
     /**

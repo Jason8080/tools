@@ -14,7 +14,7 @@ import java.util.function.Consumer;
  * <ul>
  *   <li>{@link #send(TopicMessage)} — 将消息发送到 Stream (MQ)</li>
  *   <li>{@link #receive(TopicMessage)} — MQ 消费后转发到 SSE 连接</li>
- *   <li>{@link #subscribe()} — 提供 SSE 实时消息流</li>
+ *   <li>{@link #subscribe(MultiValueMap)} — 提供 SSE 实时消息流</li>
  *   <li>{@link #accept(TopicMessage)} — {@link Consumer} 入口，MQ 消费者回调，默认委托给 {@link #receive}</li>
  * </ul>
  * <p>
@@ -25,23 +25,34 @@ import java.util.function.Consumer;
  * <p>
  * {@code DefaultRepeater} 桥接 StreamBridge 和 SseConnectionManager：
  * 发送端通过 StreamBridge 写入 MQ，接收端通过 SseConnectionManager 推送到 SSE 连接。
+ * 在各关键节点自动织入 {@link RepeaterInterceptor} 拦截器链。
  * </p>
  *
- * <h3>自定义扩展</h3>
+ * <h3>扩展方式</h3>
+ * <p>
+ * <b>推荐：拦截器</b>（适用于审计、持久化、回放等横切关注点）：
+ * </p>
  * <pre>{@code
  * @Component
- * public class AuditRepeater implements Repeater {
+ * public class RedisReplayInterceptor implements RepeaterInterceptor {
+ *     @Override public void beforeSend(TopicMessage<Msg> message) {
+ *         redisTemplate.opsForList().rightPush(key(message.getTopic()), serialize(message));
+ *     }
+ *     @Override public Flux<Msg> transformSubscribeStream(String topic, Flux<Msg> stream, MultiValueMap<String, String> urlParams) {
+ *         return Flux.concat(loadFromRedis(topic), stream);
+ *     }
+ * }
+ * }</pre>
+ * <p>
+ * <b>高级：自定义 Repeater</b>（适用于完全替换消息路由逻辑）：
+ * </p>
+ * <pre>{@code
+ * @Component
+ * public class CustomRepeater implements Repeater {
  *     @Override public String topic() { return "im.chat"; }
- *     @Override public Serializable send(TopicMessage<Msg> message) {
- *         auditLog.record("send", message);  // 审计日志
- *         Repeater delegate = topicRegistry.createDefaultRepeater(topic());
- *         return delegate.send(message);     // 委托默认实现
- *     }
- *     @Override public void receive(TopicMessage<Msg> message) {
- *         auditLog.record("receive", message);
- *         Repeater delegate = topicRegistry.createDefaultRepeater(topic());
- *         delegate.receive(message);
- *     }
+ *     @Override public Serializable send(TopicMessage<Msg> message) { ... }
+ *     @Override public void receive(TopicMessage<Msg> message) { ... }
+ *     @Override public Flux<Msg> subscribe(MultiValueMap<String, String> urlParams) { ... }
  * }
  * }</pre>
  *

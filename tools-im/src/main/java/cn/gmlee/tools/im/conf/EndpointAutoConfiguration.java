@@ -2,6 +2,7 @@ package cn.gmlee.tools.im.conf;
 
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Repeater;
+import cn.gmlee.tools.im.core.RepeaterInterceptor;
 import cn.gmlee.tools.im.core.Subscriber;
 import cn.gmlee.tools.im.endpoint.EndpointRegistry;
 import cn.gmlee.tools.im.endpoint.EndpointRouter;
@@ -86,12 +87,13 @@ public class EndpointAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public TopicRegistry topicRegistry(
-            @org.springframework.beans.factory.annotation.Autowired(required = false) List<Publisher> publishers,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) List<Repeater> repeaters,
-            @org.springframework.beans.factory.annotation.Autowired(required = false) List<Subscriber> subscribers,
+            @Autowired(required = false) List<Publisher> publishers,
+            @Autowired(required = false) List<Repeater> repeaters,
+            @Autowired(required = false) List<Subscriber> subscribers,
             StreamBridge streamBridge,
-            SseConnectionManager sseConnectionManager) {
-        return new TopicRegistry(publishers, repeaters, subscribers, streamBridge, sseConnectionManager);
+            SseConnectionManager sseConnectionManager,
+            @Autowired(required = false) List<RepeaterInterceptor> interceptors) {
+        return new TopicRegistry(publishers, repeaters, subscribers, streamBridge, sseConnectionManager, interceptors);
     }
 
     /**
