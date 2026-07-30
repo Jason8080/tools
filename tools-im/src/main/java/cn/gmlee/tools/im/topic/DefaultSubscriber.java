@@ -11,7 +11,8 @@ import reactor.core.publisher.Flux;
 /**
  * 默认消息订阅器.
  * <p>
- * 委托 {@link SseConnectionManager#subscribe(String)} 返回 SSE 实时消息流。
+ * 委托 {@link SseConnectionManager#subscribe(String)} 返回 SSE 实时消息流，
+ * 解包 {@code TopicMessage} 信封后直接输出消息载荷。
  * </p>
  *
  * @since 5.6.0
@@ -33,8 +34,9 @@ public class DefaultSubscriber implements Subscriber {
     }
 
     @Override
-    public Flux<TopicMessage<Msg>> pull(MultiValueMap<String, String> urlParams) {
+    public Flux<Msg> pull(MultiValueMap<String, String> urlParams) {
         log.debug("[DefaultSubscriber] 订阅消息流: topic={}", topic);
-        return sseConnectionManager.subscribe(topic);
+        return sseConnectionManager.subscribe(topic)
+                .map(TopicMessage::getMsg);
     }
 }

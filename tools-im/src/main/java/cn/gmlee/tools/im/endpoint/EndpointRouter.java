@@ -8,7 +8,6 @@ import cn.gmlee.tools.im.core.MessageMap;
 import cn.gmlee.tools.im.core.Msg;
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Subscriber;
-import cn.gmlee.tools.im.core.TopicMessage;
 import cn.gmlee.tools.im.sse.heartbeat.SseHeartbeatHelper;
 import cn.gmlee.tools.im.topic.TopicRegistry;
 import lombok.extern.slf4j.Slf4j;
@@ -126,17 +125,14 @@ public class EndpointRouter {
      * PULL 处理：Subscriber 订阅 → 带心跳的事件流.
      */
     private Mono<ServerResponse> handlePull(ServerRequest request, EndpointProperties props) {
-        MultiValueMap<String, String> urlParams = request.queryParams();
         Subscriber subscriber = topicRegistry.ensureSubscriber(props.getTopic());
-        Flux<TopicMessage<Msg>> flux = subscriber.pull(urlParams);
-        Flux<ServerSentEvent<MessageMap>> sseFlux = flux
-                .map(m -> {
-                    Object payload = m.getMsg();
+        Flux<Msg> msgFlux = subscriber.pull(request.queryParams());
+        Flux<ServerSentEvent<MessageMap>> sseFlux = msgFlux
+                .map(payload -> {
                     MessageMap messageMap = payload instanceof MessageMap
                             ? (MessageMap) payload
                             : new MessageMap(java.util.Collections.singletonMap("data", payload));
                     return ServerSentEvent.<MessageMap>builder()
-                            .id(String.valueOf(m.getId()))
                             .data(messageMap)
                             .build();
                 });

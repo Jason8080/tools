@@ -20,9 +20,9 @@ import reactor.core.publisher.Flux;
  * @Component
  * public class RedisSubscriber implements Subscriber {
  *     @Override public String topic() { return "im.chat"; }
- *     @Override public Flux<TopicMessage<Msg>> pull(MultiValueMap<String,String> params) {
+ *     @Override public Flux<Msg> pull(MultiValueMap<String,String> params) {
  *         // 回放 Redis 中的历史消息
- *         Flux<TopicMessage<Msg>> replay = redisStore.load(topic());
+ *         Flux<Msg> replay = redisStore.load(topic());
  *         // 拼接实时消息流
  *         Subscriber delegate = topicRegistry.createDefaultSubscriber(topic());
  *         return Flux.concat(replay, delegate.pull(params));
@@ -47,5 +47,5 @@ public interface Subscriber extends Topic {
      * @param urlParams URL 查询参数（来自 HTTP 请求）
      * @return 消息流
      */
-    Flux<TopicMessage<Msg>> pull(MultiValueMap<String, String> urlParams);
+    Flux<Msg> pull(MultiValueMap<String, String> urlParams);
 }
