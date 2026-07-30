@@ -6,6 +6,7 @@ import cn.gmlee.tools.im.spi.RepeaterInterceptor;
 import cn.gmlee.tools.im.spi.SubscriberFactory;
 import cn.gmlee.tools.im.endpoint.EndpointRegistry;
 import cn.gmlee.tools.im.endpoint.EndpointRouter;
+import cn.gmlee.tools.im.spi.AccessFilter;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import cn.gmlee.tools.im.topic.TopicFactory;
 import cn.gmlee.tools.im.topic.TopicRegistry;
@@ -119,12 +120,17 @@ public class EndpointAutoConfiguration {
 
     /**
      * 动态路由器 Bean.
+     * <p>
+     * 自动发现所有 {@link AccessFilter} Bean，
+     * 按 Order 排序后注入到路由器。
+     * </p>
      */
     @Bean
     @ConditionalOnMissingBean
     public EndpointRouter endpointRouter(EndpointRegistry endpointRegistry,
-                                          TopicRegistry topicRegistry) {
-        return new EndpointRouter(endpointRegistry, topicRegistry, sseProperties);
+                                          TopicRegistry topicRegistry,
+                                          @Autowired(required = false) List<AccessFilter> filters) {
+        return new EndpointRouter(endpointRegistry, topicRegistry, sseProperties, filters);
     }
 
     /**
