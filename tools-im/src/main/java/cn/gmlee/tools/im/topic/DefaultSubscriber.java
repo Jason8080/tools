@@ -50,7 +50,7 @@ public class DefaultSubscriber implements Subscriber {
     @Override
     public Flux<Msg> pull(MultiValueMap<String, String> urlParams) {
         log.debug("[DefaultSubscriber] 订阅消息流: topic={}", topic);
-        return resolveRepeater().subscribe();
+        return resolveRepeater().subscribe(urlParams);
     }
 
     private Repeater resolveRepeater() {

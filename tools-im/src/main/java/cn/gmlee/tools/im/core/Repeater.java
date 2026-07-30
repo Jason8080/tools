@@ -1,5 +1,6 @@
 package cn.gmlee.tools.im.core;
 
+import org.springframework.util.MultiValueMap;
 import reactor.core.publisher.Flux;
 
 import java.io.Serializable;
@@ -65,12 +66,13 @@ public interface Repeater extends Topic, Consumer<TopicMessage<Msg>> {
      * <p>
      * 返回 {@code Flux<Msg>}，供 {@link Subscriber#pull} 构建 SSE 响应。
      * 默认实现委托 {@code SseConnectionManager.subscribe()} 并解包 {@link TopicMessage} 信封。
-     * 自定义实现可在实时流前拼接历史回放流。
+     * 自定义实现可在实时流前拼接历史回放流，或利用 {@code urlParams} 进行消息过滤。
      * </p>
      *
+     * @param urlParams 客户端请求参数（来自 SSE 订阅 URL）
      * @return 消息流
      */
-    Flux<Msg> subscribe();
+    Flux<Msg> subscribe(MultiValueMap<String, String> urlParams);
 
     /**
      * 接收 Stream 消息并转发到 SSE.

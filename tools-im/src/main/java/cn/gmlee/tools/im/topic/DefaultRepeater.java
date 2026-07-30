@@ -7,6 +7,7 @@ import cn.gmlee.tools.im.core.TopicMessage;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.util.MultiValueMap;
 import reactor.core.publisher.Flux;
 
 import java.io.Serializable;
@@ -59,7 +60,7 @@ public class DefaultRepeater implements Repeater {
     }
 
     @Override
-    public Flux<Msg> subscribe() {
+    public Flux<Msg> subscribe(MultiValueMap<String, String> urlParams) {
         log.debug("[DefaultRepeater] 订阅消息流: topic={}", topic);
         return sseConnectionManager.subscribe(topic)
                 .map(TopicMessage::getMsg);
