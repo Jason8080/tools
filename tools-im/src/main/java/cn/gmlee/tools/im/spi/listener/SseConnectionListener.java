@@ -17,7 +17,7 @@ public interface SseConnectionListener {
     /**
      * 连接建立回调.
      *
-     * @param metadata 连接元数据（含 userId 等身份信息）
+     * @param metadata 连接元数据（含 routingKey 等身份信息）
      */
     default void onConnected(ConnectionMetadata metadata) {
     }

@@ -192,12 +192,13 @@ public class EndpointRouter {
     /**
      * 从 AccessContext 构建连接元数据.
      * <p>
-     * 三层提取，优先级从高到低：
+     * 路由标识（routingKey）提取，优先级从高到低：
      * <ol>
-     *   <li>{@code principal}（由 AccessFilter 设置，如 JWT 解析后的 userId）</li>
-     *   <li>{@code X-User-Id} 请求头（服务端调用、fetch-based SSE 客户端）</li>
-     *   <li>{@code userId} URL 参数（EventSource 等无法自定义请求头的客户端）</li>
+     *   <li>{@code principal}（由 AccessFilter 设置，如 JWT 解析后的身份标识）</li>
+     *   <li>{@code X-Me} 请求头（服务端调用、fetch-based SSE 客户端）</li>
+     *   <li>从 URL 参数按 {@code im.routing-keys} 配置提取并组合</li>
      * </ol>
+     * 多维路由键按配置顺序以 {@code |} 拼接。
      * </p>
      *
      * @param topic   Topic 名称
@@ -205,20 +206,57 @@ public class EndpointRouter {
      * @return 连接元数据
      */
     private ConnectionMetadata buildMetadata(String topic, AccessContext context) {
-        String userId = null;
+        String routingKey = null;
+
+        // 1. AccessFilter 设置的 principal
         Object principal = context.getPrincipal();
         if (principal instanceof String) {
-            userId = (String) principal;
+            routingKey = (String) principal;
         }
-        if (userId == null) {
-            userId = context.getHeader("X-User-Id").orElse(null);
+
+        // 2. X-Me 请求头
+        if (routingKey == null) {
+            routingKey = context.getHeader("X-Me").orElse(null);
         }
-        if (userId == null) {
-            userId = context.getQueryParam("userId").orElse(null);
+
+        // 3. 按配置从 URL 参数提取并组合
+        if (routingKey == null) {
+            routingKey = composeRoutingKey(context);
         }
+
         return ConnectionMetadata.builder()
                 .topic(topic)
-                .userId(userId)
+                .routingKey(routingKey)
                 .build();
+    }
+
+    /**
+     * 按配置从 URL 参数组合路由标识.
+     * <p>
+     * 多维路由键按配置顺序以 {@code |} 拼接。
+     * 例如配置 {@code [target1, target2]}，URL {@code ?target1=A&target2=B}
+     * 则 routingKey = {@code "A|B"}。
+     * </p>
+     *
+     * @param context 访问上下文
+     * @return 组合后的路由标识，无匹配参数时返回 null
+     */
+    private String composeRoutingKey(AccessContext context) {
+        List<String> keys = sseProperties.getRoutingKeys();
+        if (keys == null || keys.isEmpty()) {
+            return null;
+        }
+        if (keys.size() == 1) {
+            return context.getQueryParam(keys.getFirst()).orElse(null);
+        }
+        StringBuilder sb = new StringBuilder();
+        for (String key : keys) {
+            String value = context.getQueryParam(key).orElse(null);
+            if (value != null) {
+                if (!sb.isEmpty()) sb.append('|');
+                sb.append(value);
+            }
+        }
+        return !sb.isEmpty() ? sb.toString() : null;
     }
 }

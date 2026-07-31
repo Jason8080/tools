@@ -4,7 +4,9 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,6 +18,22 @@ import java.util.Map;
 @Data
 @ConfigurationProperties(prefix = "im.sse")
 public class SseProperties {
+
+    /**
+     * 路由键配置.
+     * <p>
+     * 指定从 URL 参数中提取哪些字段作为连接的路由标识（routingKey）。
+     * 多个字段按配置顺序以 {@code |} 拼接。
+     * </p>
+     * <p>
+     * 默认 {@code ["me"]}，即从 {@code ?me=xxx} 提取。
+     * 可配置为任意字段名，如 {@code ["deviceId"]}、{@code ["target1", "target2"]} 等。
+     * </p>
+     * <p>
+     * 框架不绑定任何业务概念——路由键可以是 userId、deviceId、roomId 等任意标识。
+     * </p>
+     */
+    private List<String> routingKeys = Collections.singletonList("me");
 
     /**
      * 单 Topic 最大连接数

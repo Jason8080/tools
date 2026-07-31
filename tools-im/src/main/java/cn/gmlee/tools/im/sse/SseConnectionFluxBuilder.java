@@ -146,12 +146,12 @@ final class SseConnectionFluxBuilder {
         Flux<TopicMessage<Msg>> flux = sink.asFlux();
 
         // 定向投递过滤：广播消息（to 为空）通过所有连接；
-        // 定向消息仅通过 userId 匹配的连接
-        String userId = metadata != null ? metadata.getUserId() : null;
+        // 定向消息仅通过 routingKey 匹配的连接
+        String routingKey = metadata != null ? metadata.getRoutingKey() : null;
         flux = flux.filter(msg -> {
             Set<String> to = msg.getTo();
             return (to == null || to.isEmpty())
-                    || (userId != null && to.contains(userId));
+                    || (routingKey != null && to.contains(routingKey));
         });
 
         flux = flux.doOnSubscribe(sub -> handleOnSubscribe(conn, sub, listeners))

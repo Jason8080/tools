@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * 连接元数据.
  * <p>
- * 订阅时从 HTTP Headers 提取（JWT / X-User-Id 等），绑定到连接生命周期内。
+ * 订阅时从 HTTP 请求提取（JWT principal / 自定义请求头 / URL 参数等），绑定到连接生命周期内。
  * 不可变，线程安全。既是连接的运行时身份，也是 {@link cn.gmlee.tools.im.spi.listener.SseConnectionListener}
  * 的事件载荷。
  * </p>
@@ -25,9 +25,14 @@ public class ConnectionMetadata {
     String topic;
 
     /**
-     * 用户标识（来自 JWT subject 或 X-User-Id）
+     * 路由标识.
+     * <p>
+     * 由框架根据配置的路由键（{@code im.routing-keys}，默认 {@code me}）从请求中提取。
+     * 多维路由键按配置顺序以 {@code |} 拼接（如 {@code A|B}）。
+     * 框架不绑定任何业务概念——可以是 userId、deviceId、roomId 等任意标识。
+     * </p>
      */
-    String userId;
+    String routingKey;
 
     /**
      * 会话标识

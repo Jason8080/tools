@@ -162,7 +162,7 @@ public class ImAdminController {
 
         ConnectionMetadata metadata = conn.getMetadata();
         if (metadata != null) {
-            map.put("userId", metadata.getUserId());
+            map.put("routingKey", metadata.getRoutingKey());
         }
 
         // 计算连接时长

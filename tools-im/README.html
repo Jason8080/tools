@@ -1298,7 +1298,7 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
         <tr><th>对象</th><th>职责</th><th>关键字段</th><th>类比</th></tr>
       </thead>
       <tbody>
-        <tr><td><code>ConnectionMetadata</code></td><td>连接的运行时身份</td><td><code>userId</code> — 决定"我是谁"</td><td>信封上的寄件人</td></tr>
+        <tr><td><code>ConnectionMetadata</code></td><td>连接的运行时身份</td><td><code>routingKey</code> — 决定"我是谁"</td><td>信封上的寄件人</td></tr>
         <tr><td><code>TopicMessage.to</code></td><td>消息的路由意图</td><td><code>Set&lt;String&gt;</code> — 决定"送给谁"</td><td>信封上的收件人</td></tr>
       </tbody>
     </table>
@@ -1308,7 +1308,7 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
     <span class="callout-icon">&#x1F4A1;</span>
     <div>
       <strong>路由规则</strong>
-      <p><code>to</code> 为空 → <b>广播</b>，所有连接收到。<code>to</code> 非空 → <b>定向</b>，仅 <code>userId</code> 在 <code>to</code> 中的连接收到。</p>
+      <p><code>to</code> 为空 → <b>广播</b>，所有连接收到。<code>to</code> 非空 → <b>定向</b>，仅 <code>routingKey</code> 在 <code>to</code> 中的连接收到。</p>
     </div>
   </div>
 
@@ -1325,7 +1325,7 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
           <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
         </div>
         <pre><code><span class="cm">// 浏览器原生 EventSource — 通过 URL 参数传递身份</span>
-<span class="kw">const</span> es = <span class="kw">new</span> <span class="fn">EventSource</span>(<span class="str">'/api/chat/pull?userId=alice'</span>);
+<span class="kw">const</span> es = <span class="kw">new</span> <span class="fn">EventSource</span>(<span class="str">'/api/chat/pull?me=alice'</span>);
 es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</span>(<span class="str">'收到:'</span>, <span class="typ">JSON</span>.<span class="fn">parse</span>(e.data));</code></pre>
       </div>
     </div>
@@ -1337,7 +1337,7 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
           <span class="code-lang">JavaScript</span>
           <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
         </div>
-        <pre><code><span class="kw">const</span> es = <span class="kw">new</span> <span class="fn">EventSource</span>(<span class="str">'/api/chat/pull?userId=bob'</span>);
+        <pre><code><span class="kw">const</span> es = <span class="kw">new</span> <span class="fn">EventSource</span>(<span class="str">'/api/chat/pull?me=bob'</span>);
 es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</span>(<span class="str">'收到:'</span>, <span class="typ">JSON</span>.<span class="fn">parse</span>(e.data));</code></pre>
       </div>
     </div>
@@ -1362,7 +1362,7 @@ Content-Type: application/json
 
   <!-- ===== 3. 身份建立 ===== -->
   <h3>身份建立</h3>
-  <p>定向投递的前提是：每个 SSE 连接都有明确的身份标识（<code>userId</code>）。框架通过三层提取自动完成，优先级从高到低：</p>
+  <p>定向投递的前提是：每个 SSE 连接都有明确的身份标识（<code>routingKey</code>）。框架通过三层提取自动完成，优先级从高到低：</p>
 
   <div class="table-wrapper">
     <table>
@@ -1374,19 +1374,19 @@ Content-Type: application/json
           <td><b>①</b></td>
           <td><code>AccessFilter</code> 设置的 <code>principal</code></td>
           <td>生产环境 — JWT / OAuth 认证</td>
-          <td>JWT Filter 解析 token → <code>setPrincipal(userId)</code></td>
+          <td>JWT Filter 解析 token → <code>setPrincipal(routingKey)</code></td>
         </tr>
         <tr>
           <td><b>②</b></td>
-          <td><code>X-User-Id</code> 请求头</td>
+          <td><code>X-Me</code> 请求头</td>
           <td>服务端调用、Postman 测试、fetch-based SSE</td>
-          <td><code>curl -H 'X-User-Id: alice' ...</code></td>
+          <td><code>curl -H 'X-Me: alice' ...</code></td>
         </tr>
         <tr>
           <td><b>③</b></td>
-          <td><code>userId</code> URL 参数</td>
+          <td><code>me</code> URL 参数（可通过 <code>im.sse.routing-keys</code> 配置）</td>
           <td>浏览器 EventSource（无法自定义请求头）</td>
-          <td><code>EventSource('/api/chat/pull?userId=alice')</code></td>
+          <td><code>EventSource('/api/chat/pull?me=alice')</code></td>
         </tr>
       </tbody>
     </table>
@@ -1396,7 +1396,36 @@ Content-Type: application/json
     <span class="callout-icon">&#x26A0;&#xFE0F;</span>
     <div>
       <strong>安全提示</strong>
-      <p>URL 参数（<code>?userId=alice</code>）和请求头（<code>X-User-Id</code>）均为纯声明，无认证能力。适用于开发调试。生产环境应通过 <code>AccessFilter</code> 实现 JWT 等认证机制，确保身份不可伪造。</p>
+      <p>URL 参数（<code>?me=alice</code>）和请求头（<code>X-Me</code>）均为纯声明，无认证能力。适用于开发调试。生产环境应通过 <code>AccessFilter</code> 实现 JWT 等认证机制，确保身份不可伪造。</p>
+    </div>
+  </div>
+
+  <!-- ===== 3.5 路由键配置 ===== -->
+  <h3>路由键配置</h3>
+  <p>框架默认从 <code>?me=xxx</code> 提取路由标识。你可以通过 <code>im.sse.routing-keys</code> 自定义提取字段，甚至组合多个字段：</p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">YAML</span>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+    </div>
+    <pre><code><span class="cmt"># 场景 1：使用 deviceId 作为路由键</span>
+<span class="key">im.sse.routing-keys</span>: [<span class="str">deviceId</span>]
+<span class="cmt"># 客户端：EventSource('/api/notify/pull?deviceId=phone-001')</span>
+
+<span class="cmt"># 场景 2：多维路由键 — 组合 tenant + room</span>
+<span class="key">im.sse.routing-keys</span>: [<span class="str">tenant</span>, <span class="str">room</span>]
+<span class="cmt"># 客户端：EventSource('/api/chat/pull?tenant=acme&amp;room=lobby')</span>
+<span class="cmt"># 框架自动拼接为 routingKey = "acme|lobby"</span></code></pre>
+  </div>
+
+  <p>多维路由键按配置顺序以 <code>|</code> 拼接，缺失字段自动跳过（如只有 <code>tenant=acme</code> 则 routingKey = <code>"acme"</code>）。发送时 <code>?to=acme|lobby</code> 即可定向投递到匹配的连接。</p>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">&#x1F4A1;</span>
+    <div>
+      <strong>框架不绑定业务概念</strong>
+      <p>路由键可以是 userId、deviceId、roomId、tenant 等任意标识。框架只做匹配，不关心业务语义。</p>
     </div>
   </div>
 
@@ -1473,21 +1502,21 @@ Content-Type: application/json
       <div style="display: flex; flex-direction: column; gap: 12px;">
         <div style="display: flex; align-items: center; gap: 8px;">
           <div class="arch-box" style="background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; padding: 8px 16px; min-width: 100px;">
-            <b>alice</b><br><small>userId ∈ to ✅</small>
+            <b>alice</b><br><small>routingKey ∈ to ✅</small>
           </div>
           <span class="arch-arrow">→</span>
           <div class="arch-box arch-client" style="padding: 8px 16px; min-width: 80px;">收到消息</div>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
           <div class="arch-box" style="background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 8px 16px; min-width: 100px;">
-            <b>bob</b><br><small>userId ∉ to ❌</small>
+            <b>bob</b><br><small>routingKey ∉ to ❌</small>
           </div>
           <span class="arch-arrow">→</span>
           <div class="arch-box" style="background: #F9FAFB; border: 1px solid #E5E7EB; color: #9CA3AF; padding: 8px 16px; min-width: 80px;">filter 拦截</div>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
           <div class="arch-box" style="background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; padding: 8px 16px; min-width: 100px;">
-            <b>alice-2</b><br><small>userId ∈ to ✅</small>
+            <b>alice-2</b><br><small>routingKey ∈ to ✅</small>
           </div>
           <span class="arch-arrow">→</span>
           <div class="arch-box arch-client" style="padding: 8px 16px; min-width: 80px;">收到消息</div>
@@ -1507,7 +1536,7 @@ Content-Type: application/json
     .<span class="fn">filter</span>(msg -&gt; {
         <span class="typ">Set</span>&lt;<span class="typ">String</span>&gt; to = msg.<span class="fn">getTo</span>();
         <span class="kw">return</span> (to == <span class="kw">null</span> || to.<span class="fn">isEmpty</span>())            <span class="cm">// 广播 → 全通过</span>
-            || (userId != <span class="kw">null</span> &amp;&amp; to.<span class="fn">contains</span>(userId));  <span class="cm">// 定向 → 匹配才过</span>
+            || (routingKey != <span class="kw">null</span> &amp;&amp; to.<span class="fn">contains</span>(routingKey));  <span class="cm">// 定向 → 匹配才过</span>
     })
     .<span class="fn">doOnSubscribe</span>(...)
     .<span class="fn">doOnNext</span>(...)
@@ -1551,7 +1580,7 @@ Content-Type: application/json
     <span class="callout-icon">&#x1F6E1;&#xFE0F;</span>
     <div>
       <strong>身份认证不可省略</strong>
-      <p><code>?userId=alice</code> 和 <code>X-User-Id: alice</code> 均为纯声明，任何人可伪造。生产环境必须通过 <code>AccessFilter</code> 实现认证（如 JWT），确保身份不可篡改。</p>
+      <p><code>?me=alice</code> 和 <code>X-Me: alice</code> 均为纯声明，任何人可伪造。生产环境必须通过 <code>AccessFilter</code> 实现认证（如 JWT），确保身份不可篡改。</p>
     </div>
   </div>
 
@@ -1577,7 +1606,7 @@ Content-Type: application/json
                         <span class="str">"Missing token"</span>, <span class="typ">HttpStatus</span>.UNAUTHORIZED));
 
         <span class="typ">String</span> userId = jwtService.<span class="fn">parseUserId</span>(token);
-        context.<span class="fn">setPrincipal</span>(userId);  <span class="cm">// 框架自动提取为 ConnectionMetadata.userId</span>
+        context.<span class="fn">setPrincipal</span>(userId);  <span class="cm">// 框架自动提取为 ConnectionMetadata.routingKey</span>
         chain.<span class="fn">doFilter</span>(context);
     }
 }</code></pre>
@@ -1602,7 +1631,7 @@ Content-Type: application/json
     <span class="callout-icon">&#x1F504;</span>
     <div>
       <strong>三层提取的优先级保证</strong>
-      <p>当 <code>AccessFilter</code> 设置了 <code>principal</code> 后，框架优先使用该值作为 <code>userId</code>，URL 参数和 <code>X-User-Id</code> 头不会被触达。开发者无需关心兜底逻辑的冲突问题。</p>
+      <p>当 <code>AccessFilter</code> 设置了 <code>principal</code> 后，框架优先使用该值作为 <code>routingKey</code>，URL 参数和 <code>X-Me</code> 头不会被触达。开发者无需关心兜底逻辑的冲突问题。</p>
     </div>
   </div>
 

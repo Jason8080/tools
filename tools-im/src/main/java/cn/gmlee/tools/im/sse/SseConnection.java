@@ -3,6 +3,7 @@ package cn.gmlee.tools.im.sse;
 import cn.gmlee.tools.im.model.ConnectionMetadata;
 import cn.gmlee.tools.im.model.ConnectionState;
 import lombok.Getter;
+import lombok.Setter;
 import org.reactivestreams.Subscription;
 
 import java.time.Instant;
@@ -99,16 +100,36 @@ public class SseConnection {
      * 在 doOnSubscribe 回调中设置，用于 Reaper/forceClose 主动取消 Flux 订阅，
      * 确保强制关闭时 Flux 立即终止（而非等待客户端自行断开）。
      * </p>
+     * -- SETTER --
+     *  设置 Reactive Streams 订阅引用.
+     *  <p>
+     *  在 Flux 的 doOnSubscribe 回调中调用，保存订阅引用以支持后续主动取消。
+     *  </p>
+     *
+
      */
+    @Setter
     private volatile Subscription subscription;
 
     /**
-     * 连接元数据（userId、自定义属性等）.
+     * 连接元数据（routingKey、自定义属性等）.
      * <p>
      * 订阅时由 {@link SseConnectionManager} 设置，生命周期内不可变。
      * volatile 保证跨线程可见性。
      * </p>
+     * -- GETTER --
+     *  获取连接元数据.
+     * <p>
+     *
+     * -- SETTER --
+     *  设置连接元数据.
+     *  <p>
+     *  在
+     *  中调用，绑定用户身份到连接。
+     *  </p>
+     *
      */
+    @Setter
     private volatile ConnectionMetadata metadata;
 
     /**
@@ -244,18 +265,6 @@ public class SseConnection {
     }
 
     /**
-     * 设置 Reactive Streams 订阅引用.
-     * <p>
-     * 在 Flux 的 doOnSubscribe 回调中调用，保存订阅引用以支持后续主动取消。
-     * </p>
-     *
-     * @param subscription 订阅引用
-     */
-    public void setSubscription(Subscription subscription) {
-        this.subscription = subscription;
-    }
-
-    /**
      * 主动取消 Flux 订阅.
      * <p>
      * 用于 Reaper/forceClose 路径：在标记关闭并递减计数器后，
@@ -272,27 +281,6 @@ public class SseConnection {
         if (s != null) {
             s.cancel();
         }
-    }
-
-    /**
-     * 获取连接元数据.
-     *
-     * @return 连接元数据（可能为 null）
-     */
-    public ConnectionMetadata getMetadata() {
-        return metadata;
-    }
-
-    /**
-     * 设置连接元数据.
-     * <p>
-     * 在 {@link SseConnectionManager#subscribe} 中调用，绑定用户身份到连接。
-     * </p>
-     *
-     * @param metadata 连接元数据
-     */
-    public void setMetadata(ConnectionMetadata metadata) {
-        this.metadata = metadata;
     }
 
     @Override
