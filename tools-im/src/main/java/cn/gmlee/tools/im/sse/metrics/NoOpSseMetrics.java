@@ -74,4 +74,14 @@ public class NoOpSseMetrics implements SseMetrics {
     public boolean isEnabled() {
         return false;
     }
+
+    @Override
+    public void recordDirectedPublish(String topic, String result) {
+        // No-op
+    }
+
+    @Override
+    public void recordDirectedPublishDuration(String topic, long durationMs) {
+        // No-op
+    }
 }

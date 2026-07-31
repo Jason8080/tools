@@ -15,7 +15,6 @@ import reactor.core.publisher.Sinks;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.Set;
 
 /**
  * SSE 连接 Flux 构建器.
@@ -93,7 +92,7 @@ final class SseConnectionFluxBuilder {
             log.info("[Subscribe] 成功: topic={}, connectionId={}", topic, conn.getConnectionId());
 
             // 3. 构建带生命周期钩子的 Flux
-            Flux<TopicMessage<Msg>> flux = attachLifecycle(sink, conn, topic, metadata, registry, metrics, properties, listeners);
+            Flux<TopicMessage<Msg>> flux = attachLifecycle(sink, conn, topic, registry, metrics, properties, listeners);
             return new SseSubscription(flux, conn);
 
         } catch (Exception e) {
@@ -126,7 +125,6 @@ final class SseConnectionFluxBuilder {
      * @param sink       Topic 对应的 Sink
      * @param conn       连接记录
      * @param topic      Topic 名称
-     * @param metadata   连接元数据
      * @param registry   连接注册表
      * @param metrics    指标收集器
      * @param properties SSE 配置
@@ -137,7 +135,6 @@ final class SseConnectionFluxBuilder {
             Sinks.Many<TopicMessage<Msg>> sink,
             SseConnection conn,
             String topic,
-            ConnectionMetadata metadata,
             SseConnectionRegistry registry,
             SseMetrics metrics,
             SseProperties properties,
@@ -145,14 +142,12 @@ final class SseConnectionFluxBuilder {
 
         Flux<TopicMessage<Msg>> flux = sink.asFlux();
 
-        // 定向投递过滤：广播消息（routingKey 为空）通过所有连接；
-        // 定向消息仅通过 routingKey 匹配的连接
-        String routingKey = metadata != null ? metadata.getRoutingKey() : null;
-        flux = flux.filter(msg -> {
-            Set<String> targets = msg.getRoutingKeys();
-            return (targets == null || targets.isEmpty())
-                    || (routingKey != null && targets.contains(routingKey));
-        });
+        // 双通道架构：合并广播通道（topicSink）和定向通道（directedSink）
+        // 广播消息仅走 topicSink，定向消息仅走 directedSink，两条通道互斥，无需 filter
+        Sinks.Many<TopicMessage<Msg>> directedSink = conn.getDirectedSink();
+        if (directedSink != null) {
+            flux = Flux.merge(flux, directedSink.asFlux());
+        }
 
         flux = flux.doOnSubscribe(sub -> handleOnSubscribe(conn, sub, listeners))
                 .doOnNext(msg -> conn.touch());

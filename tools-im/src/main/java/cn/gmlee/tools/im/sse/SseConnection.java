@@ -2,9 +2,12 @@ package cn.gmlee.tools.im.sse;
 
 import cn.gmlee.tools.im.model.ConnectionMetadata;
 import cn.gmlee.tools.im.model.ConnectionState;
+import cn.gmlee.tools.im.model.Msg;
+import cn.gmlee.tools.im.model.TopicMessage;
 import lombok.Getter;
 import lombok.Setter;
 import org.reactivestreams.Subscription;
+import reactor.core.publisher.Sinks;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -23,7 +26,16 @@ import java.util.concurrent.atomic.AtomicReference;
  *   <li>创建时间</li>
  *   <li>最后活跃时间（AtomicLong，避免 Instant 对象分配）</li>
  *   <li>位域标志（AtomicInteger，合并清理守卫和计数器递减守卫）</li>
+ *   <li>定向投递 Sink（directedSink，仅当连接有 routingKey 时创建）</li>
  * </ul>
+ * </p>
+ *
+ * <h3>双通道架构</h3>
+ * <p>
+ * 连接通过 {@link #createDirectedSink()} 创建专属的定向 Sink，
+ * 由 {@link SseConnectionRegistry} 在注册时按需调用。
+ * 广播消息走 topicSink（共享），定向消息走 directedSink（per-connection），
+ * 两条通道在 {@link SseConnectionFluxBuilder} 中通过 {@code Flux.merge} 合并为统一的消息流。
  * </p>
  *
  * <h3>位域标志设计</h3>
@@ -131,6 +143,19 @@ public class SseConnection {
      */
     @Setter
     private volatile ConnectionMetadata metadata;
+
+    /**
+     * Per-connection 定向投递 Sink（nullable）.
+     * <p>
+     * 仅当连接具有 routingKey 时非 null。接收定向消息（routingKeys 匹配的消息），
+     * 与共享的 topicSink（广播通道）互斥，构成双通道投递架构。
+     * </p>
+     * <p>
+     * volatile 保证安全发布：写入在 {@code register()} 期间（连接对 publish 线程可见前），
+     * 读取在 publish 路径和 Flux 构建时。清理时置 null。
+     * </p>
+     */
+    private volatile Sinks.Many<TopicMessage<Msg>> directedSink;
 
     /**
      * 创建新连接.
@@ -281,6 +306,34 @@ public class SseConnection {
         if (s != null) {
             s.cancel();
         }
+    }
+
+    // ==================== 定向投递 Sink ====================
+
+    /**
+     * 创建并赋值定向投递 Sink.
+     * <p>
+     * 在 {@link SseConnectionRegistry#register(SseConnection)} 期间调用，
+     * 仅当连接具有 routingKey 时创建。使用小缓冲区（16），因为定向消息通常是低频率的。
+     * </p>
+     *
+     * @return 新创建的 directedSink
+     */
+    public Sinks.Many<TopicMessage<Msg>> createDirectedSink() {
+        Sinks.Many<TopicMessage<Msg>> ds = Sinks.many()
+                .multicast()
+                .onBackpressureBuffer(16, false);
+        this.directedSink = ds;
+        return ds;
+    }
+
+    /**
+     * 检查是否存在定向投递 Sink.
+     *
+     * @return directedSink 非 null 返回 true
+     */
+    public boolean hasDirectedSink() {
+        return directedSink != null;
     }
 
     @Override

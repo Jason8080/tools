@@ -186,6 +186,14 @@ public class SseConnectionManager implements SmartLifecycle {
 
     /**
      * 发布消息到 Topic.
+     * <p>
+     * 双通道投递：
+     * <ul>
+     *   <li>广播（routingKeys 为空）→ topicSink → 所有连接</li>
+     *   <li>定向（routingKeys 非空）→ 反向索引查找 → 目标连接的 directedSink</li>
+     * </ul>
+     * 两条通道互斥，无重复投递。
+     * </p>
      *
      * @param message 消息
      */
@@ -196,12 +204,27 @@ public class SseConnectionManager implements SmartLifecycle {
 
         long startTime = System.currentTimeMillis();
         String topic = message.getTopic();
+        Set<String> routingKeys = message.getRoutingKeys();
 
+        if (routingKeys == null || routingKeys.isEmpty()) {
+            publishBroadcast(message, topic, startTime);
+        } else {
+            publishDirected(message, topic, routingKeys, startTime);
+        }
+    }
+
+    /**
+     * 广播投递：通过共享 topicSink 发送到 Topic 下所有连接.
+     * <p>
+     * 行为与原 publish() 完全一致。
+     * </p>
+     */
+    private void publishBroadcast(TopicMessage<Msg> message, String topic, long startTime) {
         Sinks.Many<TopicMessage<Msg>> sink = registry.getSink(topic);
 
         if (sink == null) {
             metrics.recordPublish(topic, "NO_SUBSCRIBERS");
-            log.debug("[Publish] 无订阅者: topic={}", topic);
+            log.debug("[Publish] 无订阅者(广播): topic={}", topic);
             return;
         }
 
@@ -210,7 +233,7 @@ public class SseConnectionManager implements SmartLifecycle {
         if (result.isFailure()) {
             metrics.recordPublish(topic, "EMIT_FAILURE");
             SseConnectionFluxBuilder.firePublishError(topic, result, listeners);
-            log.warn("[Publish] 失败: topic={}, result={}", topic, result);
+            log.warn("[Publish] 广播失败: topic={}, result={}", topic, result);
         } else {
             metrics.recordPublish(topic, "SUCCESS");
             registry.updateTopicActivity(topic, System.currentTimeMillis());
@@ -218,6 +241,64 @@ public class SseConnectionManager implements SmartLifecycle {
 
         long elapsed = System.currentTimeMillis() - startTime;
         metrics.recordPublishDuration(topic, elapsed);
+    }
+
+    /**
+     * 定向投递：通过反向索引查找目标连接，逐个投递到 directedSink.
+     * <p>
+     * 复杂度 O(K)，K 为目标连接数。远优于广播+过滤的 O(N)。
+     * </p>
+     */
+    private void publishDirected(TopicMessage<Msg> message, String topic,
+                                  Set<String> routingKeys, long startTime) {
+        int targetCount = 0;
+        int successCount = 0;
+        int failCount = 0;
+
+        for (String routingKey : routingKeys) {
+            Set<String> connIds = registry.getConnectionIdsByRoutingKey(topic, routingKey);
+            for (String connId : connIds) {
+                targetCount++;
+                Sinks.Many<TopicMessage<Msg>> directedSink = registry.getDirectedSink(connId);
+                if (directedSink == null) {
+                    failCount++;
+                    continue;
+                }
+                Sinks.EmitResult result = directedSink.tryEmitNext(message);
+                if (result.isFailure()) {
+                    failCount++;
+                    log.debug("[Publish] 定向投递失败: topic={}, connectionId={}, result={}",
+                            topic, connId, result);
+                } else {
+                    successCount++;
+                }
+            }
+        }
+
+        // 记录指标
+        String result;
+        if (targetCount == 0) {
+            result = "NO_TARGETS";
+        } else if (failCount > 0) {
+            result = "PARTIAL_FAILURE";
+        } else {
+            result = "SUCCESS";
+        }
+        metrics.recordDirectedPublish(topic, result);
+
+        if (targetCount == 0) {
+            log.debug("[Publish] 无定向目标: topic={}, routingKeys={}", topic, routingKeys);
+        } else if (failCount > 0) {
+            log.warn("[Publish] 定向投递部分失败: topic={}, success={}, fail={}",
+                    topic, successCount, failCount);
+        }
+
+        if (successCount > 0) {
+            registry.updateTopicActivity(topic, System.currentTimeMillis());
+        }
+
+        long elapsed = System.currentTimeMillis() - startTime;
+        metrics.recordDirectedPublishDuration(topic, elapsed);
     }
 
     /**
@@ -335,8 +416,9 @@ public class SseConnectionManager implements SmartLifecycle {
         int drainingCount = drainAllConnections();
         log.debug("[Lifecycle] 转换连接为 DRAINING: count={}", drainingCount);
 
-        // 阶段 3: 向所有 Sink 发送完成信号
+        // 阶段 3: 向所有 Sink 发送完成信号（广播 + 定向双通道）
         registry.getAllSinks().forEach(Sinks.Many::tryEmitComplete);
+        registry.getAllDirectedSinks().forEach(Sinks.Many::tryEmitComplete);
         log.debug("[Lifecycle] 已发送 Sink 完成信号");
 
         // 阶段 4-6: 异步执行

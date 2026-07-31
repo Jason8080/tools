@@ -47,6 +47,8 @@ public class MicrometerSseMetrics implements SseMetrics {
     private final ConcurrentHashMap<String, Counter> errorCounters = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Timer> subscribeDurationTimers = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Timer> publishDurationTimers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Counter> directedPublishCounters = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Timer> directedPublishDurationTimers = new ConcurrentHashMap<>();
 
     private Counter reaperScans;
     private Counter reaperZombies;
@@ -78,8 +80,11 @@ public class MicrometerSseMetrics implements SseMetrics {
         // 总连接数（通过 ConnectionCounter）
         registry.gauge(PREFIX + ".connections.total", connectionRegistry, r -> r.getCounter().getTotalConnections().get());
 
-        // 活跃 Sink 数
+        // 活跃 Sink 数（广播通道）
         registry.gauge(PREFIX + ".sinks.active", connectionRegistry, SseConnectionRegistry::getActiveSinkCount);
+
+        // 活跃定向 Sink 数（定向通道）
+        registry.gauge(PREFIX + ".directed-sinks.active", connectionRegistry, SseConnectionRegistry::getDirectedSinkCount);
 
         // 全局最大连接数上限
         registry.gauge(PREFIX + ".connections.max-total", properties, p -> (long) p.getMaxTotalConnections());
@@ -188,6 +193,29 @@ public class MicrometerSseMetrics implements SseMetrics {
     }
 
     @Override
+    public void recordDirectedPublish(String topic, String result) {
+        if (!enabled) return;
+        directedPublishCounters.computeIfAbsent(topic + ":" + result, k ->
+                Counter.builder(PREFIX + ".directed-publish.rate")
+                        .tag("topic", topic)
+                        .tag("result", result)
+                        .description("SSE 定向投递尝试次数")
+                        .register(registry)
+        ).increment();
+    }
+
+    @Override
+    public void recordDirectedPublishDuration(String topic, long durationMs) {
+        if (!enabled) return;
+        directedPublishDurationTimers.computeIfAbsent(topic, k ->
+                Timer.builder(PREFIX + ".directed-publish.duration")
+                        .tag("topic", topic)
+                        .description("SSE 定向投递延迟")
+                        .register(registry)
+        ).record(durationMs, TimeUnit.MILLISECONDS);
+    }
+
+    @Override
     public void cleanupTopic(String topic) {
         if (!enabled) return;
 
@@ -224,6 +252,21 @@ public class MicrometerSseMetrics implements SseMetrics {
         if (pubTimer != null) {
             registry.remove(pubTimer);
         }
+
+        // 清理 directed publish counters (key = "topic:result")
+        directedPublishCounters.entrySet().removeIf(entry -> {
+            if (entry.getKey().startsWith(topic + ":")) {
+                registry.remove(entry.getValue());
+                return true;
+            }
+            return false;
+        });
+
+        // 清理 directed publish duration timers (key = topic)
+        Timer directedTimer = directedPublishDurationTimers.remove(topic);
+        if (directedTimer != null) {
+            registry.remove(directedTimer);
+        }
     }
 
     @Override
@@ -235,6 +278,8 @@ public class MicrometerSseMetrics implements SseMetrics {
         errorCounters.clear();
         subscribeDurationTimers.clear();
         publishDurationTimers.clear();
+        directedPublishCounters.clear();
+        directedPublishDurationTimers.clear();
     }
 
     @Override

@@ -1,6 +1,7 @@
 package cn.gmlee.tools.im.sse;
 
 import cn.gmlee.tools.im.conf.SseProperties;
+import cn.gmlee.tools.im.model.ConnectionMetadata;
 import cn.gmlee.tools.im.model.Msg;
 import cn.gmlee.tools.im.model.TopicMessage;
 import cn.gmlee.tools.im.sse.backpressure.BackpressureStrategy;
@@ -36,6 +37,15 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li><b>Sink 管理</b>：topicSinks 使用 compute() 原子操作</li>
  *   <li><b>空 Topic 追踪</b>：emptyTopics 独立记录空 Topic 及其首次变空时间，
  *       避免 TTL 扫描时遍历全量 topicCounts（含大量历史零值条目）</li>
+ *   <li><b>双通道架构</b>：
+ *       <ul>
+ *         <li>{@code directedSinks}：connectionId → 定向 Sink（仅有 routingKey 的连接）</li>
+ *         <li>{@code routingKeyIndex}：topic → routingKey → Set&lt;connectionId&gt; 反向索引，
+ *             支持 O(K) 定向投递目标查找（K 为目标连接数，远小于 N）</li>
+ *       </ul>
+ *       广播消息走 topicSink（共享），定向消息走 directedSink（per-connection），
+ *       两条通道互斥，无重复投递。
+ *   </li>
  * </ul>
  */
 @Slf4j
@@ -87,6 +97,28 @@ public class SseConnectionRegistry {
     private final ConcurrentHashMap<String, Long> emptyTopics = new ConcurrentHashMap<>();
 
     /**
+     * connectionId → 定向投递 Sink.
+     * <p>
+     * 仅包含有 routingKey 的连接。publish 路径通过此 map 直接向目标连接投递定向消息，
+     * 避免广播到全部连接后再 filter 的 O(N) 开销。
+     * </p>
+     */
+    private final ConcurrentHashMap<String, Sinks.Many<TopicMessage<Msg>>> directedSinks = new ConcurrentHashMap<>();
+
+    /**
+     * 反向索引：topic → routingKey → Set&lt;connectionId&gt;.
+     * <p>
+     * 支持定向投递的 O(K) 目标查找：给定消息的 routingKeys，
+     * 按 routingKey 查找所有匹配连接的 ID，再逐个从 {@link #directedSinks} 获取 Sink 投递。
+     * </p>
+     * <p>
+     * 内层 Set 使用 {@link ConcurrentHashMap#newKeySet()} 保证线程安全。
+     * 外层和内层 Map 均使用 ConcurrentHashMap 支持并发 compute 操作。
+     * </p>
+     */
+    private final ConcurrentHashMap<String, ConcurrentHashMap<String, Set<String>>> routingKeyIndex = new ConcurrentHashMap<>();
+
+    /**
      * 是否正在关闭.
      * <p>
      * 由 {@link #closeAll()} 在清理开始前设置，阻止 subscribe() 创建新 Sink。
@@ -130,6 +162,20 @@ public class SseConnectionRegistry {
                 .add(conn.getConnectionId());
         // Topic 有新连接，清除空 Topic 追踪
         emptyTopics.remove(conn.getTopic());
+
+        // 双通道架构：有 routingKey 的连接创建 directedSink 并注册反向索引
+        ConnectionMetadata metadata = conn.getMetadata();
+        String routingKey = metadata != null ? metadata.getRoutingKey() : null;
+        if (routingKey != null && !routingKey.isEmpty()) {
+            Sinks.Many<TopicMessage<Msg>> ds = conn.createDirectedSink();
+            directedSinks.put(conn.getConnectionId(), ds);
+            routingKeyIndex
+                    .computeIfAbsent(conn.getTopic(), k -> new ConcurrentHashMap<>())
+                    .computeIfAbsent(routingKey, k -> ConcurrentHashMap.newKeySet())
+                    .add(conn.getConnectionId());
+            log.debug("[Registry] 定向 Sink 注册: topic={}, connectionId={}, routingKey={}",
+                    conn.getTopic(), conn.getConnectionId(), routingKey);
+        }
     }
 
     /**
@@ -142,6 +188,30 @@ public class SseConnectionRegistry {
         Set<String> connIds = topicConnections.get(conn.getTopic());
         if (connIds != null) {
             connIds.remove(conn.getConnectionId());
+        }
+
+        // 双通道架构：清理 directedSink 和反向索引
+        Sinks.Many<TopicMessage<Msg>> removed = directedSinks.remove(conn.getConnectionId());
+        if (removed != null) {
+            ConnectionMetadata metadata = conn.getMetadata();
+            String routingKey = metadata != null ? metadata.getRoutingKey() : null;
+            if (routingKey != null) {
+                ConcurrentHashMap<String, Set<String>> topicIndex = routingKeyIndex.get(conn.getTopic());
+                if (topicIndex != null) {
+                    Set<String> keySet = topicIndex.get(routingKey);
+                    if (keySet != null) {
+                        keySet.remove(conn.getConnectionId());
+                        // best-effort 清理空 Set，防止内存泄漏
+                        if (keySet.isEmpty()) {
+                            topicIndex.remove(routingKey);
+                        }
+                    }
+                    if (topicIndex.isEmpty()) {
+                        routingKeyIndex.remove(conn.getTopic());
+                    }
+                }
+            }
+            removed.tryEmitComplete();
         }
     }
 
@@ -251,6 +321,7 @@ public class SseConnectionRegistry {
             // 计数为 0，清理 Sink 和连接集合，但保留计数器条目
             topicSinks.remove(k);
             topicConnections.remove(k);
+            routingKeyIndex.remove(k);
             log.debug("[Topic] 清理空 Topic: {}", k);
             return v; // 保留计数器，避免与并发 subscribe 的竞态
         });
@@ -308,6 +379,7 @@ public class SseConnectionRegistry {
                 if (v != null && v.get() == 0) {
                     topicSinks.remove(k);
                     topicConnections.remove(k);
+                    routingKeyIndex.remove(k);
                     didClean[0] = true;
                 }
                 return v; // 保留计数器
@@ -424,6 +496,53 @@ public class SseConnectionRegistry {
     }
 
     /**
+     * 获取连接的定向投递 Sink.
+     *
+     * @param connectionId 连接 ID
+     * @return 定向 Sink，无 routingKey 或已清理返回 null
+     */
+    public Sinks.Many<TopicMessage<Msg>> getDirectedSink(String connectionId) {
+        return directedSinks.get(connectionId);
+    }
+
+    /**
+     * 按路由键查找目标连接 ID 集合.
+     * <p>
+     * 返回内部 Set 的引用（弱一致迭代），供 publish 路径遍历投递。
+     * </p>
+     *
+     * @param topic      Topic 名称
+     * @param routingKey 路由键
+     * @return 连接 ID 集合（不可变空集表示无匹配）
+     */
+    public Set<String> getConnectionIdsByRoutingKey(String topic, String routingKey) {
+        ConcurrentHashMap<String, Set<String>> topicIndex = routingKeyIndex.get(topic);
+        if (topicIndex == null) {
+            return Collections.emptySet();
+        }
+        Set<String> connIds = topicIndex.get(routingKey);
+        return connIds != null ? connIds : Collections.emptySet();
+    }
+
+    /**
+     * 获取所有定向投递 Sink（供 shutdown 完成信号）.
+     *
+     * @return 不可变的 Sink 集合
+     */
+    public Collection<Sinks.Many<TopicMessage<Msg>>> getAllDirectedSinks() {
+        return Collections.unmodifiableCollection(directedSinks.values());
+    }
+
+    /**
+     * 获取活跃定向 Sink 数量（供 metrics gauge）.
+     *
+     * @return 数量
+     */
+    public int getDirectedSinkCount() {
+        return directedSinks.size();
+    }
+
+    /**
      * 获取所有 Topic 名称.
      *
      * @return Topic 集合
@@ -487,7 +606,12 @@ public class SseConnectionRegistry {
      */
     public void closeAll() {
         closing = true;
-        topicSinks.values().forEach(sink -> sink.tryEmitComplete());
+        // 双通道架构：先完成定向 Sink 并清理索引
+        directedSinks.values().forEach(Sinks.Many::tryEmitComplete);
+        directedSinks.clear();
+        routingKeyIndex.clear();
+        // 广播通道
+        topicSinks.values().forEach(Sinks.Many::tryEmitComplete);
         topicSinks.clear();
         connections.clear();
         topicConnections.clear();

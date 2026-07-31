@@ -120,4 +120,26 @@ public interface SseMetrics {
      * @return 启用返回 true
      */
     boolean isEnabled();
+
+    // ==================== 定向投递指标（default 方法，向后兼容） ====================
+
+    /**
+     * 记录定向投递结果.
+     *
+     * @param topic  Topic
+     * @param result 结果（SUCCESS / PARTIAL_FAILURE / NO_TARGETS）
+     */
+    default void recordDirectedPublish(String topic, String result) {
+        // 默认空实现，向后兼容
+    }
+
+    /**
+     * 记录定向投递延迟.
+     *
+     * @param topic      Topic
+     * @param durationMs 延迟（毫秒）
+     */
+    default void recordDirectedPublishDuration(String topic, long durationMs) {
+        // 默认空实现，向后兼容
+    }
 }
