@@ -172,11 +172,9 @@ public class ConnectionReaper {
                 return;
             }
 
-            // 获取所有连接快照
-            List<SseConnection> connections = registry.snapshotConnections();
-            int zombieCount = 0;
-
-            for (SseConnection conn : connections) {
+            // 遍历所有连接（无内存分配）
+            int[] zombieCount = {0};
+            registry.forEachConnection(conn -> {
                 if (conn.isIdle(idleTimeoutMs)) {
                     if (conn.tryDrain()) {
                         long idleMs = System.currentTimeMillis() - conn.getLastActivityAt().get();
@@ -186,10 +184,10 @@ public class ConnectionReaper {
                         // 调度延迟后提交到强制关闭执行器
                         s.schedule(() -> exec.submit(() -> forceClose(conn)),
                                 gracePeriodMs, TimeUnit.MILLISECONDS);
-                        zombieCount++;
+                        zombieCount[0]++;
                     }
                 }
-            }
+            });
 
             // 清理空 Topic（基于 TTL，仅遍历当前空 Topic 集合）
             List<String> cleanedTopics = registry.cleanupEmptyTopicsByTtl();
@@ -206,10 +204,10 @@ public class ConnectionReaper {
             // 清理空闲 Topic（通过 TopicLifecycleManager）
             int topicCleaned = cleanupIdleTopics();
 
-            if (zombieCount > 0 || !cleanedTopics.isEmpty() || compacted > 0 || topicCleaned > 0) {
-                metrics.recordZombieReaped(zombieCount);
+            if (zombieCount[0] > 0 || !cleanedTopics.isEmpty() || compacted > 0 || topicCleaned > 0) {
+                metrics.recordZombieReaped(zombieCount[0]);
                 log.info("[Reaper] 扫描完成: zombies={}, cleanedTopics={}, compacted={}, topicsCleaned={}",
-                        zombieCount, cleanedTopics.size(), compacted, topicCleaned);
+                        zombieCount[0], cleanedTopics.size(), compacted, topicCleaned);
             }
         } catch (Exception e) {
             log.error("[Reaper] 扫描异常", e);

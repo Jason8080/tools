@@ -484,13 +484,13 @@ public class SseConnectionManager implements SmartLifecycle {
      * 排空所有连接.
      */
     private int drainAllConnections() {
-        int count = 0;
-        for (SseConnection conn : registry.snapshotConnections()) {
+        int[] count = {0};
+        registry.forEachConnection(conn -> {
             if (conn.tryDrain()) {
-                count++;
+                count[0]++;
             }
-        }
-        return count;
+        });
+        return count[0];
     }
 
     /**
@@ -538,8 +538,8 @@ public class SseConnectionManager implements SmartLifecycle {
      * 强制关闭所有连接.
      */
     private int forceCloseAllConnections() {
-        int count = 0;
-        for (SseConnection conn : registry.snapshotConnections()) {
+        int[] count = {0};
+        registry.forEachConnection(conn -> {
             try {
                 if (conn.markClosed()) {
                     try {
@@ -548,13 +548,13 @@ public class SseConnectionManager implements SmartLifecycle {
                         conn.cancel();
                         conn.completeClose();
                     }
-                    count++;
+                    count[0]++;
                 }
             } catch (Exception e) {
                 log.error("[Lifecycle] 强制关闭失败: connectionId={}", conn.getConnectionId(), e);
             }
-        }
-        return count;
+        });
+        return count[0];
     }
 
     /**

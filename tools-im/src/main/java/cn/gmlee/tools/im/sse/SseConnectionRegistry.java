@@ -455,9 +455,34 @@ public class SseConnectionRegistry {
      * 获取所有连接快照.
      *
      * @return 连接列表快照
+     * @deprecated 使用 {@link #forEachConnection(java.util.function.Consumer)} 避免内存分配
      */
+    @Deprecated
     public List<SseConnection> snapshotConnections() {
         return new ArrayList<>(connections.values());
+    }
+
+    /**
+     * 遍历所有连接（无内存分配）.
+     * <p>
+     * 直接迭代 ConcurrentHashMap，避免创建临时 ArrayList 副本。
+     * 适用于不需要一致性快照的场景（如 Reaper 扫描、关闭时批量处理）。
+     * </p>
+     *
+     * <h3>线程安全性</h3>
+     * <p>
+     * ConcurrentHashMap 的迭代器是弱一致性的：
+     * </p>
+     * <ul>
+     *   <li>迭代过程中新增的连接可能被遍历到，也可能被跳过</li>
+     *   <li>迭代过程中删除的连接不会被访问（已访问的不会重复访问）</li>
+     *   <li>不会抛出 ConcurrentModificationException</li>
+     * </ul>
+     *
+     * @param action 对每个连接执行的操作
+     */
+    public void forEachConnection(java.util.function.Consumer<SseConnection> action) {
+        connections.values().forEach(action);
     }
 
     /**
