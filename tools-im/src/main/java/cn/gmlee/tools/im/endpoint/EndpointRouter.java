@@ -246,15 +246,15 @@ public class EndpointRouter {
      * @return 组合后的路由标识，无匹配参数时返回 null
      */
     private String composeRoutingKey(AccessContext context) {
-        List<String> keys = sseProperties.getRoutingKeys();
-        if (keys == null || keys.isEmpty()) {
+        List<String> routingKeys = sseProperties.getRoutingKeys();
+        if (routingKeys == null || routingKeys.isEmpty()) {
             return null;
         }
-        if (keys.size() == 1) {
-            return context.getQueryParam(keys.getFirst()).orElse(null);
+        if (routingKeys.size() == 1) {
+            return context.getQueryParam(routingKeys.getFirst()).orElse(null);
         }
         StringBuilder sb = new StringBuilder();
-        for (String key : keys) {
+        for (String key : routingKeys) {
             String value = context.getQueryParam(key).orElse(null);
             if (value != null) {
                 if (!sb.isEmpty()) sb.append('|');
