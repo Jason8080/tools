@@ -52,7 +52,7 @@ public class EndpointProperties {
      * <ul>
      *   <li>{@code null} — 继承全局配置</li>
      *   <li>{@code []} / {@code ["*"]} — 全部 URL 参数参与</li>
-     *   <li>{@code ["me"]} — 仅提取 me 参数</li>
+     *   <li>{@code ["to"]} — 仅提取 to 参数（发布方示例）</li>
      *   <li>{@code ["tenant", "room"]} — 提取指定字段</li>
      * </ul>
      *
@@ -60,16 +60,20 @@ public class EndpointProperties {
      * <pre>
      * im:
      *   sse:
-     *     routing-keys: ["me"]       # 全局默认
+     *     routing-keys: ["me"]       # 全局默认（订阅方用 me 声明身份）
      *   endpoints:
      *     - path: /api/chat/pull
      *       topic: im.chat
      *       mode: pull
      *                                # routingKeys 未设置 → 继承全局 ["me"]
+     *     - path: /api/chat/push
+     *       topic: im.chat
+     *       mode: push
+     *       routing-keys: ["to"]     # 发布方用 to 指定目标（端点覆盖）
      *     - path: /api/room/pull
      *       topic: im.room
      *       mode: pull
-     *       routing-keys: ["tenant", "room"]  # 端点覆盖
+     *       routing-keys: ["tenant", "room"]  # 多维路由键
      * </pre>
      *
      * @since 5.6.0

@@ -794,8 +794,8 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
   body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'alice'</span>, content: <span class="str">'hello'</span>})
 });
 
-<span class="cm">// 定向投递（URL 参数匹配订阅方 routingKey）</span>
-<span class="fn">fetch</span>(<span class="str">'/api/chat/push?me=alice&amp;me=bob'</span>, {
+<span class="cm">// 定向投递 — 用 to 指定目标（需配置 routing-keys: ["to"]）</span>
+<span class="fn">fetch</span>(<span class="str">'/api/chat/push?to=alice&amp;to=bob'</span>, {
   method: <span class="str">'POST'</span>,
   headers: {<span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>},
   body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'alice'</span>, content: <span class="str">'private msg'</span>})
@@ -1349,8 +1349,8 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
           <span class="code-lang">HTTP</span>
           <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
         </div>
-        <pre><code><span class="cm"># URL 参数匹配订阅方的 routingKey → 定向投递</span>
-<span class="fn">POST</span> <span class="str">/api/chat/push?me=alice</span>
+        <pre><code><span class="cm"># 用 to 指定投递目标（需配置 routing-keys: ["to"]）</span>
+<span class="fn">POST</span> <span class="str">/api/chat/push?to=alice</span>
 Content-Type: application/json
 
 {"from": "bob", "content": "你好，这条消息只有你能看到"}</code></pre>
@@ -1448,15 +1448,15 @@ Content-Type: application/json
       <span class="code-lang">JavaScript</span>
       <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
     </div>
-    <pre><code><span class="cm">// 定向投递给 alice（URL 参数匹配订阅方的 routingKey）</span>
-<span class="fn">fetch</span>(<span class="str">'/api/chat/push?me=alice'</span>, {
+    <pre><code><span class="cm">// 定向投递给 alice — 用 to 指定目标（需配置 routing-keys: ["to"]）</span>
+<span class="fn">fetch</span>(<span class="str">'/api/chat/push?to=alice'</span>, {
   method: <span class="str">'POST'</span>,
   headers: {<span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>},
   body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'bob'</span>, content: <span class="str">'hi alice'</span>})
 });
 
-<span class="cm">// 批量定向 — 单键多值（需配置 routing-keys: ["me"]）</span>
-<span class="fn">fetch</span>(<span class="str">'/api/chat/push?me=alice&amp;me=bob'</span>, {
+<span class="cm">// 批量定向 — 单键多值，每个值各为一个 target</span>
+<span class="fn">fetch</span>(<span class="str">'/api/chat/push?to=alice&amp;to=bob'</span>, {
   method: <span class="str">'POST'</span>,
   headers: {<span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>},
   body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'charlie'</span>, content: <span class="str">'群聊'</span>})
@@ -1545,10 +1545,10 @@ Content-Type: application/json
   <div class="arch-diagram" style="padding: 40px 24px;">
     <div style="text-align: center; margin-bottom: 24px; font-weight: 600; color: #4F46E5;">定向投递全链路</div>
     <div class="arch-flow">
-      <div class="arch-box arch-publisher">POST /push<b>?me=alice</b><br><small>EndpointRouter<br>提取 routingKeys</small></div>
+      <div class="arch-box arch-publisher">POST /push<b>?to=alice</b><br><small>EndpointRouter<br>提取 routingKeys</small></div>
       <span class="arch-arrow">→</span>
       <div class="arch-box" style="background: #EEF2FF; color: #4338CA; border: 1px solid #C7D2FE;">
-        <b>TopicMessage</b><br><small>msg={content:"hi"}<br>routingKeys={"me=alice"}</small>
+        <b>TopicMessage</b><br><small>msg={content:"hi"}<br>routingKeys={"to=alice"}</small>
       </div>
       <span class="arch-arrow">→</span>
       <div class="arch-box arch-mq">MQ<br><small>routingKeys 随消息<br>完整保留</small></div>

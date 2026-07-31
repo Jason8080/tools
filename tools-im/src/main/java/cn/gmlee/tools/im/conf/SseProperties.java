@@ -30,7 +30,7 @@ public class SseProperties {
      * <ul>
      *   <li>{@code null} / 未配置 / {@code []} — <b>全部 URL 参数参与</b>（默认）</li>
      *   <li>{@code ["*"]} — <b>显式全部参数</b>（等价于 null）</li>
-     *   <li>{@code ["me"]} — <b>指定字段</b>（仅提取 me 参数）</li>
+     *   <li>{@code ["to"]} — <b>指定字段</b>（仅提取 to 参数）</li>
      *   <li>{@code ["tenant", "room"]} — <b>指定多字段</b></li>
      * </ul>
      * <p>
@@ -40,8 +40,8 @@ public class SseProperties {
      * <b>发布方与订阅方对称使用</b>：
      * </p>
      * <ul>
-     *   <li><b>订阅方</b>：从 URL 参数提取路由标识作为连接身份</li>
-     *   <li><b>发布方</b>：从 URL 参数提取路由标识作为投递目标</li>
+     *   <li><b>订阅方</b>（PULL）：从 URL 参数提取路由标识作为连接身份（如 {@code ?me=alice} → "我是 alice"）</li>
+     *   <li><b>发布方</b>（PUSH）：从 URL 参数提取路由标识作为投递目标（如 {@code ?to=alice} → "发给 alice"）</li>
      * </ul>
      * <p>
      * 可通过 {@link EndpointProperties#getRoutingKeys()} 按端点覆盖此全局配置。
@@ -51,20 +51,23 @@ public class SseProperties {
      *
      * <h3>示例</h3>
      * <pre>
-     * # 默认（全部参数）
+     * # 默认（全部参数）— 发布/订阅使用相同 URL 参数
      * # routing-keys 未配置
-     * 订阅：GET /pull?me=alice&amp;room=lobby   → routingKey = "me=alice&amp;room=lobby"
-     * 发布：POST /push?me=alice&amp;room=lobby  → to = {"me=alice&amp;room=lobby"}
+     * 订阅：GET /pull?me=alice&amp;room=lobby   → routingKey = "me=alice&amp;room=lobby"（身份）
+     * 发布：POST /push?me=alice&amp;room=lobby  → targets = {"me=alice&amp;room=lobby"}（目标）
      *
-     * # 指定字段
+     * # 指定字段 — 订阅方用 me 声明身份
      * routing-keys: ["me"]
      * 订阅：GET /pull?me=alice              → routingKey = "me=alice"
-     * 发布：POST /push?me=alice&amp;me=bob      → to = {"me=alice", "me=bob"}
+     *
+     * # 指定字段 — 发布方用 to 指定目标
+     * routing-keys: ["to"]
+     * 发布：POST /push?to=alice&amp;to=bob      → targets = {"to=alice", "to=bob"}
      *
      * # 指定多字段
      * routing-keys: ["tenant", "room"]
      * 订阅：GET /pull?tenant=acme&amp;room=lobby → routingKey = "room=lobby&amp;tenant=acme"
-     * 发布：POST /push?tenant=acme&amp;room=lobby → to = {"room=lobby&amp;tenant=acme"}
+     * 发布：POST /push?tenant=acme&amp;room=lobby → targets = {"room=lobby&amp;tenant=acme"}
      * </pre>
      */
     private List<String> routingKeys;

@@ -19,18 +19,21 @@ import java.util.Set;
  *
  * <h3>示例</h3>
  * <pre>
- * # 全参数模式（routingKeys = null）
+ * # 全参数模式（routingKeys = null）— 发布/订阅使用相同 URL 参数
  * ?tenant=acme&amp;room=lobby → "room=lobby&amp;tenant=acme"（key 字母排序）
  * ?room=lobby&amp;tenant=acme → "room=lobby&amp;tenant=acme"（相同结果，顺序无关）
  *
- * # 指定字段模式（routingKeys = ["me"]）
+ * # 订阅方指定字段（routingKeys = ["me"]）— "我是谁"
  * ?me=alice               → "me=alice"
+ *
+ * # 发布方指定字段（routingKeys = ["to"]）— "发给谁"
+ * ?to=alice               → "to=alice"
  *
  * # 指定多字段（routingKeys = ["tenant", "room"]）
  * ?tenant=acme&amp;room=lobby → "room=lobby&amp;tenant=acme"（指定字段也按字母排序）
  *
- * # 发布方单键多值
- * ?me=alice&amp;me=bob        → {"me=alice", "me=bob"}
+ * # 发布方单键多值（批量投递）
+ * ?to=alice&amp;to=bob        → {"to=alice", "to=bob"}
  *
  * # 发布方多键多值（位置配对）
  * ?room=lobby&amp;room=main&amp;tenant=acme&amp;tenant=beta
