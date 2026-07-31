@@ -149,7 +149,7 @@ final class SseConnectionFluxBuilder {
         // 定向消息仅通过 routingKey 匹配的连接
         String routingKey = metadata != null ? metadata.getRoutingKey() : null;
         flux = flux.filter(msg -> {
-            Set<String> targets = msg.getRoutingKey();
+            Set<String> targets = msg.getRoutingKeys();
             return (targets == null || targets.isEmpty())
                     || (routingKey != null && targets.contains(routingKey));
         });

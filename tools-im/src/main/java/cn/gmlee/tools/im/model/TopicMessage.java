@@ -49,7 +49,7 @@ public class TopicMessage<MSG> implements Serializable {
      * 非空 = 仅投递给 routingKey 匹配的连接。
      * </p>
      */
-    private Set<String> routingKey;
+    private Set<String> routingKeys;
     private MultiValueMap<String, String> urlParams;
     private MultiValueMap<String, String> headers;
     private MSG msg;

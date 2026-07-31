@@ -83,7 +83,7 @@ public abstract class ImPublisher extends AbstractTopic implements Publisher {
         // 多键：按顺序提取各一个值，以 "|" 拼接（如 ?tenant=acme&room=lobby → "acme|lobby"）
         Set<String> targets = extractRoutingTargets(urlParams);
         if (!targets.isEmpty()) {
-            event.setRoutingKey(targets);
+            event.setRoutingKeys(targets);
         }
         Serializable id = resolveRepeater().send(event);
         log.debug("[ImPublisher] 发布消息: topic={}, id={}", topic, id);
