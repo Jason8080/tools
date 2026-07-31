@@ -237,30 +237,14 @@ public class EndpointRouter {
     /**
      * 按配置从 URL 参数组合路由标识.
      * <p>
-     * 多维路由键按配置顺序以 {@code |} 拼接。
-     * 例如配置 {@code [target1, target2]}，URL {@code ?target1=A&target2=B}
-     * 则 routingKey = {@code "A|B"}。
+     * 委托给 {@link cn.gmlee.tools.im.util.RoutingKeyExtractor} 统一提取。
      * </p>
      *
      * @param context 访问上下文
      * @return 组合后的路由标识，无匹配参数时返回 null
      */
     private String composeRoutingKey(AccessContext context) {
-        List<String> routingKeys = sseProperties.getRoutingKeys();
-        if (routingKeys == null || routingKeys.isEmpty()) {
-            return null;
-        }
-        if (routingKeys.size() == 1) {
-            return context.getQueryParam(routingKeys.getFirst()).orElse(null);
-        }
-        StringBuilder sb = new StringBuilder();
-        for (String key : routingKeys) {
-            String value = context.getQueryParam(key).orElse(null);
-            if (value != null) {
-                if (!sb.isEmpty()) sb.append('|');
-                sb.append(value);
-            }
-        }
-        return !sb.isEmpty() ? sb.toString() : null;
+        return cn.gmlee.tools.im.util.RoutingKeyExtractor.extract(
+                sseProperties.getRoutingKeys(), context.getRequest().queryParams());
     }
 }
