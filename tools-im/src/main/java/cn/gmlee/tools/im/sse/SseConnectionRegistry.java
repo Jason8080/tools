@@ -36,7 +36,9 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li><b>Topic 索引</b>：topicConnections 按 Topic 索引连接 ID 集合，支持快速按 Topic 清理</li>
  *   <li><b>Sink 管理</b>：topicSinks 使用 compute() 原子操作</li>
  *   <li><b>空 Topic 追踪</b>：emptyTopics 独立记录空 Topic 及其首次变空时间，
- *       避免 TTL 扫描时遍历全量 topicCounts（含大量历史零值条目）</li>
+ *       避免 TTL 扫描时遍历全量 topicCounts（含大量历史零值条目）。
+ *       采用防抖动设计：Topic 变空后保留 {@code cleanup.emptyTopicTtl}（默认 60s）缓冲期，
+ *       避免间歇性流量导致的资源频繁创建/销毁</li>
  *   <li><b>双通道架构</b>：
  *       <ul>
  *         <li>{@code directedSinks}：connectionId → 定向 Sink（仅有 routingKey 的连接）</li>
@@ -92,6 +94,21 @@ public class SseConnectionRegistry {
      * 由 {@link #cleanupEmptyTopicsByTtl} 和 {@link #compactTopicCounts} 消费。
      * 独立于 {@code counter.compute()} 维护，避免 TTL 扫描时
      * 遍历全量历史 Topic 条目（可能数万条），将扫描复杂度从 O(全部历史) 降为 O(当前空 Topic)。
+     * </p>
+     *
+     * <h3>防抖动设计</h3>
+     * <p>
+     * Topic 变空后不立即销毁，而是保留 {@code cleanup.emptyTopicTtl}（默认 60s）的缓冲期。
+     * 这避免了间歇性流量场景下的资源抖动（empty → cleanup → create 循环）：
+     * </p>
+     * <ul>
+     *   <li>聊天室短暂无人 → 60s 内有人加入 → 复用已有资源，无需重建</li>
+     *   <li>动态 Topic 短时波动 → 避免频繁创建/销毁 Publisher/Repeater/Subscriber</li>
+     *   <li>减少 Spring Cloud Stream binding 的注册/注销开销</li>
+     * </ul>
+     * <p>
+     * 超时后由 {@link #cleanupEmptyTopicsByTtl} 清理 Sink 和连接集合，
+     * 再由 {@link #compactTopicCounts} 在 {@code cleanup.compactTtl}（默认 1h）后移除计数器条目。
      * </p>
      */
     private final ConcurrentHashMap<String, Long> emptyTopics = new ConcurrentHashMap<>();
@@ -341,6 +358,8 @@ public class SseConnectionRegistry {
      * 记录空 Topic 首次变空时间.
      * <p>
      * 使用 putIfAbsent 保证仅首次调用设置时间戳，后续调用不会覆盖。
+     * 这是防抖动设计的关键：即使 Topic 短暂恢复连接后再次变空，
+     * 也不会重置计时器，确保超时后必然被清理。
      * </p>
      *
      * @param topic Topic 名称
@@ -355,6 +374,13 @@ public class SseConnectionRegistry {
      * 仅遍历 {@link #emptyTopics}（当前空 Topic 集合），而非全量 topicCounts，
      * 在长期运行且 Topic 基数高的场景下性能显著优于全量扫描。
      * 保留 topicCounts 计数器条目，避免与并发 subscribe() 的竞态。
+     * </p>
+     *
+     * <h3>防抖动机制</h3>
+     * <p>
+     * Topic 变空后不立即清理，而是等待 {@code cleanup.emptyTopicTtl}（默认 60s）超时。
+     * 这段时间内如果有新连接加入，Topic 会从 {@link #emptyTopics} 移除，避免资源销毁。
+     * 超时后才执行清理（移除 Sink、连接集合），计数器条目由 {@link #compactTopicCounts} 延迟移除。
      * </p>
      *
      * @return 被清理的 Topic 名称列表
