@@ -382,4 +382,42 @@ public class TopicRegistry {
             return def;
         });
     }
+
+    // ==================== 生命周期管理（供 TopicLifecycleManager 调用） ====================
+
+    /**
+     * 销毁 Topic 的逻辑组件（Publisher/Repeater/Subscriber）.
+     * <p>
+     * 从三个注册表 Map 中移除 Topic 对应的组件实例。
+     * 此方法由 {@link TopicLifecycleManager} 在 Topic 销毁时调用。
+     * </p>
+     *
+     * <h3>注意</h3>
+     * <p>
+     * 此方法不会检查引用计数，调用方需确保 Topic 不再被使用。
+     * 并发安全：使用 {@code remove()} 原子操作，不会与其他线程的 {@code get()} 冲突。
+     * </p>
+     *
+     * @param topic Topic 名称
+     */
+    public void destroyTopic(String topic) {
+        Publisher<?, ?> publisher = publishers.remove(topic);
+        Repeater<?, ?> repeater = repeaters.remove(topic);
+        Subscriber<?> subscriber = subscribers.remove(topic);
+
+        if (publisher != null || repeater != null || subscriber != null) {
+            log.info("[TopicRegistry] Topic 组件已销毁: topic={}, publisher={}, repeater={}, subscriber={}",
+                    topic, publisher != null, repeater != null, subscriber != null);
+        }
+    }
+
+    /**
+     * 检查 Topic 是否存在逻辑组件.
+     *
+     * @param topic Topic 名称
+     * @return 存在任意组件返回 true
+     */
+    public boolean hasComponents(String topic) {
+        return publishers.containsKey(topic) || repeaters.containsKey(topic) || subscribers.containsKey(topic);
+    }
 }

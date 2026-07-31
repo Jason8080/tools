@@ -5,7 +5,7 @@ import cn.gmlee.tools.im.sse.SseConnection;
 import cn.gmlee.tools.im.sse.SseConnectionRegistry;
 import cn.gmlee.tools.im.sse.internal.SseExecutorFactory;
 import cn.gmlee.tools.im.sse.metrics.SseMetrics;
-import lombok.RequiredArgsConstructor;
+import cn.gmlee.tools.im.topic.TopicLifecycleManager;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  *   <li>检查每个连接的 lastActivityAt 时间戳</li>
  *   <li>空闲超过 idleTimeout 的连接标记为 DRAINING</li>
  *   <li>等待 gracePeriod 后强制关闭</li>
+ *   <li>清理空 Topic 和空闲 Topic（通过 {@link TopicLifecycleManager}）</li>
  * </ol>
  *
  * <h3>线程模型</h3>
@@ -40,7 +41,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * </p>
  */
 @Slf4j
-@RequiredArgsConstructor
 public class ConnectionReaper {
 
     /**
@@ -54,6 +54,11 @@ public class ConnectionReaper {
     private final AtomicBoolean running = new AtomicBoolean(false);
 
     /**
+     * Topic 生命周期管理器（可选依赖，用于清理空闲 Topic）
+     */
+    private volatile TopicLifecycleManager topicLifecycleManager;
+
+    /**
      * 收割调度器
      */
     private volatile ScheduledExecutorService scheduler;
@@ -62,6 +67,31 @@ public class ConnectionReaper {
      * 强制关闭执行器
      */
     private volatile ExecutorService forceCloseExecutor;
+
+    /**
+     * 创建连接收割器.
+     *
+     * @param registry   连接注册表
+     * @param metrics    指标收集器
+     * @param properties SSE 配置
+     */
+    public ConnectionReaper(SseConnectionRegistry registry, SseMetrics metrics, SseProperties properties) {
+        this.registry = registry;
+        this.metrics = metrics;
+        this.properties = properties;
+    }
+
+    /**
+     * 设置 Topic 生命周期管理器.
+     * <p>
+     * 延迟注入，避免循环依赖。由自动配置类在初始化完成后调用。
+     * </p>
+     *
+     * @param topicLifecycleManager Topic 生命周期管理器
+     */
+    public void setTopicLifecycleManager(TopicLifecycleManager topicLifecycleManager) {
+        this.topicLifecycleManager = topicLifecycleManager;
+    }
 
     /**
      * 启动收割器.
@@ -173,14 +203,36 @@ public class ConnectionReaper {
             long compactTtlMs = properties.getCleanup().getCompactTtl().toMillis();
             int compacted = registry.compactTopicCounts(compactTtlMs);
 
-            if (zombieCount > 0 || !cleanedTopics.isEmpty() || compacted > 0) {
+            // 清理空闲 Topic（通过 TopicLifecycleManager）
+            int topicCleaned = cleanupIdleTopics();
+
+            if (zombieCount > 0 || !cleanedTopics.isEmpty() || compacted > 0 || topicCleaned > 0) {
                 metrics.recordZombieReaped(zombieCount);
-                log.info("[Reaper] 扫描完成: zombies={}, cleanedTopics={}, compacted={}",
-                        zombieCount, cleanedTopics.size(), compacted);
+                log.info("[Reaper] 扫描完成: zombies={}, cleanedTopics={}, compacted={}, topicsCleaned={}",
+                        zombieCount, cleanedTopics.size(), compacted, topicCleaned);
             }
         } catch (Exception e) {
             log.error("[Reaper] 扫描异常", e);
             metrics.recordError("reaper_scan");
+        }
+    }
+
+    /**
+     * 清理空闲 Topic（引用计数为 0 且超过 TTL）.
+     *
+     * @return 被清理的 Topic 数量
+     */
+    private int cleanupIdleTopics() {
+        TopicLifecycleManager manager = this.topicLifecycleManager;
+        if (manager == null) {
+            return 0;
+        }
+
+        try {
+            return manager.cleanup();
+        } catch (Exception e) {
+            log.error("[Reaper] Topic 清理异常", e);
+            return 0;
         }
     }
 

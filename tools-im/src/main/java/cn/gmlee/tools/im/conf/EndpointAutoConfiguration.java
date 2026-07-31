@@ -11,8 +11,11 @@ import cn.gmlee.tools.im.endpoint.ImAdminController;
 import cn.gmlee.tools.im.spi.access.AccessFilter;
 import cn.gmlee.tools.im.spi.converter.PrincipalRoutingKeyConverter;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
+import cn.gmlee.tools.im.sse.cleanup.ConnectionReaper;
 import cn.gmlee.tools.im.sse.metrics.SseMetrics;
+import cn.gmlee.tools.im.topic.DefaultTopicLifecycleManager;
 import cn.gmlee.tools.im.topic.TopicFactory;
+import cn.gmlee.tools.im.topic.TopicLifecycleManager;
 import cn.gmlee.tools.im.topic.TopicRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,6 +113,41 @@ public class EndpointAutoConfiguration {
                 bindingServiceProperties, bindingService, beanDefinitionRegistry, topicRegistry);
         endpointRegistry.addListener(factory);
         return factory;
+    }
+
+    /**
+     * Topic 生命周期管理器 Bean.
+     * <p>
+     * 统一管理 Topic 的完整生命周期：状态管理、引用计数、资源协调、自动清理。
+     * 解决 Topic 资源泄露问题（Publisher/Repeater/Subscriber 和 Spring Cloud Stream binding）。
+     * </p>
+     *
+     * <h3>核心职责</h3>
+     * <ul>
+     *   <li>跟踪每个 Topic 的状态（CREATED → ACTIVE → DESTROYING → DESTROYED）</li>
+     *   <li>管理 Topic 引用计数（端点注册时递增，注销时递减）</li>
+     *   <li>协调 {@link TopicRegistry} 和 {@link TopicFactory} 的创建/销毁</li>
+     *   <li>定期清理空闲 Topic（引用计数为 0 且超过 TTL）</li>
+     * </ul>
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public TopicLifecycleManager topicLifecycleManager(TopicRegistry topicRegistry,
+                                                        TopicFactory topicFactory,
+                                                        SseProperties sseProperties,
+                                                        EndpointRegistry endpointRegistry,
+                                                        ConnectionReaper connectionReaper) {
+        DefaultTopicLifecycleManager manager = new DefaultTopicLifecycleManager(
+                topicRegistry, topicFactory, sseProperties);
+
+        // 注入到 EndpointRegistry（用于管理 Topic 引用计数）
+        endpointRegistry.setTopicLifecycleManager(manager);
+
+        // 注入到 ConnectionReaper（用于定期清理空闲 Topic）
+        connectionReaper.setTopicLifecycleManager(manager);
+
+        log.info("[EndpointAutoConfiguration] TopicLifecycleManager 已初始化");
+        return manager;
     }
 
     /**

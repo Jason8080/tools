@@ -189,9 +189,106 @@ public class TopicFactory implements EndpointChangeListener {
             log.info("[TopicFactory] 启动 Consumer binding: {}", bindingName);
         } catch (Exception e) {
             log.error("[TopicFactory] 启动 Consumer binding 失败: {}", bindingName, e);
-            // 回滚：移除已注册的资源
-            inputBindingTopics.remove(topic);
+            // 完整回滚：清理已注册的资源
+            rollbackInputBinding(topic);
             throw new RuntimeException("启动 Consumer binding 失败: " + bindingName, e);
         }
+    }
+
+    /**
+     * 回滚输入 binding 注册（失败时调用）.
+     *
+     * @param topic Topic 名称
+     */
+    private void rollbackInputBinding(String topic) {
+        inputBindingTopics.remove(topic);
+
+        // 移除 Bean 定义
+        String beanName = BindingNames.consumerBean(topic);
+        if (beanDefinitionRegistry.containsBeanDefinition(beanName)) {
+            try {
+                beanDefinitionRegistry.removeBeanDefinition(beanName);
+                log.debug("[TopicFactory] 回滚 Consumer Bean: {}", beanName);
+            } catch (Exception e) {
+                log.warn("[TopicFactory] 回滚 Consumer Bean 失败: {}", beanName, e);
+            }
+        }
+
+        // 移除 binding 配置
+        String bindingName = BindingNames.inputBinding(topic);
+        bindingServiceProperties.getBindings().remove(bindingName);
+        log.debug("[TopicFactory] 回滚 input binding: {}", bindingName);
+    }
+
+    // ==================== 生命周期管理（供 TopicLifecycleManager 调用） ====================
+
+    /**
+     * 清理 Topic 的物理资源（Spring Cloud Stream binding）.
+     * <p>
+     * 执行完整的资源清理流程：
+     * <ol>
+     *   <li>移除 binding 配置</li>
+     *   <li>移除 Consumer Bean 定义</li>
+     *   <li>清理内部记录</li>
+     * </ol>
+     * </p>
+     *
+     * <h3>注意</h3>
+     * <p>
+     * 此方法不会检查引用计数，调用方需确保 Topic 不再被使用。
+     * 并发安全：使用 {@code remove()} 原子操作。
+     * </p>
+     *
+     * <h3>Spring Cloud Stream 限制</h3>
+     * <p>
+     * Spring Cloud Stream 的 {@code BindingService} 不提供 {@code unbind()} API，
+     * 已创建的 Consumer/Producer binding 无法通过编程方式销毁。
+     * 因此此方法仅清理配置和 Bean 定义，实际的 binding 连接会保留到应用重启。
+     * 这是 Spring Cloud Stream 的设计限制，适用于大多数场景（Topic 通常是长期存在的）。
+     * </p>
+     *
+     * @param topic Topic 名称
+     */
+    public void cleanupTopicResources(String topic) {
+        String inputBindingName = BindingNames.inputBinding(topic);
+        String outputBindingName = BindingNames.outputBinding(topic);
+        String beanName = BindingNames.consumerBean(topic);
+
+        // 1. 清理输入 binding 相关资源
+        if (inputBindingTopics.remove(topic)) {
+            // 移除 binding 配置
+            bindingServiceProperties.getBindings().remove(inputBindingName);
+
+            // 移除 Bean 定义
+            if (beanDefinitionRegistry.containsBeanDefinition(beanName)) {
+                try {
+                    beanDefinitionRegistry.removeBeanDefinition(beanName);
+                    log.debug("[TopicFactory] 移除 Consumer Bean: {}", beanName);
+                } catch (Exception e) {
+                    log.warn("[TopicFactory] 移除 Consumer Bean 失败: {}", beanName, e);
+                }
+            }
+
+            log.debug("[TopicFactory] 清理 input binding 配置: {}", inputBindingName);
+        }
+
+        // 2. 清理输出 binding 相关资源
+        if (outputBindingTopics.remove(topic)) {
+            // 移除 binding 配置
+            bindingServiceProperties.getBindings().remove(outputBindingName);
+            log.debug("[TopicFactory] 清理 output binding 配置: {}", outputBindingName);
+        }
+
+        log.info("[TopicFactory] Topic 物理资源已清理: topic={}", topic);
+    }
+
+    /**
+     * 检查 Topic 是否存在物理资源.
+     *
+     * @param topic Topic 名称
+     * @return 存在任意资源返回 true
+     */
+    public boolean hasResources(String topic) {
+        return inputBindingTopics.contains(topic) || outputBindingTopics.contains(topic);
     }
 }

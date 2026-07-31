@@ -2,6 +2,7 @@ package cn.gmlee.tools.im.endpoint;
 
 import cn.gmlee.tools.im.conf.EndpointProperties;
 import cn.gmlee.tools.im.spi.listener.EndpointChangeListener;
+import cn.gmlee.tools.im.topic.TopicLifecycleManager;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Collection;
@@ -23,6 +24,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  *   <li>路径解析：根据请求路径查找对应的端点配置</li>
  *   <li>生命周期管理：注册、注销、查询端点</li>
  *   <li>变更通知：注册/注销时触发回调（供 {@link EndpointChangeListener} 按需响应）</li>
+ *   <li>Topic 引用管理：注册/注销时调用 {@link TopicLifecycleManager} 管理 Topic 引用计数</li>
  * </ul>
  *
  * @since 5.6.0
@@ -45,9 +47,27 @@ public class EndpointRegistry {
     private final List<EndpointChangeListener> listeners = new CopyOnWriteArrayList<>();
 
     /**
+     * Topic 生命周期管理器（可选依赖，用于管理 Topic 引用计数）
+     */
+    private volatile TopicLifecycleManager topicLifecycleManager;
+
+    /**
+     * 设置 Topic 生命周期管理器.
+     * <p>
+     * 延迟注入，避免循环依赖。由自动配置类在初始化完成后调用。
+     * </p>
+     *
+     * @param topicLifecycleManager Topic 生命周期管理器
+     */
+    public void setTopicLifecycleManager(TopicLifecycleManager topicLifecycleManager) {
+        this.topicLifecycleManager = topicLifecycleManager;
+    }
+
+    /**
      * 注册端点.
      * <p>
      * 如果路径已存在，旧配置会被覆盖。注册成功后触发 {@link EndpointChangeListener#onEndpointRegistered} 回调。
+     * 同时调用 {@link TopicLifecycleManager#acquire} 增加 Topic 引用计数。
      * </p>
      *
      * @param props 端点配置
@@ -58,8 +78,15 @@ public class EndpointRegistry {
         EndpointProperties old = endpoints.put(props.getPath(), props);
         if (old == null) {
             log.info("[EndpointRegistry] 注册端点: {} → topic={}, mode={}", props.getPath(), props.getTopic(), props.getMode());
+            // 新增端点：增加 Topic 引用计数
+            acquireTopic(props.getTopic());
         } else {
             log.info("[EndpointRegistry] 更新端点: {} → topic={}, mode={}", props.getPath(), props.getTopic(), props.getMode());
+            // 更新端点：如果 Topic 变了，调整引用计数
+            if (!old.getTopic().equals(props.getTopic())) {
+                releaseTopic(old.getTopic());
+                acquireTopic(props.getTopic());
+            }
         }
         fireRegistered(props);
     }
@@ -68,6 +95,7 @@ public class EndpointRegistry {
      * 注销端点.
      * <p>
      * 注销成功后触发 {@link EndpointChangeListener#onEndpointUnregistered} 回调。
+     * 同时调用 {@link TopicLifecycleManager#release} 减少 Topic 引用计数。
      * </p>
      *
      * @param path 请求路径
@@ -77,6 +105,8 @@ public class EndpointRegistry {
         EndpointProperties removed = endpoints.remove(path);
         if (removed != null) {
             log.info("[EndpointRegistry] 注销端点: {}", path);
+            // 减少 Topic 引用计数
+            releaseTopic(removed.getTopic());
             fireUnregistered(removed);
         }
         return removed;
@@ -119,6 +149,15 @@ public class EndpointRegistry {
         listeners.add(listener);
     }
 
+    /**
+     * 移除变更监听器.
+     *
+     * @param listener 监听器
+     */
+    public void removeListener(EndpointChangeListener listener) {
+        listeners.remove(listener);
+    }
+
     private void fireRegistered(EndpointProperties props) {
         for (EndpointChangeListener listener : listeners) {
             try {
@@ -151,6 +190,40 @@ public class EndpointRegistry {
         }
         if (props.getMode() == null) {
             throw new IllegalArgumentException("mode 不能为 null");
+        }
+    }
+
+    // ==================== Topic 引用计数管理 ====================
+
+    /**
+     * 增加 Topic 引用计数.
+     *
+     * @param topic Topic 名称
+     */
+    private void acquireTopic(String topic) {
+        TopicLifecycleManager manager = this.topicLifecycleManager;
+        if (manager != null) {
+            try {
+                manager.acquire(topic);
+            } catch (Exception e) {
+                log.error("[EndpointRegistry] Topic 引用计数递增失败: topic={}", topic, e);
+            }
+        }
+    }
+
+    /**
+     * 减少 Topic 引用计数.
+     *
+     * @param topic Topic 名称
+     */
+    private void releaseTopic(String topic) {
+        TopicLifecycleManager manager = this.topicLifecycleManager;
+        if (manager != null) {
+            try {
+                manager.release(topic);
+            } catch (Exception e) {
+                log.error("[EndpointRegistry] Topic 引用计数递减失败: topic={}", topic, e);
+            }
         }
     }
 }
