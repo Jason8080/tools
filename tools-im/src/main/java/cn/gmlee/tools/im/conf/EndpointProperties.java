@@ -60,20 +60,24 @@ public class EndpointProperties {
      * <pre>
      * im:
      *   sse:
-     *     routing-keys: ["me"]       # 全局默认（订阅方用 me 声明身份）
+     *     routing-keys: ["room"]            # 全局默认（按房间路由）
      *   endpoints:
      *     - path: /api/chat/pull
      *       topic: im.chat
      *       mode: pull
-     *                                # routingKeys 未设置 → 继承全局 ["me"]
+     *                                       # routingKeys 未设置 → 继承全局 ["room"]
      *     - path: /api/chat/push
      *       topic: im.chat
      *       mode: push
-     *       routing-keys: ["to"]     # 发布方用 to 指定目标（端点覆盖）
+     *                                       # routingKeys 未设置 → 继承全局 ["room"]
      *     - path: /api/room/pull
      *       topic: im.room
      *       mode: pull
-     *       routing-keys: ["tenant", "room"]  # 多维路由键
+     *       routing-keys: ["tenant", "room"]  # 端点覆盖：多租户聊天室
+     *     - path: /api/room/push
+     *       topic: im.room
+     *       mode: push
+     *       routing-keys: ["tenant", "room"]  # 必须与对应的 pull 端点配置一致
      * </pre>
      *
      * @since 5.6.0

@@ -23,17 +23,17 @@ import java.util.Set;
  * ?tenant=acme&amp;room=lobby → "room=lobby&amp;tenant=acme"（key 字母排序）
  * ?room=lobby&amp;tenant=acme → "room=lobby&amp;tenant=acme"（相同结果，顺序无关）
  *
- * # 订阅方指定字段（routingKeys = ["me"]）— "我是谁"
- * ?me=alice               → "me=alice"
+ * # 订阅方指定字段（routingKeys = ["room"]）— "我在哪个房间"
+ * ?room=lobby             → "room=lobby"
  *
- * # 发布方指定字段（routingKeys = ["to"]）— "发给谁"
- * ?to=alice               → "to=alice"
+ * # 发布方指定字段（routingKeys = ["room"]）— "发给哪个房间"
+ * ?room=lobby             → "room=lobby"
  *
  * # 指定多字段（routingKeys = ["tenant", "room"]）
  * ?tenant=acme&amp;room=lobby → "room=lobby&amp;tenant=acme"（指定字段也按字母排序）
  *
  * # 发布方单键多值（批量投递）
- * ?to=alice&amp;to=bob        → {"to=alice", "to=bob"}
+ * ?room=lobby&amp;room=main   → {"room=lobby", "room=main"}
  *
  * # 发布方多键多值（位置配对）
  * ?room=lobby&amp;room=main&amp;tenant=acme&amp;tenant=beta

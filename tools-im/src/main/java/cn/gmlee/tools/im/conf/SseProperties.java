@@ -30,8 +30,8 @@ public class SseProperties {
      * <ul>
      *   <li>{@code null} / 未配置 / {@code []} — <b>全部 URL 参数参与</b>（默认）</li>
      *   <li>{@code ["*"]} — <b>显式全部参数</b>（等价于 null）</li>
-     *   <li>{@code ["to"]} — <b>指定字段</b>（仅提取 to 参数）</li>
-     *   <li>{@code ["tenant", "room"]} — <b>指定多字段</b></li>
+     *   <li>{@code ["room"]} — <b>指定字段</b>（仅提取 room 参数）</li>
+     *   <li>{@code ["tenant", "room"]} — <b>指定多字段</b>（如多租户聊天室）</li>
      * </ul>
      * <p>
      * 无 URL 参数时为广播连接（routingKey = null），不参与定向投递索引。
@@ -40,8 +40,8 @@ public class SseProperties {
      * <b>发布方与订阅方对称使用</b>：
      * </p>
      * <ul>
-     *   <li><b>订阅方</b>（PULL）：从 URL 参数提取路由标识作为连接身份（如 {@code ?me=alice} → "我是 alice"）</li>
-     *   <li><b>发布方</b>（PUSH）：从 URL 参数提取路由标识作为投递目标（如 {@code ?to=alice} → "发给 alice"）</li>
+     *   <li><b>订阅方</b>（PULL）：从 URL 参数提取路由标识作为连接身份（如 {@code ?tenant=acme&room=lobby} → "我是 acme/lobby 的订阅者"）</li>
+     *   <li><b>发布方</b>（PUSH）：从 URL 参数提取路由标识作为投递目标（如 {@code ?tenant=acme&room=lobby} → "发给 acme/lobby"）</li>
      * </ul>
      * <p>
      * 可通过 {@link EndpointProperties#getRoutingKeys()} 按端点覆盖此全局配置。
@@ -53,21 +53,18 @@ public class SseProperties {
      * <pre>
      * # 默认（全部参数）— 发布/订阅使用相同 URL 参数
      * # routing-keys 未配置
-     * 订阅：GET /pull?me=alice&amp;room=lobby   → routingKey = "me=alice&amp;room=lobby"（身份）
-     * 发布：POST /push?me=alice&amp;room=lobby  → targets = {"me=alice&amp;room=lobby"}（目标）
+     * 订阅：GET /pull?tenant=acme&amp;room=lobby   → routingKey = "room=lobby&amp;tenant=acme"（身份）
+     * 发布：POST /push?tenant=acme&amp;room=lobby  → targets = {"room=lobby&amp;tenant=acme"}（目标）
      *
-     * # 指定字段 — 订阅方用 me 声明身份
-     * routing-keys: ["me"]
-     * 订阅：GET /pull?me=alice              → routingKey = "me=alice"
+     * # 指定单字段 — 仅按房间路由
+     * routing-keys: ["room"]
+     * 订阅：GET /pull?room=lobby               → routingKey = "room=lobby"
+     * 发布：POST /push?room=lobby&amp;room=main    → targets = {"room=lobby", "room=main"}
      *
-     * # 指定字段 — 发布方用 to 指定目标
-     * routing-keys: ["to"]
-     * 发布：POST /push?to=alice&amp;to=bob      → targets = {"to=alice", "to=bob"}
-     *
-     * # 指定多字段
+     * # 指定多字段 — 多租户聊天室（tenant + room）
      * routing-keys: ["tenant", "room"]
-     * 订阅：GET /pull?tenant=acme&amp;room=lobby → routingKey = "room=lobby&amp;tenant=acme"
-     * 发布：POST /push?tenant=acme&amp;room=lobby → targets = {"room=lobby&amp;tenant=acme"}
+     * 订阅：GET /pull?tenant=acme&amp;room=lobby   → routingKey = "room=lobby&amp;tenant=acme"
+     * 发布：POST /push?tenant=acme&amp;room=lobby  → targets = {"room=lobby&amp;tenant=acme"}
      * </pre>
      */
     private List<String> routingKeys;

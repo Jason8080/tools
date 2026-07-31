@@ -54,10 +54,10 @@ class RoutingKeyComposerTest {
         }
 
         @Test
-        @DisplayName("[\"me\"] → [\"me\"]（指定字段不变）")
+        @DisplayName("[\"room\"] → [\"room\"]（指定字段不变）")
         void resolveSpecific() {
-            List<String> result = RoutingKeyComposer.resolve(Collections.singletonList("me"));
-            assertEquals(Collections.singletonList("me"), result);
+            List<String> result = RoutingKeyComposer.resolve(Collections.singletonList("room"));
+            assertEquals(Collections.singletonList("room"), result);
         }
 
         @Test
@@ -107,12 +107,11 @@ class RoutingKeyComposerTest {
         @DisplayName("指定字段模式：仅提取指定字段")
         void composeSpecificFields() {
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-            params.add("me", "alice");
             params.add("room", "lobby");
             params.add("tenant", "acme");
 
-            String key = composer.composeRoutingKey(Collections.singletonList("me"), params);
-            assertEquals("me=alice", key);
+            String key = composer.composeRoutingKey(Collections.singletonList("room"), params);
+            assertEquals("room=lobby", key);
         }
 
         @Test
@@ -146,19 +145,19 @@ class RoutingKeyComposerTest {
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
             params.add("room", "lobby");
 
-            // 指定 me 字段但 URL 没有
-            assertNull(composer.composeRoutingKey(Collections.singletonList("me"), params));
+            // 指定 tenant 字段但 URL 没有
+            assertNull(composer.composeRoutingKey(Collections.singletonList("tenant"), params));
         }
 
         @Test
         @DisplayName("多值参数取第一个值")
         void composeMultiValueTakesFirst() {
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-            params.add("me", "alice");
-            params.add("me", "bob");
+            params.add("room", "lobby");
+            params.add("room", "main");
 
-            String key = composer.composeRoutingKey(Collections.singletonList("me"), params);
-            assertEquals("me=alice", key);
+            String key = composer.composeRoutingKey(Collections.singletonList("room"), params);
+            assertEquals("room=lobby", key);
         }
     }
 
@@ -183,11 +182,11 @@ class RoutingKeyComposerTest {
         @DisplayName("单键多值：每个值各为一个 target")
         void extractSingleKeyMultiValue() {
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-            params.add("me", "alice");
-            params.add("me", "bob");
+            params.add("room", "lobby");
+            params.add("room", "main");
 
-            Set<String> targets = composer.extractRoutingTargets(Collections.singletonList("me"), params);
-            assertEquals(Set.of("me=alice", "me=bob"), targets);
+            Set<String> targets = composer.extractRoutingTargets(Collections.singletonList("room"), params);
+            assertEquals(Set.of("room=lobby", "room=main"), targets);
         }
 
         @Test
@@ -241,7 +240,7 @@ class RoutingKeyComposerTest {
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
             params.add("room", "lobby");
 
-            Set<String> targets = composer.extractRoutingTargets(Collections.singletonList("me"), params);
+            Set<String> targets = composer.extractRoutingTargets(Collections.singletonList("tenant"), params);
             assertTrue(targets.isEmpty());
         }
 
@@ -249,13 +248,13 @@ class RoutingKeyComposerTest {
         @DisplayName("全参数多值：多键按位置配对")
         void extractAllParamsMultiValue() {
             MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-            params.add("me", "alice");
-            params.add("me", "bob");
+            params.add("tenant", "acme");
+            params.add("tenant", "beta");
             params.add("room", "lobby");
             params.add("room", "main");
 
             Set<String> targets = composer.extractRoutingTargets(null, params);
-            assertEquals(Set.of("me=alice&room=lobby", "me=bob&room=main"), targets);
+            assertEquals(Set.of("room=lobby&tenant=acme", "room=main&tenant=beta"), targets);
         }
     }
 
@@ -268,15 +267,15 @@ class RoutingKeyComposerTest {
         @Test
         @DisplayName("订阅方的 routingKey 应等于发布方 target 之一")
         void subscriberPublisherSymmetry() {
-            // 订阅方：alice 以 ?me=alice&room=lobby 连接
+            // 订阅方：以 ?tenant=acme&room=lobby 连接
             MultiValueMap<String, String> subscriberParams = new LinkedMultiValueMap<>();
-            subscriberParams.add("me", "alice");
+            subscriberParams.add("tenant", "acme");
             subscriberParams.add("room", "lobby");
             String subscriberKey = composer.composeRoutingKey(null, subscriberParams);
 
             // 发布方：以相同参数投递
             MultiValueMap<String, String> publisherParams = new LinkedMultiValueMap<>();
-            publisherParams.add("me", "alice");
+            publisherParams.add("tenant", "acme");
             publisherParams.add("room", "lobby");
             Set<String> targets = composer.extractRoutingTargets(null, publisherParams);
 

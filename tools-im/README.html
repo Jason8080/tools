@@ -783,22 +783,22 @@ td code { font-size: 13px; }
           <span class="code-lang">JavaScript</span>
           <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
         </div>
-        <pre><code><span class="cm">// 订阅消息流（SSE）</span>
-<span class="kw">const</span> es = <span class="kw">new</span> <span class="fn">EventSource</span>(<span class="str">'/api/chat/pull'</span>);
+        <pre><code><span class="cm">// 订阅消息流（SSE）— 通过 URL 参数声明租户和房间</span>
+<span class="kw">const</span> es = <span class="kw">new</span> <span class="fn">EventSource</span>(<span class="str">'/api/chat/pull?tenant=acme&amp;room=lobby'</span>);
 es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</span>(<span class="typ">JSON</span>.<span class="fn">parse</span>(e.data));
 
-<span class="cm">// 广播消息</span>
+<span class="cm">// 广播消息（无 URL 参数 → 所有连接收到）</span>
 <span class="fn">fetch</span>(<span class="str">'/api/chat/push'</span>, {
   method: <span class="str">'POST'</span>,
   headers: {<span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>},
   body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'alice'</span>, content: <span class="str">'hello'</span>})
 });
 
-<span class="cm">// 定向投递 — 用 to 指定目标（需配置 routing-keys: ["to"]）</span>
-<span class="fn">fetch</span>(<span class="str">'/api/chat/push?to=alice&amp;to=bob'</span>, {
+<span class="cm">// 定向投递 — 使用与订阅方相同的参数格式指定目标房间</span>
+<span class="fn">fetch</span>(<span class="str">'/api/chat/push?tenant=acme&amp;room=lobby'</span>, {
   method: <span class="str">'POST'</span>,
   headers: {<span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>},
-  body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'alice'</span>, content: <span class="str">'private msg'</span>})
+  body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'alice'</span>, content: <span class="str">'msg to acme/lobby'</span>})
 });</code></pre>
       </div>
     </div>
@@ -1286,83 +1286,91 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
 <div class="tab-panel" id="targeted-delivery">
 
   <h2>定向投递</h2>
-  <p class="section-desc">将消息精准送达指定用户，而非广播给所有人。框架内置支持，零额外依赖。</p>
+  <p class="section-desc">将消息精准送达指定用户，而非广播给所有人。框架内置双通道架构，O(K) 精准投递，零额外依赖。</p>
 
-  <!-- ===== 1. 核心概念 ===== -->
-  <h3>核心概念</h3>
-  <p>定向投递涉及两个对象，职责分明：</p>
-
-  <div class="table-wrapper">
-    <table>
-      <thead>
-        <tr><th>对象</th><th>职责</th><th>关键字段</th><th>类比</th></tr>
-      </thead>
-      <tbody>
-        <tr><td><code>ConnectionMetadata</code></td><td>连接的运行时身份</td><td><code>routingKey</code> — 决定"我是谁"</td><td>信封上的寄件人</td></tr>
-        <tr><td><code>TopicMessage.routingKeys</code></td><td>消息的路由意图</td><td><code>Set&lt;String&gt;</code> — 决定"送给谁"</td><td>信封上的收件人</td></tr>
-      </tbody>
-    </table>
-  </div>
+  <!-- ===== 1. 设计洞察 ===== -->
+  <h3>设计洞察</h3>
+  <p>传统的定向投递模型：每条连接挂一个 <code>filter</code>，广播消息到来时 N 个连接各自判断「这消息是不是给我的」。复杂度 O(N)。</p>
+  <p>框架采用<b>双通道互斥架构</b>：把路由决策从接收端推到发布端，拆分为两条<b>结构性互斥</b>的通道——广播通道（<code>topicSink</code>）和定向通道（<code>directedSink</code>）。连接在创建时就决定走哪条通道，消息到达时无需 filter，复杂度从 O(N) 降为 O(1) + O(K)，K 为目标连接数。</p>
 
   <div class="callout callout-tip">
     <span class="callout-icon">&#x1F4A1;</span>
     <div>
-      <strong>路由规则</strong>
-      <p><code>to</code> 为空 → <b>广播</b>，所有连接收到。<code>to</code> 非空 → <b>定向</b>，仅 <code>routingKey</code> 在 <code>to</code> 中的连接收到。</p>
+      <strong>核心洞察</strong>
+      <p>双通道互斥是<b>结构性的</b>：广播连接根本没有 <code>directedSink</code>，定向连接不订阅 <code>topicSink</code> 的广播消息。两条通道在创建时就分岔，不可能重复投递。因此 <code>filter</code> 这个概念<b>完全消失</b>——不是优化了 filter，而是让 filter 变得没有必要。</p>
     </div>
   </div>
 
-  <!-- ===== 2. 快速体验 ===== -->
+  <!-- ===== 2. 核心概念 ===== -->
+  <h3>核心概念</h3>
+  <p>定向投递建立在一个对称模型上：<b>身份</b>（Identity）与<b>意图</b>（Intent）。</p>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>概念</th><th>载体</th><th>语义</th><th>类比</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><b>身份</b>（Identity）</td><td><code>ConnectionMetadata.routingKey</code></td><td>「我是谁」— 订阅方声明自己的身份标识</td><td>信封上的寄件人</td></tr>
+        <tr><td><b>意图</b>（Intent）</td><td><code>TopicMessage.routingKeys</code></td><td>「送给谁」— 发布方指定投递目标的集合</td><td>信封上的收件人</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p><b>匹配规则</b>：当消息的某个 <code>routingKeys</code> 元素等于连接的 <code>routingKey</code> 时，消息投递到该连接。<code>routingKeys</code> 为空 → <b>广播</b>，所有连接收到。非空 → <b>定向</b>，仅匹配的连接收到。</p>
+
+  <!-- ===== 3. 快速体验 ===== -->
   <h3>快速体验（零 Java 代码）</h3>
-  <p>假设你已配置好 <code>/api/chat/push</code>（PUSH）和 <code>/api/chat/pull</code>（PULL）两个端点。只需 3 步：</p>
+  <p>假设你已配置好 <code>/api/chat/push</code>（PUSH）和 <code>/api/chat/pull</code>（PULL）两个端点。以多租户聊天室为例：</p>
 
   <div class="steps">
     <div class="step">
-      <h4>alice 建立 SSE 连接，声明身份</h4>
+      <h4>alice 建立 SSE 连接，加入 acme 公司的 lobby 房间</h4>
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">JavaScript</span>
           <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
         </div>
-        <pre><code><span class="cm">// 浏览器原生 EventSource — 通过 URL 参数传递身份</span>
-<span class="kw">const</span> es = <span class="kw">new</span> <span class="fn">EventSource</span>(<span class="str">'/api/chat/pull?me=alice'</span>);
+        <pre><code><span class="cm">// 浏览器原生 EventSource — 通过 URL 参数声明租户和房间</span>
+<span class="kw">const</span> es = <span class="kw">new</span> <span class="fn">EventSource</span>(<span class="str">'/api/chat/pull?tenant=acme&amp;room=lobby'</span>);
 es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</span>(<span class="str">'收到:'</span>, <span class="typ">JSON</span>.<span class="fn">parse</span>(e.data));</code></pre>
       </div>
     </div>
 
     <div class="step">
-      <h4>bob 建立 SSE 连接，声明身份</h4>
+      <h4>bob 建立 SSE 连接，加入同一房间</h4>
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">JavaScript</span>
           <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
         </div>
-        <pre><code><span class="kw">const</span> es = <span class="kw">new</span> <span class="fn">EventSource</span>(<span class="str">'/api/chat/pull?me=bob'</span>);
+        <pre><code><span class="kw">const</span> es = <span class="kw">new</span> <span class="fn">EventSource</span>(<span class="str">'/api/chat/pull?tenant=acme&amp;room=lobby'</span>);
 es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</span>(<span class="str">'收到:'</span>, <span class="typ">JSON</span>.<span class="fn">parse</span>(e.data));</code></pre>
       </div>
     </div>
 
     <div class="step">
-      <h4>发送定向消息 — 只有 alice 收到</h4>
+      <h4>发送消息到 acme/lobby 房间 — alice 和 bob 都收到</h4>
       <div class="code-block">
         <div class="code-header">
           <span class="code-lang">HTTP</span>
           <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
         </div>
-        <pre><code><span class="cm"># 用 to 指定投递目标（需配置 routing-keys: ["to"]）</span>
-<span class="fn">POST</span> <span class="str">/api/chat/push?to=alice</span>
+        <pre><code><span class="cm"># 使用相同的参数格式指定目标房间（routingKey 必须匹配）</span>
+<span class="fn">POST</span> <span class="str">/api/chat/push?tenant=acme&amp;room=lobby</span>
 Content-Type: application/json
 
-{"from": "bob", "content": "你好，这条消息只有你能看到"}</code></pre>
+{"from": "charlie", "content": "大家好，这条消息发给 acme/lobby 房间"}</code></pre>
       </div>
-      <p>alice 的控制台输出：<code>收到: {from: "bob", content: "你好，这条消息只有你能看到"}</code><br>
-      bob 的控制台：<i>（无任何输出）</i></p>
+      <p>alice 和 bob 的控制台输出：<code>收到: {from: "charlie", content: "大家好，这条消息发给 acme/lobby 房间"}</code></p>
     </div>
   </div>
 
-  <!-- ===== 3. 身份建立 ===== -->
-  <h3>身份建立</h3>
-  <p>定向投递的前提是：每个 SSE 连接都有明确的身份标识（<code>routingKey</code>）。框架通过三层提取自动完成，优先级从高到低：</p>
+  <!-- ===== 4. 路由键机制 ===== -->
+  <h3>路由键机制</h3>
+
+  <h4 style="margin-top: 24px;">身份建立</h4>
+  <p>定向投递的前提是：每个 SSE 连接都有明确的身份标识（<code>routingKey</code>）。框架通过四层提取自动完成，优先级从高到低：</p>
 
   <div class="table-wrapper">
     <table>
@@ -1372,21 +1380,27 @@ Content-Type: application/json
       <tbody>
         <tr>
           <td><b>①</b></td>
-          <td><code>AccessFilter</code> 设置的 <code>principal</code></td>
+          <td><code>AccessFilter</code> 设置的 <code>principal</code>（String 类型）</td>
           <td>生产环境 — JWT / OAuth 认证</td>
-          <td>JWT Filter 解析 token → <code>setPrincipal(routingKey)</code></td>
+          <td>JWT Filter 解析 token → <code>setPrincipal(userId)</code></td>
         </tr>
         <tr>
           <td><b>②</b></td>
+          <td><code>PrincipalRoutingKeyConverter</code> 从复杂 principal 提取</td>
+          <td>principal 为非 String 对象（如 <code>UserDetails</code>）</td>
+          <td>从 <code>UserDetails</code> 提取 <code>getUsername()</code></td>
+        </tr>
+        <tr>
+          <td><b>③</b></td>
           <td><code>X-Me</code> 请求头</td>
           <td>服务端调用、Postman 测试、fetch-based SSE</td>
           <td><code>curl -H 'X-Me: alice' ...</code></td>
         </tr>
         <tr>
-          <td><b>③</b></td>
-          <td><code>me</code> URL 参数（可通过 <code>im.sse.routing-keys</code> 配置）</td>
+          <td><b>④</b></td>
+          <td>从 URL 参数按 <code>routing-keys</code> 配置组合</td>
           <td>浏览器 EventSource（无法自定义请求头）</td>
-          <td><code>EventSource('/api/chat/pull?me=alice')</code></td>
+          <td><code>EventSource('/api/chat/pull?tenant=acme&room=lobby')</code></td>
         </tr>
       </tbody>
     </table>
@@ -1396,70 +1410,103 @@ Content-Type: application/json
     <span class="callout-icon">&#x26A0;&#xFE0F;</span>
     <div>
       <strong>安全提示</strong>
-      <p>URL 参数（<code>?me=alice</code>）和请求头（<code>X-Me</code>）均为纯声明，无认证能力。适用于开发调试。生产环境应通过 <code>AccessFilter</code> 实现 JWT 等认证机制，确保身份不可伪造。</p>
+      <p>URL 参数（<code>?tenant=acme&room=lobby</code>）和请求头（<code>X-Room</code>）均为纯声明，无认证能力。适用于开发调试。生产环境应通过 <code>AccessFilter</code> 实现 JWT 等认证机制，确保身份不可伪造。</p>
     </div>
   </div>
 
-  <!-- ===== 3.5 路由键配置 ===== -->
-  <h3>路由键配置</h3>
-  <p>框架默认从 <code>?me=xxx</code> 提取路由标识。你可以通过 <code>im.sse.routing-keys</code> 自定义提取字段，甚至组合多个字段：</p>
+  <h4 style="margin-top: 24px;">路由键格式</h4>
+  <p>routingKey 格式为<b>规范化查询字符串</b>：key 按字母排序，<code>key=value</code> 以 <code>&amp;</code> 拼接，值取 <code>getFirst()</code>。保证<b>参数顺序无关性</b>：</p>
+  <pre style="background: #F8FAFC; padding: 16px; border-radius: 8px; font-size: 13px; line-height: 1.6; margin: 16px 0;">
+?tenant=acme&amp;room=lobby  →  "room=lobby&amp;tenant=acme"（key 字母排序）
+?room=lobby&amp;tenant=acme  →  "room=lobby&amp;tenant=acme"（相同结果，顺序无关）
+?room=lobby              →  "room=lobby"（单键）
+无参数                    →  null（广播连接，不参与定向索引）</pre>
+
+  <h4 style="margin-top: 24px;">配置方式</h4>
+  <p>框架支持<b>两级配置</b>：全局默认 + 端点级覆盖。</p>
 
   <div class="code-block">
     <div class="code-header">
       <span class="code-lang">YAML</span>
       <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
     </div>
-    <pre><code><span class="cmt"># 场景 1：使用 deviceId 作为路由键</span>
-<span class="key">im.sse.routing-keys</span>: [<span class="str">deviceId</span>]
-<span class="cmt"># 客户端：EventSource('/api/notify/pull?deviceId=phone-001')</span>
-
-<span class="cmt"># 场景 2：多维路由键 — 组合 tenant + room</span>
-<span class="key">im.sse.routing-keys</span>: [<span class="str">tenant</span>, <span class="str">room</span>]
-<span class="cmt"># 客户端：EventSource('/api/chat/pull?tenant=acme&amp;room=lobby')</span>
-<span class="cmt"># 框架自动拼接为 routingKey = "room=lobby&amp;tenant=acme"（key 按字母排序）</span></code></pre>
+    <pre><code><span class="key">im</span>:
+  <span class="key">sse</span>:
+    <span class="key">routing-keys</span>: [<span class="str">room</span>]       <span class="cmt"># 全局默认（按房间路由）</span>
+  <span class="key">endpoints</span>:
+    - <span class="key">path</span>: <span class="str">/api/chat/pull</span>
+      <span class="key">topic</span>: <span class="str">im.chat</span>
+      <span class="key">mode</span>: <span class="str">pull</span>               <span class="cmt"># routingKeys 未设置 → 继承全局 ["room"]</span>
+    - <span class="key">path</span>: <span class="str">/api/chat/push</span>
+      <span class="key">topic</span>: <span class="str">im.chat</span>
+      <span class="key">mode</span>: <span class="str">push</span>               <span class="cmt"># 继承全局 ["room"]，与订阅方保持一致</span>
+    - <span class="key">path</span>: <span class="str">/api/room/pull</span>
+      <span class="key">topic</span>: <span class="str">im.room</span>
+      <span class="key">mode</span>: <span class="str">pull</span>
+      <span class="key">routing-keys</span>: [<span class="str">tenant</span>, <span class="str">room</span>]  <span class="cmt"># 端点覆盖：多租户聊天室</span>
+    - <span class="key">path</span>: <span class="str">/api/room/push</span>
+      <span class="key">topic</span>: <span class="str">im.room</span>
+      <span class="key">mode</span>: <span class="str">push</span>
+      <span class="key">routing-keys</span>: [<span class="str">tenant</span>, <span class="str">room</span>]  <span class="cmt"># 必须与对应的 pull 端点配置一致</span></code></pre>
   </div>
 
-  <p>routingKey 格式为<b>规范化查询字符串</b>：key 按字母排序，<code>key=value</code> 以 <code>&amp;</code> 拼接，保证参数顺序无关性（<code>?a=1&amp;b=2</code> 与 <code>?b=2&amp;a=1</code> 产生相同的 routingKey）。无 URL 参数时为广播连接。发送方使用相同的 URL 参数格式即可定向投递到匹配的连接。</p>
+  <p><code>routing-keys</code> 语义：</p>
+  <ul>
+    <li><code>null</code> / 未配置 / <code>[]</code> — <b>全部 URL 参数参与</b>（默认）</li>
+    <li><code>["*"]</code> — <b>显式全部参数</b>（等价于 null）</li>
+    <li><code>["room"]</code> — <b>指定字段</b>（仅提取 room 参数）</li>
+    <li><code>["tenant", "room"]</code> — <b>指定多字段</b>（多租户场景）</li>
+  </ul>
 
-  <div class="callout callout-tip">
-    <span class="callout-icon">&#x1F4A1;</span>
+  <h4 style="margin-top: 24px;">对称语义与匹配规则</h4>
+  <p>同一套 <code>RoutingKeyComposer</code> 同时用于订阅方的身份建立和发布方的目标提取，保证双方寻址语义一致：</p>
+  <ul>
+    <li><b>订阅方</b>（PULL）：从 URL 参数提取路由标识作为连接身份（如 <code>?tenant=acme&amp;room=lobby</code> → routingKey = <code>"room=lobby&amp;tenant=acme"</code>）</li>
+    <li><b>发布方</b>（PUSH）：从 URL 参数提取路由标识作为投递目标（如 <code>?tenant=acme&amp;room=lobby</code> → targets = <code>{"room=lobby&amp;tenant=acme"}</code>）</li>
+  </ul>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">&#x26A0;&#xFE0F;</span>
     <div>
-      <strong>发布方与订阅方对称使用</strong>
-      <p>同一套 URL 参数既用于订阅方声明身份（routingKey），也用于发布方指定投递目标（routingKeys）。框架通过 <code>RoutingKeyComposer</code> SPI 保证双方寻址语义一致。默认实现支持单键多值批量投递和多键按位置配对。</p>
+      <strong>匹配规则</strong>
+      <p><b>同一 Topic 的订阅方和发布方必须使用相同的 routing-keys 配置</b>，确保 routingKey 格式一致。例如：订阅方用 <code>["tenant", "room"]</code>，发布方也必须用 <code>["tenant", "room"]</code>。可通过全局 <code>im.sse.routing-keys</code> 统一配置，或通过 <code>EndpointProperties.routingKeys</code> 按端点覆盖（但同一 Topic 的 PUSH/PULL 端点必须保持一致）。</p>
     </div>
   </div>
 
-  <div class="callout callout-info">
-    <span class="callout-icon">&#x1F4CB;</span>
-    <div>
-      <strong>默认全参数模式</strong>
-      <p><code>routing-keys</code> 未配置时，<b>全部 URL 参数参与</b> routingKey 计算（如 <code>?me=alice&amp;room=lobby</code> → <code>"me=alice&amp;room=lobby"</code>）。可配置指定字段（如 <code>["me"]</code>）或按端点覆盖（<code>EndpointProperties.routingKeys</code>）。</p>
-    </div>
-  </div>
-
-  <!-- ===== 4. 发送定向消息 ===== -->
+  <!-- ===== 5. 发送定向消息 ===== -->
   <h3>发送定向消息</h3>
   <p>两种路径，殊途同归：</p>
 
   <h4 style="margin-top: 24px;">路径 A — HTTP 端点（零 Java 代码）</h4>
-  <p>使用与订阅方相同的 URL 参数格式指定投递目标：</p>
+  <p>使用与订阅方<b>相同的 URL 参数格式</b>指定投递目标（routingKey 必须匹配）：</p>
   <div class="code-block">
     <div class="code-header">
       <span class="code-lang">JavaScript</span>
       <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
     </div>
-    <pre><code><span class="cm">// 定向投递给 alice — 用 to 指定目标（需配置 routing-keys: ["to"]）</span>
-<span class="fn">fetch</span>(<span class="str">'/api/chat/push?to=alice'</span>, {
+    <pre><code><span class="cm">// 定向投递到 acme/lobby 房间 — 使用与订阅方相同的参数格式</span>
+<span class="cm">// 订阅方：?tenant=acme&amp;room=lobby → routingKey = "room=lobby&amp;tenant=acme"</span>
+<span class="cm">// 发布方：?tenant=acme&amp;room=lobby → targets = {"room=lobby&amp;tenant=acme"} ✅ 匹配</span>
+<span class="fn">fetch</span>(<span class="str">'/api/chat/push?tenant=acme&amp;room=lobby'</span>, {
   method: <span class="str">'POST'</span>,
   headers: {<span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>},
-  body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'bob'</span>, content: <span class="str">'hi alice'</span>})
+  body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'bob'</span>, content: <span class="str">'hi acme/lobby'</span>})
 });
 
-<span class="cm">// 批量定向 — 单键多值，每个值各为一个 target</span>
-<span class="fn">fetch</span>(<span class="str">'/api/chat/push?to=alice&amp;to=bob'</span>, {
+<span class="cm">// 批量定向 — 单键多值，投递到多个房间</span>
+<span class="cm">// ?room=lobby&amp;room=main → targets = {"room=lobby", "room=main"}</span>
+<span class="fn">fetch</span>(<span class="str">'/api/chat/push?room=lobby&amp;room=main'</span>, {
   method: <span class="str">'POST'</span>,
   headers: {<span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>},
   body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'charlie'</span>, content: <span class="str">'群聊'</span>})
+});
+
+<span class="cm">// 多维路由 — 多键按位置配对（需配置 routing-keys: ["tenant", "room"]）</span>
+<span class="cm">// ?tenant=acme&amp;room=lobby → targets = {"room=lobby&amp;tenant=acme"}</span>
+<span class="fn">fetch</span>(<span class="str">'/api/room/push?tenant=acme&amp;room=lobby'</span>, {
+  method: <span class="str">'POST'</span>,
+  headers: {<span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>},
+  body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'system'</span>, content: <span class="str">'房间通知'</span>})
 });
 
 <span class="cm">// 无 URL 参数 = 广播（所有连接收到）</span>
@@ -1480,11 +1527,27 @@ Content-Type: application/json
     <pre><code><span class="ann">@Autowired</span>
 <span class="kw">private</span> <span class="typ">TopicRegistry</span> topicRegistry;
 
-<span class="kw">public void</span> <span class="fn">sendPrivateMessage</span>(<span class="typ">String</span> toUserId, <span class="typ">ChatMsg</span> msg) {
+<span class="cm">// 定向投递到指定房间 — routingKey 格式需与订阅方一致</span>
+<span class="cm">// 订阅方：?tenant=acme&amp;room=lobby → routingKey = "room=lobby&amp;tenant=acme"</span>
+<span class="kw">public void</span> <span class="fn">sendToRoom</span>(<span class="typ">String</span> tenant, <span class="typ">String</span> room, <span class="typ">ChatMsg</span> msg) {
+    <span class="typ">String</span> target = <span class="str">"room="</span> + room + <span class="str">"&amp;tenant="</span> + tenant;
+    <span class="typ">TopicMessage</span>&lt;<span class="typ">ChatMsg</span>&gt; envelope = <span class="typ">TopicMessage</span>.&lt;<span class="typ">ChatMsg</span>&gt;<span class="fn">builder</span>()
+            .<span class="fn">topic</span>(<span class="str">"im.room"</span>)
+            .<span class="fn">msg</span>(msg)
+            .<span class="fn">routingKeys</span>(<span class="typ">Set</span>.<span class="fn">of</span>(target))     <span class="cm">// 定向投递</span>
+            .<span class="fn">build</span>();
+    topicRegistry.<span class="fn">ensureRepeater</span>(<span class="str">"im.room"</span>).<span class="fn">send</span>(envelope);
+}
+
+<span class="cm">// 批量定向 — 投递到多个房间</span>
+<span class="kw">public void</span> <span class="fn">sendToRooms</span>(<span class="typ">Set</span>&lt;<span class="typ">String</span>&gt; rooms, <span class="typ">ChatMsg</span> msg) {
+    <span class="typ">Set</span>&lt;<span class="typ">String</span>&gt; targets = rooms.<span class="fn">stream</span>()
+            .<span class="fn">map</span>(room -&gt; <span class="str">"room="</span> + room)
+            .<span class="fn">collect</span>(<span class="typ">Collectors</span>.<span class="fn">toSet</span>());
     <span class="typ">TopicMessage</span>&lt;<span class="typ">ChatMsg</span>&gt; envelope = <span class="typ">TopicMessage</span>.&lt;<span class="typ">ChatMsg</span>&gt;<span class="fn">builder</span>()
             .<span class="fn">topic</span>(<span class="str">"im.chat"</span>)
             .<span class="fn">msg</span>(msg)
-            .<span class="fn">routingKeys</span>(<span class="typ">Set</span>.<span class="fn">of</span>(toUserId))    <span class="cm">// 定向投递</span>
+            .<span class="fn">routingKeys</span>(targets)
             .<span class="fn">build</span>();
     topicRegistry.<span class="fn">ensureRepeater</span>(<span class="str">"im.chat"</span>).<span class="fn">send</span>(envelope);
 }</code></pre>
@@ -1498,8 +1561,8 @@ Content-Type: application/json
     </div>
   </div>
 
-  <!-- ===== 5. 路由原理 ===== -->
-  <h3>路由原理</h3>
+  <!-- ===== 6. 双通道架构 ===== -->
+  <h3>双通道架构</h3>
   <p>广播消息和定向消息走<b>完全独立的双通道</b>，互斥且无重复投递：</p>
 
   <div class="arch-diagram" style="padding: 40px 24px;">
@@ -1535,20 +1598,20 @@ Content-Type: application/json
   <div class="callout callout-tip">
     <span class="callout-icon">&#x1F4A1;</span>
     <div>
-      <strong>设计优势</strong>
-      <p>双通道架构：广播 O(1)、定向 O(K)（K 为目标连接数，K &lt;&lt; N）。纯广播连接零额外内存开销，仅有 routingKey 的连接额外 ~128 字节（directedSink + 索引条目）。</p>
+      <strong>性能与内存</strong>
+      <p>广播 O(1)、定向 O(K)（K 为目标连接数，K &lt;&lt; N）。纯广播连接<b>零额外内存开销</b>，仅有 routingKey 的连接额外 ~128 字节（directedSink + 索引条目）。</p>
     </div>
   </div>
 
-  <!-- ===== 6. 完整数据流 ===== -->
+  <!-- ===== 7. 完整数据流 ===== -->
   <h3>完整数据流</h3>
   <div class="arch-diagram" style="padding: 40px 24px;">
     <div style="text-align: center; margin-bottom: 24px; font-weight: 600; color: #4F46E5;">定向投递全链路</div>
     <div class="arch-flow">
-      <div class="arch-box arch-publisher">POST /push<b>?to=alice</b><br><small>EndpointRouter<br>提取 routingKeys</small></div>
+      <div class="arch-box arch-publisher">POST /push<b>?tenant=acme&amp;room=lobby</b><br><small>EndpointRouter<br>提取 routingKeys</small></div>
       <span class="arch-arrow">→</span>
       <div class="arch-box" style="background: #EEF2FF; color: #4338CA; border: 1px solid #C7D2FE;">
-        <b>TopicMessage</b><br><small>msg={content:"hi"}<br>routingKeys={"to=alice"}</small>
+        <b>TopicMessage</b><br><small>msg={content:"hi"}<br>routingKeys={"room=lobby&amp;tenant=acme"}</small>
       </div>
       <span class="arch-arrow">→</span>
       <div class="arch-box arch-mq">MQ<br><small>routingKeys 随消息<br>完整保留</small></div>
@@ -1556,20 +1619,80 @@ Content-Type: application/json
       <div class="arch-box arch-subscriber">SseConnectionManager<br><small>routingKeyIndex 查找<br>O(K) 精准投递</small></div>
       <span class="arch-arrow">→</span>
       <div style="display: flex; flex-direction: column; gap: 8px;">
-        <div class="arch-box" style="background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; padding: 8px 16px; font-size: 13px;">alice 连接 ✅<br><small>directedSink</small></div>
-        <div class="arch-box" style="background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 8px 16px; font-size: 13px;">bob 连接 —<br><small>未命中目标</small></div>
+        <div class="arch-box" style="background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; padding: 8px 16px; font-size: 13px;">acme/lobby 连接 ✅<br><small>routingKey="room=lobby&amp;tenant=acme"<br>directedSink</small></div>
+        <div class="arch-box" style="background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 8px 16px; font-size: 13px;">acme/main 连接 —<br><small>routingKey="room=main&amp;tenant=acme"<br>未命中目标</small></div>
       </div>
     </div>
   </div>
 
-  <!-- ===== 7. 生产环境建议 ===== -->
+  <!-- ===== 8. 扩展点 ===== -->
+  <h3>扩展点</h3>
+  <p>框架提供两个 SPI 扩展点，支持自定义路由键组合逻辑和身份提取逻辑。</p>
+
+  <h4 style="margin-top: 24px;">自定义路由键组合器（RoutingKeyComposer）</h4>
+  <p>默认实现 <code>DefaultRoutingKeyComposer</code> 按规范化查询字符串格式组合（key 字母排序）。如需自定义格式（如 HMAC 签名、自定义拼接规则），可实现 <code>RoutingKeyComposer</code> 接口：</p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Java</span>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+    </div>
+    <pre><code><span class="ann">@Component</span>
+<span class="kw">public class</span> <span class="typ">SignedRoutingKeyComposer</span> <span class="kw">implements</span> <span class="typ">RoutingKeyComposer</span> {
+
+    <span class="ann">@Override</span>
+    <span class="kw">public</span> <span class="typ">String</span> <span class="fn">composeRoutingKey</span>(<span class="typ">List</span>&lt;<span class="typ">String</span>&gt; routingKeys, <span class="typ">MultiValueMap</span>&lt;<span class="typ">String</span>, <span class="typ">String</span>&gt; params) {
+        <span class="cmt">// 自定义逻辑：如 HMAC 签名</span>
+        <span class="typ">String</span> raw = buildRawKey(routingKeys, params);
+        <span class="kw">return</span> raw + <span class="str">"&amp;sig="</span> + <span class="fn">hmacSign</span>(raw);
+    }
+
+    <span class="ann">@Override</span>
+    <span class="kw">public</span> <span class="typ">Set</span>&lt;<span class="typ">String</span>&gt; <span class="fn">extractRoutingTargets</span>(<span class="typ">List</span>&lt;<span class="typ">String</span>&gt; routingKeys, <span class="typ">MultiValueMap</span>&lt;<span class="typ">String</span>, <span class="typ">String</span>&gt; params) {
+        <span class="cmt">// 需与 composeRoutingKey 保持寻址语义一致</span>
+        <span class="cmt">// 即：发布方的 target 等于订阅方的 routingKey 时，消息投递到该连接</span>
+    }
+}</code></pre>
+  </div>
+
+  <p>注册为 Spring Bean 后，框架自动发现并使用，替代默认实现（通过 <code>@ConditionalOnMissingBean</code> 保证）。</p>
+
+  <h4 style="margin-top: 24px;">自定义 Principal 转换器（PrincipalRoutingKeyConverter）</h4>
+  <p>当 <code>AccessFilter</code> 设置的 <code>principal</code> 为非 String 类型（如 <code>UserDetails</code>、<code>JwtUser</code>）时，框架通过 <code>PrincipalRoutingKeyConverter</code> 将其转换为 routingKey：</p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Java</span>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+    </div>
+    <pre><code><span class="ann">@Component</span>
+<span class="kw">public class</span> <span class="typ">UserDetailsRoutingKeyConverter</span> <span class="kw">implements</span> <span class="typ">PrincipalRoutingKeyConverter</span> {
+
+    <span class="ann">@Override</span>
+    <span class="kw">public boolean</span> <span class="fn">supports</span>(<span class="typ">Class</span>&lt;?&gt; principalType) {
+        <span class="kw">return</span> <span class="typ">UserDetails</span>.<span class="kw">class</span>.<span class="fn">isAssignableFrom</span>(principalType);
+    }
+
+    <span class="ann">@Override</span>
+    <span class="kw">public</span> <span class="typ">String</span> <span class="fn">convert</span>(<span class="typ">Object</span> principal, <span class="typ">AccessContext</span> context) {
+        <span class="kw">return</span> ((<span class="typ">UserDetails</span>) principal).<span class="fn">getUsername</span>();
+    }
+}</code></pre>
+  </div>
+
+  <p>多个转换器按 <code>getOrder()</code> 排序依次尝试，首个 <code>supports()</code> 返回 <code>true</code> 且转换结果非空的转换器获胜。</p>
+
+  <h4 style="margin-top: 24px;">端点级配置覆盖</h4>
+  <p>通过 <code>EndpointProperties.routingKeys</code> 可按端点覆盖全局配置（见「配置方式」章节）。不同 Topic 可使用不同的路由键策略（如 <code>im.chat</code> 用 <code>["room"]</code>，<code>im.room</code> 用 <code>["tenant", "room"]</code>），但同一 Topic 的 PUSH/PULL 端点必须保持一致。</p>
+
+  <!-- ===== 9. 生产环境建议 ===== -->
   <h3>生产环境建议</h3>
 
   <div class="callout callout-danger">
     <span class="callout-icon">&#x1F6E1;&#xFE0F;</span>
     <div>
       <strong>身份认证不可省略</strong>
-      <p><code>?me=alice</code> 和 <code>X-Me: alice</code> 均为纯声明，任何人可伪造。生产环境必须通过 <code>AccessFilter</code> 实现认证（如 JWT），确保身份不可篡改。</p>
+      <p>URL 参数（<code>?tenant=acme&amp;room=lobby</code>）和请求头（<code>X-Room: lobby</code>）均为纯声明，任何人可伪造。生产环境必须通过 <code>AccessFilter</code> 实现认证（如 JWT），确保身份不可篡改。</p>
     </div>
   </div>
 
@@ -1619,7 +1742,7 @@ Content-Type: application/json
   <div class="callout callout-info">
     <span class="callout-icon">&#x1F504;</span>
     <div>
-      <strong>三层提取的优先级保证</strong>
+      <strong>四层提取的优先级保证</strong>
       <p>当 <code>AccessFilter</code> 设置了 <code>principal</code> 后，框架优先使用该值作为 <code>routingKey</code>，URL 参数和 <code>X-Me</code> 头不会被触达。开发者无需关心兜底逻辑的冲突问题。</p>
     </div>
   </div>
