@@ -17,10 +17,54 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ========== Landing Page (全屏门户) ========== */
+/* ========== Landing Page (全屏门户 - 极光流光版) ========== */
+@keyframes aurora {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+    opacity: 0.6;
+  }
+  33% {
+    transform: translate(30px, -50px) rotate(120deg) scale(1.1);
+    opacity: 0.8;
+  }
+  66% {
+    transform: translate(-20px, 20px) rotate(240deg) scale(0.9);
+    opacity: 0.7;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateY(-20px) translateX(10px);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
 .landing-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1E1B4B 0%, #312E81 30%, #4F46E5 70%, #6366F1 100%);
+  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -30,19 +74,28 @@ body {
   overflow: hidden;
 }
 .landing-page.hidden { display: none; }
+
+/* 极光流光层 - 三层渐变动画 */
 .landing-page::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image:
-    radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.3) 0%, transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.4) 0%, transparent 40%),
-    radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.2) 0%, transparent 60%);
+  top: -50%;
+  left: -50%;
+  right: -50%;
+  bottom: -50%;
+  width: 200%;
+  height: 200%;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(6, 182, 212, 0.4) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(168, 85, 247, 0.4) 0%, transparent 50%),
+    radial-gradient(circle at 40% 80%, rgba(236, 72, 153, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 70% 20%, rgba(59, 130, 246, 0.3) 0%, transparent 50%);
+  animation: aurora 15s ease-in-out infinite;
   pointer-events: none;
+  filter: blur(60px);
 }
+
+/* 动态网格层 */
 .landing-page::after {
   content: '';
   position: absolute;
@@ -50,108 +103,273 @@ body {
   left: 0;
   right: 0;
   bottom: 0;
-  background-image: url("data:image/svg38IiI6IjIweDEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMC4yIiBzdHJva2Utb3BhY2l0eT0iMC4wNSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==");
-  opacity: 0.3;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: pulse 8s ease-in-out infinite;
   pointer-events: none;
+}
+
+/* 浮动光球装饰 */
+.landing-page .orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.landing-page .orb-1 {
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.6) 0%, transparent 70%);
+  top: 10%;
+  left: 10%;
+  animation: float 8s ease-in-out infinite;
+}
+
+.landing-page .orb-2 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.5) 0%, transparent 70%);
+  bottom: 15%;
+  right: 10%;
+  animation: float 10s ease-in-out infinite 2s;
+}
+
+.landing-page .orb-3 {
+  width: 250px;
+  height: 250px;
+  background: radial-gradient(circle, rgba(236, 72, 153, 0.4) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: float 12s ease-in-out infinite 4s;
 }
 
 .landing-content {
   position: relative;
-  z-index: 1;
+  z-index: 10;
   text-align: center;
   padding: 24px;
+  max-width: 900px;
 }
+
 .landing-logo {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 120px;
-  height: 120px;
-  background: rgba(255, 255, 255, 0.15);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 32px;
-  margin-bottom: 40px;
-  backdrop-filter: blur(20px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-}
-.landing-logo svg {
-  width: 72px;
-  height: 72px;
-}
-.landing-title {
-  font-size: 80px;
-  font-weight: 900;
-  letter-spacing: -3px;
-  margin-bottom: 24px;
-  color: #fff;
-  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
-}
-.landing-tagline {
-  font-size: 28px;
-  color: rgba(255, 255, 255, 0.9);
+  width: 140px;
+  height: 140px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 40px;
   margin-bottom: 48px;
-  font-weight: 400;
-  line-height: 1.6;
-  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(20px);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.3),
+    0 0 40px rgba(168, 85, 247, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  position: relative;
+  transition: all 0.4s ease;
 }
+
+.landing-logo:hover {
+  transform: scale(1.05) rotate(5deg);
+  box-shadow:
+    0 25px 70px rgba(0, 0, 0, 0.4),
+    0 0 60px rgba(168, 85, 247, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.landing-logo::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, #06b6d4, #a855f7, #ec4899, #06b6d4);
+  border-radius: 40px;
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.4s ease;
+  animation: shimmer 3s linear infinite;
+  background-size: 200% 100%;
+}
+
+.landing-logo:hover::before {
+  opacity: 0.5;
+}
+
+.landing-logo svg {
+  width: 84px;
+  height: 84px;
+  filter: drop-shadow(0 4px 12px rgba(168, 85, 247, 0.4));
+}
+
+.landing-title {
+  font-size: 88px;
+  font-weight: 900;
+  letter-spacing: -4px;
+  margin-bottom: 28px;
+  background: linear-gradient(135deg, #fff 0%, #e0e7ff 50%, #c7d2fe 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 4px 40px rgba(168, 85, 247, 0.4);
+  position: relative;
+}
+
+.landing-title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #a855f7, transparent);
+  border-radius: 2px;
+}
+
+.landing-tagline {
+  font-size: 26px;
+  color: rgba(255, 255, 255, 0.85);
+  margin-bottom: 56px;
+  font-weight: 300;
+  line-height: 1.8;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1px;
+}
+
 .landing-badges {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   justify-content: center;
   flex-wrap: wrap;
-  margin-bottom: 48px;
+  margin-bottom: 56px;
 }
+
 .landing-badge {
   display: inline-flex;
   align-items: center;
-  padding: 8px 20px;
-  border-radius: 24px;
+  padding: 10px 24px;
+  border-radius: 28px;
   font-size: 14px;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.25);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
 }
+
+.landing-badge::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.landing-badge:hover::before {
+  left: 100%;
+}
+
+.landing-badge:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(168, 85, 247, 0.3);
+}
+
 .landing-actions {
   display: flex;
-  gap: 16px;
+  gap: 20px;
   justify-content: center;
+  flex-wrap: wrap;
 }
+
 .btn-primary {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 18px 40px;
-  background: #fff;
-  color: #4F46E5;
-  border-radius: 12px;
+  gap: 10px;
+  padding: 20px 48px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border-radius: 16px;
   text-decoration: none;
   font-weight: 700;
   font-size: 18px;
-  transition: all 0.3s;
+  transition: all 0.4s ease;
   border: none;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 8px 32px rgba(102, 126, 234, 0.4),
+    0 0 0 0 rgba(102, 126, 234, 0.5);
+  position: relative;
+  overflow: hidden;
 }
-.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3); }
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.btn-primary:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow:
+    0 12px 40px rgba(102, 126, 234, 0.5),
+    0 0 0 8px rgba(102, 126, 234, 0.1);
+}
+
 .btn-secondary {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 18px 40px;
-  background: rgba(255, 255, 255, 0.1);
+  gap: 10px;
+  padding: 20px 48px;
+  background: rgba(255, 255, 255, 0.08);
   color: #fff;
-  border-radius: 12px;
+  border-radius: 16px;
   text-decoration: none;
   font-weight: 600;
   font-size: 18px;
-  transition: all 0.3s;
+  transition: all 0.4s ease;
   border: 2px solid rgba(255, 255, 255, 0.3);
   cursor: pointer;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
-.btn-secondary:hover { background: rgba(255, 255, 255, 0.2); border-color: rgba(255, 255, 255, 0.5); transform: translateY(-2px); }
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-3px);
+  box-shadow:
+    0 8px 32px rgba(168, 85, 247, 0.3),
+    0 0 0 0 rgba(168, 85, 247, 0.2);
+}
 
 /* ========== Reading Mode (阅读模式) ========== */
 .reading-mode { display: none; }
@@ -450,11 +668,15 @@ td code { font-size: 13px; }
 /* ========== Responsive ========== */
 @media (max-width: 768px) {
   .landing-title { font-size: 48px; letter-spacing: -1px; }
-  .landing-tagline { font-size: 20px; }
-  .landing-logo { width: 90px; height: 90px; }
-  .landing-logo svg { width: 54px; height: 54px; }
-  .landing-actions { flex-direction: column; }
-  .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+  .landing-title::after { width: 120px; }
+  .landing-tagline { font-size: 18px; margin-bottom: 40px; }
+  .landing-logo { width: 100px; height: 100px; margin-bottom: 36px; }
+  .landing-logo svg { width: 60px; height: 60px; }
+  .landing-badges { gap: 10px; margin-bottom: 40px; }
+  .landing-badge { padding: 8px 18px; font-size: 13px; }
+  .landing-actions { flex-direction: column; gap: 12px; }
+  .btn-primary, .btn-secondary { width: 100%; justify-content: center; padding: 16px 32px; font-size: 16px; }
+  .landing-page .orb { display: none; }
   .tab-content { padding: 32px 16px 60px; }
   h2 { font-size: 24px; }
   .card-grid { grid-template-columns: 1fr; }
@@ -467,13 +689,18 @@ td code { font-size: 13px; }
 
 <!-- ==================== Landing Page ==================== -->
 <div class="landing-page">
+  <!-- 浮动光球装饰 -->
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
   <div class="landing-content">
     <div class="landing-logo">
       <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M8 12C8 9.79086 9.79086 8 12 8H36C38.2091 8 40 9.79086 40 12V28C40 30.2091 38.2091 32 36 32H28L24 38L20 32H12C9.79086 32 8 30.2091 8 28V12Z" fill="white" fill-opacity="0.95"/>
-        <circle cx="17" cy="20" r="2" fill="#4F46E5"/>
-        <circle cx="24" cy="20" r="2" fill="#4F46E5"/>
-        <circle cx="31" cy="20" r="2" fill="#4F46E5"/>
+        <circle cx="17" cy="20" r="2" fill="#667eea"/>
+        <circle cx="24" cy="20" r="2" fill="#764ba2"/>
+        <circle cx="31" cy="20" r="2" fill="#a855f7"/>
         <path d="M38 16C39.1046 16 40 16.8954 40 18V30C40 32.2091 38.2091 34 36 34H34" stroke="white" stroke-opacity="0.6" stroke-width="2" stroke-linecap="round"/>
       </svg>
     </div>
@@ -511,6 +738,7 @@ td code { font-size: 13px; }
       <button class="tab-btn" data-tab="spi-extension">SPI 扩展</button>
       <button class="tab-btn" data-tab="targeted-delivery">定向投递</button>
       <button class="tab-btn" data-tab="advanced">高阶用法</button>
+      <button class="tab-btn" data-tab="resource-management">资源管控</button>
       <button class="tab-btn" data-tab="monitoring">监控运维</button>
       <button class="tab-btn" data-tab="troubleshooting">故障排查</button>
     </div>
@@ -661,7 +889,7 @@ td code { font-size: 13px; }
     <div class="card">
       <div class="card-icon">&#x1F4F1;</div>
       <h4>SseConnectionManager</h4>
-      <p>SSE 连接管理器。连接注册/注销、背压策略、心跳保活、僵尸清理、优雅关闭。</p>
+      <p>SSE 连接管理器。连接注册/注销、背压策略、心跳保活、定时清理、优雅关闭。</p>
     </div>
     <div class="card">
       <div class="card-icon">&#x1F9E9;</div>
@@ -671,7 +899,7 @@ td code { font-size: 13px; }
     <div class="card">
       <div class="card-icon">&#x1F4CA;</div>
       <h4>可插拔指标</h4>
-      <p>Micrometer 指标自动暴露，连接数 / 订阅速率 / 发布速率 / 僵尸清理，无缝接入 Prometheus。</p>
+      <p>Micrometer 指标自动暴露，连接数 / 订阅速率 / 发布速率 / 定时清理，无缝接入 Prometheus。</p>
     </div>
   </div>
 
@@ -1278,6 +1506,330 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
         <span class="kw">return</span> redisReactiveTemplate.<span class="fn">listenToChannel</span>(topic()).<span class="fn">map</span>(<span class="kw">this</span>::deserialize);
     }
 }</code></pre>
+  </div>
+
+</div>
+
+<!-- ==================== Tab: 资源管控 ==================== -->
+<div class="tab-panel" id="resource-management">
+
+  <h2>资源管控</h2>
+  <p class="section-desc">框架对资源占用和泄漏高度敏感，通过多层防护机制确保长期稳定运行。本文档系统披露框架的资源清理策略和设计决策。</p>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">&#x1F6E1;</span>
+    <div>
+      <strong>核心理念</strong>
+      <p>即时通讯框架的本质是管理长连接。连接不是"创建后遗忘"的一次性资源，而是需要持续跟踪、及时回收的宝贵资产。框架通过<b>三层清理机制</b>、<b>Topic 生命周期管理</b>、<b>防抖动设计</b>等手段，将资源泄漏风险降至最低。</p>
+    </div>
+  </div>
+
+  <!-- ===== 资源类型 ===== -->
+  <h3>资源类型与风险</h3>
+  <p>框架管理的资源可分为三类，每类都有对应的清理机制：</p>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>资源类型</th><th>创建时机</th><th>泄漏风险</th><th>清理机制</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>SSE 连接</strong><br><code>SseConnection</code></td>
+          <td>客户端订阅时</td>
+          <td>客户端异常断开、网络中断、应用关闭</td>
+          <td>三层清理：响应式 + 定时清理 + 强制清理</td>
+        </tr>
+        <tr>
+          <td><strong>Topic 组件</strong><br><code>Publisher / Repeater / Subscriber</code></td>
+          <td>端点注册时（按需创建）</td>
+          <td>端点注销后组件残留、动态 Topic 堆积</td>
+          <td>TopicLifecycleManager 引用计数 + 自动销毁</td>
+        </tr>
+        <tr>
+          <td><strong>Spring Cloud Stream Binding</strong><br><code>输入/输出 binding</code></td>
+          <td>端点注册时（按需创建）</td>
+          <td>端点注销后 binding 配置残留</td>
+          <td>TopicFactory.cleanupTopicResources()（注：Spring Cloud Stream 限制）</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== SSE 连接三层清理 ===== -->
+  <h3>SSE 连接三层清理机制</h3>
+  <p>SSE 连接是最核心的资源，框架通过<b>三层防护</b>确保连接及时回收，避免僵尸连接堆积：</p>
+
+  <div class="card-grid" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="card">
+      <div class="card-icon">&#x1F6E1;</div>
+      <h4>第一层：响应式清理</h4>
+      <p>连接正常关闭时（客户端断开、超时、背压错误）,通过 Reactor 的 <code>doFinally</code> 钩子立即清理。覆盖 99% 的正常场景。</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#x1F504;</div>
+      <h4>第二层：定时清理</h4>
+      <p>每 30 秒扫描所有连接,检测空闲超过阈值（默认 1 小时）的僵尸连接,标记为 DRAINING 后延迟 5 秒强制关闭。兜底第一层未覆盖的异常场景。</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#x23F0;</div>
+      <h4>第三层：强制清理</h4>
+      <p>每个连接独立计时,存活达到 24 小时后自动终止（可通过 <code>im.sse.max-connection-lifetime</code> 配置）。防止长期连接无限占用资源。</p>
+      <p style="margin-top: 12px; font-size: 13px; color: #6B7280;">通过 <code>flux.take(maxConnectionLifetime)</code> 实现。每个连接的倒计时从建立时刻开始,不会同时到期。客户端的 EventSource 会自动重连（SSE 标准行为）。</p>
+    </div>
+  </div>
+
+  <h4>位域双守卫（并发安全）</h4>
+  <p>三层清理机制可能并发触发，框架使用单个 <code>AtomicInteger flags</code> 的两个位保证清理仅执行一次：</p>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>位</th><th>名称</th><th>作用</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>bit 0</code></td><td><code>FLAG_CLEANUP</code></td><td>竞争清理执行权。三层机制谁先设置谁执行清理，其他线程跳过</td></tr>
+        <tr><td><code>bit 1</code></td><td><code>FLAG_COUNTERS_DECREMENT</code></td><td>独立保护计数器递减。避免 Reaper 与 doFinally 双重递减导致下溢</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">&#x1F4A1;</span>
+    <div>
+      <strong>设计决策</strong>
+      <p>两个标志相互独立：赢得清理权的线程通过 bit 0 判定，<code>ConnectionCounter.tryDecrement()</code> 通过 bit 1 二次保护递减仅一次。使用 <code>AtomicInteger.getAndUpdate(IntUnaryOperator)</code> 原子设置位，通过检查返回值中对应位是否已设置判断是否为首次操作。</p>
+    </div>
+  </div>
+
+  <!-- ===== Topic 生命周期管理 ===== -->
+  <h3>Topic 生命周期管理</h3>
+  <p>动态 Topic 场景下（如聊天室、临时群组），Topic 的创建和销毁频率高，需要精确管理以避免资源堆积。框架通过 <code>TopicLifecycleManager</code> 统一管理 Topic 的完整生命周期：</p>
+
+  <h4>引用计数机制</h4>
+  <p>每个 Topic 维护引用计数，端点注册时递增，注销时递减：</p>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>事件</th><th>操作</th><th>效果</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>端点注册</td><td><code>acquire(topic)</code></td><td>refCount++，状态转为 CREATED/ACTIVE</td></tr>
+        <tr><td>端点注销</td><td><code>release(topic)</code></td><td>refCount--，若为 0 则开始空闲计时</td></tr>
+        <tr><td>空闲超时</td><td><code>cleanup()</code></td><td>refCount == 0 且超过 TTL → 销毁 Topic</td></tr>
+        <tr><td>手动销毁</td><td><code>destroy(topic)</code></td><td>忽略引用计数，强制销毁</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>状态机</h4>
+  <div class="arch-diagram" style="padding: 30px 20px;">
+    <div class="arch-flow">
+      <div class="arch-box" style="background: #EEF2FF; color: #4338CA; border: 1px solid #C7D2FE;">CREATED</div>
+      <span class="arch-arrow">&#x2192;</span>
+      <div class="arch-box" style="background: #F0FDF4; color: #166534; border: 1px solid #BBF7D0;">ACTIVE</div>
+      <span class="arch-arrow">&#x2192;</span>
+      <div class="arch-box" style="background: #FFFBEB; color: #92400E; border: 1px solid #FDE68A;">DESTROYING</div>
+      <span class="arch-arrow">&#x2192;</span>
+      <div class="arch-box" style="background: #FEF2F2; color: #991B1B; border: 1px solid #FECACA;">DESTROYED</div>
+    </div>
+    <p style="text-align: center; margin-top: 16px; font-size: 13px; color: #6B7280;">DESTROYED 状态的 Topic 可被重新激活（acquire → CREATED）</p>
+  </div>
+
+  <h4>清理流程</h4>
+  <p>Topic 销毁时执行完整的资源清理：</p>
+  <ol>
+    <li><strong>逻辑组件清理</strong>：移除 Publisher、Repeater、Subscriber（<code>TopicRegistry.destroyTopic()</code>）</li>
+    <li><strong>物理资源清理</strong>：移除 Spring Cloud Stream binding 配置、Consumer Bean 定义（<code>TopicFactory.cleanupTopicResources()</code>）</li>
+    <li><strong>指标清理</strong>：移除该 Topic 的 Micrometer 指标对象，防止动态 Topic 场景下指标无限增长</li>
+  </ol>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">&#x26A0;</span>
+    <div>
+      <strong>Spring Cloud Stream 限制</strong>
+      <p><code>BindingService</code> 不提供 <code>unbind()</code> API，已创建的 Consumer/Producer binding 无法通过编程方式销毁。因此 <code>cleanupTopicResources()</code> 仅清理配置和 Bean 定义，实际的 RabbitMQ 连接会保留到应用重启。这是 Spring Cloud Stream 的设计限制，适用于大多数场景（Topic 通常是长期存在的）。</p>
+    </div>
+  </div>
+
+  <!-- ===== 防抖动设计 ===== -->
+  <h3>emptyTopics 防抖动设计</h3>
+  <p>Topic 变空后不立即销毁，而是保留 <code>cleanup.emptyTopicTtl</code>（默认 60s）的缓冲期。这是刻意的设计决策，避免间歇性流量场景下的资源抖动：</p>
+
+  <h4>设计动机</h4>
+  <div class="card-grid" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="card">
+      <div class="card-icon">&#x1F4AC;</div>
+      <h4>聊天室短暂无人</h4>
+      <p>60s 内有人加入 → 复用已有资源，无需重建 Publisher/Repeater/Subscriber</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#x1F30A;</div>
+      <h4>动态 Topic 短时波动</h4>
+      <p>避免频繁创建/销毁 Spring Cloud Stream binding</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#x26A1;</div>
+      <h4>减少状态切换开销</h4>
+      <p>避免 CREATED → DESTROYED → CREATED 的循环</p>
+    </div>
+  </div>
+
+  <h4>实现机制</h4>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>步骤</th><th>组件</th><th>动作</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>1</strong></td><td><code>cleanupIfEmpty()</code></td><td>将空 Topic 加入 <code>emptyTopics</code> 并记录时间戳</td></tr>
+        <tr><td><strong>2</strong></td><td><code>trackEmptyTopic()</code></td><td>使用 <code>putIfAbsent</code> 保证仅首次设置时间戳（即使 Topic 短暂恢复连接后再次变空，也不重置计时器）</td></tr>
+        <tr><td><strong>3</strong></td><td>新连接注册</td><td>从 <code>emptyTopics</code> 移除该 Topic（避免误清理）</td></tr>
+        <tr><td><strong>4</strong></td><td><code>cleanupEmptyTopicsByTtl()</code></td><td>每 30s 扫描，清理超时 Topic 的 Sink 和连接集合</td></tr>
+        <tr><td><strong>5</strong></td><td><code>compactTopicCounts()</code></td><td>在 <code>compactTtl</code>（默认 1h）后移除计数器条目</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>配置建议</h4>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>场景</th><th>emptyTopicTtl</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>间歇性流量（聊天室）</td><td><code>60s</code>（默认）</td><td>允许短暂空闲后快速恢复</td></tr>
+        <tr><td>高基数动态 Topic</td><td><code>30s</code></td><td>加快资源回收</td></tr>
+        <tr><td>静态 Topic</td><td><code>0</code></td><td>禁用缓冲期，立即清理</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== 内存优化 ===== -->
+  <h3>无副本连接迭代（forEachConnection）</h3>
+  <p><code>SseConnectionRegistry.forEachConnection(Consumer)</code> 直接迭代 <code>ConcurrentHashMap.values()</code>，避免创建临时 <code>ArrayList</code> 副本。</p>
+
+  <h4>优化动机</h4>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>场景</th><th>优化前</th><th>优化后</th><th>改进</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>10 万连接扫描</td><td>~2.4 MB 临时对象</td><td>0 字节</td><td>100% 减少</td></tr>
+        <tr><td>GC 压力</td><td>每 30s 一次大对象回收</td><td>无额外 GC</td><td>显著降低</td></tr>
+        <tr><td>内存峰值</td><td>连接数 × 8 字节（引用）</td><td>零分配</td><td>消除</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>线程安全性</h4>
+  <p><code>ConcurrentHashMap</code> 的迭代器是弱一致性的：</p>
+  <ul>
+    <li>迭代过程中新增的连接可能被遍历到，也可能被跳过</li>
+    <li>迭代过程中删除的连接不会被访问（已访问的不会重复访问）</li>
+    <li>不会抛出 <code>ConcurrentModificationException</code></li>
+  </ul>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">&#x2705;</span>
+    <div>
+      <strong>适用场景</strong>
+      <p>Reaper 扫描（容忍弱一致性）、关闭时批量处理（无需严格快照）。当前无需要严格一致性快照的场景。</p>
+    </div>
+  </div>
+
+  <!-- ===== 监控与运维 ===== -->
+  <h3>监控与运维</h3>
+  <p>框架提供内置管理 API 和 Micrometer 指标，用于监控资源使用情况：</p>
+
+  <h4>管理 API</h4>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>接口</th><th>方法</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>/im/admin/topics/lifecycle</code></td><td>GET</td><td>查询所有 Topic 的生命周期状态（state、refCount、connections）</td></tr>
+        <tr><td><code>/im/admin/topic/{topic}</code></td><td>DELETE</td><td>手动销毁 Topic（强制清理资源，忽略引用计数）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Micrometer 指标</h4>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>指标</th><th>类型</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>im.sse.connections.active</code></td><td>Gauge</td><td>按 Topic 的活跃连接数</td></tr>
+        <tr><td><code>im.sse.reaper.zombies</code></td><td>Counter</td><td>检测到的僵尸连接数</td></tr>
+        <tr><td><code>im.sse.topics.compacted</code></td><td>Counter</td><td>Topic 计数器压缩次数（空 Topic 计数器条目被移除的次数）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== 配置属性 ===== -->
+  <h3>配置属性</h3>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>配置路径</th><th>默认值</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>im.sse.cleanup.empty-topic-ttl</code></td><td><code>60s</code></td><td>空 Topic 保留时间（防抖动缓冲期）</td></tr>
+        <tr><td><code>im.sse.cleanup.compact-ttl</code></td><td><code>1h</code></td><td>Topic 计数器压缩 TTL，设为 0 禁用</td></tr>
+        <tr><td><code>im.sse.reaper.enabled</code></td><td><code>true</code></td><td>是否启用僵尸连接清理</td></tr>
+        <tr><td><code>im.sse.reaper.interval</code></td><td><code>30s</code></td><td>扫描间隔</td></tr>
+        <tr><td><code>im.sse.reaper.idle-timeout</code></td><td><code>3600s</code></td><td>空闲超时</td></tr>
+        <tr><td><code>im.sse.shutdown.drain-timeout</code></td><td><code>30s</code></td><td>优雅关闭等待时间</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== 设计决策总结 ===== -->
+  <h3>设计决策总结</h3>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>决策</th><th>原因</th><th>收益</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>三层清理机制</strong></td>
+          <td>单层机制无法覆盖所有场景（正常关闭、异常断开、应用关闭）</td>
+          <td>99% 场景由 doFinally 覆盖，Reaper 兜底异常，Shutdown 保证无残留</td>
+        </tr>
+        <tr>
+          <td><strong>Topic 引用计数</strong></td>
+          <td>动态 Topic 场景下，端点注销后 Topic 可能仍被其他端点共享</td>
+          <td>精确跟踪 Topic 使用状态，避免误销毁或资源泄漏</td>
+        </tr>
+        <tr>
+          <td><strong>emptyTopics 防抖动</strong></td>
+          <td>间歇性流量场景下，立即销毁会导致资源频繁创建/销毁</td>
+          <td>60s 缓冲期允许短暂空闲后快速恢复，减少资源抖动</td>
+        </tr>
+        <tr>
+          <td><strong>无副本迭代</strong></td>
+          <td>10 万连接场景下，每次扫描创建 2.4 MB 临时对象增加 GC 压力</td>
+          <td>零内存分配，弱一致性可接受（Reaper 扫描、关闭批量处理）</td>
+        </tr>
+        <tr>
+          <td><strong>位域双守卫</strong></td>
+          <td>三层清理机制可能并发触发，需要保证清理仅执行一次</td>
+          <td>单 AtomicInteger 双位标志，每连接减少一个原子变量，无锁并发安全</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">&#x1F4DA;</span>
+    <div>
+      <strong>深入阅读</strong>
+      <p>完整的资源管控实现细节、并发约定、关键数据结构说明，请参阅 <code>CLAUDE.md</code> 的"关键并发约定"章节和代码中的 Javadoc。</p>
+    </div>
   </div>
 
 </div>

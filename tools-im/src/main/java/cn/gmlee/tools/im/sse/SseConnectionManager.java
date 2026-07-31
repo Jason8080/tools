@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * <h3>核心特性</h3>
  * <ul>
  *   <li><b>无锁并发</b>：使用 CAS 循环保证连接数限制的原子性</li>
- *   <li><b>三层清理</b>：doFinally（响应式） + Reaper（定时） + Shutdown（强制）</li>
+ *   <li><b>三层清理</b>：doFinally（响应式） + Reaper（定时清理） + maxConnectionLifetime（强制清理）</li>
  *   <li><b>优雅关闭</b>：实现 SmartLifecycle，按阶段排空连接</li>
  *   <li><b>可观测性</b>：通过 SseMetrics 暴露 Micrometer 指标，
  *       通过 {@link SseConnectionListener} 暴露生命周期事件</li>

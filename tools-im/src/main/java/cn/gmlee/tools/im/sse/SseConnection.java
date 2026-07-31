@@ -55,7 +55,7 @@ public class SseConnection {
     /**
      * 清理守卫标志位（bit 0）.
      * <p>
-     * 三层清理机制（doFinally / Reaper / Shutdown）都通过
+     * 三层清理机制（doFinally / Reaper / 强制清理）都通过
      * {@link #markClosed()} 竞争此位，仅第一个成功的线程执行清理。
      * </p>
      */
