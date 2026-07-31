@@ -98,7 +98,7 @@ public class EndpointAutoConfiguration {
             SseConnectionManager sseConnectionManager,
             @Autowired(required = false) List<RepeaterInterceptor> interceptors) {
         return new TopicRegistry(publisherFactories, repeaterFactories, subscriberFactories,
-                streamBridge, sseConnectionManager, interceptors);
+                streamBridge, sseConnectionManager, interceptors, sseProperties);
     }
 
     /**

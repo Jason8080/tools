@@ -1,5 +1,6 @@
 package cn.gmlee.tools.im.topic;
 
+import cn.gmlee.tools.im.conf.SseProperties;
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Repeater;
 import cn.gmlee.tools.im.spi.factory.PublisherFactory;
@@ -88,6 +89,11 @@ public class TopicRegistry {
     private final List<RepeaterInterceptor> interceptors;
 
     /**
+     * SSE 配置（用于传递 deliveryKeys 等配置到默认组件）
+     */
+    private final SseProperties sseProperties;
+
+    /**
      * 创建 Topic 组件注册表.
      *
      * @param publisherFactories   Publisher 工厂列表（Spring 注入，可为 null）
@@ -103,12 +109,35 @@ public class TopicRegistry {
                          StreamBridge streamBridge,
                          SseConnectionManager sseConnectionManager,
                          List<RepeaterInterceptor> interceptors) {
+        this(publisherFactories, repeaterFactories, subscriberFactories,
+                streamBridge, sseConnectionManager, interceptors, null);
+    }
+
+    /**
+     * 创建 Topic 组件注册表.
+     *
+     * @param publisherFactories   Publisher 工厂列表（Spring 注入，可为 null）
+     * @param repeaterFactories    Repeater 工厂列表（Spring 注入，可为 null）
+     * @param subscriberFactories  Subscriber 工厂列表（Spring 注入，可为 null）
+     * @param streamBridge         Stream 桥接器
+     * @param sseConnectionManager SSE 连接管理器
+     * @param interceptors         Repeater 拦截器列表（Spring 注入，可为 null）
+     * @param sseProperties        SSE 配置（用于传递 deliveryKeys 等配置到默认组件，可为 null）
+     */
+    public TopicRegistry(List<PublisherFactory> publisherFactories,
+                         List<RepeaterFactory> repeaterFactories,
+                         List<SubscriberFactory> subscriberFactories,
+                         StreamBridge streamBridge,
+                         SseConnectionManager sseConnectionManager,
+                         List<RepeaterInterceptor> interceptors,
+                         SseProperties sseProperties) {
         this.publisherFactories = publisherFactories != null ? publisherFactories : Collections.emptyList();
         this.repeaterFactories = repeaterFactories != null ? repeaterFactories : Collections.emptyList();
         this.subscriberFactories = subscriberFactories != null ? subscriberFactories : Collections.emptyList();
         this.streamBridge = streamBridge;
         this.sseConnectionManager = sseConnectionManager;
         this.interceptors = interceptors != null ? interceptors : Collections.emptyList();
+        this.sseProperties = sseProperties;
     }
 
     // ==================== Ensure 方法（幂等，供框架内部使用） ====================
@@ -129,11 +158,12 @@ public class TopicRegistry {
      * @return Publisher 实例
      */
     public Publisher ensurePublisher(String topic) {
+        List<String> deliveryKeys = sseProperties != null ? sseProperties.getDeliveryKeys() : null;
         return ensureComponent(
                 topic,
                 publishers,
                 publisherFactories,
-                t -> new DefaultPublisher(t, () -> getRepeater(t)),
+                t -> new DefaultPublisher(t, () -> getRepeater(t), deliveryKeys),
                 "Publisher"
         );
     }

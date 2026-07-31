@@ -3,6 +3,7 @@ package cn.gmlee.tools.im.topic;
 import cn.gmlee.tools.im.core.ImPublisher;
 import cn.gmlee.tools.im.core.Repeater;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 /**
@@ -28,5 +29,12 @@ class DefaultPublisher extends ImPublisher {
      */
     DefaultPublisher(String topic, Supplier<Repeater> repeaterSupplier) {
         super(topic, repeaterSupplier);
+    }
+
+    /**
+     * 供 {@link TopicRegistry} 工厂方法使用，延迟解析 Repeater + 自定义投递目标键.
+     */
+    DefaultPublisher(String topic, Supplier<Repeater> repeaterSupplier, List<String> deliveryKeys) {
+        super(topic, repeaterSupplier, deliveryKeys);
     }
 }

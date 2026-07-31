@@ -36,6 +36,38 @@ public class SseProperties {
     private List<String> routingKeys = Collections.singletonList("me");
 
     /**
+     * 投递目标键配置.
+     * <p>
+     * 指定从 URL 参数中提取哪些字段作为定向投递的目标标识（to）。
+     * 多个字段按配置顺序以 {@code |} 拼接，与 {@link #routingKeys} 的拼接规则一致。
+     * </p>
+     * <p>
+     * 默认 {@code ["to"]}，即从 {@code ?to=xxx} 提取。
+     * 可配置为任意字段名，如 {@code ["target"]}、{@code ["targetTenant", "targetRoom"]} 等。
+     * </p>
+     * <p>
+     * <b>设计原则</b>：与 {@link #routingKeys} 对称，保证发布端和订阅端的键提取逻辑一致。
+     * 如果 {@code routingKeys} 配置为 {@code ["tenant", "room"]}，建议 {@code deliveryKeys}
+     * 配置为 {@code ["targetTenant", "targetRoom"]}，这样发布时：
+     * </p>
+     * <pre>
+     * POST /api/chat/push?targetTenant=acme&amp;targetRoom=lobby
+     * → to = ["acme|lobby"]（自动拼接）
+     * </pre>
+     * <p>
+     * 订阅时：
+     * </p>
+     * <pre>
+     * GET /api/chat/pull?tenant=acme&amp;room=lobby
+     * → routingKey = "acme|lobby"（自动拼接）
+     * </pre>
+     * <p>
+     * 两者自动匹配，无需手动构造复合键。
+     * </p>
+     */
+    private List<String> deliveryKeys = Collections.singletonList("to");
+
+    /**
      * 单 Topic 最大连接数
      */
     private int maxConnectionsPerTopic = 10_000;
