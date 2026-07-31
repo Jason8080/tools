@@ -51,6 +51,9 @@ class SseConnectionRegistryConcurrencyTest {
         for (int i = 0; i < threadCount; i++) {
             executor.submit(() -> {
                 try {
+                    // 模拟真实 subscribe() 流程：先 tryAcquire 递增计数器，再 register 填充 map
+                    registry.getCounter().tryAcquire(topic,
+                            properties.getMaxTotalConnections(), properties.getMaxConnectionsPerTopic());
                     SseConnection conn = new SseConnection(topic);
                     registry.register(conn);
                     successCount.incrementAndGet();
@@ -79,13 +82,15 @@ class SseConnectionRegistryConcurrencyTest {
         String topic = "test.topic";
         int connectionCount = 100;
 
-        // 先注册 100 个连接
+        // 先注册 100 个连接（模拟真实 subscribe() 流程：tryAcquire + register）
         for (int i = 0; i < connectionCount; i++) {
+            registry.getCounter().tryAcquire(topic,
+                    properties.getMaxTotalConnections(), properties.getMaxConnectionsPerTopic());
             SseConnection conn = new SseConnection(topic);
             registry.register(conn);
         }
 
-        // 并发注销所有连接
+        // 并发清理所有连接（cleanupConnection = tryDecrement + unregister + cleanupIfEmpty）
         ExecutorService executor = Executors.newFixedThreadPool(20);
         CountDownLatch latch = new CountDownLatch(connectionCount);
         AtomicInteger unregisterCount = new AtomicInteger(0);
@@ -93,7 +98,7 @@ class SseConnectionRegistryConcurrencyTest {
         for (SseConnection conn : registry.snapshotConnections()) {
             executor.submit(() -> {
                 try {
-                    registry.unregister(conn);
+                    registry.cleanupConnection(conn, NoOpSseMetrics.INSTANCE);
                     unregisterCount.incrementAndGet();
                 } finally {
                     latch.countDown();
@@ -127,6 +132,9 @@ class SseConnectionRegistryConcurrencyTest {
             for (int c = 0; c < connectionsPerTopic; c++) {
                 executor.submit(() -> {
                     try {
+                        // 模拟真实 subscribe() 流程：先 tryAcquire 递增计数器
+                        registry.getCounter().tryAcquire(topic,
+                                properties.getMaxTotalConnections(), properties.getMaxConnectionsPerTopic());
                         SseConnection conn = new SseConnection(topic);
                         registry.register(conn);
                     } finally {
@@ -159,9 +167,15 @@ class SseConnectionRegistryConcurrencyTest {
 
         // 创建并注销连接，使 Topic 变空
         String topic1 = "topic.compact";
+        // 先创建 Sink（cleanupIfEmpty 通过 topicSinks.containsKey 判断是否执行清理并追踪空 Topic）
+        registry.getOrCreateSink(topic1);
+        // 模拟真实 subscribe() 流程：先 tryAcquire 递增计数器，再 register
+        registry.getCounter().tryAcquire(topic1,
+                properties.getMaxTotalConnections(), properties.getMaxConnectionsPerTopic());
         SseConnection conn1 = new SseConnection(topic1);
         registry.register(conn1);
-        registry.unregister(conn1);
+        // cleanupConnection = tryDecrement + unregister + cleanupIfEmpty（追踪空 Topic）
+        registry.cleanupConnection(conn1, NoOpSseMetrics.INSTANCE);
 
         // 立即检查：计数器应保留（值为 0）
         assertEquals(0, registry.getCounter().getTopicCount(topic1));

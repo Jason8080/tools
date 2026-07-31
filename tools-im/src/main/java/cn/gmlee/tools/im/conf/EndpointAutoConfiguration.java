@@ -71,15 +71,6 @@ public class EndpointAutoConfiguration {
     }
 
     /**
-     * 端点注册表 Bean.
-     */
-    @Bean
-    @ConditionalOnMissingBean
-    public EndpointRegistry endpointRegistry() {
-        return new EndpointRegistry();
-    }
-
-    /**
      * Topic 组件注册表 Bean.
      * <p>
      * 自动发现自定义 {@link PublisherFactory}、{@link RepeaterFactory}、{@link SubscriberFactory}，

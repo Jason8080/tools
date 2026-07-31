@@ -1,5 +1,6 @@
 package cn.gmlee.tools.im.conf;
 
+import cn.gmlee.tools.im.endpoint.EndpointRegistry;
 import cn.gmlee.tools.im.spi.listener.SseConnectionListener;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import cn.gmlee.tools.im.sse.SseConnectionRegistry;
@@ -40,6 +41,20 @@ import java.util.Map;
 @AutoConfiguration
 @EnableConfigurationProperties({ImProperties.class, SseProperties.class})
 public class ImAutoConfiguration {
+
+    /**
+     * 端点注册表 Bean.
+     * <p>
+     * 由核心配置类创建，{@link EndpointAutoConfiguration} 通过构造器注入使用。
+     * 若放在 {@code EndpointAutoConfiguration} 内部作为 {@code @Bean}，
+     * 会与自身的构造器参数形成循环依赖，故提前至此处。
+     * </p>
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public EndpointRegistry endpointRegistry() {
+        return new EndpointRegistry();
+    }
 
     @Bean
     public BackpressureStrategyResolver backpressureStrategyResolver(SseProperties properties) {
