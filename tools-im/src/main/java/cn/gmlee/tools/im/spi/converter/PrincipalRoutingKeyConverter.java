@@ -25,7 +25,7 @@ import cn.gmlee.tools.im.spi.access.AccessFilter;
  *   <li>{@code principal} 为 {@link String} 类型 → 直接使用</li>
  *   <li>按 Order 遍历 {@code PrincipalRoutingKeyConverter}，首个 {@link #supports} 返回 {@code true} 的转换器执行转换</li>
  *   <li>{@code X-Me} 请求头</li>
- *   <li>从 URL 参数按 {@code im.routing-keys} 配置提取并组合</li>
+ *   <li>从 URL 参数按 {@code im.sse.routing-keys} 配置提取并组合（支持端点级覆盖）</li>
  * </ol>
  *
  * <h3>使用示例</h3>

@@ -70,7 +70,7 @@ import java.util.Set;
  *   <li>String 类型的 principal（由 AccessFilter 设置）</li>
  *   <li>{@link PrincipalRoutingKeyConverter} 从非 String principal 转换</li>
  *   <li>{@code X-Me} 请求头</li>
- *   <li>URL 参数按 {@code im.routing-keys} 配置组合</li>
+ *   <li>URL 参数按 {@code im.sse.routing-keys} 配置组合（支持端点级覆盖）</li>
  * </ol>
  *
  * @since 5.6.0

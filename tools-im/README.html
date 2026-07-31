@@ -794,8 +794,8 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
   body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'alice'</span>, content: <span class="str">'hello'</span>})
 });
 
-<span class="cm">// 定向投递（仅 alice 和 bob 收到）</span>
-<span class="fn">fetch</span>(<span class="str">'/api/chat/push?to=alice&amp;to=bob'</span>, {
+<span class="cm">// 定向投递（URL 参数匹配订阅方 routingKey）</span>
+<span class="fn">fetch</span>(<span class="str">'/api/chat/push?me=alice&amp;me=bob'</span>, {
   method: <span class="str">'POST'</span>,
   headers: {<span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>},
   body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'alice'</span>, content: <span class="str">'private msg'</span>})
@@ -1299,7 +1299,7 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
       </thead>
       <tbody>
         <tr><td><code>ConnectionMetadata</code></td><td>连接的运行时身份</td><td><code>routingKey</code> — 决定"我是谁"</td><td>信封上的寄件人</td></tr>
-        <tr><td><code>TopicMessage.to</code></td><td>消息的路由意图</td><td><code>Set&lt;String&gt;</code> — 决定"送给谁"</td><td>信封上的收件人</td></tr>
+        <tr><td><code>TopicMessage.routingKeys</code></td><td>消息的路由意图</td><td><code>Set&lt;String&gt;</code> — 决定"送给谁"</td><td>信封上的收件人</td></tr>
       </tbody>
     </table>
   </div>
@@ -1349,8 +1349,8 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
           <span class="code-lang">HTTP</span>
           <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
         </div>
-        <pre><code><span class="cm"># URL 参数 to=alice 指定收件人</span>
-<span class="fn">POST</span> <span class="str">/api/chat/push?to=alice</span>
+        <pre><code><span class="cm"># URL 参数匹配订阅方的 routingKey → 定向投递</span>
+<span class="fn">POST</span> <span class="str">/api/chat/push?me=alice</span>
 Content-Type: application/json
 
 {"from": "bob", "content": "你好，这条消息只有你能看到"}</code></pre>
@@ -1416,24 +1416,24 @@ Content-Type: application/json
 <span class="cmt"># 场景 2：多维路由键 — 组合 tenant + room</span>
 <span class="key">im.sse.routing-keys</span>: [<span class="str">tenant</span>, <span class="str">room</span>]
 <span class="cmt"># 客户端：EventSource('/api/chat/pull?tenant=acme&amp;room=lobby')</span>
-<span class="cmt"># 框架自动拼接为 routingKey = "acme|lobby"</span></code></pre>
+<span class="cmt"># 框架自动拼接为 routingKey = "room=lobby&amp;tenant=acme"（key 按字母排序）</span></code></pre>
   </div>
 
-  <p>多维路由键按配置顺序以 <code>|</code> 拼接，缺失字段自动跳过（如只有 <code>tenant=acme</code> 则 routingKey = <code>"acme"</code>）。发送时 <code>?to=acme|lobby</code> 即可定向投递到匹配的连接。</p>
+  <p>routingKey 格式为<b>规范化查询字符串</b>：key 按字母排序，<code>key=value</code> 以 <code>&amp;</code> 拼接，保证参数顺序无关性（<code>?a=1&amp;b=2</code> 与 <code>?b=2&amp;a=1</code> 产生相同的 routingKey）。无 URL 参数时为广播连接。发送方使用相同的 URL 参数格式即可定向投递到匹配的连接。</p>
 
   <div class="callout callout-tip">
     <span class="callout-icon">&#x1F4A1;</span>
     <div>
-      <strong>框架不绑定业务概念</strong>
-      <p>路由键可以是 userId、deviceId、roomId、tenant 等任意标识。框架只做匹配，不关心业务语义。</p>
+      <strong>发布方与订阅方对称使用</strong>
+      <p>同一套 URL 参数既用于订阅方声明身份（routingKey），也用于发布方指定投递目标（routingKeys）。框架通过 <code>RoutingKeyComposer</code> SPI 保证双方寻址语义一致。默认实现支持单键多值批量投递和多键按位置配对。</p>
     </div>
   </div>
 
   <div class="callout callout-info">
     <span class="callout-icon">&#x1F4CB;</span>
     <div>
-      <strong><code>to</code> 与 <code>me</code> 的不对称设计</strong>
-      <p>身份声明字段（<code>me</code>）可通过 <code>im.sse.routing-keys</code> 自定义，但投递目标字段始终为 <code>to</code>——这是<b>有意为之</b>。<code>me</code> 回答"我是谁"（业务身份，随场景变化），<code>to</code> 回答"发给谁"（框架级投递指令，语义固定）。两者职责不同，不需要保持一致。</p>
+      <strong>默认全参数模式</strong>
+      <p><code>routing-keys</code> 未配置时，<b>全部 URL 参数参与</b> routingKey 计算（如 <code>?me=alice&amp;room=lobby</code> → <code>"me=alice&amp;room=lobby"</code>）。可配置指定字段（如 <code>["me"]</code>）或按端点覆盖（<code>EndpointProperties.routingKeys</code>）。</p>
     </div>
   </div>
 
@@ -1442,27 +1442,27 @@ Content-Type: application/json
   <p>两种路径，殊途同归：</p>
 
   <h4 style="margin-top: 24px;">路径 A — HTTP 端点（零 Java 代码）</h4>
-  <p>通过 URL 参数 <code>to</code> 指定目标用户：</p>
+  <p>使用与订阅方相同的 URL 参数格式指定投递目标：</p>
   <div class="code-block">
     <div class="code-header">
       <span class="code-lang">JavaScript</span>
       <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
     </div>
-    <pre><code><span class="cm">// 定向投递给 alice</span>
-<span class="fn">fetch</span>(<span class="str">'/api/chat/push?to=alice'</span>, {
+    <pre><code><span class="cm">// 定向投递给 alice（URL 参数匹配订阅方的 routingKey）</span>
+<span class="fn">fetch</span>(<span class="str">'/api/chat/push?me=alice'</span>, {
   method: <span class="str">'POST'</span>,
   headers: {<span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>},
   body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'bob'</span>, content: <span class="str">'hi alice'</span>})
 });
 
-<span class="cm">// 批量定向 — 同时投递给 alice 和 bob</span>
-<span class="fn">fetch</span>(<span class="str">'/api/chat/push?to=alice&amp;to=bob'</span>, {
+<span class="cm">// 批量定向 — 单键多值（需配置 routing-keys: ["me"]）</span>
+<span class="fn">fetch</span>(<span class="str">'/api/chat/push?me=alice&amp;me=bob'</span>, {
   method: <span class="str">'POST'</span>,
   headers: {<span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>},
-  body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'server'</span>, content: <span class="str">'群发通知'</span>})
+  body: <span class="typ">JSON</span>.<span class="fn">stringify</span>({from: <span class="str">'charlie'</span>, content: <span class="str">'群聊'</span>})
 });
 
-<span class="cm">// 不带 to 参数 = 广播（所有连接收到）</span>
+<span class="cm">// 无 URL 参数 = 广播（所有连接收到）</span>
 <span class="fn">fetch</span>(<span class="str">'/api/chat/push'</span>, {
   method: <span class="str">'POST'</span>,
   headers: {<span class="str">'Content-Type'</span>: <span class="str">'application/json'</span>},
@@ -1471,7 +1471,7 @@ Content-Type: application/json
   </div>
 
   <h4 style="margin-top: 24px;">路径 B — Java API（服务端内部调用）</h4>
-  <p>在 Java 代码中直接构建 <code>TopicMessage</code>，设置 <code>to</code> 字段：</p>
+  <p>在 Java 代码中直接构建 <code>TopicMessage</code>，设置 <code>routingKeys</code> 字段：</p>
   <div class="code-block">
     <div class="code-header">
       <span class="code-lang">Java</span>
@@ -1484,7 +1484,7 @@ Content-Type: application/json
     <span class="typ">TopicMessage</span>&lt;<span class="typ">ChatMsg</span>&gt; envelope = <span class="typ">TopicMessage</span>.&lt;<span class="typ">ChatMsg</span>&gt;<span class="fn">builder</span>()
             .<span class="fn">topic</span>(<span class="str">"im.chat"</span>)
             .<span class="fn">msg</span>(msg)
-            .<span class="fn">to</span>(<span class="typ">Set</span>.<span class="fn">of</span>(toUserId))    <span class="cm">// 定向投递</span>
+            .<span class="fn">routingKeys</span>(<span class="typ">Set</span>.<span class="fn">of</span>(toUserId))    <span class="cm">// 定向投递</span>
             .<span class="fn">build</span>();
     topicRegistry.<span class="fn">ensureRepeater</span>(<span class="str">"im.chat"</span>).<span class="fn">send</span>(envelope);
 }</code></pre>
@@ -1494,68 +1494,49 @@ Content-Type: application/json
     <span class="callout-icon">&#x1F4CB;</span>
     <div>
       <strong>两条路径的等价关系</strong>
-      <p>HTTP 端点的 <code>?to=alice</code> 最终由框架提取并设入 <code>TopicMessage.to</code>，与 Java API 直接设置 <code>to</code> 完全等价。开发者可根据场景自由选择。</p>
+      <p>HTTP 端点的 URL 参数由框架通过 <code>RoutingKeyComposer</code> 提取并设入 <code>TopicMessage.routingKeys</code>，与 Java API 直接设置 <code>routingKeys</code> 完全等价。开发者可根据场景自由选择。</p>
     </div>
   </div>
 
   <!-- ===== 5. 路由原理 ===== -->
   <h3>路由原理</h3>
-  <p>定向投递的路由在<b>订阅侧</b>完成，发布侧零改动。消息经 MQ 回到框架后，进入共享 Sink，Sink 将消息广播给所有连接。每个连接在自己的 Flux 链上通过 <code>filter</code> 判断是否接收：</p>
+  <p>广播消息和定向消息走<b>完全独立的双通道</b>，互斥且无重复投递：</p>
 
   <div class="arch-diagram" style="padding: 40px 24px;">
-    <div style="text-align: center; margin-bottom: 24px; font-weight: 600; color: #4F46E5;">消息路由流程</div>
+    <div style="text-align: center; margin-bottom: 24px; font-weight: 600; color: #4F46E5;">双通道投递架构</div>
     <div class="arch-flow">
-      <div class="arch-box arch-publisher">sink.tryEmitNext(message)<br><small>to = {alice}</small></div>
+      <div class="arch-box arch-publisher">publish(message)<br><small>routingKeys 为空？</small></div>
       <span class="arch-arrow">→</span>
       <div style="display: flex; flex-direction: column; gap: 12px;">
         <div style="display: flex; align-items: center; gap: 8px;">
-          <div class="arch-box" style="background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; padding: 8px 16px; min-width: 100px;">
-            <b>alice</b><br><small>routingKey ∈ to ✅</small>
+          <div class="arch-box" style="background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; padding: 8px 16px; min-width: 120px;">
+            <b>是（广播）</b><br><small>topicSink<br>O(1) emit</small>
           </div>
           <span class="arch-arrow">→</span>
-          <div class="arch-box arch-client" style="padding: 8px 16px; min-width: 80px;">收到消息</div>
+          <div class="arch-box arch-client" style="padding: 8px 16px; min-width: 100px;">所有连接收到</div>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
-          <div class="arch-box" style="background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 8px 16px; min-width: 100px;">
-            <b>bob</b><br><small>routingKey ∉ to ❌</small>
+          <div class="arch-box" style="background: #EEF2FF; border: 1px solid #C7D2FE; color: #4338CA; padding: 8px 16px; min-width: 120px;">
+            <b>否（定向）</b><br><small>routingKeyIndex<br>O(K) 精准投递</small>
           </div>
           <span class="arch-arrow">→</span>
-          <div class="arch-box" style="background: #F9FAFB; border: 1px solid #E5E7EB; color: #9CA3AF; padding: 8px 16px; min-width: 80px;">filter 拦截</div>
-        </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <div class="arch-box" style="background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; padding: 8px 16px; min-width: 100px;">
-            <b>alice-2</b><br><small>routingKey ∈ to ✅</small>
-          </div>
-          <span class="arch-arrow">→</span>
-          <div class="arch-box arch-client" style="padding: 8px 16px; min-width: 80px;">收到消息</div>
+          <div class="arch-box arch-client" style="padding: 8px 16px; min-width: 100px;">仅目标连接</div>
         </div>
       </div>
     </div>
   </div>
 
-  <p>核心过滤逻辑（<code>SseConnectionFluxBuilder.attachLifecycle</code>）：</p>
-  <div class="code-block">
-    <div class="code-header">
-      <span class="code-lang">Java</span>
-      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
-    </div>
-    <pre><code><span class="cm">// 每个连接在订阅时自动织入 filter</span>
-<span class="typ">Flux</span>&lt;<span class="typ">TopicMessage</span>&lt;<span class="typ">Msg</span>&gt;&gt; flux = sink.<span class="fn">asFlux</span>()
-    .<span class="fn">filter</span>(msg -&gt; {
-        <span class="typ">Set</span>&lt;<span class="typ">String</span>&gt; to = msg.<span class="fn">getTo</span>();
-        <span class="kw">return</span> (to == <span class="kw">null</span> || to.<span class="fn">isEmpty</span>())            <span class="cm">// 广播 → 全通过</span>
-            || (routingKey != <span class="kw">null</span> &amp;&amp; to.<span class="fn">contains</span>(routingKey));  <span class="cm">// 定向 → 匹配才过</span>
-    })
-    .<span class="fn">doOnSubscribe</span>(...)
-    .<span class="fn">doOnNext</span>(...)
-    .<span class="fn">doFinally</span>(...);</code></pre>
-  </div>
+  <ul>
+    <li><b>广播通道</b>（<code>topicSink</code>）：共享的 per-topic Sink，O(1) emit，所有连接通过 <code>Flux.merge</code> 接收</li>
+    <li><b>定向通道</b>（<code>directedSink</code>）：per-connection Sink，通过反向索引（<code>routingKeyIndex</code>）查找目标连接，O(K) 精准投递</li>
+    <li>两个通道<b>互斥</b>：一条消息要么走广播，要么走定向，不会重复。连接的消息流无需 filter</li>
+  </ul>
 
   <div class="callout callout-tip">
     <span class="callout-icon">&#x1F4A1;</span>
     <div>
       <strong>设计优势</strong>
-      <p>路由在订阅侧意味着：发布侧完全感知不到定向/广播的区别，广播和定向走同一通道。架构零侵入，逻辑清晰。</p>
+      <p>双通道架构：广播 O(1)、定向 O(K)（K 为目标连接数，K &lt;&lt; N）。纯广播连接零额外内存开销，仅有 routingKey 的连接额外 ~128 字节（directedSink + 索引条目）。</p>
     </div>
   </div>
 
@@ -1564,19 +1545,19 @@ Content-Type: application/json
   <div class="arch-diagram" style="padding: 40px 24px;">
     <div style="text-align: center; margin-bottom: 24px; font-weight: 600; color: #4F46E5;">定向投递全链路</div>
     <div class="arch-flow">
-      <div class="arch-box arch-publisher">POST /push<b>?to=alice</b><br><small>ImPublisher<br>提取 to</small></div>
+      <div class="arch-box arch-publisher">POST /push<b>?me=alice</b><br><small>EndpointRouter<br>提取 routingKeys</small></div>
       <span class="arch-arrow">→</span>
       <div class="arch-box" style="background: #EEF2FF; color: #4338CA; border: 1px solid #C7D2FE;">
-        <b>TopicMessage</b><br><small>msg={content:"hi"}<br>to={alice}</small>
+        <b>TopicMessage</b><br><small>msg={content:"hi"}<br>routingKeys={"me=alice"}</small>
       </div>
       <span class="arch-arrow">→</span>
-      <div class="arch-box arch-mq">MQ<br><small>to 随消息<br>完整保留</small></div>
+      <div class="arch-box arch-mq">MQ<br><small>routingKeys 随消息<br>完整保留</small></div>
       <span class="arch-arrow">→</span>
-      <div class="arch-box arch-subscriber">Sink<br><small>广播给<br>所有连接</small></div>
+      <div class="arch-box arch-subscriber">SseConnectionManager<br><small>routingKeyIndex 查找<br>O(K) 精准投递</small></div>
       <span class="arch-arrow">→</span>
       <div style="display: flex; flex-direction: column; gap: 8px;">
-        <div class="arch-box" style="background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; padding: 8px 16px; font-size: 13px;">alice 连接 ✅<br><small>filter 通过</small></div>
-        <div class="arch-box" style="background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 8px 16px; font-size: 13px;">bob 连接 ❌<br><small>filter 拦截</small></div>
+        <div class="arch-box" style="background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; padding: 8px 16px; font-size: 13px;">alice 连接 ✅<br><small>directedSink</small></div>
+        <div class="arch-box" style="background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; padding: 8px 16px; font-size: 13px;">bob 连接 —<br><small>未命中目标</small></div>
       </div>
     </div>
   </div>

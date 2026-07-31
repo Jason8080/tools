@@ -66,7 +66,7 @@ public class DefaultRoutingKeyComposer implements RoutingKeyComposer {
             return null;
         }
 
-        return buildQueryString(effectiveKeys, params, true);
+        return buildQueryString(effectiveKeys, params);
     }
 
     @Override
@@ -124,20 +124,18 @@ public class DefaultRoutingKeyComposer implements RoutingKeyComposer {
 
     /**
      * 从参数中构建规范化查询字符串.
+     * <p>
+     * 每个键取第一个值（{@link MultiValueMap#getFirst(Object)}），按 key 字母排序拼接。
+     * </p>
      *
-     * @param keys     键列表（已排序）
-     * @param params   URL 参数
-     * @param firstOnly 是否只取每个键的第一个值
-     * @return 规范化查询字符串
+     * @param keys   键列表（已排序）
+     * @param params URL 参数
+     * @return 规范化查询字符串，无有效键值对时返回 null
      */
-    private String buildQueryString(List<String> keys, MultiValueMap<String, String> params, boolean firstOnly) {
+    private String buildQueryString(List<String> keys, MultiValueMap<String, String> params) {
         StringBuilder sb = new StringBuilder();
         for (String key : keys) {
-            String value = firstOnly ? params.getFirst(key) : null;
-            if (value == null) {
-                List<String> values = params.get(key);
-                value = (values != null && !values.isEmpty()) ? values.get(0) : null;
-            }
+            String value = params.getFirst(key);
             if (value == null) {
                 continue;
             }

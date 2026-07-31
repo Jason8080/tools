@@ -123,13 +123,12 @@ public abstract class ImPublisher<ID extends Serializable, MSG extends Msg>
     public Mono<ID> push(MultiValueMap<String, String> urlParams, MSG msg) {
         TopicMessage<ID, MSG> event = msg.build(urlParams);
         event.setTopic(topic);
-        // 从 URL 参数提取定向投递目标（委托给 RoutingKeyComposer）
+        // 未指定 routingKeys → 从 URL 参数提取定向投递目标
         Set<String> targets = extractRoutingTargets(urlParams);
         if (!targets.isEmpty()) {
             event.setRoutingKeys(targets);
         }
-        return resolveRepeater().send(event)
-                .doOnNext(id -> log.debug("[ImPublisher] 发布消息: topic={}, id={}", topic, id));
+        return send(event);
     }
 
     @Override
@@ -145,7 +144,20 @@ public abstract class ImPublisher<ID extends Serializable, MSG extends Msg>
                 event.setRoutingKeys(targets);
             }
         }
-        return resolveRepeater().send(event)
+        return send(event);
+    }
+
+    @Override
+    public Mono<ID> send(TopicMessage<ID, MSG> message) {
+        // 无显式 routingKeys 且未通过 push 路径设置 → 从 urlParams 补充提取
+        if ((message.getRoutingKeys() == null || message.getRoutingKeys().isEmpty())
+                && message.getUrlParams() != null) {
+            Set<String> targets = extractRoutingTargets(message.getUrlParams());
+            if (!targets.isEmpty()) {
+                message.setRoutingKeys(targets);
+            }
+        }
+        return resolveRepeater().send(message)
                 .doOnNext(id -> log.debug("[ImPublisher] 发布消息: topic={}, id={}", topic, id));
     }
 

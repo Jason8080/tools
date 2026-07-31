@@ -27,8 +27,9 @@ public class ConnectionMetadata {
     /**
      * 路由标识.
      * <p>
-     * 由框架根据配置的路由键（{@code im.routing-keys}，默认 {@code me}）从请求中提取。
-     * 多维路由键按配置顺序以 {@code |} 拼接（如 {@code A|B}）。
+     * 由框架根据配置的路由键（{@code im.sse.routing-keys}，默认 null = 全部 URL 参数）从请求中提取。
+     * 格式为规范化查询字符串：key 按字母排序，{@code key=value} 以 {@code &} 拼接
+     * （如 {@code room=lobby&tenant=acme}）。无 URL 参数时为 null（纯广播连接）。
      * 框架不绑定任何业务概念——可以是 userId、deviceId、roomId 等任意标识。
      * </p>
      */

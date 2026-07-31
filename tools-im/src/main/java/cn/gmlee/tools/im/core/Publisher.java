@@ -69,8 +69,8 @@ public interface Publisher<ID extends Serializable, MSG extends Msg> extends Top
      * 默认实现将 {@code routingKeys} 设置到 {@link TopicMessage} 后委托 {@link #send(TopicMessage)}。
      * </p>
      * <p>
-     * 自定义 Publisher 若需支持端点级路由键覆盖，应重写此方法。
-     * 未重写时，默认实现回退到 {@link #push(MultiValueMap, Msg)}，routingKeys 参数被忽略。
+     * 自定义 Publisher 推荐重写 {@link #send(TopicMessage)} 作为统一扩展点，
+     * {@code push()} 的两个重载均委托到 {@code send()}，重写一次即可覆盖所有入口。
      * </p>
      *
      * @param urlParams   URL 查询参数
@@ -91,14 +91,19 @@ public interface Publisher<ID extends Serializable, MSG extends Msg> extends Top
     /**
      * 发送消息信封.
      * <p>
-     * 供 {@link #push(MultiValueMap, Msg, Set)} 默认实现调用。
-     * 自定义 Publisher 可直接使用 {@link #push(MultiValueMap, Msg)} 而无需关注此方法。
+     * 将 {@link TopicMessage} 中的 routingKeys 提取后委托 {@link #push(MultiValueMap, Msg, Set)}。
+     * 自定义 Publisher 推荐重写此方法作为统一扩展点：{@code push()} 的两个重载均委托到此方法，
+     * 重写一次即可覆盖所有入口。
+     * </p>
+     * <p>
+     * 默认实现委托 {@link #push(MultiValueMap, Msg, Set)}，routingKeys 从 message 提取。
+     * 仅实现 {@link #push(MultiValueMap, Msg)} 的旧自定义 Publisher 需同时重写此方法以避免 routingKeys 丢失。
      * </p>
      *
      * @param message 消息信封
      * @return 消息 ID（异步）
      */
     default Mono<ID> send(TopicMessage<ID, MSG> message) {
-        return push(message.getUrlParams(), message.getMsg());
+        return push(message.getUrlParams(), message.getMsg(), message.getRoutingKeys());
     }
 }
