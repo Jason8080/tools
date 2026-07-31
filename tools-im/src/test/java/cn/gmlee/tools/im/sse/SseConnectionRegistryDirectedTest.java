@@ -220,8 +220,7 @@ class SseConnectionRegistryDirectedTest {
         registry.register(conn);
 
         // 模拟计数器为 0（cleanupConnection 内 counter.tryDecrement 会先递减）
-        registry.getCounter().getTopicCounts()
-                .computeIfAbsent(topic, k -> new java.util.concurrent.atomic.AtomicInteger(0));
+        registry.getCounter().getOrCreateTopicCount(topic);
 
         boolean cleaned = registry.cleanupIfEmpty(topic);
         assertTrue(cleaned, "空 Topic 应被清理");

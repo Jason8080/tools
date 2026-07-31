@@ -90,7 +90,7 @@ public class SseConnectionRegistry {
      * <p>
      * 仅包含当前连接数为 0 的 Topic，由 {@link #cleanupIfEmpty} 写入，
      * 由 {@link #cleanupEmptyTopicsByTtl} 和 {@link #compactTopicCounts} 消费。
-     * 独立于 {@code counter.getTopicCounts()} 维护，避免 TTL 扫描时
+     * 独立于 {@code counter.compute()} 维护，避免 TTL 扫描时
      * 遍历全量历史 Topic 条目（可能数万条），将扫描复杂度从 O(全部历史) 降为 O(当前空 Topic)。
      * </p>
      */
@@ -198,14 +198,16 @@ public class SseConnectionRegistry {
             if (routingKey != null) {
                 ConcurrentHashMap<String, Set<String>> topicIndex = routingKeyIndex.get(conn.getTopic());
                 if (topicIndex != null) {
-                    Set<String> keySet = topicIndex.get(routingKey);
-                    if (keySet != null) {
-                        keySet.remove(conn.getConnectionId());
-                        // best-effort 清理空 Set，防止内存泄漏
-                        if (keySet.isEmpty()) {
-                            topicIndex.remove(routingKey);
+                    // 使用 compute() 保证「移除 connId → 检查空 → 移除 routingKey」的原子性，
+                    // 消除 check-then-remove 的竞态窗口
+                    topicIndex.compute(routingKey, (k, keySet) -> {
+                        if (keySet == null) {
+                            return null;
                         }
-                    }
+                        keySet.remove(conn.getConnectionId());
+                        return keySet.isEmpty() ? null : keySet;
+                    });
+                    // topicIndex 可能在 compute 期间被其他线程填充新 routingKey，需再次检查
                     if (topicIndex.isEmpty()) {
                         routingKeyIndex.remove(conn.getTopic());
                     }
@@ -314,16 +316,16 @@ public class SseConnectionRegistry {
         // 先记录清理前的 Sink 存在状态，compute 后对比判断是否由本次调用执行了清理
         boolean sinkExistedBefore = topicSinks.containsKey(topic);
 
-        counter.getTopicCounts().compute(topic, (k, v) -> {
+        counter.compute(topic, (k, v) -> {
             if (v == null || v.get() > 0) {
                 return v;
             }
             // 计数为 0，清理 Sink 和连接集合，但保留计数器条目
-            topicSinks.remove(k);
-            topicConnections.remove(k);
-            routingKeyIndex.remove(k);
-            log.debug("[Topic] 清理空 Topic: {}", k);
-            return v; // 保留计数器，避免与并发 subscribe 的竞态
+            topicSinks.remove(topic);
+            topicConnections.remove(topic);
+            routingKeyIndex.remove(topic);
+            log.debug("[Topic] 清理空 Topic: {}", topic);
+            return v;
         });
 
         // compute 内部已原子移除 Sink，通过前后对比判断本次是否执行了清理
@@ -375,14 +377,14 @@ public class SseConnectionRegistry {
 
             // 超过 TTL，原子检查并清理
             final boolean[] didClean = {false};
-            counter.getTopicCounts().compute(topic, (k, v) -> {
+            counter.compute(topic, (k, v) -> {
                 if (v != null && v.get() == 0) {
-                    topicSinks.remove(k);
-                    topicConnections.remove(k);
-                    routingKeyIndex.remove(k);
+                    topicSinks.remove(topic);
+                    topicConnections.remove(topic);
+                    routingKeyIndex.remove(topic);
                     didClean[0] = true;
                 }
-                return v; // 保留计数器
+                return v;
             });
 
             emptyTopics.remove(topic);
@@ -426,7 +428,7 @@ public class SseConnectionRegistry {
 
             // 原子检查并移除
             final boolean[] removed = {false};
-            counter.getTopicCounts().compute(topic, (k, v) -> {
+            counter.compute(topic, (k, v) -> {
                 if (v != null && v.get() == 0 && !topicSinks.containsKey(k)) {
                     removed[0] = true;
                     return null; // 移除条目

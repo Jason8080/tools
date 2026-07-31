@@ -55,7 +55,6 @@ public class TopicMessage<MSG> implements Serializable {
     private MSG msg;
     @Builder.Default
     private Map<String, Object> metadata = new HashMap<>();
-    private boolean state; // 消息状态: true-已消费, false-未消费
     public String topic() {
         return topic;
     }

@@ -48,7 +48,6 @@ public class ConnectionCounter {
      * 保留条目（值为 0）的代价是每个历史 Topic 约占 40 字节。
      * </p>
      */
-    @Getter
     private final ConcurrentHashMap<String, AtomicInteger> topicCounts = new ConcurrentHashMap<>();
 
     /**
@@ -146,6 +145,24 @@ public class ConnectionCounter {
     public int getTopicCount(String topic) {
         AtomicInteger count = topicCounts.get(topic);
         return count != null ? count.get() : 0;
+    }
+
+    /**
+     * 原子操作 Topic 计数器条目（持有 bin 锁）.
+     * <p>
+     * 封装对内部 {@code topicCounts} Map 的 {@code compute()} 操作，
+     * 调用方在 remapping function 中可安全读取/修改计数器值，并在同一 bin 锁内
+     * 执行关联清理（如移除 Sink、连接集合），保证「检查计数 → 清理」的原子性。
+     * </p>
+     *
+     * @param topic          Topic 名称
+     * @param remappingFunction 与 {@link ConcurrentHashMap#compute} 语义相同：
+     *                         接收 (topic, currentCounter)，返回更新后的值，返回 null 移除条目
+     * @return remappingFunction 的返回值
+     */
+    public AtomicInteger compute(String topic,
+                                  java.util.function.BiFunction<? super String, ? super AtomicInteger, ? extends AtomicInteger> remappingFunction) {
+        return topicCounts.compute(topic, remappingFunction);
     }
 
     /**
