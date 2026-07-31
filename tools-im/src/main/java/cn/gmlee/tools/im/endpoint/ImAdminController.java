@@ -95,7 +95,7 @@ public class ImAdminController {
                     map.put("connections", connectionManager.getConnectionCount(topic));
                     return map;
                 })
-                .sorted(Comparator.comparingInt((Map<String, Object> m) -> (int) m.get("connections")).reversed())
+                .sorted(Comparator.comparingLong((Map<String, Object> m) -> ((Number) m.get("connections")).longValue()).reversed())
                 .collect(Collectors.toList());
         return R.of(result);
     }
@@ -129,12 +129,7 @@ public class ImAdminController {
         stats.put("managerRunning", connectionManager.isRunning());
         stats.put("managerClosed", connectionManager.isClosed());
 
-        if (metrics != null) {
-            stats.put("metricsAvailable", true);
-            // 可以扩展更多指标查询
-        } else {
-            stats.put("metricsAvailable", false);
-        }
+        stats.put("metricsAvailable", metrics != null);
 
         return R.of(stats);
     }

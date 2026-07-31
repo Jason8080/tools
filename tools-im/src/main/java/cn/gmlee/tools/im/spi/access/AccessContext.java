@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.reactive.function.server.ServerRequest;
 
 import java.net.InetSocketAddress;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -108,7 +109,7 @@ public class AccessContext {
      * @return 属性映射的不可变视图
      */
     public Map<String, Object> getAttributes() {
-        return java.util.Collections.unmodifiableMap(attributes);
+        return Collections.unmodifiableMap(attributes);
     }
 
     // ==================== 认证状态 ====================

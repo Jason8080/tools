@@ -15,6 +15,7 @@ import cn.gmlee.tools.im.ex.AccessDeniedException;
 import cn.gmlee.tools.im.spi.access.AccessFilter;
 import cn.gmlee.tools.im.spi.access.AccessFilterChain;
 import cn.gmlee.tools.im.topic.TopicRegistry;
+import cn.gmlee.tools.im.util.RoutingKeyExtractor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -177,7 +178,7 @@ public class EndpointRouter {
                 .map(payload -> {
                     MessageMap messageMap = payload instanceof MessageMap
                             ? (MessageMap) payload
-                            : new MessageMap(java.util.Collections.singletonMap("data", payload));
+                            : new MessageMap(Collections.singletonMap("data", payload));
                     return ServerSentEvent.<MessageMap>builder()
                             .data(messageMap)
                             .build();
@@ -244,7 +245,6 @@ public class EndpointRouter {
      * @return 组合后的路由标识，无匹配参数时返回 null
      */
     private String composeRoutingKey(AccessContext context) {
-        return cn.gmlee.tools.im.util.RoutingKeyExtractor.extract(
-                sseProperties.getRoutingKeys(), context.getRequest().queryParams());
+        return RoutingKeyExtractor.extract(sseProperties.getRoutingKeys(), context.getRequest().queryParams());
     }
 }

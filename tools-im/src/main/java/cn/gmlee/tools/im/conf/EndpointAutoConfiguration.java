@@ -57,9 +57,6 @@ public class EndpointAutoConfiguration {
     private final SseProperties sseProperties;
     private final EndpointRegistry endpointRegistry;
 
-    @Autowired
-    private TopicFactory topicFactory;
-
     public EndpointAutoConfiguration(ImProperties imProperties,
                                       ConfigurableListableBeanFactory beanFactory,
                                       BeanDefinitionRegistry beanDefinitionRegistry,
@@ -174,9 +171,7 @@ public class EndpointAutoConfiguration {
         for (EndpointProperties props : endpoints) {
             try {
                 endpointRegistry.register(props);
-                topicFactory.ensureResources(props);
-                log.info("[EndpointAutoConfiguration] 加载端点: {} → topic={}, mode={}",
-                        props.getPath(), props.getTopic(), props.getMode());
+                // 监听器 TopicFactory.onEndpointRegistered 已触发 ensureResources，无需重复调用
             } catch (Exception e) {
                 log.error("[EndpointAutoConfiguration] 加载端点失败: {}", props, e);
             }

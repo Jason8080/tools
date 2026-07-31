@@ -2,6 +2,7 @@ package cn.gmlee.tools.im.util;
 
 import org.springframework.util.MultiValueMap;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -131,7 +132,7 @@ public final class RoutingKeyExtractor {
     private static Set<String> extractMultiKeyTargets(List<String> routingKeys, MultiValueMap<String, String> params) {
         // 收集各键的值列表
         int keyCount = routingKeys.size();
-        List<List<String>> valueLists = new java.util.ArrayList<>(keyCount);
+        List<List<String>> valueLists = new ArrayList<>(keyCount);
         int minSize = Integer.MAX_VALUE;
 
         for (String key : routingKeys) {

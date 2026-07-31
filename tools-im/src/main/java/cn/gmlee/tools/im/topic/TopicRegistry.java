@@ -17,6 +17,7 @@ import org.springframework.cloud.stream.function.StreamBridge;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
  * Topic 组件注册表.
@@ -89,7 +90,7 @@ public class TopicRegistry {
     private final List<RepeaterInterceptor> interceptors;
 
     /**
-     * SSE 配置（用于传递 deliveryKeys 等配置到默认组件）
+     * SSE 配置（用于传递 routingKeys 等配置到默认组件）
      */
     private final SseProperties sseProperties;
 
@@ -122,7 +123,7 @@ public class TopicRegistry {
      * @param streamBridge         Stream 桥接器
      * @param sseConnectionManager SSE 连接管理器
      * @param interceptors         Repeater 拦截器列表（Spring 注入，可为 null）
-     * @param sseProperties        SSE 配置（用于传递 deliveryKeys 等配置到默认组件，可为 null）
+     * @param sseProperties        SSE 配置（用于传递 routingKeys 等配置到默认组件，可为 null）
      */
     public TopicRegistry(List<PublisherFactory> publisherFactories,
                          List<RepeaterFactory> repeaterFactories,
@@ -230,7 +231,7 @@ public class TopicRegistry {
     private <T> T ensureComponent(String topic,
                                    ConcurrentHashMap<String, T> cache,
                                    List<?> factories,
-                                   java.util.function.Function<String, T> defaultFactory,
+                                   Function<String, T> defaultFactory,
                                    String componentName) {
         return cache.computeIfAbsent(topic, t -> {
             for (Object factory : factories) {

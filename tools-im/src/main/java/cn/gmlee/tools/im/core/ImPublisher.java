@@ -2,6 +2,7 @@ package cn.gmlee.tools.im.core;
 
 import cn.gmlee.tools.im.model.Msg;
 import cn.gmlee.tools.im.model.TopicMessage;
+import cn.gmlee.tools.im.util.RoutingKeyExtractor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.MultiValueMap;
 
@@ -99,6 +100,6 @@ public abstract class ImPublisher extends AbstractTopic implements Publisher {
      * @return 路由目标集合（不可变），空集表示广播
      */
     protected Set<String> extractRoutingTargets(MultiValueMap<String, String> urlParams) {
-        return cn.gmlee.tools.im.util.RoutingKeyExtractor.extractTargets(routingKeys, urlParams);
+        return RoutingKeyExtractor.extractTargets(routingKeys, urlParams);
     }
 }
