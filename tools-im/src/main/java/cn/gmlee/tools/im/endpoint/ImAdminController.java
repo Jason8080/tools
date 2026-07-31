@@ -6,8 +6,11 @@ import cn.gmlee.tools.im.model.ConnectionMetadata;
 import cn.gmlee.tools.im.sse.SseConnection;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import cn.gmlee.tools.im.sse.metrics.SseMetrics;
+import cn.gmlee.tools.im.topic.TopicLifecycleManager;
 import cn.gmlee.tools.im.topic.TopicRegistry;
+import cn.gmlee.tools.im.topic.TopicState;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
@@ -32,8 +35,10 @@ import java.util.stream.Collectors;
  * <ul>
  *   <li>{@code GET /im/admin/endpoints} — 查询所有已注册端点</li>
  *   <li>{@code GET /im/admin/topics} — 查询所有活跃 Topic 及连接数</li>
+ *   <li>{@code GET /im/admin/topics/lifecycle} — 查询 Topic 生命周期状态（v5.6.0+）</li>
  *   <li>{@code GET /im/admin/connections/{topic}} — 查询指定 Topic 的连接详情</li>
  *   <li>{@code GET /im/admin/stats} — 查询全局统计信息</li>
+ *   <li>{@code DELETE /im/admin/topic/{topic}} — 手动销毁 Topic（v5.6.0+）</li>
  * </ul>
  *
  * @since 5.6.0
@@ -47,23 +52,27 @@ public class ImAdminController {
     private final SseConnectionManager connectionManager;
     private final TopicRegistry topicRegistry;
     private final SseMetrics metrics;
+    private final TopicLifecycleManager topicLifecycleManager;
 
     /**
      * 创建管理控制器.
      *
-     * @param endpointRegistry  端点注册表
-     * @param connectionManager SSE 连接管理器
-     * @param topicRegistry     Topic 组件注册表
-     * @param metrics           指标收集器（可为 null）
+     * @param endpointRegistry      端点注册表
+     * @param connectionManager     SSE 连接管理器
+     * @param topicRegistry         Topic 组件注册表
+     * @param metrics               指标收集器（可为 null）
+     * @param topicLifecycleManager Topic 生命周期管理器（可为 null，向后兼容）
      */
     public ImAdminController(EndpointRegistry endpointRegistry,
                              SseConnectionManager connectionManager,
                              TopicRegistry topicRegistry,
-                             SseMetrics metrics) {
+                             SseMetrics metrics,
+                             @Autowired(required = false) TopicLifecycleManager topicLifecycleManager) {
         this.endpointRegistry = endpointRegistry;
         this.connectionManager = connectionManager;
         this.topicRegistry = topicRegistry;
         this.metrics = metrics;
+        this.topicLifecycleManager = topicLifecycleManager;
     }
 
     /**
@@ -132,6 +141,85 @@ public class ImAdminController {
         stats.put("metricsAvailable", metrics != null);
 
         return R.of(stats);
+    }
+
+    /**
+     * 查询 Topic 生命周期状态.
+     * <p>
+     * 返回所有 Topic 的状态（CREATED/ACTIVE/DESTROYING/DESTROYED）、引用计数、
+     * 关联的物理资源信息等。用于运维监控 Topic 资源使用情况。
+     * </p>
+     *
+     * @return Topic 生命周期信息列表（TopicLifecycleManager 未启用时返回空列表）
+     * @since 5.6.0
+     */
+    @GetMapping("/topics/lifecycle")
+    public R<List<Map<String, Object>>> listTopicsLifecycle() {
+        if (topicLifecycleManager == null) {
+            return R.of(Collections.emptyList());
+        }
+        Set<String> topics = topicLifecycleManager.getAllTopics();
+        List<Map<String, Object>> result = topics.stream()
+                .map(this::toTopicLifecycleMap)
+                .sorted(Comparator.comparingLong((Map<String, Object> m) -> ((Number) m.get("refCount")).longValue()).reversed())
+                .collect(Collectors.toList());
+        return R.of(result);
+    }
+
+    /**
+     * 手动销毁 Topic.
+     * <p>
+     * 强制销毁指定 Topic 的所有资源（Publisher/Repeater/Subscriber、Spring Cloud Stream binding），
+     * 忽略引用计数。适用于资源泄漏后的紧急清理场景。
+     * </p>
+     * <p><b>注意</b>：销毁后仍在使用该 Topic 的端点将无法发送/接收消息，需重新注册端点以激活 Topic。</p>
+     *
+     * @param topic Topic 名称
+     * @return 销毁结果（success / not_found / failed）
+     * @since 5.6.0
+     */
+    @DeleteMapping("/topic/{topic}")
+    public R<Map<String, Object>> destroyTopic(@PathVariable String topic) {
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("topic", topic);
+
+        if (topicLifecycleManager == null) {
+            result.put("success", false);
+            result.put("reason", "TopicLifecycleManager 未启用");
+            return R.of(result);
+        }
+
+        TopicState state = topicLifecycleManager.getState(topic);
+        if (state == null) {
+            result.put("success", false);
+            result.put("reason", "Topic 不存在");
+            return R.of(result);
+        }
+
+        boolean destroyed = topicLifecycleManager.destroy(topic);
+        result.put("success", destroyed);
+        result.put("previousState", state.name());
+        return R.of(result);
+    }
+
+    /**
+     * 将 Topic 生命周期信息转换为 Map.
+     */
+    private Map<String, Object> toTopicLifecycleMap(String topic) {
+        Map<String, Object> map = new LinkedHashMap<>();
+        map.put("topic", topic);
+
+        TopicState state = topicLifecycleManager.getState(topic);
+        map.put("state", state != null ? state.name() : "UNKNOWN");
+        map.put("refCount", topicLifecycleManager.getRefCount(topic));
+
+        // 关联的连接数（从 ConnectionManager 获取）
+        map.put("connections", connectionManager.getConnectionCount(topic));
+
+        // 物理资源状态
+        map.put("hasRegistryComponents", topicRegistry.hasComponents(topic));
+
+        return map;
     }
 
     /**

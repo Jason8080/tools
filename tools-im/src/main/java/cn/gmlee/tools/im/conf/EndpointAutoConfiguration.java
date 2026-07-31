@@ -170,7 +170,7 @@ public class EndpointAutoConfiguration {
     /**
      * IM 管理控制器 Bean.
      * <p>
-     * 提供运行时查询 API（端点、Topic、连接、统计信息）。
+     * 提供运行时查询 API（端点、Topic、连接、统计信息、Topic 生命周期）。
      * </p>
      */
     @Bean
@@ -178,8 +178,9 @@ public class EndpointAutoConfiguration {
     public ImAdminController imAdminController(EndpointRegistry endpointRegistry,
                                                 SseConnectionManager connectionManager,
                                                 TopicRegistry topicRegistry,
-                                                @Autowired(required = false) SseMetrics metrics) {
-        return new ImAdminController(endpointRegistry, connectionManager, topicRegistry, metrics);
+                                                @Autowired(required = false) SseMetrics metrics,
+                                                @Autowired(required = false) TopicLifecycleManager topicLifecycleManager) {
+        return new ImAdminController(endpointRegistry, connectionManager, topicRegistry, metrics, topicLifecycleManager);
     }
 
     /**
