@@ -108,11 +108,13 @@ public abstract class ImRepeater implements Repeater {
      * 调用链：{@code beforeSend} → {@link #doSend(TopicMessage)}
      * </p>
      * <p>
+     * 返回 {@link Mono} 异步执行，不阻塞调用线程。拦截器链中的异步 I/O
+     * （如 Redis 查询）在此 Mono 内完成，不会阻塞 WebFlux 事件循环。
      * 如果任一拦截器的 {@code beforeSend} 返回 {@code Mono.just(false)}，消息将被拦截，不再发送。
      * </p>
      */
     @Override
-    public final Serializable send(TopicMessage<Msg> message) {
+    public final Mono<Serializable> send(TopicMessage<Msg> message) {
         // 使用 Reactor 的链式调用处理异步拦截器
         Mono<Boolean> chain = Mono.just(true);
         for (RepeaterInterceptor i : interceptors) {
@@ -122,13 +124,8 @@ public abstract class ImRepeater implements Repeater {
             });
         }
 
-        Boolean allowed = chain.block(); // 注意：这里需要同步等待结果
-        if (Boolean.FALSE.equals(allowed)) {
-            log.debug("[ImRepeater] 消息被拦截器拦截: topic={}, id={}, interceptor={}",
-                    topic, message.getId(), "chain");
-            return null;
-        }
-        return doSend(message);
+        return chain.filter(Boolean::booleanValue)
+                .flatMap(allowed -> doSend(message));
     }
 
     /**
@@ -174,13 +171,15 @@ public abstract class ImRepeater implements Repeater {
      * </p>
      *
      * @param message 消息信封
-     * @return 消息 ID
+     * @return 消息 ID（异步）
      */
-    protected Serializable doSend(TopicMessage<Msg> message) {
-        String bindingName = BindingNames.outputBinding(message.getTopic());
-        streamBridge.send(bindingName, message);
-        log.debug("[ImRepeater] 发送到 Stream: topic={}, id={}", message.getTopic(), message.getId());
-        return message.getId();
+    protected Mono<Serializable> doSend(TopicMessage<Msg> message) {
+        return Mono.fromCallable(() -> {
+            String bindingName = BindingNames.outputBinding(message.getTopic());
+            streamBridge.send(bindingName, message);
+            log.debug("[ImRepeater] 发送到 Stream: topic={}, id={}", message.getTopic(), message.getId());
+            return message.getId();
+        });
     }
 
     /**

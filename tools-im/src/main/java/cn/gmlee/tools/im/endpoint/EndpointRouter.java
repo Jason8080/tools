@@ -14,6 +14,7 @@ import cn.gmlee.tools.im.spi.access.AccessContext;
 import cn.gmlee.tools.im.ex.AccessDeniedException;
 import cn.gmlee.tools.im.spi.access.AccessFilter;
 import cn.gmlee.tools.im.spi.access.AccessFilterChain;
+import cn.gmlee.tools.im.spi.converter.PrincipalRoutingKeyConverter;
 import cn.gmlee.tools.im.topic.TopicRegistry;
 import cn.gmlee.tools.im.util.RoutingKeyExtractor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +29,6 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.io.Serializable;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -56,9 +56,20 @@ import java.util.List;
  *
  * <h3>访问控制</h3>
  * <p>
- * 支持通过 {@link AccessFilter} 实现端点级别的安全控制（认证、授权、限流等）。
+ * 支持通过 {@link cn.gmlee.tools.im.spi.access.AccessFilter} 实现端点级别的安全控制（认证、授权、限流等）。
  * 过滤器在请求路由到处理器之前执行，按 Order 排序。
  * </p>
+ *
+ * <h3>routingKey 提取</h3>
+ * <p>
+ * PULL 端点的连接 routingKey 按以下优先级提取：
+ * </p>
+ * <ol>
+ *   <li>String 类型的 principal（由 AccessFilter 设置）</li>
+ *   <li>{@link PrincipalRoutingKeyConverter} 从非 String principal 转换</li>
+ *   <li>{@code X-Me} 请求头</li>
+ *   <li>URL 参数按 {@code im.routing-keys} 配置组合</li>
+ * </ol>
  *
  * @since 5.6.0
  */
@@ -69,6 +80,7 @@ public class EndpointRouter {
     private final TopicRegistry topicRegistry;
     private final SseProperties sseProperties;
     private final List<AccessFilter> filters;
+    private final List<PrincipalRoutingKeyConverter> converters;
 
     /**
      * 创建动态路由器.
@@ -82,6 +94,23 @@ public class EndpointRouter {
                           TopicRegistry topicRegistry,
                           SseProperties sseProperties,
                           List<AccessFilter> filters) {
+        this(registry, topicRegistry, sseProperties, filters, null);
+    }
+
+    /**
+     * 创建动态路由器（含 principal 路由键转换器）.
+     *
+     * @param registry      端点注册表
+     * @param topicRegistry Topic 组件注册表
+     * @param sseProperties SSE 配置
+     * @param filters       访问过滤器列表（可为 null）
+     * @param converters    principal 路由键转换器列表（可为 null）
+     */
+    public EndpointRouter(EndpointRegistry registry,
+                          TopicRegistry topicRegistry,
+                          SseProperties sseProperties,
+                          List<AccessFilter> filters,
+                          List<PrincipalRoutingKeyConverter> converters) {
         this.registry = registry;
         this.topicRegistry = topicRegistry;
         this.sseProperties = sseProperties;
@@ -93,6 +122,15 @@ public class EndpointRouter {
             log.info("[EndpointRouter] 加载 {} 个访问过滤器", this.filters.size());
         } else {
             this.filters = Collections.emptyList();
+        }
+
+        // 按 Order 排序转换器，存储为不可变列表
+        if (converters != null && !converters.isEmpty()) {
+            this.converters = converters.stream()
+                    .sorted(Comparator.comparingInt(PrincipalRoutingKeyConverter::getOrder)).toList();
+            log.info("[EndpointRouter] 加载 {} 个 principal 路由键转换器", this.converters.size());
+        } else {
+            this.converters = Collections.emptyList();
         }
     }
 
@@ -160,10 +198,10 @@ public class EndpointRouter {
                 .defaultIfEmpty(new MessageMap())
                 .flatMap(msg -> {
                     Publisher publisher = topicRegistry.ensurePublisher(props.getTopic());
-                    Serializable id = publisher.push(urlParams, msg);
-                    return ServerResponse.ok()
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .bodyValue(R.of(id));
+                    return publisher.push(urlParams, msg)
+                            .flatMap(id -> ServerResponse.ok()
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .bodyValue(R.of(id)));
                 });
     }
 
@@ -195,7 +233,8 @@ public class EndpointRouter {
      * <p>
      * 路由标识（routingKey）提取，优先级从高到低：
      * <ol>
-     *   <li>{@code principal}（由 AccessFilter 设置，<b>必须为 String 类型</b>，否则跳过此层）</li>
+     *   <li>{@code principal} 为 {@link String} 类型 → 直接使用</li>
+     *   <li>按 Order 遍历 {@link PrincipalRoutingKeyConverter}，首个 {@link PrincipalRoutingKeyConverter#supports} 返回 {@code true} 的转换器执行转换</li>
      *   <li>{@code X-Me} 请求头（服务端调用、fetch-based SSE 客户端）</li>
      *   <li>从 URL 参数按 {@code im.routing-keys} 配置提取并组合</li>
      * </ol>
@@ -209,22 +248,21 @@ public class EndpointRouter {
     private ConnectionMetadata buildMetadata(String topic, AccessContext context) {
         String routingKey = null;
 
-        // 1. AccessFilter 设置的 principal（必须为 String）
+        // 1. AccessFilter 设置的 principal
         Object principal = context.getPrincipal();
         if (principal instanceof String s) {
             routingKey = s;
         } else if (principal != null) {
-            log.debug("[EndpointRouter] principal 类型为 {}，非 String，跳过 routingKey 提取。" +
-                    "请在 AccessFilter 中设置 String 类型的 principal",
-                    principal.getClass().getName());
+            // 2. 通过转换器从非 String principal 提取
+            routingKey = convertPrincipal(principal, context);
         }
 
-        // 2. X-Me 请求头
+        // 3. X-Me 请求头
         if (routingKey == null) {
             routingKey = context.getHeader("X-Me").orElse(null);
         }
 
-        // 3. 按配置从 URL 参数提取并组合
+        // 4. 按配置从 URL 参数提取并组合
         if (routingKey == null) {
             routingKey = composeRoutingKey(context);
         }
@@ -233,6 +271,44 @@ public class EndpointRouter {
                 .topic(topic)
                 .routingKey(routingKey)
                 .build();
+    }
+
+    /**
+     * 通过转换器将非 String principal 转换为路由键.
+     * <p>
+     * 按 Order 排序依次尝试，首个 {@link PrincipalRoutingKeyConverter#supports} 返回 {@code true}
+     * 且转换结果非空的转换器获胜。转换异常被捕获并记录日志，不影响后续提取策略。
+     * </p>
+     *
+     * @param principal 认证主体（非 null，非 String）
+     * @param context   访问上下文
+     * @return 路由键字符串，无转换器匹配时返回 null
+     */
+    private String convertPrincipal(Object principal, AccessContext context) {
+        if (converters.isEmpty()) {
+            log.debug("[EndpointRouter] principal 类型为 {}，非 String 且无转换器，跳过 routingKey 提取。" +
+                    "请注册 PrincipalRoutingKeyConverter Bean 或在 AccessFilter 中设置 String 类型的 principal",
+                    principal.getClass().getName());
+            return null;
+        }
+        for (PrincipalRoutingKeyConverter converter : converters) {
+            if (converter.supports(principal.getClass())) {
+                try {
+                    String key = converter.convert(principal, context);
+                    if (key != null && !key.isEmpty()) {
+                        log.debug("[EndpointRouter] 通过 {} 将 {} 转换为 routingKey: {}",
+                                converter.getClass().getSimpleName(), principal.getClass().getSimpleName(), key);
+                        return key;
+                    }
+                } catch (Exception e) {
+                    log.warn("[EndpointRouter] {} 转换 principal 异常: {}",
+                            converter.getClass().getSimpleName(), e.getMessage(), e);
+                }
+            }
+        }
+        log.debug("[EndpointRouter] 无转换器支持 {} 类型的 principal，跳过 routingKey 提取",
+                principal.getClass().getName());
+        return null;
     }
 
     /**

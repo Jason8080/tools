@@ -5,6 +5,7 @@ import cn.gmlee.tools.im.model.Msg;
 import cn.gmlee.tools.im.model.TopicMessage;
 import org.springframework.util.MultiValueMap;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.io.Serializable;
 import java.util.function.Consumer;
@@ -15,7 +16,7 @@ import java.util.function.Consumer;
  * Topic 的消息枢纽，聚合了发送、消费、订阅三端的职责：
  * </p>
  * <ul>
- *   <li>{@link #send(TopicMessage)} — 将消息发送到 Stream (MQ)</li>
+ *   <li>{@link #send(TopicMessage)} — 将消息发送到 Stream (MQ)，异步返回消息 ID</li>
  *   <li>{@link #receive(TopicMessage)} — MQ 消费后转发到 SSE 连接</li>
  *   <li>{@link #subscribe(MultiValueMap, ConnectionMetadata)} — 提供 SSE 实时消息流</li>
  *   <li>{@link #accept(TopicMessage)} — {@link Consumer} 入口，MQ 消费者回调，默认委托给 {@link #receive}</li>
@@ -27,11 +28,15 @@ public interface Repeater extends Topic, Consumer<TopicMessage<Msg>> {
 
     /**
      * 发送消息到 Stream (MQ).
+     * <p>
+     * 异步执行，不阻塞调用线程。拦截器链（{@code beforeSend}）中的异步 I/O
+     * （如 Redis 查询、数据库写入）在此 Mono 内完成，不会阻塞 WebFlux 事件循环。
+     * </p>
      *
      * @param message 消息信封
-     * @return 消息 ID
+     * @return 消息 ID（异步）
      */
-    Serializable send(TopicMessage<Msg> message);
+    Mono<Serializable> send(TopicMessage<Msg> message);
 
     /**
      * 订阅 Topic 的实时消息流.

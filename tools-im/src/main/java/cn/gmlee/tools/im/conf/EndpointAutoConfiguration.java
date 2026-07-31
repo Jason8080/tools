@@ -8,6 +8,7 @@ import cn.gmlee.tools.im.endpoint.EndpointRegistry;
 import cn.gmlee.tools.im.endpoint.EndpointRouter;
 import cn.gmlee.tools.im.endpoint.ImAdminController;
 import cn.gmlee.tools.im.spi.access.AccessFilter;
+import cn.gmlee.tools.im.spi.converter.PrincipalRoutingKeyConverter;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import cn.gmlee.tools.im.sse.metrics.SseMetrics;
 import cn.gmlee.tools.im.topic.TopicFactory;
@@ -120,7 +121,7 @@ public class EndpointAutoConfiguration {
     /**
      * 动态路由器 Bean.
      * <p>
-     * 自动发现所有 {@link AccessFilter} Bean，
+     * 自动发现所有 {@link AccessFilter} 和 {@link PrincipalRoutingKeyConverter} Bean，
      * 按 Order 排序后注入到路由器。
      * </p>
      */
@@ -128,8 +129,9 @@ public class EndpointAutoConfiguration {
     @ConditionalOnMissingBean
     public EndpointRouter endpointRouter(EndpointRegistry endpointRegistry,
                                           TopicRegistry topicRegistry,
-                                          @Autowired(required = false) List<AccessFilter> filters) {
-        return new EndpointRouter(endpointRegistry, topicRegistry, sseProperties, filters);
+                                          @Autowired(required = false) List<AccessFilter> filters,
+                                          @Autowired(required = false) List<PrincipalRoutingKeyConverter> converters) {
+        return new EndpointRouter(endpointRegistry, topicRegistry, sseProperties, filters, converters);
     }
 
     /**

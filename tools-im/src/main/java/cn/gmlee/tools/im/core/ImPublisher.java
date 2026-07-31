@@ -5,6 +5,7 @@ import cn.gmlee.tools.im.model.TopicMessage;
 import cn.gmlee.tools.im.util.RoutingKeyExtractor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.MultiValueMap;
+import reactor.core.publisher.Mono;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -76,7 +77,7 @@ public abstract class ImPublisher extends AbstractTopic implements Publisher {
     }
 
     @Override
-    public Serializable push(MultiValueMap<String, String> urlParams, Msg msg) {
+    public Mono<Serializable> push(MultiValueMap<String, String> urlParams, Msg msg) {
         TopicMessage<Msg> event = msg.build(urlParams);
         event.setTopic(topic);
         // 从 URL 参数提取定向投递目标（委托给 RoutingKeyExtractor 统一提取）
@@ -84,9 +85,8 @@ public abstract class ImPublisher extends AbstractTopic implements Publisher {
         if (!targets.isEmpty()) {
             event.setRoutingKeys(targets);
         }
-        Serializable id = resolveRepeater().send(event);
-        log.debug("[ImPublisher] 发布消息: topic={}, id={}", topic, id);
-        return id;
+        return resolveRepeater().send(event)
+                .doOnNext(id -> log.debug("[ImPublisher] 发布消息: topic={}, id={}", topic, id));
     }
 
     /**
