@@ -158,12 +158,12 @@ public class TopicRegistry {
      * @return Publisher 实例
      */
     public Publisher ensurePublisher(String topic) {
-        List<String> deliveryKeys = sseProperties != null ? sseProperties.getDeliveryKeys() : null;
+        List<String> routingKeys = sseProperties != null ? sseProperties.getRoutingKeys() : null;
         return ensureComponent(
                 topic,
                 publishers,
                 publisherFactories,
-                t -> new DefaultPublisher(t, () -> getRepeater(t), deliveryKeys),
+                t -> new DefaultPublisher(t, () -> getRepeater(t), routingKeys),
                 "Publisher"
         );
     }

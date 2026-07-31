@@ -22,50 +22,39 @@ public class SseProperties {
     /**
      * 路由键配置.
      * <p>
-     * 指定从 URL 参数中提取哪些字段作为连接的路由标识（routingKey）。
+     * 指定从 URL 参数中提取哪些字段作为路由标识（routingKey）。
      * 多个字段按配置顺序以 {@code |} 拼接。
      * </p>
      * <p>
      * 默认 {@code ["me"]}，即从 {@code ?me=xxx} 提取。
-     * 可配置为任意字段名，如 {@code ["deviceId"]}、{@code ["target1", "target2"]} 等。
+     * 可配置为任意字段名，如 {@code ["deviceId"]}、{@code ["tenant", "room"]} 等。
      * </p>
      * <p>
+     * <b>发布方与订阅方对称使用</b>：
+     * </p>
+     * <ul>
+     *   <li><b>订阅方</b>：从 URL 参数提取路由标识作为连接身份（如 {@code ?me=alice}）</li>
+     *   <li><b>发布方</b>：从 URL 参数提取路由标识作为投递目标（如 {@code ?me=alice&me=bob}）</li>
+     * </ul>
+     * <p>
+     * 单键时支持多值（多目标投递），多键时按顺序以 {@code |} 拼接为单值。
      * 框架不绑定任何业务概念——路由键可以是 userId、deviceId、roomId 等任意标识。
      * </p>
+     *
+     * <h3>示例</h3>
+     * <pre>
+     * # 单键（默认）
+     * routing-keys: ["me"]
+     * 订阅：GET /pull?me=alice        → routingKey = "alice"
+     * 发布：POST /push?me=alice&amp;me=bob → to = ["alice", "bob"]
+     *
+     * # 多键
+     * routing-keys: ["tenant", "room"]
+     * 订阅：GET /pull?tenant=acme&amp;room=lobby → routingKey = "acme|lobby"
+     * 发布：POST /push?tenant=acme&amp;room=lobby → to = ["acme|lobby"]
+     * </pre>
      */
     private List<String> routingKeys = Collections.singletonList("me");
-
-    /**
-     * 投递目标键配置.
-     * <p>
-     * 指定从 URL 参数中提取哪些字段作为定向投递的目标标识（to）。
-     * 多个字段按配置顺序以 {@code |} 拼接，与 {@link #routingKeys} 的拼接规则一致。
-     * </p>
-     * <p>
-     * 默认 {@code ["to"]}，即从 {@code ?to=xxx} 提取。
-     * 可配置为任意字段名，如 {@code ["target"]}、{@code ["targetTenant", "targetRoom"]} 等。
-     * </p>
-     * <p>
-     * <b>设计原则</b>：与 {@link #routingKeys} 对称，保证发布端和订阅端的键提取逻辑一致。
-     * 如果 {@code routingKeys} 配置为 {@code ["tenant", "room"]}，建议 {@code deliveryKeys}
-     * 配置为 {@code ["targetTenant", "targetRoom"]}，这样发布时：
-     * </p>
-     * <pre>
-     * POST /api/chat/push?targetTenant=acme&amp;targetRoom=lobby
-     * → to = ["acme|lobby"]（自动拼接）
-     * </pre>
-     * <p>
-     * 订阅时：
-     * </p>
-     * <pre>
-     * GET /api/chat/pull?tenant=acme&amp;room=lobby
-     * → routingKey = "acme|lobby"（自动拼接）
-     * </pre>
-     * <p>
-     * 两者自动匹配，无需手动构造复合键。
-     * </p>
-     */
-    private List<String> deliveryKeys = Collections.singletonList("to");
 
     /**
      * 单 Topic 最大连接数

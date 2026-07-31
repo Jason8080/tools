@@ -43,13 +43,13 @@ public class TopicMessage<MSG> implements Serializable {
     private Serializable id = ID_GENERATOR.incrementAndGet();
     private String topic;
     /**
-     * 定向投递目标（路由标识集合）.
+     * 路由目标集合（定向投递）.
      * <p>
      * null 或空集 = 广播到 Topic 下所有连接；
      * 非空 = 仅投递给 routingKey 匹配的连接。
      * </p>
      */
-    private Set<String> to;
+    private Set<String> routingKey;
     private MultiValueMap<String, String> urlParams;
     private MultiValueMap<String, String> headers;
     private MSG msg;

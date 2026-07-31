@@ -32,9 +32,9 @@ class DefaultPublisher extends ImPublisher {
     }
 
     /**
-     * 供 {@link TopicRegistry} 工厂方法使用，延迟解析 Repeater + 自定义投递目标键.
+     * 供 {@link TopicRegistry} 工厂方法使用，延迟解析 Repeater + 自定义路由键.
      */
-    DefaultPublisher(String topic, Supplier<Repeater> repeaterSupplier, List<String> deliveryKeys) {
-        super(topic, repeaterSupplier, deliveryKeys);
+    DefaultPublisher(String topic, Supplier<Repeater> repeaterSupplier, List<String> routingKeys) {
+        super(topic, repeaterSupplier, routingKeys);
     }
 }
