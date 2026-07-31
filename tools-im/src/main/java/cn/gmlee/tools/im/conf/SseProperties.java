@@ -4,7 +4,6 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import java.time.Duration;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,38 +22,52 @@ public class SseProperties {
      * 路由键配置.
      * <p>
      * 指定从 URL 参数中提取哪些字段作为路由标识（routingKey）。
-     * 多个字段按配置顺序以 {@code |} 拼接。
+     * routingKey 格式为<b>规范化查询字符串</b>：key 按字母排序，{@code key=value} 以 {@code &} 拼接。
      * </p>
      * <p>
-     * 默认 {@code ["me"]}，即从 {@code ?me=xxx} 提取。
-     * 可配置为任意字段名，如 {@code ["deviceId"]}、{@code ["tenant", "room"]} 等。
+     * <b>语义规则</b>：
+     * </p>
+     * <ul>
+     *   <li>{@code null} / 未配置 / {@code []} — <b>全部 URL 参数参与</b>（默认）</li>
+     *   <li>{@code ["*"]} — <b>显式全部参数</b>（等价于 null）</li>
+     *   <li>{@code ["me"]} — <b>指定字段</b>（仅提取 me 参数）</li>
+     *   <li>{@code ["tenant", "room"]} — <b>指定多字段</b></li>
+     * </ul>
+     * <p>
+     * 无 URL 参数时为广播连接（routingKey = null），不参与定向投递索引。
      * </p>
      * <p>
      * <b>发布方与订阅方对称使用</b>：
      * </p>
      * <ul>
-     *   <li><b>订阅方</b>：从 URL 参数提取路由标识作为连接身份（如 {@code ?me=alice}）</li>
-     *   <li><b>发布方</b>：从 URL 参数提取路由标识作为投递目标（如 {@code ?me=alice&me=bob}）</li>
+     *   <li><b>订阅方</b>：从 URL 参数提取路由标识作为连接身份</li>
+     *   <li><b>发布方</b>：从 URL 参数提取路由标识作为投递目标</li>
      * </ul>
      * <p>
-     * 单键时支持多值（多目标投递），多键时按顺序以 {@code |} 拼接为单值。
-     * 框架不绑定任何业务概念——路由键可以是 userId、deviceId、roomId 等任意标识。
+     * 可通过 {@link EndpointProperties#getRoutingKeys()} 按端点覆盖此全局配置。
+     * 组合逻辑由 {@link cn.gmlee.tools.im.spi.routing.RoutingKeyComposer} SPI 控制，
+     * 默认实现按 key 字母排序保证参数顺序无关性。
      * </p>
      *
      * <h3>示例</h3>
      * <pre>
-     * # 单键（默认）
-     * routing-keys: ["me"]
-     * 订阅：GET /pull?me=alice        → routingKey = "alice"
-     * 发布：POST /push?me=alice&amp;me=bob → to = ["alice", "bob"]
+     * # 默认（全部参数）
+     * # routing-keys 未配置
+     * 订阅：GET /pull?me=alice&amp;room=lobby   → routingKey = "me=alice&amp;room=lobby"
+     * 发布：POST /push?me=alice&amp;room=lobby  → to = {"me=alice&amp;room=lobby"}
      *
-     * # 多键
+     * # 指定字段
+     * routing-keys: ["me"]
+     * 订阅：GET /pull?me=alice              → routingKey = "me=alice"
+     * 发布：POST /push?me=alice&amp;me=bob      → to = {"me=alice", "me=bob"}
+     *
+     * # 指定多字段
      * routing-keys: ["tenant", "room"]
-     * 订阅：GET /pull?tenant=acme&amp;room=lobby → routingKey = "acme|lobby"
-     * 发布：POST /push?tenant=acme&amp;room=lobby → to = ["acme|lobby"]
+     * 订阅：GET /pull?tenant=acme&amp;room=lobby → routingKey = "room=lobby&amp;tenant=acme"
+     * 发布：POST /push?tenant=acme&amp;room=lobby → to = {"room=lobby&amp;tenant=acme"}
      * </pre>
      */
-    private List<String> routingKeys = Collections.singletonList("me");
+    private List<String> routingKeys;
 
     /**
      * 单 Topic 最大连接数

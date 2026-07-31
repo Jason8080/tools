@@ -16,7 +16,8 @@ import cn.gmlee.tools.im.spi.access.AccessFilter;
 import cn.gmlee.tools.im.spi.access.AccessFilterChain;
 import cn.gmlee.tools.im.spi.converter.PrincipalRoutingKeyConverter;
 import cn.gmlee.tools.im.topic.TopicRegistry;
-import cn.gmlee.tools.im.util.RoutingKeyExtractor;
+import cn.gmlee.tools.im.spi.routing.DefaultRoutingKeyComposer;
+import cn.gmlee.tools.im.spi.routing.RoutingKeyComposer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,6 +33,7 @@ import reactor.core.publisher.Mono;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 动态端点路由.
@@ -81,6 +83,7 @@ public class EndpointRouter {
     private final SseProperties sseProperties;
     private final List<AccessFilter> filters;
     private final List<PrincipalRoutingKeyConverter> converters;
+    private final RoutingKeyComposer composer;
 
     /**
      * 创建动态路由器.
@@ -94,7 +97,7 @@ public class EndpointRouter {
                           TopicRegistry topicRegistry,
                           SseProperties sseProperties,
                           List<AccessFilter> filters) {
-        this(registry, topicRegistry, sseProperties, filters, null);
+        this(registry, topicRegistry, sseProperties, filters, null, null);
     }
 
     /**
@@ -111,9 +114,29 @@ public class EndpointRouter {
                           SseProperties sseProperties,
                           List<AccessFilter> filters,
                           List<PrincipalRoutingKeyConverter> converters) {
+        this(registry, topicRegistry, sseProperties, filters, converters, null);
+    }
+
+    /**
+     * 创建动态路由器（含 principal 路由键转换器 + 路由键组合器）.
+     *
+     * @param registry      端点注册表
+     * @param topicRegistry Topic 组件注册表
+     * @param sseProperties SSE 配置
+     * @param filters       访问过滤器列表（可为 null）
+     * @param converters    principal 路由键转换器列表（可为 null）
+     * @param composer      路由键组合器（可为 null 使用默认实现）
+     */
+    public EndpointRouter(EndpointRegistry registry,
+                          TopicRegistry topicRegistry,
+                          SseProperties sseProperties,
+                          List<AccessFilter> filters,
+                          List<PrincipalRoutingKeyConverter> converters,
+                          RoutingKeyComposer composer) {
         this.registry = registry;
         this.topicRegistry = topicRegistry;
         this.sseProperties = sseProperties;
+        this.composer = composer != null ? composer : new DefaultRoutingKeyComposer();
 
         // 按 Order 排序过滤器，存储为不可变列表
         if (filters != null && !filters.isEmpty()) {
@@ -195,6 +218,9 @@ public class EndpointRouter {
      * 使用 raw {@code Publisher} 调用 {@code push()}，绕过 {@code Publisher<?, ?>} 双 wildcard
      * 无法与具体 {@code MessageMap} 类型统一的问题。运行时类型安全由 TopicRegistry 保证。
      * </p>
+     * <p>
+     * 按端点级 routingKeys 配置提取定向投递目标，传递给 {@code Publisher.push(urlParams, msg, targets)}。
+     * </p>
      */
     @SuppressWarnings({"rawtypes", "unchecked"})
     private Mono<ServerResponse> handlePush(ServerRequest request, EndpointProperties props, AccessContext context) {
@@ -203,7 +229,9 @@ public class EndpointRouter {
                 .defaultIfEmpty(new MessageMap())
                 .flatMap(msg -> {
                     Publisher publisher = topicRegistry.ensurePublisher(props.getTopic());
-                    Mono<java.io.Serializable> idMono = publisher.push(urlParams, msg);
+                    // 按端点级 routingKeys 提取定向投递目标
+                    Set<String> targets = extractRoutingTargets(props, urlParams);
+                    Mono<java.io.Serializable> idMono = publisher.push(urlParams, msg, targets);
                     return idMono.flatMap(id -> ServerResponse.ok()
                             .contentType(MediaType.APPLICATION_JSON)
                             .bodyValue(R.of(id)));
@@ -214,7 +242,7 @@ public class EndpointRouter {
      * PULL 处理：Subscriber 订阅 → 带心跳的事件流.
      */
     private Mono<ServerResponse> handlePull(ServerRequest request, EndpointProperties props, AccessContext context) {
-        ConnectionMetadata metadata = buildMetadata(props.getTopic(), context);
+        ConnectionMetadata metadata = buildMetadata(props, context);
         return dispatchPull(
                 topicRegistry.ensureSubscriber(props.getTopic()),
                 request.queryParams(), metadata);
@@ -254,16 +282,16 @@ public class EndpointRouter {
      *   <li>{@code principal} 为 {@link String} 类型 → 直接使用</li>
      *   <li>按 Order 遍历 {@link PrincipalRoutingKeyConverter}，首个 {@link PrincipalRoutingKeyConverter#supports} 返回 {@code true} 的转换器执行转换</li>
      *   <li>{@code X-Me} 请求头（服务端调用、fetch-based SSE 客户端）</li>
-     *   <li>从 URL 参数按 {@code im.routing-keys} 配置提取并组合</li>
+     *   <li>从 URL 参数按端点级/全局 {@code routing-keys} 配置提取并组合</li>
      * </ol>
-     * 多维路由键按配置顺序以 {@code |} 拼接。
+     * routingKey 格式为规范化查询字符串（key 按字母排序，{@code key=value&key=value}）。
      * </p>
      *
-     * @param topic   Topic 名称
+     * @param props   端点配置（含端点级 routingKeys 覆盖）
      * @param context 访问上下文
      * @return 连接元数据
      */
-    private ConnectionMetadata buildMetadata(String topic, AccessContext context) {
+    private ConnectionMetadata buildMetadata(EndpointProperties props, AccessContext context) {
         String routingKey = null;
 
         // 1. AccessFilter 设置的 principal
@@ -280,13 +308,14 @@ public class EndpointRouter {
             routingKey = context.getHeader("X-Me").orElse(null);
         }
 
-        // 4. 按配置从 URL 参数提取并组合
+        // 4. 按端点级/全局配置从 URL 参数组合
         if (routingKey == null) {
-            routingKey = composeRoutingKey(context);
+            List<String> resolvedKeys = resolveRoutingKeys(props);
+            routingKey = composer.composeRoutingKey(resolvedKeys, context.getRequest().queryParams());
         }
 
         return ConnectionMetadata.builder()
-                .topic(topic)
+                .topic(props.getTopic())
                 .routingKey(routingKey)
                 .build();
     }
@@ -330,15 +359,32 @@ public class EndpointRouter {
     }
 
     /**
-     * 按配置从 URL 参数组合路由标识.
+     * 解析端点的有效 routingKeys 配置.
      * <p>
-     * 委托给 {@link cn.gmlee.tools.im.util.RoutingKeyExtractor} 统一提取。
+     * 端点级配置优先，未设置则回退到全局配置。
+     * 结果经过 {@link RoutingKeyComposer#resolve(List)} 归一化。
      * </p>
      *
-     * @param context 访问上下文
-     * @return 组合后的路由标识，无匹配参数时返回 null
+     * @param props 端点配置
+     * @return 归一化后的 routingKeys（null 表示全部参数）
      */
-    private String composeRoutingKey(AccessContext context) {
-        return RoutingKeyExtractor.extract(sseProperties.getRoutingKeys(), context.getRequest().queryParams());
+    private List<String> resolveRoutingKeys(EndpointProperties props) {
+        List<String> keys = props.getRoutingKeys();
+        if (keys == null) {
+            keys = sseProperties.getRoutingKeys();
+        }
+        return RoutingKeyComposer.resolve(keys);
+    }
+
+    /**
+     * 从 URL 参数提取端点级定向投递目标.
+     *
+     * @param props     端点配置
+     * @param urlParams URL 参数
+     * @return 路由目标集合（不可变），空集表示广播
+     */
+    private Set<String> extractRoutingTargets(EndpointProperties props, MultiValueMap<String, String> urlParams) {
+        List<String> resolvedKeys = resolveRoutingKeys(props);
+        return composer.extractRoutingTargets(resolvedKeys, urlParams);
     }
 }

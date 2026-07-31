@@ -2,6 +2,7 @@ package cn.gmlee.tools.im.topic;
 
 import cn.gmlee.tools.im.core.ImPublisher;
 import cn.gmlee.tools.im.core.Repeater;
+import cn.gmlee.tools.im.spi.routing.RoutingKeyComposer;
 
 import java.util.List;
 import java.util.function.Supplier;
@@ -41,5 +42,12 @@ class DefaultPublisher extends ImPublisher {
      */
     DefaultPublisher(String topic, Supplier<Repeater> repeaterSupplier, List<String> routingKeys) {
         super(topic, repeaterSupplier, routingKeys);
+    }
+
+    /**
+     * 供 {@link TopicRegistry} 工厂方法使用，延迟解析 Repeater + 自定义路由键 + 组合器.
+     */
+    DefaultPublisher(String topic, Supplier<Repeater> repeaterSupplier, List<String> routingKeys, RoutingKeyComposer composer) {
+        super(topic, repeaterSupplier, routingKeys, composer);
     }
 }

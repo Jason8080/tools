@@ -8,6 +8,7 @@ import cn.gmlee.tools.im.spi.factory.RepeaterContext;
 import cn.gmlee.tools.im.spi.factory.RepeaterFactory;
 import cn.gmlee.tools.im.spi.interceptor.RepeaterInterceptor;
 import cn.gmlee.tools.im.spi.factory.SubscriberFactory;
+import cn.gmlee.tools.im.spi.routing.RoutingKeyComposer;
 import cn.gmlee.tools.im.core.Subscriber;
 import cn.gmlee.tools.im.ex.TopicNotFoundException;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
@@ -101,6 +102,11 @@ public class TopicRegistry {
     private final SseProperties sseProperties;
 
     /**
+     * 路由键组合器（用于传递给默认 Publisher）
+     */
+    private final RoutingKeyComposer composer;
+
+    /**
      * 创建 Topic 组件注册表.
      *
      * @param publisherFactories   Publisher 工厂列表（Spring 注入，可为 null）
@@ -117,7 +123,7 @@ public class TopicRegistry {
                          SseConnectionManager sseConnectionManager,
                          List<RepeaterInterceptor> interceptors) {
         this(publisherFactories, repeaterFactories, subscriberFactories,
-                streamBridge, sseConnectionManager, interceptors, null);
+                streamBridge, sseConnectionManager, interceptors, null, null);
     }
 
     /**
@@ -138,6 +144,30 @@ public class TopicRegistry {
                          SseConnectionManager sseConnectionManager,
                          List<RepeaterInterceptor> interceptors,
                          SseProperties sseProperties) {
+        this(publisherFactories, repeaterFactories, subscriberFactories,
+                streamBridge, sseConnectionManager, interceptors, sseProperties, null);
+    }
+
+    /**
+     * 创建 Topic 组件注册表（含路由键组合器）.
+     *
+     * @param publisherFactories   Publisher 工厂列表（Spring 注入，可为 null）
+     * @param repeaterFactories    Repeater 工厂列表（Spring 注入，可为 null）
+     * @param subscriberFactories  Subscriber 工厂列表（Spring 注入，可为 null）
+     * @param streamBridge         Stream 桥接器
+     * @param sseConnectionManager SSE 连接管理器
+     * @param interceptors         Repeater 拦截器列表（Spring 注入，可为 null）
+     * @param sseProperties        SSE 配置（用于传递 routingKeys 等配置到默认组件，可为 null）
+     * @param composer             路由键组合器（用于传递给默认 Publisher，可为 null 使用默认实现）
+     */
+    public TopicRegistry(List<PublisherFactory> publisherFactories,
+                         List<RepeaterFactory> repeaterFactories,
+                         List<SubscriberFactory> subscriberFactories,
+                         StreamBridge streamBridge,
+                         SseConnectionManager sseConnectionManager,
+                         List<RepeaterInterceptor> interceptors,
+                         SseProperties sseProperties,
+                         RoutingKeyComposer composer) {
         this.publisherFactories = publisherFactories != null ? publisherFactories : Collections.emptyList();
         this.repeaterFactories = repeaterFactories != null ? repeaterFactories : Collections.emptyList();
         this.subscriberFactories = subscriberFactories != null ? subscriberFactories : Collections.emptyList();
@@ -145,6 +175,7 @@ public class TopicRegistry {
         this.sseConnectionManager = sseConnectionManager;
         this.interceptors = interceptors != null ? interceptors : Collections.emptyList();
         this.sseProperties = sseProperties;
+        this.composer = composer;
     }
 
     // ==================== Ensure 方法（幂等，供框架内部使用） ====================
@@ -247,7 +278,8 @@ public class TopicRegistry {
      * @return 默认 Publisher
      */
     public Publisher<?, ?> createDefaultPublisher(String topic) {
-        return new DefaultPublisher(topic, () -> getRepeater(topic));
+        List<String> routingKeys = sseProperties != null ? sseProperties.getRoutingKeys() : null;
+        return new DefaultPublisher(topic, () -> getRepeater(topic), routingKeys, composer);
     }
 
     /**
@@ -318,16 +350,16 @@ public class TopicRegistry {
         return publishers.computeIfAbsent(topic, t -> {
             // Supplier 延迟解析 Repeater（避免构造时循环依赖）
             // raw Supplier 传给 raw PublisherFactory.create()，运行时类型安全
-            Object component = null;
+            Publisher<?, ?> component = null;
             for (PublisherFactory factory : publisherFactories) {
                 component = factory.create(t, () -> getRepeater(t));
                 if (component != null) {
                     log.info("[TopicRegistry] 使用自定义 Publisher: topic={}, factory={}",
                             t, factory.getClass().getSimpleName());
-                    return (Publisher<?, ?>) component;
+                    return component;
                 }
             }
-            Publisher<?, ?> def = new DefaultPublisher(t, () -> getRepeater(t), routingKeys);
+            Publisher<?, ?> def = new DefaultPublisher(t, () -> getRepeater(t), routingKeys, composer);
             log.info("[TopicRegistry] 创建默认 Publisher: topic={}", t);
             return def;
         });
@@ -336,13 +368,13 @@ public class TopicRegistry {
     @SuppressWarnings("unchecked")
     private Subscriber<?> ensureSubscriberTyped(String topic) {
         return subscribers.computeIfAbsent(topic, t -> {
-            Object component = null;
+            Subscriber<?> component = null;
             for (SubscriberFactory factory : subscriberFactories) {
                 component = factory.create(t, () -> getRepeater(t));
                 if (component != null) {
                     log.info("[TopicRegistry] 使用自定义 Subscriber: topic={}, factory={}",
                             t, factory.getClass().getSimpleName());
-                    return (Subscriber<?>) component;
+                    return component;
                 }
             }
             Subscriber<?> def = new DefaultSubscriber(t, () -> getRepeater(t));

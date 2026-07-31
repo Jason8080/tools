@@ -4,6 +4,7 @@ import cn.gmlee.tools.im.spi.factory.PublisherFactory;
 import cn.gmlee.tools.im.spi.factory.RepeaterFactory;
 import cn.gmlee.tools.im.spi.interceptor.RepeaterInterceptor;
 import cn.gmlee.tools.im.spi.factory.SubscriberFactory;
+import cn.gmlee.tools.im.spi.routing.RoutingKeyComposer;
 import cn.gmlee.tools.im.endpoint.EndpointRegistry;
 import cn.gmlee.tools.im.endpoint.EndpointRouter;
 import cn.gmlee.tools.im.endpoint.ImAdminController;
@@ -86,9 +87,10 @@ public class EndpointAutoConfiguration {
             @Autowired(required = false) List<SubscriberFactory> subscriberFactories,
             StreamBridge streamBridge,
             SseConnectionManager sseConnectionManager,
-            @Autowired(required = false) List<RepeaterInterceptor> interceptors) {
+            @Autowired(required = false) List<RepeaterInterceptor> interceptors,
+            @Autowired(required = false) RoutingKeyComposer composer) {
         return new TopicRegistry(publisherFactories, repeaterFactories, subscriberFactories,
-                streamBridge, sseConnectionManager, interceptors, sseProperties);
+                streamBridge, sseConnectionManager, interceptors, sseProperties, composer);
     }
 
     /**
@@ -122,8 +124,9 @@ public class EndpointAutoConfiguration {
     public EndpointRouter endpointRouter(EndpointRegistry endpointRegistry,
                                           TopicRegistry topicRegistry,
                                           @Autowired(required = false) List<AccessFilter> filters,
-                                          @Autowired(required = false) List<PrincipalRoutingKeyConverter> converters) {
-        return new EndpointRouter(endpointRegistry, topicRegistry, sseProperties, filters, converters);
+                                          @Autowired(required = false) List<PrincipalRoutingKeyConverter> converters,
+                                          @Autowired(required = false) RoutingKeyComposer composer) {
+        return new EndpointRouter(endpointRegistry, topicRegistry, sseProperties, filters, converters, composer);
     }
 
     /**

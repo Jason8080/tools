@@ -6,6 +6,7 @@ import org.springframework.util.MultiValueMap;
 import reactor.core.publisher.Mono;
 
 import java.io.Serializable;
+import java.util.Set;
 
 /**
  * 消息发布器（进/Ingress）.
@@ -60,4 +61,44 @@ public interface Publisher<ID extends Serializable, MSG extends Msg> extends Top
      * @return 消息 ID（异步）
      */
     Mono<ID> push(MultiValueMap<String, String> urlParams, MSG msg);
+
+    /**
+     * 发布消息（指定路由目标）.
+     * <p>
+     * 供框架层（如 {@code EndpointRouter}）传递端点级路由键配置提取的定向投递目标。
+     * 默认实现将 {@code routingKeys} 设置到 {@link TopicMessage} 后委托 {@link #send(TopicMessage)}。
+     * </p>
+     * <p>
+     * 自定义 Publisher 若需支持端点级路由键覆盖，应重写此方法。
+     * 未重写时，默认实现回退到 {@link #push(MultiValueMap, Msg)}，routingKeys 参数被忽略。
+     * </p>
+     *
+     * @param urlParams   URL 查询参数
+     * @param msg         消息载荷
+     * @param routingKeys 定向投递目标集合（空集或 null 表示广播）
+     * @return 消息 ID（异步）
+     * @since 5.6.0
+     */
+    default Mono<ID> push(MultiValueMap<String, String> urlParams, MSG msg, Set<String> routingKeys) {
+        TopicMessage<ID, MSG> event = msg.build(urlParams);
+        event.setTopic(topic());
+        if (routingKeys != null && !routingKeys.isEmpty()) {
+            event.setRoutingKeys(routingKeys);
+        }
+        return send(event);
+    }
+
+    /**
+     * 发送消息信封.
+     * <p>
+     * 供 {@link #push(MultiValueMap, Msg, Set)} 默认实现调用。
+     * 自定义 Publisher 可直接使用 {@link #push(MultiValueMap, Msg)} 而无需关注此方法。
+     * </p>
+     *
+     * @param message 消息信封
+     * @return 消息 ID（异步）
+     */
+    default Mono<ID> send(TopicMessage<ID, MSG> message) {
+        return push(message.getUrlParams(), message.getMsg());
+    }
 }
