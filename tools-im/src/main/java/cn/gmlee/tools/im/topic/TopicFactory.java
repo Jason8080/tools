@@ -86,8 +86,9 @@ public class TopicFactory implements EndpointChangeListener {
     /**
      * 确保 Topic 的输入 binding 和 Consumer Bean 已创建.
      * <p>
-     * 幂等：同一 Topic 多次调用只创建一次。Consumer Bean 即 {@link Repeater} 自身
-     * （实现 {@link java.util.function.Consumer Consumer&lt;TopicMessage&lt;Msg&gt;&gt;}）。
+     * 幂等：同一 Topic 多次调用只创建一次。Consumer Bean 为 {@link ConsumerBridge}，
+     * 内部委托 {@link Repeater} 处理消息（桥接泛型 Repeater 与 SSE 管道的
+     * {@code Consumer<TopicMessage<Msg>>} 接口）。
      * </p>
      * <p>
      * 运行时注册的端点会立即启动 Consumer binding，无需重启应用。
@@ -155,15 +156,15 @@ public class TopicFactory implements EndpointChangeListener {
             return;
         }
 
-        // Repeater 自身实现 Consumer<TopicMessage<Msg>>，直接作为 Consumer Bean 注册。
-        // 使用具体接口类型（而非 lambda）保证 Spring Cloud Stream 能通过 GenericTypeResolver 解析泛型。
-        Repeater repeater = topicRegistry.getRepeater(topic);
+        // ConsumerBridge 实现 Consumer<TopicMessage<Msg>>，桥接泛型 Repeater 与 SSE 管道。
+        // 使用非泛型类保证 Spring Cloud Stream 能通过 GenericTypeResolver 正确解析类型参数。
+        ConsumerBridge bridge = topicRegistry.createConsumerBridge(topic);
 
         GenericBeanDefinition beanDef = new GenericBeanDefinition();
-        beanDef.setBeanClass(Repeater.class);
-        beanDef.setInstanceSupplier(() -> repeater);
+        beanDef.setBeanClass(ConsumerBridge.class);
+        beanDef.setInstanceSupplier(() -> bridge);
         beanDefinitionRegistry.registerBeanDefinition(beanName, beanDef);
-        log.info("[TopicFactory] 注册 Consumer Bean: {} → Repeater", beanName);
+        log.info("[TopicFactory] 注册 Consumer Bean: {} → ConsumerBridge", beanName);
     }
 
     /**
@@ -181,10 +182,10 @@ public class TopicFactory implements EndpointChangeListener {
     private void startConsumerBinding(String topic) {
         String bindingName = BindingNames.inputBinding(topic);
         try {
-            // 从 TopicRegistry 获取 Repeater（它实现了 Consumer<TopicMessage<Msg>>）
-            Repeater repeater = topicRegistry.getRepeater(topic);
+            // 创建 ConsumerBridge 桥接泛型 Repeater 与 SSE 管道
+            ConsumerBridge bridge = topicRegistry.createConsumerBridge(topic);
             // BindingService.bindConsumer 需要 Consumer 实例和 binding 名称
-            bindingService.bindConsumer(repeater, bindingName);
+            bindingService.bindConsumer(bridge, bindingName);
             log.info("[TopicFactory] 启动 Consumer binding: {}", bindingName);
         } catch (Exception e) {
             log.error("[TopicFactory] 启动 Consumer binding 失败: {}", bindingName, e);

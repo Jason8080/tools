@@ -73,7 +73,7 @@ public class SseConnectionRegistry {
     /**
      * Topic -> Sink 映射
      */
-    private final ConcurrentHashMap<String, Sinks.Many<TopicMessage<Msg>>> topicSinks = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Sinks.Many<TopicMessage>> topicSinks = new ConcurrentHashMap<>();
 
     /**
      * connectionId -> 连接记录
@@ -103,7 +103,7 @@ public class SseConnectionRegistry {
      * 避免广播到全部连接后再 filter 的 O(N) 开销。
      * </p>
      */
-    private final ConcurrentHashMap<String, Sinks.Many<TopicMessage<Msg>>> directedSinks = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Sinks.Many<TopicMessage>> directedSinks = new ConcurrentHashMap<>();
 
     /**
      * 反向索引：topic → routingKey → Set&lt;connectionId&gt;.
@@ -167,7 +167,7 @@ public class SseConnectionRegistry {
         ConnectionMetadata metadata = conn.getMetadata();
         String routingKey = metadata != null ? metadata.getRoutingKey() : null;
         if (routingKey != null && !routingKey.isEmpty()) {
-            Sinks.Many<TopicMessage<Msg>> ds = conn.createDirectedSink();
+            Sinks.Many<TopicMessage> ds = conn.createDirectedSink();
             directedSinks.put(conn.getConnectionId(), ds);
             routingKeyIndex
                     .computeIfAbsent(conn.getTopic(), k -> new ConcurrentHashMap<>())
@@ -191,7 +191,7 @@ public class SseConnectionRegistry {
         }
 
         // 双通道架构：清理 directedSink 和反向索引
-        Sinks.Many<TopicMessage<Msg>> removed = directedSinks.remove(conn.getConnectionId());
+        Sinks.Many<TopicMessage> removed = directedSinks.remove(conn.getConnectionId());
         if (removed != null) {
             ConnectionMetadata metadata = conn.getMetadata();
             String routingKey = metadata != null ? metadata.getRoutingKey() : null;
@@ -261,7 +261,7 @@ public class SseConnectionRegistry {
      * @param topic Topic 名称
      * @return 对应的 Sink，关闭中返回 null
      */
-    public Sinks.Many<TopicMessage<Msg>> getOrCreateSink(String topic) {
+    public Sinks.Many<TopicMessage> getOrCreateSink(String topic) {
         if (closing) {
             return null;
         }
@@ -493,7 +493,7 @@ public class SseConnectionRegistry {
      * @param topic Topic 名称
      * @return Sink，不存在返回 null
      */
-    public Sinks.Many<TopicMessage<Msg>> getSink(String topic) {
+    public Sinks.Many<TopicMessage> getSink(String topic) {
         return topicSinks.get(topic);
     }
 
@@ -503,7 +503,7 @@ public class SseConnectionRegistry {
      * @param connectionId 连接 ID
      * @return 定向 Sink，无 routingKey 或已清理返回 null
      */
-    public Sinks.Many<TopicMessage<Msg>> getDirectedSink(String connectionId) {
+    public Sinks.Many<TopicMessage> getDirectedSink(String connectionId) {
         return directedSinks.get(connectionId);
     }
 
@@ -531,7 +531,7 @@ public class SseConnectionRegistry {
      *
      * @return 不可变的 Sink 集合
      */
-    public Collection<Sinks.Many<TopicMessage<Msg>>> getAllDirectedSinks() {
+    public Collection<Sinks.Many<TopicMessage>> getAllDirectedSinks() {
         return Collections.unmodifiableCollection(directedSinks.values());
     }
 
@@ -558,7 +558,7 @@ public class SseConnectionRegistry {
      *
      * @return Sink 集合
      */
-    public Collection<Sinks.Many<TopicMessage<Msg>>> getAllSinks() {
+    public Collection<Sinks.Many<TopicMessage>> getAllSinks() {
         return Collections.unmodifiableCollection(topicSinks.values());
     }
 

@@ -42,7 +42,7 @@ import java.util.function.Consumer;
  *     }
  *
  *     @Override
- *     protected void doReceive(TopicMessage<Msg> message) {
+ *     protected void doReceive(TopicMessage message) {
  *         // 自定义接收逻辑
  *         super.doReceive(message);
  *     }
@@ -62,7 +62,7 @@ public class RepeaterContext {
      * 对应 {@code SseConnectionManager::publish} 方法。
      * </p>
      */
-    private final Consumer<TopicMessage<Msg>> publishFunction;
+    private final Consumer<TopicMessage> publishFunction;
 
     /**
      * SSE 订阅函数：获取指定 Topic 的实时消息流.
@@ -70,7 +70,7 @@ public class RepeaterContext {
      * 对应 {@code SseConnectionManager::subscribe} 方法。
      * </p>
      */
-    private final BiFunction<String, ConnectionMetadata, Flux<TopicMessage<Msg>>> subscribeFunction;
+    private final BiFunction<String, ConnectionMetadata, Flux<TopicMessage>> subscribeFunction;
 
     /**
      * 创建 Repeater 上下文.
@@ -78,8 +78,8 @@ public class RepeaterContext {
      * @param publishFunction   SSE 发布函数（不可为 null）
      * @param subscribeFunction SSE 订阅函数（不可为 null）
      */
-    public RepeaterContext(Consumer<TopicMessage<Msg>> publishFunction,
-                           BiFunction<String, ConnectionMetadata, Flux<TopicMessage<Msg>>> subscribeFunction) {
+    public RepeaterContext(Consumer<TopicMessage> publishFunction,
+                           BiFunction<String, ConnectionMetadata, Flux<TopicMessage>> subscribeFunction) {
         if (publishFunction == null) {
             throw new IllegalArgumentException("publishFunction must not be null");
         }

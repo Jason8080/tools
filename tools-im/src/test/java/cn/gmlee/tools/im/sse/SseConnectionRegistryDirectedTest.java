@@ -70,10 +70,10 @@ class SseConnectionRegistryDirectedTest {
     /**
      * 检查 Sink 是否已完成（tryEmitNext 返回 FAIL_TERMINATED）.
      */
-    private boolean isSinkCompleted(Sinks.Many<TopicMessage<Msg>> sink) {
+    private boolean isSinkCompleted(Sinks.Many<TopicMessage> sink) {
         MessageMap msg = new MessageMap();
         msg.put("test", "probe");
-        TopicMessage<Msg> probe = TopicMessage.<Msg>builder()
+        TopicMessage probe = TopicMessage.builder()
                 .topic("probe")
                 .msg(msg)
                 .build();
@@ -96,7 +96,7 @@ class SseConnectionRegistryDirectedTest {
         assertNotNull(conn.getDirectedSink(), "directedSink 不应为 null");
 
         // directedSinks map 包含此连接
-        Sinks.Many<TopicMessage<Msg>> ds = registry.getDirectedSink(conn.getConnectionId());
+        Sinks.Many<TopicMessage> ds = registry.getDirectedSink(conn.getConnectionId());
         assertNotNull(ds, "registry 应能获取 directedSink");
         assertSame(conn.getDirectedSink(), ds, "返回的 Sink 应与连接自身的一致");
 
@@ -167,7 +167,7 @@ class SseConnectionRegistryDirectedTest {
         SseConnection conn = createConnection(topic, "alice");
         registry.register(conn);
 
-        Sinks.Many<TopicMessage<Msg>> ds = conn.getDirectedSink();
+        Sinks.Many<TopicMessage> ds = conn.getDirectedSink();
 
         // 注销
         registry.unregister(conn);
@@ -244,8 +244,8 @@ class SseConnectionRegistryDirectedTest {
         registry.register(conn2);
         registry.register(conn3);
 
-        Sinks.Many<TopicMessage<Msg>> ds1 = conn1.getDirectedSink();
-        Sinks.Many<TopicMessage<Msg>> ds2 = conn2.getDirectedSink();
+        Sinks.Many<TopicMessage> ds1 = conn1.getDirectedSink();
+        Sinks.Many<TopicMessage> ds2 = conn2.getDirectedSink();
 
         registry.closeAll();
 
@@ -253,7 +253,7 @@ class SseConnectionRegistryDirectedTest {
         assertEquals(0, registry.getDirectedSinkCount(), "closeAll 后定向 Sink 数应为 0");
 
         // getAllDirectedSinks 返回空
-        Collection<Sinks.Many<TopicMessage<Msg>>> allSinks = registry.getAllDirectedSinks();
+        Collection<Sinks.Many<TopicMessage>> allSinks = registry.getAllDirectedSinks();
         assertTrue(allSinks.isEmpty(), "closeAll 后 getAllDirectedSinks 应为空");
 
         // 已移除的 Sink 应发送了完成信号

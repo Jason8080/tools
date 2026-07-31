@@ -191,17 +191,22 @@ public class EndpointRouter {
 
     /**
      * PUSH 处理：Publisher 发布消息 → 返回消息 ID.
+     * <p>
+     * 使用 raw {@code Publisher} 调用 {@code push()}，绕过 {@code Publisher<?, ?>} 双 wildcard
+     * 无法与具体 {@code MessageMap} 类型统一的问题。运行时类型安全由 TopicRegistry 保证。
+     * </p>
      */
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private Mono<ServerResponse> handlePush(ServerRequest request, EndpointProperties props, AccessContext context) {
         MultiValueMap<String, String> urlParams = request.queryParams();
         return request.bodyToMono(MessageMap.class)
                 .defaultIfEmpty(new MessageMap())
                 .flatMap(msg -> {
                     Publisher publisher = topicRegistry.ensurePublisher(props.getTopic());
-                    return publisher.push(urlParams, msg)
-                            .flatMap(id -> ServerResponse.ok()
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .bodyValue(R.of(id)));
+                    Mono<java.io.Serializable> idMono = publisher.push(urlParams, msg);
+                    return idMono.flatMap(id -> ServerResponse.ok()
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .bodyValue(R.of(id)));
                 });
     }
 
@@ -210,8 +215,21 @@ public class EndpointRouter {
      */
     private Mono<ServerResponse> handlePull(ServerRequest request, EndpointProperties props, AccessContext context) {
         ConnectionMetadata metadata = buildMetadata(props.getTopic(), context);
-        Subscriber subscriber = topicRegistry.ensureSubscriber(props.getTopic());
-        Flux<Msg> msgFlux = subscriber.pull(request.queryParams(), metadata);
+        return dispatchPull(
+                topicRegistry.ensureSubscriber(props.getTopic()),
+                request.queryParams(), metadata);
+    }
+
+    /**
+     * PULL 分发（wildcard capture 辅助方法）.
+     * <p>
+     * 通过泛型方法参数捕获 {@code Subscriber<?>} 的 wildcard，
+     * 保证 {@code pull()} 返回类型安全的 {@code Flux<MSG>}。
+     * </p>
+     */
+    private <MSG extends Msg> Mono<ServerResponse> dispatchPull(
+            Subscriber<MSG> subscriber, MultiValueMap<String, String> urlParams, ConnectionMetadata metadata) {
+        Flux<MSG> msgFlux = subscriber.pull(urlParams, metadata);
         Flux<ServerSentEvent<MessageMap>> sseFlux = msgFlux
                 .map(payload -> {
                     MessageMap messageMap = payload instanceof MessageMap

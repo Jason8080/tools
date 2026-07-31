@@ -27,13 +27,12 @@ import java.io.Serializable;
  * </p>
  * <pre>{@code
  * @Override
- * public <MSG extends Msg> TopicMessage<MSG> build(MultiValueMap<String, String> urlParams) {
- *     TopicMessage<ChatMsg> event = TopicMessage.<ChatMsg>builder()
- *             .msg(this)
- *             .urlParams(urlParams)
- *             .build();
+ * public <ID extends Serializable, MSG extends Msg> TopicMessage<ID, MSG> build(MultiValueMap<String, String> urlParams) {
+ *     TopicMessage<ID, MSG> event = new TopicMessage<>();
+ *     event.setMsg((MSG) this);
+ *     event.setUrlParams(urlParams);
  *     event.getMetadata().put("timestamp", System.currentTimeMillis());
- *     return (TopicMessage<MSG>) event;
+ *     return event;
  * }
  * }</pre>
  */
@@ -45,14 +44,15 @@ public interface Msg extends Serializable {
      * topic 名称由框架在 {@code EndpointRouter} 中注入。
      * </p>
      *
-     * @param <MSG>     消息类型
+     * @param <ID>  消息 ID 类型
+     * @param <MSG> 消息类型
      * @param urlParams URL 参数
      * @return 包装后的 TopicMessage
      */
-    @SuppressWarnings("unchecked")
-    default <MSG extends Msg> TopicMessage<MSG> build(MultiValueMap<String, String> urlParams) {
-        TopicMessage<MSG> event = new TopicMessage<>();
-        event.setMsg((MSG) this);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    default <ID extends Serializable, MSG extends Msg> TopicMessage<ID, MSG> build(MultiValueMap<String, String> urlParams) {
+        TopicMessage event = new TopicMessage();
+        event.setMsg(this);
         event.setUrlParams(urlParams);
         return event;
     }

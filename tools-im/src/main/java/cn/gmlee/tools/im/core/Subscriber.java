@@ -17,9 +17,10 @@ import reactor.core.publisher.Flux;
  * {@code DefaultSubscriber} 委托 {@code Repeater.subscribe()} 返回实时消息流。
  * </p>
  *
+ * @param <MSG> 消息载荷类型
  * @since 5.6.0
  */
-public interface Subscriber extends Topic {
+public interface Subscriber<MSG extends Msg> extends Topic {
 
     /**
      * 订阅消息流.
@@ -28,5 +29,5 @@ public interface Subscriber extends Topic {
      * @param metadata  连接元数据（身份标识等，来自 HTTP Headers）
      * @return 消息流
      */
-    Flux<Msg> pull(MultiValueMap<String, String> urlParams, ConnectionMetadata metadata);
+    Flux<MSG> pull(MultiValueMap<String, String> urlParams, ConnectionMetadata metadata);
 }

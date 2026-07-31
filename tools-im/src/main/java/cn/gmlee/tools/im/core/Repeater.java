@@ -22,9 +22,11 @@ import java.util.function.Consumer;
  *   <li>{@link #accept(TopicMessage)} — {@link Consumer} 入口，MQ 消费者回调，默认委托给 {@link #receive}</li>
  * </ul>
  *
+ * @param <ID>  消息 ID 类型
+ * @param <MSG> 消息载荷类型
  * @since 5.6.0
  */
-public interface Repeater extends Topic, Consumer<TopicMessage<Msg>> {
+public interface Repeater<ID extends Serializable, MSG extends Msg> extends Topic, Consumer<TopicMessage<ID, MSG>> {
 
     /**
      * 发送消息到 Stream (MQ).
@@ -36,7 +38,7 @@ public interface Repeater extends Topic, Consumer<TopicMessage<Msg>> {
      * @param message 消息信封
      * @return 消息 ID（异步）
      */
-    Mono<Serializable> send(TopicMessage<Msg> message);
+    Mono<ID> send(TopicMessage<ID, MSG> message);
 
     /**
      * 订阅 Topic 的实时消息流.
@@ -45,14 +47,14 @@ public interface Repeater extends Topic, Consumer<TopicMessage<Msg>> {
      * @param metadata  连接元数据（身份标识等）
      * @return 消息流
      */
-    Flux<Msg> subscribe(MultiValueMap<String, String> urlParams, ConnectionMetadata metadata);
+    Flux<MSG> subscribe(MultiValueMap<String, String> urlParams, ConnectionMetadata metadata);
 
     /**
      * 接收 Stream 消息并转发到 SSE.
      *
      * @param message 来自 Stream 的消息
      */
-    void receive(TopicMessage<Msg> message);
+    void receive(TopicMessage<ID, MSG> message);
 
     /**
      * {@link Consumer} 入口，MQ 消费者回调.
@@ -60,7 +62,7 @@ public interface Repeater extends Topic, Consumer<TopicMessage<Msg>> {
      * @param message 来自 Stream 的消息
      */
     @Override
-    default void accept(TopicMessage<Msg> message) {
+    default void accept(TopicMessage<ID, MSG> message) {
         receive(message);
     }
 }

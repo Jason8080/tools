@@ -155,7 +155,7 @@ public class SseConnection {
      * 读取在 publish 路径和 Flux 构建时。清理时置 null。
      * </p>
      */
-    private volatile Sinks.Many<TopicMessage<Msg>> directedSink;
+    private volatile Sinks.Many<TopicMessage> directedSink;
 
     /**
      * 创建新连接.
@@ -319,8 +319,8 @@ public class SseConnection {
      *
      * @return 新创建的 directedSink
      */
-    public Sinks.Many<TopicMessage<Msg>> createDirectedSink() {
-        Sinks.Many<TopicMessage<Msg>> ds = Sinks.many()
+    public Sinks.Many<TopicMessage> createDirectedSink() {
+        Sinks.Many<TopicMessage> ds = Sinks.many()
                 .multicast()
                 .onBackpressureBuffer(16, false);
         this.directedSink = ds;

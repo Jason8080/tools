@@ -3,6 +3,7 @@ package cn.gmlee.tools.im.core;
 import cn.gmlee.tools.im.model.ConnectionMetadata;
 import cn.gmlee.tools.im.model.Msg;
 import cn.gmlee.tools.im.model.TopicMessage;
+import cn.gmlee.tools.im.spi.factory.RepeaterContext;
 import cn.gmlee.tools.im.spi.interceptor.RepeaterInterceptor;
 import cn.gmlee.tools.im.util.BindingNames;
 import lombok.extern.slf4j.Slf4j;
@@ -29,30 +30,23 @@ import java.util.function.Consumer;
  *   <li>{@link #subscribe(MultiValueMap, ConnectionMetadata)} — 调用 {@link #doSubscribe(MultiValueMap, ConnectionMetadata)} → 织入 {@code transformSubscribeStream}</li>
  * </ul>
  * <p>
- * 提供 IM 场景下的标准默认实现：
- * </p>
- * <ul>
- *   <li>{@link #doSend(TopicMessage)} — 通过 {@link StreamBridge} 发送到 MQ</li>
- *   <li>{@link #doReceive(TopicMessage)} — 通过函数式接口转发到 SSE 连接</li>
- *   <li>{@link #doSubscribe(MultiValueMap, ConnectionMetadata)} — 通过函数式接口提供实时消息流</li>
- * </ul>
- *
- * <h3>扩展方式</h3>
- * <p>
- * 继承此类并重写 {@code doSend} / {@code doReceive} / {@code doSubscribe} 自定义行为，
- * 拦截器自动生效。如需完全绕过拦截器，直接实现 {@link Repeater} 接口。
+ * <b>泛型设计</b>：公共方法（{@code send/receive/subscribe}）使用泛型 {@code <ID, MSG>}，
+ * 内部方法（{@code doSend/doReceive/doSubscribe}）和字段使用 {@code TopicMessage}，
+ * 与 SSE 管道对齐。子类重写 {@code doXxx} 方法无需处理泛型。
  * </p>
  *
+ * @param <ID>  消息 ID 类型
+ * @param <MSG> 消息载荷类型
  * @since 5.6.0
  */
 @Slf4j
-public abstract class ImRepeater implements Repeater {
+public abstract class ImRepeater<ID extends Serializable, MSG extends Msg> implements Repeater<ID, MSG> {
 
     private final String topic;
     private final List<RepeaterInterceptor> interceptors;
     private final StreamBridge streamBridge;
-    private final Consumer<TopicMessage<Msg>> publishFunction;
-    private final BiFunction<String, ConnectionMetadata, Flux<TopicMessage<Msg>>> subscribeFunction;
+    private final Consumer<TopicMessage> publishFunction;
+    private final BiFunction<String, ConnectionMetadata, Flux<TopicMessage>> subscribeFunction;
 
     /**
      * 创建 Repeater（使用上下文对象）.
@@ -62,12 +56,12 @@ public abstract class ImRepeater implements Repeater {
      * 如需 MQ 发送能力，请重写 {@link #doSend(TopicMessage)} 方法。
      * </p>
      *
-     * @param topic     Topic 名称
-     * @param context   Repeater 上下文（封装 SSE 发布/订阅函数）
+     * @param topic        Topic 名称
+     * @param context      Repeater 上下文（封装 SSE 发布/订阅函数）
      * @param interceptors 拦截器列表（可为 null）
      */
     protected ImRepeater(String topic,
-                         cn.gmlee.tools.im.spi.factory.RepeaterContext context,
+                         RepeaterContext context,
                          List<RepeaterInterceptor> interceptors) {
         this(topic, null, context.getPublishFunction(), context.getSubscribeFunction(), interceptors);
     }
@@ -76,19 +70,19 @@ public abstract class ImRepeater implements Repeater {
      * 创建 Repeater（完整参数，框架内部使用）.
      * <p>
      * 此构造函数包含 {@code streamBridge}，用于默认实现的 MQ 发送。
-     * 自定义实现建议使用 {@link #ImRepeater(String, cn.gmlee.tools.im.spi.factory.RepeaterContext, List)}。
+     * 自定义实现建议使用 {@link #ImRepeater(String, RepeaterContext, List)}。
      * </p>
      *
-     * @param topic               Topic 名称
-     * @param streamBridge        Stream 桥接器（可为 null）
-     * @param publishFunction     SSE 发布函数（通常为 SseConnectionManager::publish）
-     * @param subscribeFunction   SSE 订阅函数（通常为 SseConnectionManager::subscribe）
-     * @param interceptors        拦截器列表（可为 null）
+     * @param topic             Topic 名称
+     * @param streamBridge      Stream 桥接器（可为 null）
+     * @param publishFunction   SSE 发布函数（通常为 SseConnectionManager::publish）
+     * @param subscribeFunction SSE 订阅函数（通常为 SseConnectionManager::subscribe）
+     * @param interceptors      拦截器列表（可为 null）
      */
     protected ImRepeater(String topic,
                          StreamBridge streamBridge,
-                         Consumer<TopicMessage<Msg>> publishFunction,
-                         BiFunction<String, ConnectionMetadata, Flux<TopicMessage<Msg>>> subscribeFunction,
+                         Consumer<TopicMessage> publishFunction,
+                         BiFunction<String, ConnectionMetadata, Flux<TopicMessage>> subscribeFunction,
                          List<RepeaterInterceptor> interceptors) {
         this.topic = topic;
         this.streamBridge = streamBridge;
@@ -114,8 +108,9 @@ public abstract class ImRepeater implements Repeater {
      * </p>
      */
     @Override
-    public final Mono<Serializable> send(TopicMessage<Msg> message) {
-        // 使用 Reactor 的链式调用处理异步拦截器
+    @SuppressWarnings("unchecked")
+    public final Mono<ID> send(TopicMessage<ID, MSG> message) {
+        // message (TopicMessage<ID,MSG>) 可赋值给 TopicMessage 参数（协变通配符 + 类型擦除）
         Mono<Boolean> chain = Mono.just(true);
         for (RepeaterInterceptor i : interceptors) {
             chain = chain.flatMap(allowed -> {
@@ -125,7 +120,8 @@ public abstract class ImRepeater implements Repeater {
         }
 
         return chain.filter(Boolean::booleanValue)
-                .flatMap(allowed -> doSend(message));
+                .flatMap(allowed -> doSend(message))
+                .map(id -> (ID) id);  // Serializable → ID: unchecked cast（DefaultRepeater 时退化为 no-op）
     }
 
     /**
@@ -135,7 +131,7 @@ public abstract class ImRepeater implements Repeater {
      * </p>
      */
     @Override
-    public final void receive(TopicMessage<Msg> message) {
+    public final void receive(TopicMessage<ID, MSG> message) {
         doReceive(message);
         // 异步执行拦截器，不阻塞主流程
         Mono<Void> chain = Mono.empty();
@@ -152,28 +148,30 @@ public abstract class ImRepeater implements Repeater {
     /**
      * 订阅消息流（final，保证拦截器织入）.
      * <p>
-     * 调用链：{@link #doSubscribe(MultiValueMap)} → {@code transformSubscribeStream} 逐级转换
+     * 调用链：{@link #doSubscribe(MultiValueMap, ConnectionMetadata)} → {@code transformSubscribeStream} 逐级转换
      * </p>
      */
     @Override
-    public final Flux<Msg> subscribe(MultiValueMap<String, String> urlParams, ConnectionMetadata metadata) {
+    @SuppressWarnings("unchecked")
+    public final Flux<MSG> subscribe(MultiValueMap<String, String> urlParams, ConnectionMetadata metadata) {
         Flux<Msg> stream = doSubscribe(urlParams, metadata);
         for (RepeaterInterceptor i : interceptors) {
             stream = i.transformSubscribeStream(topic, stream, urlParams);
         }
-        return stream;
+        return (Flux<MSG>) (Flux<?>) stream;  // Flux<Msg> → Flux<MSG>: unchecked cast
     }
 
     /**
      * 实际发送逻辑（IM 标准实现：通过 StreamBridge 发送到 MQ）.
      * <p>
-     * 子类可重写以自定义发送行为。
+     * 子类可重写以自定义发送行为。参数和返回值使用 {@code TopicMessage} / {@code Mono<Serializable>}，
+     * 与 SSE 管道对齐，子类无需处理泛型。
      * </p>
      *
      * @param message 消息信封
      * @return 消息 ID（异步）
      */
-    protected Mono<Serializable> doSend(TopicMessage<Msg> message) {
+    protected Mono<Serializable> doSend(TopicMessage message) {
         return Mono.fromCallable(() -> {
             String bindingName = BindingNames.outputBinding(message.getTopic());
             streamBridge.send(bindingName, message);
@@ -190,7 +188,7 @@ public abstract class ImRepeater implements Repeater {
      *
      * @param message 来自 Stream 的消息
      */
-    protected void doReceive(TopicMessage<Msg> message) {
+    protected void doReceive(TopicMessage message) {
         publishFunction.accept(message);
         log.debug("[ImRepeater] 转发到 SSE: topic={}, id={}", topic, message.getId());
     }
@@ -202,6 +200,7 @@ public abstract class ImRepeater implements Repeater {
      * </p>
      *
      * @param urlParams 客户端请求参数
+     * @param metadata  连接元数据
      * @return 消息流
      */
     protected Flux<Msg> doSubscribe(MultiValueMap<String, String> urlParams, ConnectionMetadata metadata) {

@@ -26,10 +26,13 @@ import java.util.function.Supplier;
  * 可重写 {@link #push(MultiValueMap, Msg)} 自定义发布逻辑。
  * </p>
  *
+ * @param <ID>  消息 ID 类型
+ * @param <MSG> 消息载荷类型
  * @since 5.6.0
  */
 @Slf4j
-public abstract class ImPublisher extends AbstractTopic implements Publisher {
+public abstract class ImPublisher<ID extends Serializable, MSG extends Msg>
+        extends AbstractTopic<ID, MSG> implements Publisher<ID, MSG> {
 
     /**
      * 路由键（默认 {@code ["me"]}）.
@@ -40,11 +43,13 @@ public abstract class ImPublisher extends AbstractTopic implements Publisher {
      */
     protected final List<String> routingKeys;
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     protected ImPublisher(String topic, Repeater repeater) {
         super(topic, repeater);
         this.routingKeys = Collections.singletonList("me");
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     protected ImPublisher(String topic, Supplier<Repeater> repeaterSupplier) {
         super(topic, repeaterSupplier);
         this.routingKeys = Collections.singletonList("me");
@@ -57,6 +62,7 @@ public abstract class ImPublisher extends AbstractTopic implements Publisher {
      * @param repeater    Repeater 实例
      * @param routingKeys 路由键列表（从 URL 参数提取，多键按顺序以 {@code |} 拼接）
      */
+    @SuppressWarnings({"unchecked", "rawtypes"})
     protected ImPublisher(String topic, Repeater repeater, List<String> routingKeys) {
         super(topic, repeater);
         this.routingKeys = routingKeys != null && !routingKeys.isEmpty()
@@ -70,6 +76,7 @@ public abstract class ImPublisher extends AbstractTopic implements Publisher {
      * @param repeaterSupplier Repeater 延迟解析器
      * @param routingKeys      路由键列表（从 URL 参数提取，多键按顺序以 {@code |} 拼接）
      */
+    @SuppressWarnings({"rawtypes"})
     protected ImPublisher(String topic, Supplier<Repeater> repeaterSupplier, List<String> routingKeys) {
         super(topic, repeaterSupplier);
         this.routingKeys = routingKeys != null && !routingKeys.isEmpty()
@@ -77,8 +84,8 @@ public abstract class ImPublisher extends AbstractTopic implements Publisher {
     }
 
     @Override
-    public Mono<Serializable> push(MultiValueMap<String, String> urlParams, Msg msg) {
-        TopicMessage<Msg> event = msg.build(urlParams);
+    public Mono<ID> push(MultiValueMap<String, String> urlParams, MSG msg) {
+        TopicMessage<ID, MSG> event = msg.build(urlParams);
         event.setTopic(topic);
         // 从 URL 参数提取定向投递目标（委托给 RoutingKeyExtractor 统一提取）
         Set<String> targets = extractRoutingTargets(urlParams);

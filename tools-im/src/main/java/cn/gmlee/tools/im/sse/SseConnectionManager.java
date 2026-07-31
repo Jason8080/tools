@@ -139,7 +139,7 @@ public class SseConnectionManager implements SmartLifecycle {
      * @param metadata 连接元数据（身份标识等）
      * @return 消息流（Context 中携带连接引用）
      */
-    public Flux<TopicMessage<Msg>> subscribe(String topic, ConnectionMetadata metadata) {
+    public Flux<TopicMessage> subscribe(String topic, ConnectionMetadata metadata) {
         return Flux.defer(() -> {
             // 1. 预检查
             if (!checkAccepting(topic)) {
@@ -197,7 +197,7 @@ public class SseConnectionManager implements SmartLifecycle {
      *
      * @param message 消息
      */
-    public void publish(TopicMessage<Msg> message) {
+    public void publish(TopicMessage message) {
         if (message == null || message.getTopic() == null) {
             return;
         }
@@ -219,8 +219,8 @@ public class SseConnectionManager implements SmartLifecycle {
      * 行为与原 publish() 完全一致。
      * </p>
      */
-    private void publishBroadcast(TopicMessage<Msg> message, String topic, long startTime) {
-        Sinks.Many<TopicMessage<Msg>> sink = registry.getSink(topic);
+    private void publishBroadcast(TopicMessage message, String topic, long startTime) {
+        Sinks.Many<TopicMessage> sink = registry.getSink(topic);
 
         if (sink == null) {
             metrics.recordPublish(topic, "NO_SUBSCRIBERS");
@@ -249,7 +249,7 @@ public class SseConnectionManager implements SmartLifecycle {
      * 复杂度 O(K)，K 为目标连接数。远优于广播+过滤的 O(N)。
      * </p>
      */
-    private void publishDirected(TopicMessage<Msg> message, String topic,
+    private void publishDirected(TopicMessage message, String topic,
                                   Set<String> routingKeys, long startTime) {
         int targetCount = 0;
         int successCount = 0;
@@ -259,7 +259,7 @@ public class SseConnectionManager implements SmartLifecycle {
             Set<String> connIds = registry.getConnectionIdsByRoutingKey(topic, routingKey);
             for (String connId : connIds) {
                 targetCount++;
-                Sinks.Many<TopicMessage<Msg>> directedSink = registry.getDirectedSink(connId);
+                Sinks.Many<TopicMessage> directedSink = registry.getDirectedSink(connId);
                 if (directedSink == null) {
                     failCount++;
                     continue;

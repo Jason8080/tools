@@ -20,7 +20,7 @@ class SseSubscription {
     /**
      * 消息流
      */
-    private final Flux<TopicMessage<Msg>> flux;
+    private final Flux<TopicMessage> flux;
 
     /**
      * 对应的连接引用
@@ -33,7 +33,7 @@ class SseSubscription {
      * @param flux       消息流
      * @param connection 连接引用
      */
-    SseSubscription(Flux<TopicMessage<Msg>> flux, SseConnection connection) {
+    SseSubscription(Flux<TopicMessage> flux, SseConnection connection) {
         this.flux = flux;
         this.connection = connection;
     }

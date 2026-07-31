@@ -86,6 +86,7 @@ public class EndpointAutoConfiguration {
      * 并为未自定义的 Topic 创建默认实现。
      * </p>
      */
+    @SuppressWarnings("rawtypes")
     @Bean
     @ConditionalOnMissingBean
     public TopicRegistry topicRegistry(

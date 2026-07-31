@@ -23,12 +23,12 @@ import java.io.Serializable;
  * <h3>自定义扩展</h3>
  * <pre>{@code
  * @Component
- * public class RedisPublisher implements Publisher {
+ * public class RedisPublisher<ID extends Serializable> implements Publisher<ID, MessageMap> {
  *     @Override public String topic() { return "im.chat"; }
- *     @Override public Mono<Serializable> push(MultiValueMap<String,String> params, Msg msg) {
+ *     @Override public Mono<ID> push(MultiValueMap<String,String> params, MessageMap msg) {
  *         return redisStore.saveAsync(msg)   // 自定义逻辑：异步存储到 Redis
  *             .then(Mono.fromSupplier(() -> {
- *                 Publisher delegate = topicRegistry.createDefaultPublisher(topic());
+ *                 Publisher<ID, MessageMap> delegate = topicRegistry.createDefaultPublisher(topic());
  *                 return delegate.push(params, msg);  // 委托默认实现发送到 MQ
  *             }));
  *     }
@@ -38,9 +38,11 @@ import java.io.Serializable;
  * 自定义实现注册为 Spring Bean 后，框架通过 {@link #topic()} 自动匹配到对应 Topic，零配置生效。
  * </p>
  *
+ * @param <ID>  消息 ID 类型
+ * @param <MSG> 消息载荷类型
  * @since 5.6.0
  */
-public interface Publisher extends Topic {
+public interface Publisher<ID extends Serializable, MSG extends Msg> extends Topic {
 
     /**
      * 发布消息.
@@ -57,5 +59,5 @@ public interface Publisher extends Topic {
      * @param msg       消息载荷
      * @return 消息 ID（异步）
      */
-    Mono<Serializable> push(MultiValueMap<String, String> urlParams, Msg msg);
+    Mono<ID> push(MultiValueMap<String, String> urlParams, MSG msg);
 }

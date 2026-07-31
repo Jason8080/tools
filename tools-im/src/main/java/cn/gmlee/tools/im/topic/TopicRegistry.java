@@ -17,7 +17,6 @@ import org.springframework.cloud.stream.function.StreamBridge;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
 /**
  * Topic 组件注册表.
@@ -33,6 +32,13 @@ import java.util.function.Function;
  *   <li>所有工厂均返回 {@code null}，使用框架默认工厂</li>
  *   <li>幂等：同一 Topic 的组件只创建一次</li>
  * </ul>
+ *
+ * <h3>泛型设计</h3>
+ * <p>
+ * 内部使用 wildcard 存储（{@code Publisher<?, ?>}、{@code Repeater<?, ?>}、{@code Subscriber<?>}），
+ * 公共 API 返回 wildcard 类型。同一 Topic 的 Publisher/Repeater/Subscriber 类型一致性
+ * 由工厂匹配顺序保证：自定义工厂决定 ID/MSG 类型，默认实现使用 {@code Serializable/Msg}。
+ * </p>
  *
  * <h3>线程安全</h3>
  * <p>
@@ -60,19 +66,19 @@ public class TopicRegistry {
     private final List<SubscriberFactory> subscriberFactories;
 
     /**
-     * 已确保的 Publisher（topic → Publisher）
+     * 已确保的 Publisher（topic → Publisher，wildcard 存储）
      */
-    private final ConcurrentHashMap<String, Publisher> publishers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Publisher<?, ?>> publishers = new ConcurrentHashMap<>();
 
     /**
-     * 已确保的 Repeater（topic → Repeater）
+     * 已确保的 Repeater（topic → Repeater，wildcard 存储）
      */
-    private final ConcurrentHashMap<String, Repeater> repeaters = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Repeater<?, ?>> repeaters = new ConcurrentHashMap<>();
 
     /**
-     * 已确保的 Subscriber（topic → Subscriber）
+     * 已确保的 Subscriber（topic → Subscriber，wildcard 存储）
      */
-    private final ConcurrentHashMap<String, Subscriber> subscribers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Subscriber<?>> subscribers = new ConcurrentHashMap<>();
 
     /**
      * Stream 桥接器（用于创建默认实现）
@@ -158,15 +164,8 @@ public class TopicRegistry {
      * @param topic Topic 名称
      * @return Publisher 实例
      */
-    public Publisher ensurePublisher(String topic) {
-        List<String> routingKeys = sseProperties != null ? sseProperties.getRoutingKeys() : null;
-        return ensureComponent(
-                topic,
-                publishers,
-                publisherFactories,
-                t -> new DefaultPublisher(t, () -> getRepeater(t), routingKeys),
-                "Publisher"
-        );
+    public Publisher<?, ?> ensurePublisher(String topic) {
+        return ensurePublisherTyped(topic);
     }
 
     /**
@@ -175,7 +174,123 @@ public class TopicRegistry {
      * @param topic Topic 名称
      * @return Repeater 实例
      */
-    public Repeater ensureRepeater(String topic) {
+    public Repeater<?, ?> ensureRepeater(String topic) {
+        return ensureRepeaterTyped(topic);
+    }
+
+    /**
+     * 确保 Topic 的 Subscriber 已创建.
+     *
+     * @param topic Topic 名称
+     * @return Subscriber 实例
+     */
+    public Subscriber<?> ensureSubscriber(String topic) {
+        return ensureSubscriberTyped(topic);
+    }
+
+    // ==================== Get 方法（严格模式，供路由器使用） ====================
+
+    /**
+     * 获取 Topic 的 Publisher.
+     *
+     * @param topic Topic 名称
+     * @return Publisher 实例
+     * @throws TopicNotFoundException 如果 Publisher 未创建
+     */
+    public Publisher<?, ?> getPublisher(String topic) {
+        Publisher<?, ?> publisher = publishers.get(topic);
+        if (publisher == null) {
+            throw new TopicNotFoundException(topic);
+        }
+        return publisher;
+    }
+
+    /**
+     * 获取 Topic 的 Repeater.
+     *
+     * @param topic Topic 名称
+     * @return Repeater 实例
+     * @throws TopicNotFoundException 如果 Repeater 未创建
+     */
+    public Repeater<?, ?> getRepeater(String topic) {
+        Repeater<?, ?> repeater = repeaters.get(topic);
+        if (repeater == null) {
+            throw new TopicNotFoundException(topic);
+        }
+        return repeater;
+    }
+
+    /**
+     * 获取 Topic 的 Subscriber.
+     *
+     * @param topic Topic 名称
+     * @return Subscriber 实例
+     * @throws TopicNotFoundException 如果 Subscriber 未创建
+     */
+    public Subscriber<?> getSubscriber(String topic) {
+        Subscriber<?> subscriber = subscribers.get(topic);
+        if (subscriber == null) {
+            throw new TopicNotFoundException(topic);
+        }
+        return subscriber;
+    }
+
+    // ==================== 工厂方法（供自定义实现委托默认行为） ====================
+
+    /**
+     * 创建默认 Publisher 实例.
+     * <p>
+     * 供自定义 Publisher 实现委托默认行为时使用。
+     * </p>
+     *
+     * @param topic Topic 名称
+     * @return 默认 Publisher
+     */
+    public Publisher<?, ?> createDefaultPublisher(String topic) {
+        return new DefaultPublisher(topic, () -> getRepeater(topic));
+    }
+
+    /**
+     * 创建默认 Repeater 实例.
+     *
+     * @param topic Topic 名称
+     * @return 默认 Repeater
+     */
+    public Repeater<?, ?> createDefaultRepeater(String topic) {
+        return new DefaultRepeater(topic, streamBridge, sseConnectionManager, interceptors);
+    }
+
+    /**
+     * 创建默认 Subscriber 实例.
+     *
+     * @param topic Topic 名称
+     * @return 默认 Subscriber
+     */
+    public Subscriber<?> createDefaultSubscriber(String topic) {
+        return new DefaultSubscriber(topic, () -> getRepeater(topic));
+    }
+
+    // ==================== Consumer Bridge ====================
+
+    /**
+     * 创建 ConsumerBridge（包级私有，供 TopicFactory 使用）.
+     * <p>
+     * ConsumerBridge 将泛型 Repeater 桥接到 SSE 管道所需的
+     * {@code Consumer<TopicMessage<Msg>>} 接口，同时保证 Spring Cloud Stream
+     * 能通过 GenericTypeResolver 正确解析 Consumer 类型参数。
+     * </p>
+     *
+     * @param topic Topic 名称
+     * @return ConsumerBridge 实例
+     */
+    ConsumerBridge createConsumerBridge(String topic) {
+        return new ConsumerBridge(getRepeater(topic));
+    }
+
+    // ==================== 内部泛型辅助方法 ====================
+
+    @SuppressWarnings("unchecked")
+    private Repeater<?, ?> ensureRepeaterTyped(String topic) {
         return repeaters.computeIfAbsent(topic, t -> {
             // 创建 Repeater 上下文（封装 SSE 函数）
             RepeaterContext context = new RepeaterContext(
@@ -197,144 +312,42 @@ public class TopicRegistry {
         });
     }
 
-    /**
-     * 确保 Topic 的 Subscriber 已创建.
-     *
-     * @param topic Topic 名称
-     * @return Subscriber 实例
-     */
-    public Subscriber ensureSubscriber(String topic) {
-        return ensureComponent(
-                topic,
-                subscribers,
-                subscriberFactories,
-                t -> new DefaultSubscriber(t, () -> getRepeater(t)),
-                "Subscriber"
-        );
-    }
-
-    /**
-     * 通用组件创建方法（消除重复代码）.
-     * <p>
-     * 遍历工厂列表，首个返回非 null 的工厂创建实例；所有工厂均返回 null，使用默认实现。
-     * </p>
-     *
-     * @param topic           Topic 名称
-     * @param cache           组件缓存
-     * @param factories       工厂列表（可为空）
-     * @param defaultFactory  默认工厂函数
-     * @param componentName   组件名称（用于日志）
-     * @param <T>             组件类型
-     * @return 组件实例
-     */
     @SuppressWarnings("unchecked")
-    private <T> T ensureComponent(String topic,
-                                   ConcurrentHashMap<String, T> cache,
-                                   List<?> factories,
-                                   Function<String, T> defaultFactory,
-                                   String componentName) {
-        return cache.computeIfAbsent(topic, t -> {
-            for (Object factory : factories) {
-                Object component = null;
-
-                if (factory instanceof PublisherFactory) {
-                    component = ((PublisherFactory) factory).create(t, () -> getRepeater(t));
-                } else if (factory instanceof SubscriberFactory) {
-                    component = ((SubscriberFactory) factory).create(t, () -> getRepeater(t));
-                }
-
+    private Publisher<?, ?> ensurePublisherTyped(String topic) {
+        List<String> routingKeys = sseProperties != null ? sseProperties.getRoutingKeys() : null;
+        return publishers.computeIfAbsent(topic, t -> {
+            // Supplier 延迟解析 Repeater（避免构造时循环依赖）
+            // raw Supplier 传给 raw PublisherFactory.create()，运行时类型安全
+            Object component = null;
+            for (PublisherFactory factory : publisherFactories) {
+                component = factory.create(t, () -> getRepeater(t));
                 if (component != null) {
-                    log.info("[TopicRegistry] 使用自定义 {}: topic={}, factory={}",
-                            componentName, t, factory.getClass().getSimpleName());
-                    return (T) component;
+                    log.info("[TopicRegistry] 使用自定义 Publisher: topic={}, factory={}",
+                            t, factory.getClass().getSimpleName());
+                    return (Publisher<?, ?>) component;
                 }
             }
-
-            T def = defaultFactory.apply(t);
-            log.info("[TopicRegistry] 创建默认 {}: topic={}", componentName, t);
+            Publisher<?, ?> def = new DefaultPublisher(t, () -> getRepeater(t), routingKeys);
+            log.info("[TopicRegistry] 创建默认 Publisher: topic={}", t);
             return def;
         });
     }
 
-    // ==================== Get 方法（严格模式，供路由器使用） ====================
-
-    /**
-     * 获取 Topic 的 Publisher.
-     *
-     * @param topic Topic 名称
-     * @return Publisher 实例
-     * @throws TopicNotFoundException 如果 Publisher 未创建
-     */
-    public Publisher getPublisher(String topic) {
-        Publisher publisher = publishers.get(topic);
-        if (publisher == null) {
-            throw new TopicNotFoundException(topic);
-        }
-        return publisher;
-    }
-
-    /**
-     * 获取 Topic 的 Repeater.
-     *
-     * @param topic Topic 名称
-     * @return Repeater 实例
-     * @throws TopicNotFoundException 如果 Repeater 未创建
-     */
-    public Repeater getRepeater(String topic) {
-        Repeater repeater = repeaters.get(topic);
-        if (repeater == null) {
-            throw new TopicNotFoundException(topic);
-        }
-        return repeater;
-    }
-
-    /**
-     * 获取 Topic 的 Subscriber.
-     *
-     * @param topic Topic 名称
-     * @return Subscriber 实例
-     * @throws TopicNotFoundException 如果 Subscriber 未创建
-     */
-    public Subscriber getSubscriber(String topic) {
-        Subscriber subscriber = subscribers.get(topic);
-        if (subscriber == null) {
-            throw new TopicNotFoundException(topic);
-        }
-        return subscriber;
-    }
-
-    // ==================== 工厂方法（供自定义实现委托默认行为） ====================
-
-    /**
-     * 创建默认 Publisher 实例.
-     * <p>
-     * 供自定义 Publisher 实现委托默认行为时使用。
-     * </p>
-     *
-     * @param topic Topic 名称
-     * @return 默认 Publisher
-     */
-    public Publisher createDefaultPublisher(String topic) {
-        return new DefaultPublisher(topic, () -> getRepeater(topic));
-    }
-
-    /**
-     * 创建默认 Repeater 实例.
-     *
-     * @param topic Topic 名称
-     * @return 默认 Repeater
-     */
-    public Repeater createDefaultRepeater(String topic) {
-        return new DefaultRepeater(topic, streamBridge, sseConnectionManager, interceptors);
-    }
-
-    /**
-     * 创建默认 Subscriber 实例.
-     *
-     * @param topic Topic 名称
-     * @return 默认 Subscriber
-     */
-    public Subscriber createDefaultSubscriber(String topic) {
-        return new DefaultSubscriber(topic, () -> getRepeater(topic));
+    @SuppressWarnings("unchecked")
+    private Subscriber<?> ensureSubscriberTyped(String topic) {
+        return subscribers.computeIfAbsent(topic, t -> {
+            Object component = null;
+            for (SubscriberFactory factory : subscriberFactories) {
+                component = factory.create(t, () -> getRepeater(t));
+                if (component != null) {
+                    log.info("[TopicRegistry] 使用自定义 Subscriber: topic={}, factory={}",
+                            t, factory.getClass().getSimpleName());
+                    return (Subscriber<?>) component;
+                }
+            }
+            Subscriber<?> def = new DefaultSubscriber(t, () -> getRepeater(t));
+            log.info("[TopicRegistry] 创建默认 Subscriber: topic={}", t);
+            return def;
+        });
     }
 }

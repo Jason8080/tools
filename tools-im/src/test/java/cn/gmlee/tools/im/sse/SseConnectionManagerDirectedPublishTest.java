@@ -78,19 +78,19 @@ class SseConnectionManagerDirectedPublishTest {
         return conn;
     }
 
-    private TopicMessage<Msg> createBroadcastMessage(String topic, String content) {
+    private TopicMessage createBroadcastMessage(String topic, String content) {
         MessageMap msg = new MessageMap();
         msg.put("content", content);
-        return TopicMessage.<Msg>builder()
+        return TopicMessage.builder()
                 .topic(topic)
                 .msg(msg)
                 .build();
     }
 
-    private TopicMessage<Msg> createDirectedMessage(String topic, String content, Set<String> routingKeys) {
+    private TopicMessage createDirectedMessage(String topic, String content, Set<String> routingKeys) {
         MessageMap msg = new MessageMap();
         msg.put("content", content);
-        return TopicMessage.<Msg>builder()
+        return TopicMessage.builder()
                 .topic(topic)
                 .msg(msg)
                 .routingKeys(routingKeys)
@@ -102,8 +102,8 @@ class SseConnectionManagerDirectedPublishTest {
      *
      * @return AtomicReference，publish 后可通过 get() 获取收到的消息（超时为 null）
      */
-    private AtomicReference<TopicMessage<Msg>> subscribeSink(Sinks.Many<TopicMessage<Msg>> sink) {
-        AtomicReference<TopicMessage<Msg>> received = new AtomicReference<>();
+    private AtomicReference<TopicMessage> subscribeSink(Sinks.Many<TopicMessage> sink) {
+        AtomicReference<TopicMessage> received = new AtomicReference<>();
         sink.asFlux().subscribe(
                 received::set,
                 error -> { /* ignore */ },
@@ -125,11 +125,11 @@ class SseConnectionManagerDirectedPublishTest {
         registerAndSubscribe(topic, "charlie");
 
         // 先订阅 topicSink（广播通道）
-        Sinks.Many<TopicMessage<Msg>> topicSink = registry.getSink(topic);
-        AtomicReference<TopicMessage<Msg>> received = subscribeSink(topicSink);
+        Sinks.Many<TopicMessage> topicSink = registry.getSink(topic);
+        AtomicReference<TopicMessage> received = subscribeSink(topicSink);
 
         // 发布广播消息
-        TopicMessage<Msg> msg = createBroadcastMessage(topic, "hello all");
+        TopicMessage msg = createBroadcastMessage(topic, "hello all");
         manager.publish(msg);
 
         // 验证收到
@@ -150,16 +150,16 @@ class SseConnectionManagerDirectedPublishTest {
         SseConnection connCharlie = registerAndSubscribe(topic, "charlie");
 
         // 先订阅所有 directedSink（multicast 模式要求先订阅再 emit）
-        Sinks.Many<TopicMessage<Msg>> aliceDS = registry.getDirectedSink(connAlice.getConnectionId());
-        Sinks.Many<TopicMessage<Msg>> bobDS = registry.getDirectedSink(connBob.getConnectionId());
-        Sinks.Many<TopicMessage<Msg>> charlieDS = registry.getDirectedSink(connCharlie.getConnectionId());
+        Sinks.Many<TopicMessage> aliceDS = registry.getDirectedSink(connAlice.getConnectionId());
+        Sinks.Many<TopicMessage> bobDS = registry.getDirectedSink(connBob.getConnectionId());
+        Sinks.Many<TopicMessage> charlieDS = registry.getDirectedSink(connCharlie.getConnectionId());
 
-        AtomicReference<TopicMessage<Msg>> aliceReceived = subscribeSink(aliceDS);
-        AtomicReference<TopicMessage<Msg>> bobReceived = subscribeSink(bobDS);
-        AtomicReference<TopicMessage<Msg>> charlieReceived = subscribeSink(charlieDS);
+        AtomicReference<TopicMessage> aliceReceived = subscribeSink(aliceDS);
+        AtomicReference<TopicMessage> bobReceived = subscribeSink(bobDS);
+        AtomicReference<TopicMessage> charlieReceived = subscribeSink(charlieDS);
 
         // 发布定向消息到 alice
-        TopicMessage<Msg> msg = createDirectedMessage(topic, "hello alice", Set.of("alice"));
+        TopicMessage msg = createDirectedMessage(topic, "hello alice", Set.of("alice"));
         manager.publish(msg);
 
         // alice 应收到
@@ -181,16 +181,16 @@ class SseConnectionManagerDirectedPublishTest {
         SseConnection connCharlie = registerAndSubscribe(topic, "charlie");
 
         // 先订阅所有 directedSink
-        Sinks.Many<TopicMessage<Msg>> aliceDS = registry.getDirectedSink(connAlice.getConnectionId());
-        Sinks.Many<TopicMessage<Msg>> bobDS = registry.getDirectedSink(connBob.getConnectionId());
-        Sinks.Many<TopicMessage<Msg>> charlieDS = registry.getDirectedSink(connCharlie.getConnectionId());
+        Sinks.Many<TopicMessage> aliceDS = registry.getDirectedSink(connAlice.getConnectionId());
+        Sinks.Many<TopicMessage> bobDS = registry.getDirectedSink(connBob.getConnectionId());
+        Sinks.Many<TopicMessage> charlieDS = registry.getDirectedSink(connCharlie.getConnectionId());
 
-        AtomicReference<TopicMessage<Msg>> aliceReceived = subscribeSink(aliceDS);
-        AtomicReference<TopicMessage<Msg>> bobReceived = subscribeSink(bobDS);
-        AtomicReference<TopicMessage<Msg>> charlieReceived = subscribeSink(charlieDS);
+        AtomicReference<TopicMessage> aliceReceived = subscribeSink(aliceDS);
+        AtomicReference<TopicMessage> bobReceived = subscribeSink(bobDS);
+        AtomicReference<TopicMessage> charlieReceived = subscribeSink(charlieDS);
 
         // 发布定向消息到 alice 和 bob
-        TopicMessage<Msg> msg = createDirectedMessage(topic, "hello alice+bob", Set.of("alice", "bob"));
+        TopicMessage msg = createDirectedMessage(topic, "hello alice+bob", Set.of("alice", "bob"));
         manager.publish(msg);
 
         // alice 和 bob 应收到
@@ -213,11 +213,11 @@ class SseConnectionManagerDirectedPublishTest {
         SseConnection connAlice = registerAndSubscribe(topic, "alice");
 
         // 先订阅 alice 的 directedSink
-        Sinks.Many<TopicMessage<Msg>> aliceDS = registry.getDirectedSink(connAlice.getConnectionId());
-        AtomicReference<TopicMessage<Msg>> aliceReceived = subscribeSink(aliceDS);
+        Sinks.Many<TopicMessage> aliceDS = registry.getDirectedSink(connAlice.getConnectionId());
+        AtomicReference<TopicMessage> aliceReceived = subscribeSink(aliceDS);
 
         // 发布定向消息到不存在的 routingKey
-        TopicMessage<Msg> msg = createDirectedMessage(topic, "hello nobody", Set.of("nonexistent"));
+        TopicMessage msg = createDirectedMessage(topic, "hello nobody", Set.of("nonexistent"));
         assertDoesNotThrow(() -> manager.publish(msg), "无目标的定向投递不应抛异常");
 
         // alice 不应收到
@@ -233,15 +233,15 @@ class SseConnectionManagerDirectedPublishTest {
 
         SseConnection conn = registerAndSubscribe(topic, "alice");
 
-        Sinks.Many<TopicMessage<Msg>> topicSink = registry.getSink(topic);
-        Sinks.Many<TopicMessage<Msg>> directedSink = registry.getDirectedSink(conn.getConnectionId());
+        Sinks.Many<TopicMessage> topicSink = registry.getSink(topic);
+        Sinks.Many<TopicMessage> directedSink = registry.getDirectedSink(conn.getConnectionId());
 
         // 先订阅两个通道
-        AtomicReference<TopicMessage<Msg>> broadcastReceived = subscribeSink(topicSink);
-        AtomicReference<TopicMessage<Msg>> directedReceived = subscribeSink(directedSink);
+        AtomicReference<TopicMessage> broadcastReceived = subscribeSink(topicSink);
+        AtomicReference<TopicMessage> directedReceived = subscribeSink(directedSink);
 
         // 1. 广播消息
-        TopicMessage<Msg> broadcastMsg = createBroadcastMessage(topic, "broadcast");
+        TopicMessage broadcastMsg = createBroadcastMessage(topic, "broadcast");
         manager.publish(broadcastMsg);
 
         // topicSink 应收到
@@ -253,7 +253,7 @@ class SseConnectionManagerDirectedPublishTest {
                 "directedSink 不应收到广播消息");
 
         // 2. 定向消息
-        TopicMessage<Msg> directedMsg = createDirectedMessage(topic, "directed", Set.of("alice"));
+        TopicMessage directedMsg = createDirectedMessage(topic, "directed", Set.of("alice"));
         manager.publish(directedMsg);
 
         // directedSink 应收到

@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TopicMessage<MSG> implements Serializable {
+public class TopicMessage<ID extends Serializable, MSG extends Msg> implements Serializable {
 
     /**
      * 全局自增 ID 生成器.
@@ -36,11 +36,13 @@ public class TopicMessage<MSG> implements Serializable {
     /**
      * 消息 ID.
      * <p>
-     * 默认使用全局自增 ID（单 JVM 唯一）。分布式场景建议自定义。
+     * 默认使用全局自增 ID（Long 类型，单 JVM 唯一）。
+     * 泛型参数 {@code ID} 允许开发者自定义 ID 类型（如 UUID、雪花算法 ID）。
      * </p>
      */
+    @SuppressWarnings("unchecked")
     @Builder.Default
-    private Serializable id = ID_GENERATOR.incrementAndGet();
+    private ID id = (ID) (Serializable) ID_GENERATOR.incrementAndGet();
     private String topic;
     /**
      * 路由目标集合（定向投递）.

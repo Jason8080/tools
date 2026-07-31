@@ -26,7 +26,7 @@ import reactor.core.publisher.Mono;
  *     private RedisTemplate<String, byte[]> redisTemplate;
  *
  *     @Override
- *     public boolean beforeSend(TopicMessage<Msg> message) {
+ *     public boolean beforeSend(TopicMessage message) {
  *         // 发送前持久化到 Redis
  *         redisTemplate.opsForList().rightPush(key(message.getTopic()), serialize(message));
  *         return true; // 允许发送
@@ -61,7 +61,7 @@ public interface RepeaterInterceptor {
      * @param message 待发送的消息
      * @return {@code Mono<Boolean>} - true 允许发送，false 拦截消息
      */
-    default Mono<Boolean> beforeSend(TopicMessage<Msg> message) {
+    default Mono<Boolean> beforeSend(TopicMessage message) {
         return Mono.just(true);
     }
 
@@ -75,7 +75,7 @@ public interface RepeaterInterceptor {
      * @param message 接收到的消息
      * @return {@code Mono<Void>} 表示异步操作完成
      */
-    default Mono<Void> afterReceive(TopicMessage<Msg> message) {
+    default Mono<Void> afterReceive(TopicMessage message) {
         return Mono.empty();
     }
 

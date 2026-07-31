@@ -77,7 +77,7 @@ final class SseConnectionFluxBuilder {
         SseConnection conn = null;
         try {
             // 1. 获取或创建 Sink
-            Sinks.Many<TopicMessage<Msg>> sink = registry.getOrCreateSink(topic);
+            Sinks.Many<TopicMessage> sink = registry.getOrCreateSink(topic);
             if (sink == null) {
                 registry.getCounter().rollback(topic);
                 metrics.recordSubscribe(topic, "REJECTED_SHUTDOWN");
@@ -92,7 +92,7 @@ final class SseConnectionFluxBuilder {
             log.info("[Subscribe] 成功: topic={}, connectionId={}", topic, conn.getConnectionId());
 
             // 3. 构建带生命周期钩子的 Flux
-            Flux<TopicMessage<Msg>> flux = attachLifecycle(sink, conn, topic, registry, metrics, properties, listeners);
+            Flux<TopicMessage> flux = attachLifecycle(sink, conn, topic, registry, metrics, properties, listeners);
             return new SseSubscription(flux, conn);
 
         } catch (Exception e) {
@@ -131,8 +131,8 @@ final class SseConnectionFluxBuilder {
      * @param listeners  连接监听器列表
      * @return 带生命周期钩子的 Flux
      */
-    private static Flux<TopicMessage<Msg>> attachLifecycle(
-            Sinks.Many<TopicMessage<Msg>> sink,
+    private static Flux<TopicMessage> attachLifecycle(
+            Sinks.Many<TopicMessage> sink,
             SseConnection conn,
             String topic,
             SseConnectionRegistry registry,
@@ -140,11 +140,11 @@ final class SseConnectionFluxBuilder {
             SseProperties properties,
             List<SseConnectionListener> listeners) {
 
-        Flux<TopicMessage<Msg>> flux = sink.asFlux();
+        Flux<TopicMessage> flux = sink.asFlux();
 
         // 双通道架构：合并广播通道（topicSink）和定向通道（directedSink）
         // 广播消息仅走 topicSink，定向消息仅走 directedSink，两条通道互斥，无需 filter
-        Sinks.Many<TopicMessage<Msg>> directedSink = conn.getDirectedSink();
+        Sinks.Many<TopicMessage> directedSink = conn.getDirectedSink();
         if (directedSink != null) {
             flux = Flux.merge(flux, directedSink.asFlux());
         }

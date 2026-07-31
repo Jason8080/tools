@@ -1,6 +1,9 @@
 package cn.gmlee.tools.im.spi.factory;
 
 import cn.gmlee.tools.im.core.Repeater;
+import cn.gmlee.tools.im.model.Msg;
+
+import java.io.Serializable;
 
 /**
  * Repeater 工厂.
@@ -13,9 +16,9 @@ import cn.gmlee.tools.im.core.Repeater;
  * <h3>使用示例</h3>
  * <pre>{@code
  * @Component
- * public class CustomRepeaterFactory implements RepeaterFactory {
+ * public class ChatRepeaterFactory implements RepeaterFactory<Long, ChatMsg> {
  *     @Override
- *     public Repeater create(String topic, RepeaterContext context) {
+ *     public Repeater<Long, ChatMsg> create(String topic, RepeaterContext context) {
  *         if ("im.chat".equals(topic)) {
  *             return new ChatRepeater(topic, context);
  *         }
@@ -24,10 +27,13 @@ import cn.gmlee.tools.im.core.Repeater;
  * }
  * }</pre>
  *
+ * @param <ID>  消息 ID 类型
+ * @param <MSG> 消息载荷类型
  * @since 5.6.0
  * @see RepeaterContext
  */
-public interface RepeaterFactory extends ComponentFactory<Repeater, RepeaterContext> {
+public interface RepeaterFactory<ID extends Serializable, MSG extends Msg>
+        extends ComponentFactory<Repeater<ID, MSG>, RepeaterContext> {
 
     /**
      * 创建 Repeater 实例.
@@ -36,5 +42,5 @@ public interface RepeaterFactory extends ComponentFactory<Repeater, RepeaterCont
      * @param context Repeater 创建上下文（封装 SSE 发布/订阅函数）
      * @return Repeater 实例，返回 {@code null} 表示使用默认工厂
      */
-    Repeater create(String topic, RepeaterContext context);
+    Repeater<ID, MSG> create(String topic, RepeaterContext context);
 }

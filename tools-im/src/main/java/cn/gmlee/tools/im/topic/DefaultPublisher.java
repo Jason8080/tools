@@ -13,11 +13,16 @@ import java.util.function.Supplier;
  * 由骨架提供。仅供 {@link TopicRegistry} 内部使用。
  * </p>
  * <p>
- * 自定义发布器应继承 {@link ImPublisher}，并通过 {@link PublisherFactory} 创建。
+ * 使用 raw type extends（{@code ImPublisher} 无泛型参数），由 TopicRegistry 通过
+ * wildcard capture 保证类型安全。
+ * </p>
+ * <p>
+ * 自定义发布器应继承 {@link ImPublisher}，并通过 {@link cn.gmlee.tools.im.spi.factory.PublisherFactory} 创建。
  * </p>
  *
  * @since 5.6.0
  */
+@SuppressWarnings("rawtypes")
 class DefaultPublisher extends ImPublisher {
 
     public DefaultPublisher(String topic, Repeater repeater) {
