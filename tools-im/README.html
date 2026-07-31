@@ -1429,6 +1429,14 @@ Content-Type: application/json
     </div>
   </div>
 
+  <div class="callout callout-info">
+    <span class="callout-icon">&#x1F4CB;</span>
+    <div>
+      <strong><code>to</code> 与 <code>me</code> 的不对称设计</strong>
+      <p>身份声明字段（<code>me</code>）可通过 <code>im.sse.routing-keys</code> 自定义，但投递目标字段始终为 <code>to</code>——这是<b>有意为之</b>。<code>me</code> 回答"我是谁"（业务身份，随场景变化），<code>to</code> 回答"发给谁"（框架级投递指令，语义固定）。两者职责不同，不需要保持一致。</p>
+    </div>
+  </div>
+
   <!-- ===== 4. 发送定向消息 ===== -->
   <h3>发送定向消息</h3>
   <p>两种路径，殊途同归：</p>

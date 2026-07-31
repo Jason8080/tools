@@ -194,7 +194,7 @@ public class EndpointRouter {
      * <p>
      * 路由标识（routingKey）提取，优先级从高到低：
      * <ol>
-     *   <li>{@code principal}（由 AccessFilter 设置，如 JWT 解析后的身份标识）</li>
+     *   <li>{@code principal}（由 AccessFilter 设置，<b>必须为 String 类型</b>，否则跳过此层）</li>
      *   <li>{@code X-Me} 请求头（服务端调用、fetch-based SSE 客户端）</li>
      *   <li>从 URL 参数按 {@code im.routing-keys} 配置提取并组合</li>
      * </ol>
@@ -208,10 +208,14 @@ public class EndpointRouter {
     private ConnectionMetadata buildMetadata(String topic, AccessContext context) {
         String routingKey = null;
 
-        // 1. AccessFilter 设置的 principal
+        // 1. AccessFilter 设置的 principal（必须为 String）
         Object principal = context.getPrincipal();
-        if (principal instanceof String) {
-            routingKey = (String) principal;
+        if (principal instanceof String s) {
+            routingKey = s;
+        } else if (principal != null) {
+            log.debug("[EndpointRouter] principal 类型为 {}，非 String，跳过 routingKey 提取。" +
+                    "请在 AccessFilter 中设置 String 类型的 principal",
+                    principal.getClass().getName());
         }
 
         // 2. X-Me 请求头

@@ -6,8 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.MultiValueMap;
 
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -41,9 +41,11 @@ public abstract class ImPublisher extends AbstractTopic implements Publisher {
         TopicMessage<Msg> event = msg.build(urlParams);
         event.setTopic(topic);
         // 从 URL 参数提取定向投递目标（?to=alice&to=bob）
+        // 注意："to" 是框架级投递指令，与可配置的身份字段（me/deviceId 等）语义不同，
+        // 因此不跟随 im.sse.routing-keys 配置，始终保持为 "to"。
         List<String> toList = urlParams.get("to");
         if (toList != null && !toList.isEmpty()) {
-            event.setTo(new HashSet<>(toList));
+            event.setTo(Set.copyOf(toList));
         }
         Serializable id = resolveRepeater().send(event);
         log.debug("[ImPublisher] 发布消息: topic={}, id={}", topic, id);

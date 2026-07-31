@@ -127,6 +127,11 @@ public class AccessContext {
      * <p>
      * 设置非 null 值表示已认证，设置 null 表示未认证。
      * </p>
+     * <p>
+     * <b>注意</b>：如果 principal 需要作为 SSE 连接的 routingKey（用于定向投递），
+     * 必须设置为 {@link String} 类型。非 String 类型的 principal 会被 {@code EndpointRouter}
+     * 跳过，连接将退化为无身份广播态。
+     * </p>
      *
      * @param principal 认证主体
      */
