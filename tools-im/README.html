@@ -1474,32 +1474,38 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
   <p class="section-desc">用数据说话，用架构解释 — 每个指标都有设计支撑</p>
 
   <!-- ===== 核心性能总览 ===== -->
-  <h3>核心性能总览</h3>
-
-  <div class="card-grid" style="grid-template-columns: repeat(2, 1fr); margin-bottom: 40px;">
+  <div class="card-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 40px;">
     <div class="card" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 2px solid #86efac;">
-      <div class="card-icon" style="font-size: 48px;">&#x26A1;</div>
-      <h4 style="font-size: 24px; color: #166534;">消息延迟</h4>
-      <p style="font-size: 32px; font-weight: 700; color: #166534; margin: 16px 0;">1-5ms</p>
-      <p>端到端延迟（发布到接收）<br>IM 场景下用户完全无感知<br>人类感知阈值 ~50ms</p>
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+        <div class="card-icon" style="font-size: 32px; margin: 0;">&#x26A1;</div>
+        <h4 style="font-size: 18px; color: #166534; margin: 0;">消息延迟</h4>
+      </div>
+      <p style="font-size: 24px; font-weight: 700; color: #166534; margin: 8px 0;">1-5ms</p>
+      <p>端到端延迟（发布到接收）<br>IM 场景用户无感知</p>
     </div>
     <div class="card" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid #93c5fd;">
-      <div class="card-icon" style="font-size: 48px;">&#x1F4E6;</div>
-      <h4 style="font-size: 24px; color: #1e40af;">内存效率</h4>
-      <p style="font-size: 32px; font-weight: 700; color: #1e40af; margin: 16px 0;">~240 bytes</p>
-      <p>单连接内存占用<br>100 万连接仅 ~240 MB<br>比 WebSocket 方案节省 2-3 倍</p>
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+        <div class="card-icon" style="font-size: 32px; margin: 0;">&#x1F4E6;</div>
+        <h4 style="font-size: 18px; color: #1e40af; margin: 0;">内存效率</h4>
+      </div>
+      <p style="font-size: 24px; font-weight: 700; color: #1e40af; margin: 8px 0;">~240 bytes</p>
+      <p>单连接内存占用<br>100 万连接仅 ~240 MB</p>
     </div>
     <div class="card" style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); border: 2px solid #fbbf24;">
-      <div class="card-icon" style="font-size: 48px;">&#x1F680;</div>
-      <h4 style="font-size: 24px; color: #92400e;">消息吞吐</h4>
-      <p style="font-size: 32px; font-weight: 700; color: #92400e; margin: 16px 0;">10 万 msg/s</p>
-      <p>单线程发布吞吐<br>Reactor Sinks 高效扇出<br>广播 O(1)，定向 O(K)</p>
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+        <div class="card-icon" style="font-size: 32px; margin: 0;">&#x1F680;</div>
+        <h4 style="font-size: 18px; color: #92400e; margin: 0;">消息吞吐</h4>
+      </div>
+      <p style="font-size: 24px; font-weight: 700; color: #92400e; margin: 8px 0;">10 万 msg/s</p>
+      <p>单线程发布吞吐<br>Reactor Sinks 高效扇出</p>
     </div>
     <div class="card" style="background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%); border: 2px solid #f472b6;">
-      <div class="card-icon" style="font-size: 48px;">&#x1F4C8;</div>
-      <h4 style="font-size: 24px; color: #9d174d;">连接扇出</h4>
-      <p style="font-size: 32px; font-weight: 700; color: #9d174d; margin: 16px 0;">10 万连接/ms</p>
-      <p>单条消息扇出速率<br>Reactor 内部并行分发<br>零拷贝广播</p>
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+        <div class="card-icon" style="font-size: 32px; margin: 0;">&#x1F4C8;</div>
+        <h4 style="font-size: 18px; color: #9d174d; margin: 0;">连接扇出</h4>
+      </div>
+      <p style="font-size: 24px; font-weight: 700; color: #9d174d; margin: 8px 0;">10 万连接/ms</p>
+      <p>单条消息扇出速率<br>Reactor 内部并行分发</p>
     </div>
   </div>
 
@@ -1525,11 +1531,9 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
     <div class="arch-flow">
       <div class="arch-box arch-publisher">Publisher.push()<br><small>~0.5-1ms</small></div>
       <span class="arch-arrow">→</span>
-      <div class="arch-box arch-mq">MQ 传输<br><small>~0.5-2ms</small></div>
+      <div class="arch-box arch-subscriber">Repeater.receive()<br><small>~0.6-2.5ms</small></div>
       <span class="arch-arrow">→</span>
-      <div class="arch-box arch-subscriber">Repeater.receive()<br><small>~0.1-0.5ms</small></div>
-      <span class="arch-arrow">→</span>
-      <div class="arch-box arch-client">topicSink.tryEmitNext()<br><small>~0.001ms</small></div>
+      <div class="arch-box arch-client">Subscriber.pull()<br><small>~0.001ms</small></div>
     </div>
   </div>
 
