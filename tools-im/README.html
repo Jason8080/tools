@@ -74,6 +74,7 @@ body {
   overflow: hidden;
 }
 .landing-page.hidden { display: none; }
+html.direct-entry .landing-page { display: none; }
 
 /* 极光流光层 - 三层渐变动画 */
 .landing-page::before {
@@ -372,8 +373,6 @@ body {
 }
 
 /* ========== Reading Mode (阅读模式) ========== */
-.reading-mode { display: none; }
-.reading-mode.active { display: block; }
 
 /* ========== Header (阅读模式顶部) ========== */
 .reading-header {
@@ -683,7 +682,91 @@ td code { font-size: 13px; }
   .arch-flow { flex-direction: column; }
   .arch-arrow { transform: rotate(90deg); }
 }
+
+/* ========== Scroll-Down Indicator (封面底部引导) ========== */
+.scroll-indicator {
+  position: absolute;
+  bottom: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  opacity: 0;
+  animation: scrollIndicatorIn 0.8s ease 1s forwards;
+  transition: opacity 0.4s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+/* 滚过封面后自然隐藏 */
+.scroll-indicator.out-of-view {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes scrollIndicatorIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.scroll-indicator-text {
+  font-size: 11px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  transition: color 0.3s ease;
+}
+
+.scroll-indicator-arrows {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.scroll-indicator-arrows span {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-right: 2px solid rgba(255, 255, 255, 0.45);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.45);
+  transform: rotate(45deg);
+  transition: border-color 0.3s ease;
+}
+.scroll-indicator-arrows span:first-child {
+  animation: scrollChevronBounce 2s ease-in-out infinite;
+}
+.scroll-indicator-arrows span:last-child {
+  animation: scrollChevronBounce 2s ease-in-out infinite 0.2s;
+}
+
+@keyframes scrollChevronBounce {
+  0%, 100% { transform: rotate(45deg) translate(0, 0);     opacity: 0.3; }
+  50%      { transform: rotate(45deg) translate(4px, 4px); opacity: 1; }
+}
+
+.scroll-indicator:hover .scroll-indicator-text {
+  color: rgba(255, 255, 255, 0.9);
+}
+.scroll-indicator:hover .scroll-indicator-arrows span {
+  border-color: rgba(255, 255, 255, 0.9);
+}
+
+@media (max-width: 768px) {
+  .scroll-indicator { bottom: 24px; }
+  .scroll-indicator-text { font-size: 10px; letter-spacing: 2px; }
+  .scroll-indicator-arrows span { width: 14px; height: 14px; }
+}
 </style>
+<script>
+// 防止闪屏：如有 hash 直链，渲染前就隐藏封面
+if (window.location.hash) {
+  document.documentElement.classList.add('direct-entry');
+}
+</script>
 </head>
 <body>
 
@@ -715,6 +798,15 @@ td code { font-size: 13px; }
     <div class="landing-actions">
       <button class="btn-primary" onclick="enterReadingMode('quick-start')">&#x1F680; 快速开始</button>
       <button class="btn-secondary" onclick="enterReadingMode('architecture')">&#x1F4D6; 架构设计</button>
+    </div>
+  </div>
+
+  <!-- 向下滚动指示器 -->
+  <div class="scroll-indicator" id="scrollIndicator">
+    <span class="scroll-indicator-text">向下滚动</span>
+    <div class="scroll-indicator-arrows">
+      <span></span>
+      <span></span>
     </div>
   </div>
 </div>
@@ -2679,12 +2771,11 @@ Content-Type: application/json
 
 <!-- ==================== JavaScript ==================== -->
 <script>
-// Enter reading mode
+// 进入阅读模式（平滑滚动到正文区域 + 切换 tab）
 function enterReadingMode(tabId) {
-  document.querySelector('.landing-page').classList.add('hidden');
-  document.querySelector('.reading-mode').classList.add('active');
+  const reading = document.querySelector('.reading-mode');
   switchTab(tabId);
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  reading.scrollIntoView({ behavior: 'smooth' });
 }
 
 // Tab switching
@@ -2696,18 +2787,39 @@ function switchTab(tabId) {
     panel.classList.toggle('active', panel.id === tabId);
   });
   window.location.hash = tabId;
-  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => switchTab(btn.dataset.tab));
 });
 
-// URL hash support
+// ===== Scroll-down indicator =====
+(function initScrollIndicator() {
+  const indicator = document.getElementById('scrollIndicator');
+  if (!indicator) return;
+
+  // 点击箭头 → 平滑滚动到正文
+  indicator.addEventListener('click', () => {
+    enterReadingMode('quick-start');
+  });
+
+  // 滚过封面后隐藏指示器（IntersectionObserver）
+  const landing = document.querySelector('.landing-page');
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(
+      ([entry]) => indicator.classList.toggle('out-of-view', !entry.isIntersecting),
+      { threshold: 0.05 }
+    );
+    observer.observe(landing);
+  }
+})();
+
+// URL hash support — 直链跳到对应 tab
 window.addEventListener('DOMContentLoaded', () => {
   const hash = window.location.hash.slice(1);
   if (hash && document.getElementById(hash)) {
-    enterReadingMode(hash);
+    switchTab(hash);
+    // direct-entry 类已在 <head> 中通过内联脚本添加，封面已隐藏
   }
 });
 
