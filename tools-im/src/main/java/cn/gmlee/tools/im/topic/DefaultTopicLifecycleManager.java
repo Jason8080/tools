@@ -86,9 +86,12 @@ public class DefaultTopicLifecycleManager implements TopicLifecycleManager {
                 // 新 Topic：初始化为 CREATED 状态，引用计数 1
                 return new TopicMetadata(TopicState.CREATED, 1);
             } else if (v.state == TopicState.DESTROYED || v.state == TopicState.DESTROYING) {
-                // 已销毁或销毁中：重新激活
+                // 已销毁或销毁中：重新激活。
+                // 引用计数重置为 1（而非 incrementAndGet）：
+                // destroy 已清理所有物理资源（Publisher/Repeater/Subscriber、Stream binding），
+                // 旧 refCount 失去资源语义。re-acquire 等价于全新开始，从 1 计数。
                 v.state = TopicState.CREATED;
-                v.refCount.incrementAndGet();
+                v.refCount.set(1);
                 v.lastActivityTime = Instant.now();
                 return v;
             } else {
@@ -168,8 +171,14 @@ public class DefaultTopicLifecycleManager implements TopicLifecycleManager {
             meta.state = TopicState.ACTIVE;
             return false;
         } finally {
-            // 6. 从元数据 Map 中移除（延迟到下次 cleanup 或显式调用）
-            // 这里不移除，保留 DESTROYED 状态一段时间，便于监控和调试
+            // 此处不移除 metadata 条目，保留 DESTROYED 状态。
+            // 目的：可观测性 — 管理员可通过 getState() 区分"从未存在"（null）与"最近被销毁"（DESTROYED）。
+            // 条目由下一次 cleanup() 的阶段一（DESTROYED → remove）延迟移除。
+            //
+            // 注意：此处的延迟移除是监控设计，不是防抖动。
+            // 防止资源频繁创建/销毁的机制是 cleanup 中的 idleTtl 检查：
+            // Topic 空闲必须超过 idleTtl（默认 60s）才会触发 destroy，
+            // 期间有新连接到来会复用已有资源，无需重建。
         }
     }
 
@@ -210,6 +219,23 @@ public class DefaultTopicLifecycleManager implements TopicLifecycleManager {
         listeners.remove(listener);
     }
 
+    /**
+     * 执行一次自动清理.
+     * <p>
+     * 两阶段清理，每阶段处理不同状态的 Topic：
+     * </p>
+     * <ol>
+     *   <li><b>阶段一</b>：移除已处于 DESTROYED 状态的条目（由上一次 cleanup 标记）。
+     *       延迟移除是<b>可观测性设计</b>：DESTROYED 状态在两次 cleanup 之间可通过
+     *       {@link #getState} 查询，区分"从未存在"与"最近被销毁"。</li>
+     *   <li><b>阶段二</b>：检测空闲超时的 Topic（refCount = 0 且超过 idleTtl），
+     *       调用 {@link #destroy} 标记为 DESTROYED。
+     *       <b>防抖动机制是 idleTtl</b>：Topic 必须空闲超过 TTL 才会触发销毁，
+     *       期间有新连接到来会复用已有资源，避免频繁创建/销毁。</li>
+     * </ol>
+     *
+     * @return 被清理（销毁）的 Topic 数量
+     */
     @Override
     public int cleanup() {
         if (metadata.isEmpty()) {
@@ -236,6 +262,8 @@ public class DefaultTopicLifecycleManager implements TopicLifecycleManager {
                     log.debug("[TopicLifecycle] 清理空闲 Topic: topic={}, idle={}", topic, idleDuration);
                     if (destroy(topic)) {
                         cleaned++;
+                        // 注意：此处不立即移除 metadata 条目，由下一次 cleanup 的阶段一移除。
+                        // 这样 DESTROYED 状态在两次 cleanup 之间可通过 getState() 查询，便于监控和调试。
                     }
                 }
             }

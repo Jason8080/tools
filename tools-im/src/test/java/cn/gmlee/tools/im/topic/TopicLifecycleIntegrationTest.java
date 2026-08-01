@@ -149,8 +149,14 @@ class TopicLifecycleIntegrationTest {
         // 触发清理
         int cleaned = lifecycleManager.cleanup();
 
+        // 第一次 cleanup：标记为 DESTROYED（可观测性：getState 返回 DESTROYED 而非 null）
         assertEquals(1, cleaned);
+        assertEquals(TopicState.DESTROYED, lifecycleManager.getState("test.topic"));
+
+        // 第二次 cleanup：移除 DESTROYED 条目
+        lifecycleManager.cleanup();
         assertNull(lifecycleManager.getState("test.topic"));
+
         verify(topicFactory).cleanupTopicResources("test.topic");
     }
 
@@ -236,8 +242,14 @@ class TopicLifecycleIntegrationTest {
         Thread.sleep(150);
         int cleaned = lifecycleManager.cleanup();
 
+        // 第一次 cleanup：标记为 DESTROYED（可观测性：getState 返回 DESTROYED 而非 null）
         assertEquals(1, cleaned);
+        assertEquals(TopicState.DESTROYED, lifecycleManager.getState("test.topic"));
+
+        // 第二次 cleanup：移除 DESTROYED 条目
+        lifecycleManager.cleanup();
         assertNull(lifecycleManager.getState("test.topic"));
+
         verify(listener).onTopicDestroying("test.topic");
         verify(listener).onTopicDestroyed("test.topic");
         verify(topicFactory).cleanupTopicResources("test.topic");

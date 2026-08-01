@@ -85,16 +85,13 @@ class TopicLifecycleManagerTest {
     void testRelease() {
         String topic = "test.topic";
 
-        manager.acquire(topic);
-        manager.acquire(topic);
-        manager.release(topic);
+        manager.acquire(topic);   // refCount = 1
+        manager.acquire(topic);   // refCount = 2
 
-        assertEquals(2, manager.getRefCount(topic));
-
-        manager.release(topic);
+        manager.release(topic);   // refCount = 1
         assertEquals(1, manager.getRefCount(topic));
 
-        manager.release(topic);
+        manager.release(topic);   // refCount = 0
         assertEquals(0, manager.getRefCount(topic));
     }
 
@@ -206,10 +203,14 @@ class TopicLifecycleManagerTest {
         // 等待超过 TTL
         Thread.sleep(150);
 
+        // 第一次 cleanup：标记为 DESTROYED（可观测性：getState 可区分"从未存在"与"最近被销毁"）
         int cleaned = manager.cleanup();
-
         assertEquals(1, cleaned);
-        assertNull(manager.getState(topic)); // 已被移除
+        assertEquals(TopicState.DESTROYED, manager.getState(topic));
+
+        // 第二次 cleanup：移除 DESTROYED 条目
+        manager.cleanup();
+        assertNull(manager.getState(topic));
         verify(topicFactory).cleanupTopicResources(topic);
     }
 
