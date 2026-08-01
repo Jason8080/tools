@@ -708,13 +708,13 @@ td code { font-size: 13px; }
     <p class="landing-tagline">配置驱动的即时通讯框架<br>零代码开箱 · 渐进式扩展 · 响应式全链路</p>
     <div class="landing-badges">
       <span class="landing-badge">Spring Boot 4.x</span>
-      <span class="landing-badge">JDK 17+</span>
+      <span class="landing-badge">JDK 25+</span>
       <span class="landing-badge">v5.6.0-SNAPSHOT</span>
       <span class="landing-badge">Reactive</span>
     </div>
     <div class="landing-actions">
       <button class="btn-primary" onclick="enterReadingMode('quick-start')">&#x1F680; 快速开始</button>
-      <button class="btn-secondary" onclick="enterReadingMode('architecture')">&#x1F4D6; 架构详解</button>
+      <button class="btn-secondary" onclick="enterReadingMode('architecture')">&#x1F4D6; 架构设计</button>
     </div>
   </div>
 </div>
@@ -733,7 +733,8 @@ td code { font-size: 13px; }
     <div class="tab-nav">
       <button class="tab-btn active" data-tab="home">首页</button>
       <button class="tab-btn" data-tab="quick-start">快速开始</button>
-      <button class="tab-btn" data-tab="architecture">架构详解</button>
+      <button class="tab-btn" data-tab="origin">起源背景</button>
+      <button class="tab-btn" data-tab="architecture">架构设计</button>
       <button class="tab-btn" data-tab="configuration">配置参考</button>
       <button class="tab-btn" data-tab="spi-extension">SPI 扩展</button>
       <button class="tab-btn" data-tab="targeted-delivery">定向投递</button>
@@ -751,7 +752,7 @@ td code { font-size: 13px; }
 <div class="tab-panel active" id="home">
 
   <h2>为什么选择 SseIm Framework?</h2>
-  <p class="section-desc">基于 Spring Boot WebFlux + SSE 的配置驱动即时通讯框架。3 行 YAML 配置，零 Java 代码即可获得实时消息推送能力。</p>
+  <p class="section-desc">基于 HTTP + SSE 架构设计思想研发的即时通讯框架。3 行 YAML 配置，零 Java 代码即可获得实时消息推送能力。</p>
 
   <div class="callout callout-tip">
     <span class="callout-icon">&#x1F4A1;</span>
@@ -769,8 +770,8 @@ td code { font-size: 13px; }
     </div>
     <div class="card">
       <div class="card-icon">&#x1F504;</div>
-      <h4>进-转-出三段式</h4>
-      <p>Publisher → Repeater → Subscriber 职责分离，每层可独立替换，架构清晰可扩展。</p>
+      <h4>三段式解耦</h4>
+      <p>进（Publisher）→ 转（Repeater）→ 出（Subscriber），每层职责单一、可独立替换，架构清晰可扩展。</p>
     </div>
     <div class="card">
       <div class="card-icon">&#x1F50C;</div>
@@ -785,7 +786,7 @@ td code { font-size: 13px; }
   </div>
 
   <h3>核心架构</h3>
-  <p>框架由核心组件协同工作，实现进-转-出的三段式消息流水线：</p>
+  <p>框架由核心组件协同工作，实现三段式解耦的消息流水线：</p>
 
   <!-- 组件全景图 -->
   <div style="background: #fff; border-radius: 12px; padding: 40px 24px; margin-bottom: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #F3F4F6; overflow-x: auto;">
@@ -939,7 +940,7 @@ td code { font-size: 13px; }
     <span class="callout-icon">&#x1F4CB;</span>
     <div>
       <strong>前置条件</strong>
-      <p>JDK 17+、Spring Boot 4.x、RabbitMQ（或其他 Spring Cloud Stream 支持的 Binder）</p>
+      <p>JDK 25+、Spring Boot 4.x、RabbitMQ（或其他 Spring Cloud Stream 支持的 Binder）</p>
     </div>
   </div>
 
@@ -1048,10 +1049,197 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
 
 </div>
 
-<!-- ==================== Tab: 架构详解 ==================== -->
+<!-- ==================== Tab: 起源背景 ==================== -->
+<div class="tab-panel" id="origin">
+
+  <h2>起源背景</h2>
+  <p class="section-desc">从真实生产故障中提炼根因，针对性地选择更合适的技术方案。</p>
+
+  <!-- ===== 背景故事 ===== -->
+  <h3>从生产问题出发</h3>
+  <p>SseIm Framework 不是"为了用新技术而换架构"，而是从两个真实的生产故障中提炼出了根因，然后针对性地选择了更合适的技术方案。</p>
+
+  <div class="card-grid" style="grid-template-columns: repeat(2, 1fr);">
+    <div class="card" style="border-left: 4px solid #EF4444;">
+      <div class="card-icon">&#x1F525;</div>
+      <h4>竞价板块：连接泄露</h4>
+      <p>原架构 <strong>WebSocket + STOMP + RabbitMQ</strong>。客户端连接管理不当，导致连接泄露 — 连接数只增不减，直到内存溢出，引发生产故障。</p>
+    </div>
+    <div class="card" style="border-left: 4px solid #F59E0B;">
+      <div class="card-icon">&#x1F422;</div>
+      <h4>站内信板块：消息卡顿/超时</h4>
+      <p>原架构同样是 <strong>WebSocket + STOMP + RabbitMQ</strong>。消息发送非常卡顿、缓慢，甚至超时，用户体验极差。</p>
+    </div>
+  </div>
+
+  <p>两个板块的问题表象不同，但根因指向同一个方向：<b>WebSocket 的连接模型不适合这些场景</b>。</p>
+
+  <h3>WebSocket 的两个经典陷阱</h3>
+
+  <h4>陷阱一：连接泄露（竞价板块的根因）</h4>
+  <p>WebSocket + STOMP 的连接模型是<b>有状态长连接</b>，服务端需要自己管理连接的生命周期。一旦客户端异常断开（网络波动、页面崩溃、移动端切换后台），如果清理逻辑有任何遗漏，连接就会残留在内存里 — 只增不减，直到 OOM。</p>
+  <p>这不是个别问题，WebSocket 连接泄露是业界非常常见的生产事故根因。</p>
+
+  <h4>陷阱二：协议过重（站内信板块的根因）</h4>
+  <p>STOMP 的消息投递模型是<b>双向的</b>，但站内信场景本质上是<b>服务端单向推送</b>。用 WebSocket + STOMP 做单向推送，是在用最重的协议做最简单的事，不必要的协议开销和连接管理复杂度都会变成性能瓶颈。</p>
+
+  <!-- ===== 核心洞察 ===== -->
+  <h3>核心洞察：IM 不需要"双向长连接"</h3>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">&#x1F4A1;</span>
+    <div>
+      <strong>即时通讯的真实模型</strong>
+      <p>虽然 SSE 是单向通道，但大部分即时通讯场景其实只需要单向通道。因为消息发送是用户实时触发的离散动作，只需要能发出去即可，HTTP 才是简单又可靠的方案。</p>
+    </div>
+  </div>
+
+  <p>大多数人对 IM 的直觉是"需要双向通道"，所以第一反应就是 WebSocket。但仔细拆解用户行为：</p>
+
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>方向</th><th>行为特征</th><th>本质</th><th>最优协议</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>客户端 → 服务端</b>（发消息）</td>
+          <td>用户点"发送"按钮 → 一次 HTTP POST → 结束</td>
+          <td>离散动作，用完即走</td>
+          <td><b>HTTP POST</b></td>
+        </tr>
+        <tr>
+          <td><b>服务端 → 客户端</b>（收消息）</td>
+          <td>持续等待服务端主动推送</td>
+          <td>持续等待，需要长连接</td>
+          <td><b>SSE</b></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p><b>两个方向用各自最合适的协议</b>，而不是用 WebSocket 把两个方向绑在同一条连接上。</p>
+
+  <h4>WebSocket 的问题在于"过度对称"</h4>
+  <p>WebSocket 提供的是<b>对称的双向长连接</b>，但 IM 的两个方向根本不是对称的：</p>
+  <ul>
+    <li>发消息是一次性的 HTTP 请求，不需要长连接</li>
+    <li>收消息需要持续等待，需要长连接</li>
+  </ul>
+  <p>用 WebSocket 做 IM，相当于为了"服务端能推送"这个需求，被迫把"客户端发消息"也绑进了一条长连接里。然后就要自己处理：</p>
+  <ul>
+    <li>这条连接上的消息协议（STOMP 帧解析）</li>
+    <li>这条连接的状态管理（心跳、重连、断线恢复）</li>
+    <li>这条连接的生命周期（谁负责关闭、怎么清理）</li>
+  </ul>
+  <p><b>复杂度全是你自己加的</b>，而 SSE + HTTP 方案里，这些复杂度本来就不存在。</p>
+
+  <!-- ===== 解决方案 ===== -->
+  <h3>SseIm 的解法：按需分配连接</h3>
+
+  <div class="arch-diagram" style="padding: 40px 24px;">
+    <div style="text-align: center; margin-bottom: 24px; font-weight: 600; color: #4F46E5;">按需分配 vs 永远占用</div>
+    <div style="display: flex; justify-content: space-around; align-items: stretch; gap: 40px; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 280px; background: #F0FDF4; border: 2px solid #BBF7D0; border-radius: 12px; padding: 24px;">
+        <div style="text-align: center; font-weight: 700; color: #166534; margin-bottom: 16px; font-size: 16px;">&#x2705; SseIm：按需分配</div>
+        <ul style="font-size: 14px; color: #374151;">
+          <li>需要推送时 → 建立 SSE 连接（长连接）</li>
+          <li>需要发消息时 → 发一个 HTTP 请求（用完即释放）</li>
+          <li>不需要推送时 → <b>没有任何连接占用</b></li>
+        </ul>
+      </div>
+      <div style="flex: 1; min-width: 280px; background: #FEF2F2; border: 2px solid #FECACA; border-radius: 12px; padding: 24px;">
+        <div style="text-align: center; font-weight: 700; color: #991B1B; margin-bottom: 16px; font-size: 16px;">&#x274C; WebSocket：永远占用</div>
+        <ul style="font-size: 14px; color: #374151;">
+          <li>永远占着一条双向连接</li>
+          <li>发消息、收消息、心跳全在同一连接上</li>
+          <li>连接管理复杂度全部自己承担</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <h3>原方案 vs 新方案对比</h3>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>维度</th><th>WebSocket + STOMP</th><th>HTTP + SSE</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><b>连接模型</b></td>
+          <td>有状态双向长连接，服务端维护连接状态机</td>
+          <td>HTTP 短连接 + SSE 单向长连接，HTTP 层天然感知断连</td>
+        </tr>
+        <tr>
+          <td><b>连接泄露风险</b></td>
+          <td>高 — 依赖应用层心跳探测，清理逻辑遗漏即泄露</td>
+          <td>低 — 三层清理机制兜底（doFinally → Reaper → maxLifetime）</td>
+        </tr>
+        <tr>
+          <td><b>协议开销</b></td>
+          <td>重 — STOMP 帧解析、双向握手、连接状态维护</td>
+          <td>轻 — HTTP + SSE 原生支持，零额外协议开销</td>
+        </tr>
+        <tr>
+          <td><b>消息延迟</b></td>
+          <td>高 — 协议栈层次多，处理链路长</td>
+          <td>低 — 最短消息路径，直接 SSE 推送</td>
+        </tr>
+        <tr>
+          <td><b>客户端依赖</b></td>
+          <td>需要 STOMP 客户端 SDK</td>
+          <td>浏览器原生 EventSource，零依赖</td>
+        </tr>
+        <tr>
+          <td><b>扩展性</b></td>
+          <td>直接绑定 RabbitMQ</td>
+          <td>Spring Cloud Stream 抽象，可换任意 MQ</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">&#x1F3AF;</span>
+    <div>
+      <strong>架构决策的本质</strong>
+      <p>不是在"选 SSE 还是 WebSocket"，而是在想清楚<b>消息推送的本质是单向的</b>之后，做出的必然选择。用 Spring Cloud Stream 而不是直接绑死某个 MQ，在解决当前问题的同时保留了架构的灵活性 — 以后换 MQ 不需要改业务代码。</p>
+    </div>
+  </div>
+
+  <h3>设计路径</h3>
+  <p>SseIm Framework 的诞生遵循一条清晰的路径：</p>
+
+  <div class="steps">
+    <div class="step">
+      <h4>生产故障暴露根因</h4>
+      <p>竞价板块连接泄露（OOM）、站内信板块消息卡顿/超时。两个板块的问题都指向 WebSocket + STOMP 的架构缺陷。</p>
+    </div>
+    <div class="step">
+      <h4>架构思想形成</h4>
+      <p>IM 的本质是单向推送，不需要双向长连接。HTTP + SSE 才是正确的协议组合。先有对问题的本质理解和解决思路。</p>
+    </div>
+    <div class="step">
+      <h4>实验验证可行性</h4>
+      <p>通过原型实验验证 SSE 推送、Spring Cloud Stream 桥接、连接管理等核心技术方案的可行性。</p>
+    </div>
+    <div class="step">
+      <h4>框架设计与实现</h4>
+      <p>可行性确认后，将经过验证的架构思想沉淀为可复用的开发框架 — 配置驱动、进-转-出三段式、SPI 扩展、渐进式复杂度披露。</p>
+    </div>
+  </div>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">&#x1F4DD;</span>
+    <div>
+      <strong>框架是架构思想的载体</strong>
+      <p>框架本身就是把架构认知<b>产品化</b> — 让开发者不需要理解全部思考过程，只需要写 3 行 YAML，就能按照经过验证的架构模式来工作。这正是框架的价值所在。</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==================== Tab: 架构设计 ==================== -->
 <div class="tab-panel" id="architecture">
 
-  <h2>架构详解</h2>
+  <h2>架构设计</h2>
   <p class="section-desc">配置驱动 · 三段式解耦 · 零侵入扩展</p>
 
   <h3>设计哲学</h3>
