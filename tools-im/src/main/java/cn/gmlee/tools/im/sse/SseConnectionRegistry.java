@@ -614,24 +614,6 @@ public class SseConnectionRegistry {
     }
 
     /**
-     * 更新 Topic 下所有连接的最后活跃时间.
-     *
-     * @param topic       Topic 名称
-     * @param epochMillis 时间戳（毫秒）
-     */
-    public void updateTopicActivity(String topic, long epochMillis) {
-        Set<String> connIds = topicConnections.get(topic);
-        if (connIds != null) {
-            for (String connId : connIds) {
-                SseConnection conn = connections.get(connId);
-                if (conn != null) {
-                    conn.updateLastActivity(epochMillis);
-                }
-            }
-        }
-    }
-
-    /**
      * 获取活跃 Sink 数量.
      *
      * @return Sink 数量

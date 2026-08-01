@@ -236,7 +236,6 @@ public class SseConnectionManager implements SmartLifecycle {
             log.warn("[Publish] 广播失败: topic={}, result={}", topic, result);
         } else {
             metrics.recordPublish(topic, "SUCCESS");
-            registry.updateTopicActivity(topic, System.currentTimeMillis());
         }
 
         long elapsed = System.currentTimeMillis() - startTime;
@@ -291,10 +290,6 @@ public class SseConnectionManager implements SmartLifecycle {
         } else if (failCount > 0) {
             log.warn("[Publish] 定向投递部分失败: topic={}, success={}, fail={}",
                     topic, successCount, failCount);
-        }
-
-        if (successCount > 0) {
-            registry.updateTopicActivity(topic, System.currentTimeMillis());
         }
 
         long elapsed = System.currentTimeMillis() - startTime;

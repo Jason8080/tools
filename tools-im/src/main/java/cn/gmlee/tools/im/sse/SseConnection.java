@@ -225,15 +225,6 @@ public class SseConnection {
     }
 
     /**
-     * 更新最后活跃时间.
-     *
-     * @param epochMillis 当前时间（epoch 毫秒）
-     */
-    public void updateLastActivity(long epochMillis) {
-        lastActivityAt.set(epochMillis);
-    }
-
-    /**
      * 更新最后活跃时间为当前时间.
      */
     public void touch() {
