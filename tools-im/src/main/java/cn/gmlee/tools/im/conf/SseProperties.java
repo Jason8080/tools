@@ -123,6 +123,11 @@ public class SseProperties {
     private HeartbeatConfig heartbeat = new HeartbeatConfig();
 
     /**
+     * 消息发射重试配置
+     */
+    private EmitRetryConfig emitRetry = new EmitRetryConfig();
+
+    /**
      * 背压策略配置
      */
     @Data
@@ -268,5 +273,72 @@ public class SseProperties {
          * 心跳注释内容（SSE comment）
          */
         private String comment = "heartbeat";
+    }
+
+    /**
+     * 消息发射重试配置.
+     * <p>
+     * 控制多线程并发发布时的重试策略。
+     * Reactor Sinks 的 {@code tryEmitNext()} 使用 CAS 序列化，
+     * 多线程竞争时可能返回 {@code FAIL_NON_SERIALIZED}。
+     * </p>
+     * <p>
+     * 提供四种重试策略：
+     * </p>
+     * <ul>
+     *   <li><b>no-retry</b>：单次尝试，失败立即返回（默认，性能最优）</li>
+     *   <li><b>busy-loop</b>：忙等待重试直到成功或超时（可靠性最高）</li>
+     *   <li><b>bounded</b>：固定次数重试（平衡可靠性和资源）</li>
+     *   <li><b>exponential-backoff</b>：指数退避重试（适合高并发）</li>
+     * </ul>
+     *
+     * @since 5.6.0
+     */
+    @Data
+    public static class EmitRetryConfig {
+        /**
+         * 默认重试策略：no-retry / busy-loop / bounded / exponential-backoff
+         */
+        private String defaultStrategy = "no-retry";
+
+        /**
+         * busy-loop 策略超时时间
+         */
+        private Duration busyLoopTimeout = Duration.ofMillis(100);
+
+        /**
+         * bounded 策略最大重试次数
+         */
+        private int boundedMaxRetries = 3;
+
+        /**
+         * bounded 策略重试间隔
+         */
+        private Duration boundedRetryInterval = Duration.ofMillis(10);
+
+        /**
+         * exponential-backoff 策略最大重试次数
+         */
+        private int exponentialMaxRetries = 5;
+
+        /**
+         * exponential-backoff 策略初始间隔
+         */
+        private Duration exponentialInitialInterval = Duration.ofMillis(10);
+
+        /**
+         * exponential-backoff 策略乘数
+         */
+        private double exponentialMultiplier = 2.0;
+
+        /**
+         * exponential-backoff 策略最大间隔
+         */
+        private Duration exponentialMaxInterval = Duration.ofMillis(1000);
+
+        /**
+         * 按 Topic 覆盖策略（key=topic, value=strategyName）
+         */
+        private Map<String, String> topicOverrides = new HashMap<>();
     }
 }

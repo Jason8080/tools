@@ -11,6 +11,8 @@ import cn.gmlee.tools.im.sse.cleanup.ConnectionReaper;
 import cn.gmlee.tools.im.sse.internal.ConnectionCounter;
 import cn.gmlee.tools.im.sse.internal.SseExecutorFactory;
 import cn.gmlee.tools.im.sse.metrics.SseMetrics;
+import cn.gmlee.tools.im.sse.retry.EmitRetryStrategy;
+import cn.gmlee.tools.im.sse.retry.EmitRetryStrategyResolver;
 import cn.gmlee.tools.im.spi.listener.SseConnectionListener;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +61,7 @@ public class SseConnectionManager implements SmartLifecycle {
     private final SseMetrics metrics;
     private final ConnectionReaper reaper;
     private final List<SseConnectionListener> listeners;
+    private final EmitRetryStrategyResolver retryStrategyResolver;
 
     /**
      * 生命周期调度器（daemon 线程）
@@ -99,17 +102,22 @@ public class SseConnectionManager implements SmartLifecycle {
      * @param metrics          指标收集器
      * @param reaper           连接收割器
      * @param listeners        连接生命周期监听器列表（可为空）
+     * @param retryStrategyResolver 重试策略解析器（可为空，默认使用 no-retry）
      */
     public SseConnectionManager(SseProperties properties,
                                 SseConnectionRegistry registry,
                                 SseMetrics metrics,
                                 ConnectionReaper reaper,
-                                List<SseConnectionListener> listeners) {
+                                List<SseConnectionListener> listeners,
+                                EmitRetryStrategyResolver retryStrategyResolver) {
         this.properties = properties;
         this.registry = registry;
         this.metrics = metrics;
         this.reaper = reaper;
         this.listeners = listeners != null ? listeners : Collections.emptyList();
+        this.retryStrategyResolver = retryStrategyResolver != null
+                ? retryStrategyResolver
+                : EmitRetryStrategyResolver.createDefault();
     }
 
     // ==================== 公共 API ====================
@@ -228,7 +236,9 @@ public class SseConnectionManager implements SmartLifecycle {
             return;
         }
 
-        Sinks.EmitResult result = sink.tryEmitNext(message);
+        // 使用策略模式发射消息
+        EmitRetryStrategy strategy = retryStrategyResolver.resolve(topic);
+        Sinks.EmitResult result = strategy.emit(sink, message);
 
         if (result.isFailure()) {
             metrics.recordPublish(topic, "EMIT_FAILURE");
@@ -254,6 +264,9 @@ public class SseConnectionManager implements SmartLifecycle {
         int successCount = 0;
         int failCount = 0;
 
+        // 解析重试策略（整个发布操作使用同一策略）
+        EmitRetryStrategy strategy = retryStrategyResolver.resolve(topic);
+
         for (String routingKey : routingKeys) {
             Set<String> connIds = registry.getConnectionIdsByRoutingKey(topic, routingKey);
             for (String connId : connIds) {
@@ -263,7 +276,7 @@ public class SseConnectionManager implements SmartLifecycle {
                     failCount++;
                     continue;
                 }
-                Sinks.EmitResult result = directedSink.tryEmitNext(message);
+                Sinks.EmitResult result = strategy.emit(directedSink, message);
                 if (result.isFailure()) {
                     failCount++;
                     log.debug("[Publish] 定向投递失败: topic={}, connectionId={}, result={}",

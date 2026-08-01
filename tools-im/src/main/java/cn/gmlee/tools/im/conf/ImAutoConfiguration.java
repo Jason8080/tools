@@ -14,6 +14,8 @@ import cn.gmlee.tools.im.sse.cleanup.ConnectionReaper;
 import cn.gmlee.tools.im.sse.metrics.MicrometerSseMetrics;
 import cn.gmlee.tools.im.sse.metrics.NoOpSseMetrics;
 import cn.gmlee.tools.im.sse.metrics.SseMetrics;
+import cn.gmlee.tools.im.sse.retry.EmitRetryStrategyFactory;
+import cn.gmlee.tools.im.sse.retry.EmitRetryStrategyResolver;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,12 +81,19 @@ public class ImAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
+    public EmitRetryStrategyResolver emitRetryStrategyResolver(SseProperties properties) {
+        return EmitRetryStrategyFactory.createResolver(properties.getEmitRetry());
+    }
+
+    @Bean
     public SseConnectionManager sseConnectionManager(SseProperties properties,
                                                       SseConnectionRegistry registry,
                                                       SseMetrics metrics,
                                                       ConnectionReaper reaper,
+                                                      EmitRetryStrategyResolver retryStrategyResolver,
                                                       @Autowired(required = false) List<SseConnectionListener> listeners) {
-        return new SseConnectionManager(properties, registry, metrics, reaper, listeners);
+        return new SseConnectionManager(properties, registry, metrics, reaper, listeners, retryStrategyResolver);
     }
 
     /**

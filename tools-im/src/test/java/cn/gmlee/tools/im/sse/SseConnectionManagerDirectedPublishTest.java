@@ -9,6 +9,7 @@ import cn.gmlee.tools.im.sse.backpressure.BackpressureStrategyResolver;
 import cn.gmlee.tools.im.sse.backpressure.DropOldestBackpressureStrategy;
 import cn.gmlee.tools.im.sse.cleanup.ConnectionReaper;
 import cn.gmlee.tools.im.sse.metrics.NoOpSseMetrics;
+import cn.gmlee.tools.im.sse.retry.EmitRetryStrategyResolver;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -55,7 +56,8 @@ class SseConnectionManagerDirectedPublishTest {
         registry.setMetrics(NoOpSseMetrics.INSTANCE);
 
         ConnectionReaper reaper = new ConnectionReaper(registry, NoOpSseMetrics.INSTANCE, properties);
-        manager = new SseConnectionManager(properties, registry, NoOpSseMetrics.INSTANCE, reaper, Collections.emptyList());
+        EmitRetryStrategyResolver retryResolver = EmitRetryStrategyResolver.createDefault();
+        manager = new SseConnectionManager(properties, registry, NoOpSseMetrics.INSTANCE, reaper, Collections.emptyList(), retryResolver);
     }
 
     // ==================== 辅助方法 ====================
