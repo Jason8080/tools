@@ -774,14 +774,14 @@ td code { font-size: 13px; }
       <p>进（Publisher）→ 转（Repeater）→ 出（Subscriber），每层职责单一、可独立替换，架构清晰可扩展。</p>
     </div>
     <div class="card">
-      <div class="card-icon">&#x1F50C;</div>
-      <h4>SSE 实时推送</h4>
-      <p>原生 Server-Sent Events 支持，浏览器 EventSource 直连，无需额外客户端 SDK。</p>
+      <div class="card-icon">&#x1F500;</div>
+      <h4>双通道投递</h4>
+      <p>广播（topicSink，O(1)）+ 定向（routingKeyIndex + directedSink，O(K)），统一两种投递模式。</p>
     </div>
     <div class="card">
-      <div class="card-icon">&#x1F9E9;</div>
-      <h4>SPI 扩展点</h4>
-      <p>Factory / Interceptor / AccessFilter / Listener，零侵入扩展，按需渐进式自定义。</p>
+      <div class="card-icon">&#x1F6E1;</div>
+      <h4>三层清理</h4>
+      <p>doFinally（95%）+ Reaper（4.9%）+ maxLifetime（0.1%），保证连接不泄露。</p>
     </div>
   </div>
 
@@ -893,9 +893,24 @@ td code { font-size: 13px; }
       <p>SSE 连接管理器。连接注册/注销、背压策略、心跳保活、定时清理、优雅关闭。</p>
     </div>
     <div class="card">
-      <div class="card-icon">&#x1F9E9;</div>
-      <h4>SPI 扩展点</h4>
-      <p>Factory / Interceptor / AccessFilter / Listener，零侵入扩展，按需渐进式自定义。</p>
+      <div class="card-icon">&#x1F4BE;</div>
+      <h4>SseConnectionRegistry</h4>
+      <p>连接存储与索引。管理双通道架构（topicSink + directedSink），维护 routingKeyIndex 反向索引。</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#x267B;</div>
+      <h4>TopicLifecycleManager</h4>
+      <p>Topic 生命周期管理。状态机（CREATED → ACTIVE → DESTROYING → DESTROYED）、引用计数、自动清理空闲 Topic。</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#x1F50D;</div>
+      <h4>ConnectionReaper</h4>
+      <p>连接收割器。三层清理的第二层，定时扫描僵尸连接（30s），异步强制关闭，防止资源泄露。</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#x1F9ED;</div>
+      <h4>RoutingKeyComposer</h4>
+      <p>路由键组合策略。双通道投递的核心，支持广播和按 routingKey 定向投递，可自定义路由规则。</p>
     </div>
     <div class="card">
       <div class="card-icon">&#x1F4CA;</div>
@@ -1660,12 +1675,25 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
     </table>
   </div>
 
-  <div class="callout callout-warn">
-    <span class="callout-icon">&#x26A0;</span>
+  <div class="callout callout-info">
+    <span class="callout-icon">&#x1F6E1;</span>
     <div>
-      <strong>瓶颈分析：Reactor Sinks 的并发限制</strong>
-      <p>多线程并发 <code>tryEmitNext()</code> 时，只有一个线程能成功，其他返回 <code>FAIL_NON_SERIALIZED</code>。这是 <b>fail-fast 设计</b>，框架不重试。典型 IM 场景（MQ Consumer 单线程消费）下性能极佳，高并发发布场景需评估是否可接受消息丢失。</p>
-      <p><strong>解决方案</strong>：使用 <code>emitNext(value, EmitFailureHandler.busyLooping(timeout))</code> 或外部 MPSC 队列序列化。</p>
+      <strong>可靠性保障：内置重试机制</strong>
+      <p>多线程并发 <code>tryEmitNext()</code> 时，CAS 竞争可能导致消息丢失（返回 <code>FAIL_NON_SERIALIZED</code>）。框架提供<strong>内置重试策略</strong>，通过策略模式支持四种重试机制：</p>
+      <ul style="margin-top: 8px;">
+        <li><b>no-retry</b>（默认）：单次尝试，性能最优，适合单线程发布场景</li>
+        <li><b>busy-loop</b>：忙等待重试直到成功或超时，可靠性最高</li>
+        <li><b>bounded</b>：固定次数重试，平衡可靠性和资源消耗</li>
+        <li><b>exponential-backoff</b>：指数退避重试，适合高并发竞争场景</li>
+      </ul>
+      <p style="margin-top: 8px;">配置示例：</p>
+      <pre style="background: #f8f9fa; padding: 12px; border-radius: 6px; margin-top: 4px;"><code>im:
+  sse:
+    emit-retry:
+      default-strategy: busy-loop  # 默认策略
+      busy-loop-timeout: 100ms     # 超时时间
+      topic-overrides:
+        im.chat: bounded           # 按 Topic 覆盖策略</code></pre>
     </div>
   </div>
 
