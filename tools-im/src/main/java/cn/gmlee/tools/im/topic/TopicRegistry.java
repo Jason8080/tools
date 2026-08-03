@@ -279,7 +279,7 @@ public class TopicRegistry {
      */
     public Publisher<?, ?> createDefaultPublisher(String topic) {
         List<String> routingKeys = sseProperties != null ? sseProperties.getRoutingKeys() : null;
-        return new DefaultPublisher(topic, () -> getRepeater(topic), routingKeys, composer);
+        return new DefaultPublisher(topic, () -> ensureRepeater(topic), routingKeys, composer);
     }
 
     /**
@@ -299,7 +299,7 @@ public class TopicRegistry {
      * @return 默认 Subscriber
      */
     public Subscriber<?> createDefaultSubscriber(String topic) {
-        return new DefaultSubscriber(topic, () -> getRepeater(topic));
+        return new DefaultSubscriber(topic, () -> ensureRepeater(topic));
     }
 
     // ==================== Consumer Bridge ====================
@@ -316,7 +316,7 @@ public class TopicRegistry {
      * @return ConsumerBridge 实例
      */
     ConsumerBridge createConsumerBridge(String topic) {
-        return new ConsumerBridge(getRepeater(topic));
+        return new ConsumerBridge(ensureRepeater(topic));
     }
 
     // ==================== 内部泛型辅助方法 ====================
@@ -352,14 +352,14 @@ public class TopicRegistry {
             // raw Supplier 传给 raw PublisherFactory.create()，运行时类型安全
             Publisher<?, ?> component = null;
             for (PublisherFactory factory : publisherFactories) {
-                component = factory.create(t, () -> getRepeater(t));
+                component = factory.create(t, () -> ensureRepeater(t));
                 if (component != null) {
                     log.info("[TopicRegistry] 使用自定义 Publisher: topic={}, factory={}",
                             t, factory.getClass().getSimpleName());
                     return component;
                 }
             }
-            Publisher<?, ?> def = new DefaultPublisher(t, () -> getRepeater(t), routingKeys, composer);
+            Publisher<?, ?> def = new DefaultPublisher(t, () -> ensureRepeater(t), routingKeys, composer);
             log.info("[TopicRegistry] 创建默认 Publisher: topic={}", t);
             return def;
         });
@@ -370,14 +370,14 @@ public class TopicRegistry {
         return subscribers.computeIfAbsent(topic, t -> {
             Subscriber<?> component = null;
             for (SubscriberFactory factory : subscriberFactories) {
-                component = factory.create(t, () -> getRepeater(t));
+                component = factory.create(t, () -> ensureRepeater(t));
                 if (component != null) {
                     log.info("[TopicRegistry] 使用自定义 Subscriber: topic={}, factory={}",
                             t, factory.getClass().getSimpleName());
                     return component;
                 }
             }
-            Subscriber<?> def = new DefaultSubscriber(t, () -> getRepeater(t));
+            Subscriber<?> def = new DefaultSubscriber(t, () -> ensureRepeater(t));
             log.info("[TopicRegistry] 创建默认 Subscriber: topic={}", t);
             return def;
         });
