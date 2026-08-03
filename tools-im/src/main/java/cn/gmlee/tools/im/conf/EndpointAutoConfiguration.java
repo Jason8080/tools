@@ -28,6 +28,10 @@ import org.springframework.cloud.stream.binding.BindingService;
 import org.springframework.cloud.stream.config.BindingServiceProperties;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.beans.factory.support.BeanDefinitionBuilder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
@@ -54,6 +58,7 @@ import java.util.List;
 @Slf4j
 @AutoConfiguration(after = ImAutoConfiguration.class)
 @ConditionalOnClass({StreamBridge.class, BindingServiceProperties.class})
+@Import(EndpointAutoConfiguration.Registrar.class)
 public class EndpointAutoConfiguration {
 
     private final ImProperties imProperties;
@@ -211,6 +216,25 @@ public class EndpointAutoConfiguration {
             } catch (Exception e) {
                 log.error("[EndpointAutoConfiguration] 加载端点失败: {}", props, e);
             }
+        }
+    }
+
+    /**
+     * 通过 {@code @Import} 将 {@link BeanDefinitionRegistry} 注册为 Spring Bean，
+     * 解决 Spring Boot 4.x 不再直接暴露 {@code BeanDefinitionRegistry} 的问题。
+     */
+    @Configuration(proxyBeanMethods = false)
+    static class Registrar implements BeanDefinitionRegistryPostProcessor {
+
+        @Override
+        public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
+            registry.registerBeanDefinition("imBeanDefinitionRegistry",
+                    BeanDefinitionBuilder.genericBeanDefinition(BeanDefinitionRegistry.class, () -> registry)
+                            .getBeanDefinition());
+        }
+
+        @Override
+        public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
         }
     }
 }
