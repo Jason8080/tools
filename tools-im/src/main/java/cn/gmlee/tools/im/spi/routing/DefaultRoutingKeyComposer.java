@@ -1,14 +1,9 @@
 package cn.gmlee.tools.im.spi.routing;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 默认路由键组合器.
@@ -51,8 +46,6 @@ import java.util.Set;
  *
  * @since 5.6.0
  */
-@Component
-@ConditionalOnMissingBean(RoutingKeyComposer.class)
 public class DefaultRoutingKeyComposer implements RoutingKeyComposer {
 
     private static final String KV_SEPARATOR = "=";
