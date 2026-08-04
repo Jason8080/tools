@@ -125,22 +125,17 @@ public class SseConnectionManager implements SmartLifecycle {
     /**
      * 订阅 Topic.
      * <p>
-     * 返回延迟执行的 Flux，在实际订阅时执行预检查和连接创建。
-     * 完整流程：
-     * <ol>
-     *   <li>预检查：是否接受新连接</li>
-     *   <li>计数器递增：CAS 循环检查全局/Topic 限制</li>
-     *   <li>二次检查：防止 CAS 期间进入关闭流程</li>
-     *   <li>Flux 构建：委托给 {@link SseConnectionFluxBuilder}</li>
-     * </ol>
+     * 立即执行预检查和连接创建（eager），然后通过 {@code contextWrite} 将连接引用写入
+     * Reactor Context。调用方在外层使用 {@code deferContextual} 读取连接。
      * </p>
      * <p>
-     * 返回的 Flux 通过 Reactor Context 携带连接引用，键为 {@link #CONTEXT_KEY_CONNECTION}。
-     * 调用方可通过 {@code Flux.deferContextual} 获取连接并执行操作（如心跳时调用 {@code touch()}）。
+     * <b>设计说明</b>：连接创建是及时的（非延迟），确保 {@code contextWrite} 的函数运行时
+     * 连接已存在。{@code contextWrite} 位于最外层，{@code deferContextual} 作为其直接订阅者
+     * 可通过 {@code onSubscribe} 信号读取到连接。
      * </p>
      * <p>
-     * <b>注意</b>：返回的 Flux 必须被订阅。如果 Flux 创建后未被订阅（如客户端在订阅前断开），
-     * 连接会在 {@code reaper.idleTimeout}（默认 3600s）后被 Reaper 作为空闲连接清理。
+     * 如果返回的 Flux 未被订阅，连接会在 {@code reaper.idleTimeout}（默认 3600s）后
+     * 被 Reaper 作为空闲连接清理。
      * </p>
      *
      * @param topic    Topic 名称
@@ -148,34 +143,37 @@ public class SseConnectionManager implements SmartLifecycle {
      * @return 消息流（Context 中携带连接引用）
      */
     public Flux<TopicMessage> subscribe(String topic, ConnectionMetadata metadata) {
-        return Flux.defer(() -> {
-            // 1. 预检查
-            if (!checkAccepting(topic)) {
-                return Flux.error(SseShutdownException.INSTANCE);
-            }
+        // 1. 预检查
+        if (!checkAccepting(topic)) {
+            return Flux.error(SseShutdownException.INSTANCE);
+        }
 
-            // 2. 获取连接许可
-            ConnectionCounter counter = registry.getCounter();
-            ConnectionCounter.AcquireResult acquireResult = counter.tryAcquire(
-                    topic, properties.getMaxTotalConnections(), properties.getMaxConnectionsPerTopic());
+        // 2. 获取连接许可
+        ConnectionCounter counter = registry.getCounter();
+        ConnectionCounter.AcquireResult acquireResult = counter.tryAcquire(
+                topic, properties.getMaxTotalConnections(), properties.getMaxConnectionsPerTopic());
 
-            if (!acquireResult.isSuccess()) {
-                recordRejection(topic, acquireResult.getException());
-                return Flux.error(acquireResult.getException());
-            }
+        if (!acquireResult.isSuccess()) {
+            recordRejection(topic, acquireResult.getException());
+            return Flux.error(acquireResult.getException());
+        }
 
-            // 3. 二次检查（防止 CAS 期间进入关闭流程）
-            if (!checkAccepting(topic)) {
-                counter.rollback(topic);
-                metrics.recordSubscribe(topic, "REJECTED_SHUTDOWN");
-                return Flux.error(SseShutdownException.INSTANCE);
-            }
+        // 3. 二次检查（防止 CAS 期间进入关闭流程）
+        if (!checkAccepting(topic)) {
+            counter.rollback(topic);
+            metrics.recordSubscribe(topic, "REJECTED_SHUTDOWN");
+            return Flux.error(SseShutdownException.INSTANCE);
+        }
 
-            // 4. 构建连接流（委托给 FluxBuilder）
-            SseSubscription sub = SseConnectionFluxBuilder.build(topic, metadata, registry, metrics, properties, listeners);
-            // 将连接引用写入 Reactor Context
-            return sub.getFlux().contextWrite(ctx -> ctx.put(CONTEXT_KEY_CONNECTION, sub.getConnection()));
-        });
+        // 4. 创建连接（eager — 确保 contextWrite 函数运行时连接已存在）
+        SseSubscription sub = SseConnectionFluxBuilder.build(topic, metadata, registry, metrics, properties, listeners);
+        SseConnection conn = sub.getConnection();
+
+        // 5. 用 defer() 包装数据流，contextWrite 在最外层写入连接
+        // contextWrite 作为最外层 operator，其 subscriber（即 deferContextual）可通过
+        // onSubscribe 信号读取到连接（Context 从 source 向 subscriber 方向传播）
+        return Flux.defer(() -> sub.getFlux())
+                .contextWrite(ctx -> ctx.put(CONTEXT_KEY_CONNECTION, conn));
     }
 
     /**

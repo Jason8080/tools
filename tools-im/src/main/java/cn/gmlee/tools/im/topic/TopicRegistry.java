@@ -14,6 +14,7 @@ import cn.gmlee.tools.im.ex.TopicNotFoundException;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.stream.function.StreamBridge;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Collections;
 import java.util.List;
@@ -107,6 +108,11 @@ public class TopicRegistry {
     private final RoutingKeyComposer composer;
 
     /**
+     * JSON 序列化器（用于 ConsumerBridge 反序列化消息）
+     */
+    private final ObjectMapper objectMapper;
+
+    /**
      * 创建 Topic 组件注册表.
      *
      * @param publisherFactories   Publisher 工厂列表（Spring 注入，可为 null）
@@ -123,7 +129,7 @@ public class TopicRegistry {
                          SseConnectionManager sseConnectionManager,
                          List<RepeaterInterceptor> interceptors) {
         this(publisherFactories, repeaterFactories, subscriberFactories,
-                streamBridge, sseConnectionManager, interceptors, null, null);
+                streamBridge, sseConnectionManager, interceptors, null, null, null);
     }
 
     /**
@@ -145,7 +151,7 @@ public class TopicRegistry {
                          List<RepeaterInterceptor> interceptors,
                          SseProperties sseProperties) {
         this(publisherFactories, repeaterFactories, subscriberFactories,
-                streamBridge, sseConnectionManager, interceptors, sseProperties, null);
+                streamBridge, sseConnectionManager, interceptors, sseProperties, null, null);
     }
 
     /**
@@ -168,6 +174,32 @@ public class TopicRegistry {
                          List<RepeaterInterceptor> interceptors,
                          SseProperties sseProperties,
                          RoutingKeyComposer composer) {
+        this(publisherFactories, repeaterFactories, subscriberFactories,
+                streamBridge, sseConnectionManager, interceptors, sseProperties, composer, null);
+    }
+
+    /**
+     * 创建 Topic 组件注册表（完整参数）.
+     *
+     * @param publisherFactories   Publisher 工厂列表（Spring 注入，可为 null）
+     * @param repeaterFactories    Repeater 工厂列表（Spring 注入，可为 null）
+     * @param subscriberFactories  Subscriber 工厂列表（Spring 注入，可为 null）
+     * @param streamBridge         Stream 桥接器
+     * @param sseConnectionManager SSE 连接管理器
+     * @param interceptors         Repeater 拦截器列表（Spring 注入，可为 null）
+     * @param sseProperties        SSE 配置（用于传递 routingKeys 等配置到默认组件，可为 null）
+     * @param composer             路由键组合器（用于传递给默认 Publisher，可为 null 使用默认实现）
+     * @param objectMapper         JSON 序列化器（用于 ConsumerBridge 反序列化消息，可为 null 使用默认实例）
+     */
+    public TopicRegistry(List<PublisherFactory> publisherFactories,
+                         List<RepeaterFactory> repeaterFactories,
+                         List<SubscriberFactory> subscriberFactories,
+                         StreamBridge streamBridge,
+                         SseConnectionManager sseConnectionManager,
+                         List<RepeaterInterceptor> interceptors,
+                         SseProperties sseProperties,
+                         RoutingKeyComposer composer,
+                         ObjectMapper objectMapper) {
         this.publisherFactories = publisherFactories != null ? publisherFactories : Collections.emptyList();
         this.repeaterFactories = repeaterFactories != null ? repeaterFactories : Collections.emptyList();
         this.subscriberFactories = subscriberFactories != null ? subscriberFactories : Collections.emptyList();
@@ -176,6 +208,7 @@ public class TopicRegistry {
         this.interceptors = interceptors != null ? interceptors : Collections.emptyList();
         this.sseProperties = sseProperties;
         this.composer = composer;
+        this.objectMapper = objectMapper != null ? objectMapper : new ObjectMapper();
     }
 
     // ==================== Ensure 方法（幂等，供框架内部使用） ====================
@@ -316,7 +349,7 @@ public class TopicRegistry {
      * @return ConsumerBridge 实例
      */
     ConsumerBridge createConsumerBridge(String topic) {
-        return new ConsumerBridge(ensureRepeater(topic));
+        return new ConsumerBridge(ensureRepeater(topic), objectMapper);
     }
 
     // ==================== 内部泛型辅助方法 ====================

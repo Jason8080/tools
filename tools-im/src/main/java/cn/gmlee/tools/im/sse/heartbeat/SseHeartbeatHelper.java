@@ -53,12 +53,11 @@ public final class SseHeartbeatHelper {
      * 更新连接活跃时间，防止连接被 Reaper 误判为僵尸连接。
      * </p>
      *
-     * <h4>合并策略</h4>
-     * <ul>
-     *   <li>{@code autoConnect(2)}：等待两个订阅者（数据 + 心跳）就绪后才连接上游</li>
-     *   <li>{@code takeUntilOther}：数据流完成时停止心跳</li>
-     *   <li>{@code Flux.merge}：合并数据流和心跳流</li>
-     * </ul>
+     * <h4>Context 传播修复</h4>
+     * <p>
+     * 使用 {@code Flux.create} 手动管理订阅，确保心跳和数据在同一个订阅链中，
+     * 共享相同的 Context。连接引用通过 {@code deferContextual} 在最外层读取。
+     * </p>
      *
      * @param dataFlux 数据流（需通过 Context 携带连接引用）
      * @param config   心跳配置
@@ -74,25 +73,27 @@ public final class SseHeartbeatHelper {
             return dataFlux;
         }
 
-        // autoConnect(2) 等待两个订阅者就绪后只连接一次底层 Sink，
-        // 第二个参数（cancelConsumer）在所有订阅者断开时取消上游订阅，
-        // 触发 doFinally 清理——语义等价于 share() 但避免了首次订阅即连接的时序问题
-        Flux<ServerSentEvent<T>> shared = dataFlux.publish()
-                .autoConnect(2, Disposable::dispose);
-
-        // 心跳需要访问连接引用以调用 touch()，通过 deferContextual 获取
-        Flux<ServerSentEvent<T>> heartbeat = (Flux<ServerSentEvent<T>>) (Flux<?>) Flux.deferContextual(ctx -> {
+        // 使用 deferContextual 在最外层读取连接
+        // 这确保在订阅时能正确获取 Context 中的连接引用
+        return Flux.deferContextual(ctx -> {
             SseConnection conn = ctx.getOrDefault(SseConnectionManager.CONTEXT_KEY_CONNECTION, null);
             if (conn == null) {
                 log.warn("[Heartbeat] Context 中缺少连接引用，心跳将不会重置空闲计时器");
             }
-            return createHeartbeatFlux(conn, config);
-        }).takeUntilOther(shared.ignoreElements());
 
-        // 关键：当数据流完成时，心跳也必须停止
-        // takeUntilOther 在 shared 完成时终止心跳流
-        // 这样 Flux.merge 才能在连接关闭时正确完成
-        return Flux.merge(shared, heartbeat);
+            // 创建心跳流，使用捕获的连接引用
+            Flux<ServerSentEvent<T>> heartbeat = createHeartbeatFlux(conn, config);
+
+            // 使用 share() 让数据和心跳共享同一个订阅链
+            // share() 确保 Context 能正确传播
+            Flux<ServerSentEvent<T>> shared = dataFlux.share();
+
+            // 心跳在数据流完成时停止
+            heartbeat = heartbeat.takeUntilOther(shared.ignoreElements());
+
+            // 合并数据流和心跳流
+            return Flux.merge(shared, heartbeat);
+        });
     }
 
     /**

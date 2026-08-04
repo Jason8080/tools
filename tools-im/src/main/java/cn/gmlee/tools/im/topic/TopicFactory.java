@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.GenericBeanDefinition;
-import org.springframework.cloud.stream.binding.BindingService;
 import org.springframework.cloud.stream.config.BindingProperties;
 import org.springframework.cloud.stream.config.BindingServiceProperties;
 
@@ -27,16 +26,18 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li><b>PULL 端点</b>：注册输入 binding（{@code {topic}.consumer-in-0}）+ Consumer Bean</li>
  * </ul>
  *
+ * <h3>Consumer binding 启动</h3>
+ * <p>
+ * 不手动调用 {@code BindingService.bindConsumer()}（该 API 不适用于函数式编程模型，
+ * 会把 Consumer 类名误识别为 binder 名称）。
+ * 只需注册 Consumer Bean 和 binding 配置，Spring Cloud Stream 的自动发现机制
+ * 会在上下文初始化时自动创建 binding。
+ * </p>
+ *
  * <h3>幂等保证</h3>
  * <p>
  * 同一 Topic 的相同资源只创建一次。多个端点共享同一 Topic 时（如同一 Topic 既有 PUSH 又有 PULL），
  * 各自的资源独立创建、互不干扰。
- * </p>
- *
- * <h3>创建时机</h3>
- * <p>
- * YAML 配置的端点在启动时批量注册，TopicFactory 在 {@code @PostConstruct} 阶段为它们创建资源。
- * 运行时通过 API 注册的端点触发 {@link EndpointChangeListener} 回调，实时创建资源。
  * </p>
  *
  * @since 5.6.0
@@ -46,7 +47,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TopicFactory implements EndpointChangeListener {
 
     private final BindingServiceProperties bindingServiceProperties;
-    private final BindingService bindingService;
     private final BeanDefinitionRegistry beanDefinitionRegistry;
     private final TopicRegistry topicRegistry;
 
@@ -91,7 +91,8 @@ public class TopicFactory implements EndpointChangeListener {
      * {@code Consumer<TopicMessage<Msg>>} 接口）。
      * </p>
      * <p>
-     * 运行时注册的端点会立即启动 Consumer binding，无需重启应用。
+     * <b>注意</b>：不手动调用 {@code BindingService.bindConsumer()}。
+     * Spring Cloud Stream 在上下文初始化时会自动发现注册的 Consumer Bean 并创建 binding。
      * </p>
      *
      * @param topic Topic 名称
@@ -103,9 +104,7 @@ public class TopicFactory implements EndpointChangeListener {
         topicRegistry.ensureRepeater(topic);
         registerInputBinding(topic);
         registerConsumerBean(topic);
-
-        // 运行时启动 Consumer binding（Spring Cloud Stream 不会自动发现运行时注册的 Bean）
-        startConsumerBinding(topic);
+        // Spring Cloud Stream 自动发现 Consumer Bean 并创建 binding，无需手动调用 bindConsumer()
     }
 
     /**
@@ -165,59 +164,6 @@ public class TopicFactory implements EndpointChangeListener {
         beanDef.setInstanceSupplier(() -> bridge);
         beanDefinitionRegistry.registerBeanDefinition(beanName, beanDef);
         log.info("[TopicFactory] 注册 Consumer Bean: {} → ConsumerBridge", beanName);
-    }
-
-    /**
-     * 启动 Consumer binding（运行时动态注册场景）.
-     * <p>
-     * Spring Cloud Stream 在启动时自动发现 Consumer Bean 并创建 binding。
-     * 但运行时注册的 Consumer Bean 不会被自动发现，需要手动调用 {@link BindingService} 启动。
-     * </p>
-     * <p>
-     * 注意：此方法仅在运行时注册端点时调用。启动时注册的端点由 Spring Cloud Stream 自动处理。
-     * </p>
-     *
-     * @param topic Topic 名称
-     */
-    private void startConsumerBinding(String topic) {
-        String bindingName = BindingNames.inputBinding(topic);
-        try {
-            // 创建 ConsumerBridge 桥接泛型 Repeater 与 SSE 管道
-            ConsumerBridge bridge = topicRegistry.createConsumerBridge(topic);
-            // BindingService.bindConsumer 需要 Consumer 实例和 binding 名称
-            bindingService.bindConsumer(bridge, bindingName);
-            log.info("[TopicFactory] 启动 Consumer binding: {}", bindingName);
-        } catch (Exception e) {
-            log.error("[TopicFactory] 启动 Consumer binding 失败: {}", bindingName, e);
-            // 完整回滚：清理已注册的资源
-            rollbackInputBinding(topic);
-            throw new RuntimeException("启动 Consumer binding 失败: " + bindingName, e);
-        }
-    }
-
-    /**
-     * 回滚输入 binding 注册（失败时调用）.
-     *
-     * @param topic Topic 名称
-     */
-    private void rollbackInputBinding(String topic) {
-        inputBindingTopics.remove(topic);
-
-        // 移除 Bean 定义
-        String beanName = BindingNames.consumerBean(topic);
-        if (beanDefinitionRegistry.containsBeanDefinition(beanName)) {
-            try {
-                beanDefinitionRegistry.removeBeanDefinition(beanName);
-                log.debug("[TopicFactory] 回滚 Consumer Bean: {}", beanName);
-            } catch (Exception e) {
-                log.warn("[TopicFactory] 回滚 Consumer Bean 失败: {}", beanName, e);
-            }
-        }
-
-        // 移除 binding 配置
-        String bindingName = BindingNames.inputBinding(topic);
-        bindingServiceProperties.getBindings().remove(bindingName);
-        log.debug("[TopicFactory] 回滚 input binding: {}", bindingName);
     }
 
     // ==================== 生命周期管理（供 TopicLifecycleManager 调用） ====================

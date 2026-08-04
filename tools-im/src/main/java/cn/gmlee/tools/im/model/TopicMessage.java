@@ -60,4 +60,62 @@ public class TopicMessage<ID extends Serializable, MSG extends Msg> implements S
     public String topic() {
         return topic;
     }
+
+    /**
+     * 从 Map 构建 TopicMessage（反序列化辅助方法）.
+     * <p>
+     * 将 Map 中的字段映射到 TopicMessage 属性。主要用于 Spring Cloud Stream
+     * 消息反序列化场景，避免 Jackson 直接反序列化泛型接口的问题。
+     * </p>
+     *
+     * <h3>字段映射规则</h3>
+     * <ul>
+     *   <li>{@code id} — 支持 {@link Number} 和 {@link String} 类型</li>
+     *   <li>{@code topic} — 字符串</li>
+     *   <li>{@code msg} — {@link Map} 类型自动转换为 {@link MessageMap}</li>
+     *   <li>{@code metadata} — {@link Map} 类型直接映射</li>
+     *   <li>{@code routingKeys} — {@link java.util.Collection} 类型转换为 {@link Set}</li>
+     * </ul>
+     *
+     * @param map JSON 反序列化后的 Map
+     * @return TopicMessage 实例（raw type，泛型由调用方保证）
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static TopicMessage fromMap(Map<String, Object> map) {
+        TopicMessage message = new TopicMessage();
+
+        // id: Number 或 String
+        Object id = map.get("id");
+        if (id instanceof Number) {
+            message.setId((Serializable) id);
+        } else if (id instanceof String) {
+            message.setId((String) id);
+        }
+
+        // topic: String
+        Object topic = map.get("topic");
+        if (topic instanceof String) {
+            message.setTopic((String) topic);
+        }
+
+        // msg: Map → MessageMap
+        Object msg = map.get("msg");
+        if (msg instanceof Map) {
+            message.setMsg(new MessageMap((Map<String, Object>) msg));
+        }
+
+        // metadata: Map
+        Object metadata = map.get("metadata");
+        if (metadata instanceof Map) {
+            message.setMetadata((Map<String, Object>) metadata);
+        }
+
+        // routingKeys: Collection → Set
+        Object routingKeys = map.get("routingKeys");
+        if (routingKeys instanceof java.util.Collection) {
+            message.setRoutingKeys(new java.util.HashSet<>((java.util.Collection<String>) routingKeys));
+        }
+
+        return message;
+    }
 }

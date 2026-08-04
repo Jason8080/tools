@@ -7,9 +7,10 @@ import cn.gmlee.tools.im.model.ConnectionMetadata;
 import cn.gmlee.tools.im.model.EndpointMode;
 import cn.gmlee.tools.im.model.MessageMap;
 import cn.gmlee.tools.im.model.Msg;
+import cn.gmlee.tools.im.sse.SseConnection;
+import cn.gmlee.tools.im.sse.SseConnectionManager;
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Subscriber;
-import cn.gmlee.tools.im.sse.heartbeat.SseHeartbeatHelper;
 import cn.gmlee.tools.im.spi.access.AccessContext;
 import cn.gmlee.tools.im.ex.AccessDeniedException;
 import cn.gmlee.tools.im.spi.access.AccessFilter;
@@ -206,6 +207,16 @@ public class EndpointRouter {
                             request.path(), e.getMessage(), e.getStatus());
                     return ServerResponse.status(e.getStatus()).build();
                 })
+                .onErrorResume(java.util.concurrent.CancellationException.class, e -> {
+                    // 客户端在连接建立前断开（如启动时序问题），这是预期行为，不记录 ERROR
+                    log.debug("[EndpointRouter] 客户端提前断开连接: path={}", request.path());
+                    return ServerResponse.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+                })
+                .onErrorResume(cn.gmlee.tools.im.ex.SseShutdownException.class, e -> {
+                    // 系统正在关闭，拒绝新连接
+                    log.debug("[EndpointRouter] 系统关闭中，拒绝连接: path={}", request.path());
+                    return ServerResponse.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+                })
                 .onErrorResume(Exception.class, e -> {
                     log.error("[EndpointRouter] 过滤器执行异常: path={}", request.path(), e);
                     return ServerResponse.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -267,11 +278,57 @@ public class EndpointRouter {
                             .data(messageMap)
                             .build();
                 });
-        Flux<ServerSentEvent<MessageMap>> withHeartbeat = SseHeartbeatHelper.wrapWithHeartbeat(
-                sseFlux, sseProperties.getHeartbeat());
+
+        // 心跳：deferContextual 读取连接（subscribe() 的 contextWrite 在最外层写入）
+        // Context 传播方向：contextWrite → deferContextual（source → subscriber 方向）
+        Flux<ServerSentEvent<MessageMap>> withHeartbeat = Flux.deferContextual(ctx -> {
+            SseConnection conn = ctx.getOrDefault(SseConnectionManager.CONTEXT_KEY_CONNECTION, null);
+            Flux<ServerSentEvent<MessageMap>> heartbeat = createHeartbeatSse(conn);
+            return Flux.merge(sseFlux, heartbeat);
+        });
+
         return ServerResponse.ok()
                 .contentType(MediaType.TEXT_EVENT_STREAM)
                 .body(withHeartbeat, ServerSentEvent.class);
+    }
+
+    /**
+     * 创建心跳 SSE 注释流.
+     * <p>
+     * 连接建立时立即发送一个初始心跳注释，触发浏览器 {@code EventSource.onopen}，
+     * 让客户端知道连接已建立。之后按配置间隔定期发送心跳，防止反向代理因空闲超时断开连接。
+     * 同时调用 {@link SseConnection#touch()} 重置空闲计时器，防止被 Reaper 误判。
+     * </p>
+     *
+     * @param conn 连接引用（可为 null）
+     * @return 心跳事件流
+     */
+    private Flux<ServerSentEvent<MessageMap>> createHeartbeatSse(SseConnection conn) {
+        SseProperties.HeartbeatConfig config = sseProperties.getHeartbeat();
+        if (!config.isEnabled()) {
+            return Flux.empty();
+        }
+
+        ServerSentEvent<MessageMap> heartbeatEvent = ServerSentEvent.<MessageMap>builder()
+                .comment(config.getComment())
+                .build();
+
+        // 立即发送初始心跳，触发浏览器 onopen；之后按间隔定期发送
+        Flux<ServerSentEvent<MessageMap>> periodic = Flux.interval(config.getInterval())
+                .map(tick -> {
+                    if (conn != null) {
+                        conn.touch(); // 重置空闲计时器，防止 Reaper 回收
+                    }
+                    return heartbeatEvent;
+                });
+
+        // 初始心跳：立即发送，让浏览器 EventSource 触发 onopen
+        return periodic.startWith(Flux.defer(() -> {
+            if (conn != null) {
+                conn.touch();
+            }
+            return Flux.just(heartbeatEvent);
+        }));
     }
 
     /**

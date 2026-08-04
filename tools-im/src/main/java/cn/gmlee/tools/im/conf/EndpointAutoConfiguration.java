@@ -24,7 +24,6 @@ import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.cloud.stream.binding.BindingService;
 import org.springframework.cloud.stream.config.BindingServiceProperties;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Bean;
@@ -107,16 +106,37 @@ public class EndpointAutoConfiguration {
      * 自动注册为 {@link EndpointRegistry} 的监听器，端点注册时按需创建 Stream 资源。
      * 支持运行时动态注册端点，无需重启应用。
      * </p>
+     *
+     * <h3>初始化顺序修复</h3>
+     * <p>
+     * 由于 {@code @PostConstruct registerYamlEndpoints()} 在 TopicFactory Bean 创建前已执行，
+     * 监听器会错过启动时注册的端点。因此在注册监听器后，立即为已存在的端点创建资源。
+     * </p>
+     *
+     * <h3>Consumer binding 启动</h3>
+     * <p>
+     * 不手动调用 {@code BindingService.bindConsumer()}（该 API 不适用于函数式编程模型）。
+     * Spring Cloud Stream 在上下文初始化时会自动发现注册的 Consumer Bean 并创建 binding。
+     * </p>
      */
     @Bean
     @ConditionalOnMissingBean
     public TopicFactory topicFactory(EndpointRegistry endpointRegistry,
                                       BindingServiceProperties bindingServiceProperties,
-                                      BindingService bindingService,
                                       TopicRegistry topicRegistry) {
         TopicFactory factory = new TopicFactory(
-                bindingServiceProperties, bindingService, beanDefinitionRegistry, topicRegistry);
+                bindingServiceProperties, beanDefinitionRegistry, topicRegistry);
         endpointRegistry.addListener(factory);
+
+        // 修复初始化顺序问题：为启动时注册的端点创建资源（监听器错过了这些端点）
+        for (EndpointProperties props : endpointRegistry.listAll()) {
+            try {
+                factory.ensureResources(props);
+            } catch (Exception e) {
+                log.error("[EndpointAutoConfiguration] 为已有端点创建资源失败: {}", props.getPath(), e);
+            }
+        }
+
         return factory;
     }
 
