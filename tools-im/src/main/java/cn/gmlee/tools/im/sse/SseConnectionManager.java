@@ -337,15 +337,20 @@ public class SseConnectionManager implements SmartLifecycle {
 
     /**
      * 强制关闭指定连接.
+     * <p>
+     * 只发送完成信号（tryEmitComplete），不调用 cancel()，让客户端自然断开。
+     * 这样客户端能立即感知连接关闭，HTTP 响应正常结束，EventSource 自动重连。
+     * </p>
      */
     public boolean forceClose(String connectionId) {
         SseConnection conn = registry.getConnection(connectionId);
         if (conn != null && conn.markClosed()) {
             try {
+                // 发送完成信号：cleanupConnection → unregister → tryEmitComplete()
+                // 客户端收到 onComplete 信号后，HTTP 响应正常结束，自动检测到断开
                 registry.cleanupConnection(conn, metrics);
             } finally {
-                // 确保即使 cleanupConnection 抛出异常，订阅也被取消、状态也被置为 CLOSED
-                conn.cancel();
+                // 不调用 cancel()，让 Flux 的 complete 信号正常传播到客户端
                 conn.completeClose();
             }
             log.info("[ForceClose] 完成: connectionId={}", connectionId);
@@ -542,6 +547,10 @@ public class SseConnectionManager implements SmartLifecycle {
 
     /**
      * 强制关闭所有连接.
+     * <p>
+     * 只发送完成信号（tryEmitComplete），不调用 cancel()，让客户端自然断开。
+     * 这样客户端能立即感知连接关闭，HTTP 响应正常结束。
+     * </p>
      */
     private int forceCloseAllConnections() {
         int[] count = {0};
@@ -549,9 +558,10 @@ public class SseConnectionManager implements SmartLifecycle {
             try {
                 if (conn.markClosed()) {
                     try {
+                        // 发送完成信号：cleanupConnection → unregister → tryEmitComplete()
                         registry.cleanupConnection(conn, metrics);
                     } finally {
-                        conn.cancel();
+                        // 不调用 cancel()，让 Flux 的 complete 信号正常传播到客户端
                         conn.completeClose();
                     }
                     count[0]++;

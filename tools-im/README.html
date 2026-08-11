@@ -1526,6 +1526,145 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
     </table>
   </div>
 
+  <h3>三层清理机制</h3>
+  <p>SSE 连接生命周期由三层清理机制共同管理，每层职责不同，协同保证连接不泄露：</p>
+
+  <!-- 三层清理可视化 -->
+  <div style="background: #fff; border-radius: 12px; padding: 40px 24px; margin-bottom: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #F3F4F6;">
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+
+      <!-- 第一层：doFinally -->
+      <div style="display: flex; align-items: stretch; gap: 16px;">
+        <div style="flex: 0 0 60px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px;">
+          L1
+        </div>
+        <div style="flex: 1; background: #f0fdf4; border: 2px solid #86efac; border-radius: 12px; padding: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+            <div>
+              <h4 style="margin: 0 0 8px 0; color: #166534; font-size: 16px;">&#x1F6E1; doFinally（响应式清理）</h4>
+              <p style="margin: 0; font-size: 14px; color: #374151;">客户端主动断开 / 网络中断 / 错误 / 完成</p>
+            </div>
+            <div style="background: #166534; color: white; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; white-space: nowrap;">
+              被动响应
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px; font-size: 13px; color: #4B5563;">
+            <div><strong>目标：</strong>释放资源</div>
+            <div><strong>占比：</strong>~95%</div>
+            <div><strong>客户端感知：</strong>&#x2705; 立即</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 第二层：Reaper 空闲检查 -->
+      <div style="display: flex; align-items: stretch; gap: 16px;">
+        <div style="flex: 0 0 60px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px;">
+          L2
+        </div>
+        <div style="flex: 1; background: #fffbeb; border: 2px solid #fcd34d; border-radius: 12px; padding: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+            <div>
+              <h4 style="margin: 0 0 8px 0; color: #92400e; font-size: 16px;">&#x1F50D; Reaper 空闲检查（自然完成）</h4>
+              <p style="margin: 0; font-size: 14px; color: #374151;">空闲超时（默认 3600s）· 基于 <code>lastActivityAt</code></p>
+            </div>
+            <div style="background: #92400e; color: white; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; white-space: nowrap;">
+              自然完成
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px; font-size: 13px; color: #4B5563; margin-bottom: 12px;">
+            <div><strong>目标：</strong>让客户端感知并重连</div>
+            <div><strong>占比：</strong>~4.9%</div>
+            <div><strong>客户端感知：</strong>&#x2705; 立即</div>
+          </div>
+          <div style="background: #fff; padding: 12px; border-radius: 8px; font-size: 13px; color: #374151; border-left: 3px solid #f59e0b;">
+            <strong>关闭方式：</strong><code>tryEmitComplete()</code> 不用 <code>cancel()</code>，让 Flux 的 complete 信号正常传播到客户端，EventSource 自动重连
+          </div>
+        </div>
+      </div>
+
+      <!-- 第三层：Reaper 过期检查 -->
+      <div style="display: flex; align-items: stretch; gap: 16px;">
+        <div style="flex: 0 0 60px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px;">
+          L3
+        </div>
+        <div style="flex: 1; background: #fef2f2; border: 2px solid #fca5a5; border-radius: 12px; padding: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+            <div>
+              <h4 style="margin: 0 0 8px 0; color: #991b1b; font-size: 16px;">&#x23F0; Reaper 过期检查（强制关闭）</h4>
+              <p style="margin: 0; font-size: 14px; color: #374151;">超过最大存活时间（默认 24h）· 基于 <code>createdAt</code></p>
+            </div>
+            <div style="background: #991b1b; color: white; padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; white-space: nowrap;">
+              强制关闭
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px; font-size: 13px; color: #4B5563; margin-bottom: 12px;">
+            <div><strong>目标：</strong>防止连接泄漏</div>
+            <div><strong>占比：</strong>~0.1%</div>
+            <div><strong>客户端感知：</strong>&#x26A0; 强制断开</div>
+          </div>
+          <div style="background: #fff; padding: 12px; border-radius: 8px; font-size: 13px; color: #374151; border-left: 3px solid #ef4444;">
+            <strong>关闭方式：</strong>使用 <code>cancel()</code> 强制终止 Flux，确保长期存活的连接被立即关闭，防止资源泄漏
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 三层对比表 -->
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>层级</th>
+          <th>触发条件</th>
+          <th>时间基准</th>
+          <th>关闭方式</th>
+          <th>设计目标</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color: #166534;">L1 doFinally</strong></td>
+          <td>客户端断开 / 错误 / 完成</td>
+          <td>无（事件驱动）</td>
+          <td>被动清理</td>
+          <td>释放资源</td>
+        </tr>
+        <tr>
+          <td><strong style="color: #92400e;">L2 Reaper 空闲</strong></td>
+          <td>空闲超时（3600s）</td>
+          <td><code>lastActivityAt</code></td>
+          <td>自然完成（不用 cancel）</td>
+          <td>让客户端感知并重连</td>
+        </tr>
+        <tr>
+          <td><strong style="color: #991b1b;">L3 Reaper 过期</strong></td>
+          <td>超过最大存活时间（24h）</td>
+          <td><code>createdAt</code></td>
+          <td>强制关闭（用 cancel）</td>
+          <td>防止连接泄漏</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">&#x1F4A1;</span>
+    <div>
+      <strong>为什么 L2 和 L3 关闭方式不同？</strong>
+      <p>L2 空闲清理的目标是"让客户端感知并重连"，所以使用自然完成（<code>tryEmitComplete</code>），客户端收到 onComplete 信号后 EventSource 自动重连。L3 过期清理的目标是"防止连接泄漏"，所以使用强制关闭（<code>cancel()</code>），确保长期存活的连接被立即终止。</p>
+    </div>
+  </div>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">&#x1F504;</span>
+    <div>
+      <strong>优先级</strong>
+      <p>在 <code>ConnectionReaper.scan()</code> 中，过期检查（L3）优先于空闲检查（L2）。过期连接必须强制关闭，不应该再等待 gracePeriod。</p>
+    </div>
+  </div>
+
   <h3>配置驱动原理</h3>
   <p>框架通过 <code>im.endpoints</code> 配置自动完成所有基础设施创建：</p>
 

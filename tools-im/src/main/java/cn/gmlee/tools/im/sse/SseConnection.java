@@ -281,6 +281,20 @@ public class SseConnection {
     }
 
     /**
+     * 检查连接是否超过最大存活时间.
+     * <p>
+     * 用于第三层清理（maxConnectionLifetime），防止连接泄漏。
+     * 与 {@link #isIdle(long)} 不同，此方法基于连接创建时间，而非最后活跃时间。
+     * </p>
+     *
+     * @param maxLifetimeMillis 最大存活时间（毫秒）
+     * @return 存活时间超过阈值返回 true
+     */
+    public boolean isExpired(long maxLifetimeMillis) {
+        return (System.currentTimeMillis() - createdAt.toEpochMilli()) > maxLifetimeMillis;
+    }
+
+    /**
      * 主动取消 Flux 订阅.
      * <p>
      * 用于 Reaper/forceClose 路径：在标记关闭并递减计数器后，

@@ -164,6 +164,7 @@ public class ConnectionReaper {
 
             long idleTimeoutMs = properties.getReaper().getIdleTimeout().toMillis();
             long gracePeriodMs = properties.getReaper().getGracePeriod().toMillis();
+            long maxLifetimeMs = properties.getMaxConnectionLifetime().toMillis();
 
             // 捕获本地引用，避免 stop() 并发置 null 后 NPE
             ScheduledExecutorService s = this.scheduler;
@@ -174,15 +175,30 @@ public class ConnectionReaper {
 
             // 遍历所有连接（无内存分配）
             int[] zombieCount = {0};
+            int[] expiredCount = {0};
             registry.forEachConnection(conn -> {
-                if (conn.isIdle(idleTimeoutMs)) {
+                // 第三层清理：最大存活时间检查（防止连接泄漏）
+                // 优先级高于空闲检查，因为过期连接必须强制关闭
+                if (maxLifetimeMs > 0 && conn.isExpired(maxLifetimeMs)) {
+                    if (conn.tryDrain()) {
+                        long lifetimeMs = System.currentTimeMillis() - conn.getCreatedAt().toEpochMilli();
+                        log.debug("[Reaper] 检测到过期连接: topic={}, connectionId={}, lifetimeMs={}",
+                                conn.getTopic(), conn.getConnectionId(), lifetimeMs);
+
+                        // 过期连接立即强制关闭（使用 cancel）
+                        exec.submit(() -> forceCloseExpired(conn));
+                        expiredCount[0]++;
+                    }
+                }
+                // 第二层清理：空闲超时检查（让客户端感知并重连）
+                else if (conn.isIdle(idleTimeoutMs)) {
                     if (conn.tryDrain()) {
                         long idleMs = System.currentTimeMillis() - conn.getLastActivityAt().get();
                         log.debug("[Reaper] 检测到僵尸连接: topic={}, connectionId={}, idleMs={}",
                                 conn.getTopic(), conn.getConnectionId(), idleMs);
 
-                        // 调度延迟后提交到强制关闭执行器
-                        s.schedule(() -> exec.submit(() -> forceClose(conn)),
+                        // 空闲连接延迟后自然关闭（不用 cancel，让客户端重连）
+                        s.schedule(() -> exec.submit(() -> forceCloseIdle(conn)),
                                 gracePeriodMs, TimeUnit.MILLISECONDS);
                         zombieCount[0]++;
                     }
@@ -204,10 +220,10 @@ public class ConnectionReaper {
             // 清理空闲 Topic（通过 TopicLifecycleManager）
             int topicCleaned = cleanupIdleTopics();
 
-            if (zombieCount[0] > 0 || !cleanedTopics.isEmpty() || compacted > 0 || topicCleaned > 0) {
-                metrics.recordZombieReaped(zombieCount[0]);
-                log.info("[Reaper] 扫描完成: zombies={}, cleanedTopics={}, compacted={}, topicsCleaned={}",
-                        zombieCount[0], cleanedTopics.size(), compacted, topicCleaned);
+            if (zombieCount[0] > 0 || expiredCount[0] > 0 || !cleanedTopics.isEmpty() || compacted > 0 || topicCleaned > 0) {
+                metrics.recordZombieReaped(zombieCount[0] + expiredCount[0]);
+                log.info("[Reaper] 扫描完成: zombies={}, expired={}, cleanedTopics={}, compacted={}, topicsCleaned={}",
+                        zombieCount[0], expiredCount[0], cleanedTopics.size(), compacted, topicCleaned);
             }
         } catch (Exception e) {
             log.error("[Reaper] 扫描异常", e);
@@ -235,16 +251,49 @@ public class ConnectionReaper {
     }
 
     /**
-     * 强制关闭连接.
+     * 强制关闭空闲连接（第二层清理）.
+     * <p>
+     * 只发送完成信号（tryEmitComplete），不调用 cancel()，让客户端自然断开。
+     * 这样客户端能立即感知连接关闭，HTTP 响应正常结束，EventSource 自动重连。
+     * </p>
+     * <p>
+     * 适用场景：连接空闲超时，目标是让客户端感知并重连。
+     * </p>
      */
-    private void forceClose(SseConnection conn) {
+    private void forceCloseIdle(SseConnection conn) {
         if (conn.markClosed()) {
-            log.debug("[Reaper] 强制关闭僵尸连接: topic={}, connectionId={}",
+            log.debug("[Reaper] 关闭空闲连接: topic={}, connectionId={}",
+                    conn.getTopic(), conn.getConnectionId());
+            try {
+                // 发送完成信号：cleanupConnection → unregister → tryEmitComplete()
+                // 客户端收到 onComplete 信号后，HTTP 响应正常结束，自动检测到断开
+                registry.cleanupConnection(conn, metrics);
+            } finally {
+                // 不调用 cancel()，让 Flux 的 complete 信号正常传播到客户端
+                conn.completeClose();
+            }
+        }
+    }
+
+    /**
+     * 强制关闭过期连接（第三层清理）.
+     * <p>
+     * 使用 cancel() 立即终止连接，防止连接泄漏。
+     * 与 {@link #forceCloseIdle(SseConnection)} 不同，此方法会立即取消 Flux 订阅，
+     * 确保长期存活的连接被强制终止。
+     * </p>
+     * <p>
+     * 适用场景：连接超过最大存活时间（maxConnectionLifetime），目标是防止连接泄漏。
+     * </p>
+     */
+    private void forceCloseExpired(SseConnection conn) {
+        if (conn.markClosed()) {
+            log.debug("[Reaper] 强制关闭过期连接: topic={}, connectionId={}",
                     conn.getTopic(), conn.getConnectionId());
             try {
                 registry.cleanupConnection(conn, metrics);
             } finally {
-                // 确保即使 cleanupConnection 抛出异常，订阅也被取消
+                // 过期连接使用 cancel() 强制终止，确保连接被立即关闭
                 conn.cancel();
                 conn.completeClose();
             }

@@ -152,12 +152,9 @@ final class SseConnectionFluxBuilder {
         flux = flux.doOnSubscribe(sub -> handleOnSubscribe(conn, sub, listeners))
                 .doOnNext(msg -> conn.touch());
 
-        // 限制连接最大存活时间：到期后发送 onComplete，触发 doFinally 清理
-        // 客户端的 EventSource 会自动重连（SSE 标准行为）
-        Duration maxLifetime = properties.getMaxConnectionLifetime();
-        if (maxLifetime != null && !maxLifetime.isNegative() && !maxLifetime.isZero()) {
-            flux = flux.take(maxLifetime);
-        }
+        // 注意：maxConnectionLifetime 由 ConnectionReaper 统一管理（第三层清理）
+        // 不使用 flux.take()，而是通过 isExpired() 检查后强制关闭（cancel）
+        // 这样可以确保长期连接被强制终止，防止连接泄漏
 
         return flux.doFinally(signal -> handleFinally(conn, topic, signal, registry, metrics, listeners));
     }
