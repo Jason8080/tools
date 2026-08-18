@@ -8,7 +8,7 @@ import cn.gmlee.tools.im.sse.SseConnectionManager;
 import cn.gmlee.tools.im.sse.metrics.SseMetrics;
 import cn.gmlee.tools.im.topic.TopicLifecycleManager;
 import cn.gmlee.tools.im.topic.TopicRegistry;
-import cn.gmlee.tools.im.topic.TopicState;
+import cn.gmlee.tools.im.model.TopicState;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

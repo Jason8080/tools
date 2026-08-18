@@ -1,5 +1,7 @@
 package cn.gmlee.tools.im.topic;
 
+import cn.gmlee.tools.im.model.TopicState;
+
 import java.util.Set;
 
 /**

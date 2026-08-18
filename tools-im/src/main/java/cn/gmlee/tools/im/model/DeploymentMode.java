@@ -1,4 +1,6 @@
-package cn.gmlee.tools.im.conf;
+package cn.gmlee.tools.im.model;
+
+import cn.gmlee.tools.im.conf.ImProperties;
 
 /**
  * 部署模式枚举.

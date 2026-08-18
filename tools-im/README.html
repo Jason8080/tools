@@ -1059,6 +1059,19 @@ if (window.location.hash) {
     </div>
   </div>
 
+  <div class="callout callout-tip">
+    <span class="callout-icon">&#x1F9ED;</span>
+    <div>
+      <strong>选择部署模式</strong>
+      <p>框架支持两种部署模式：</p>
+      <ul style="margin-bottom: 8px;">
+        <li><b>集群模式</b>（默认）：需要 RabbitMQ，支持多实例部署</li>
+        <li><b>单机模式</b>：零 MQ 依赖，单节点极低延迟（&lt;0.1ms）</li>
+      </ul>
+      <p>本快速开始以<strong>集群模式</strong>为例。单机模式配置请参见<a href="#configuration" onclick="switchTab('configuration')">配置参考</a>。</p>
+    </div>
+  </div>
+
   <div class="steps">
 
     <div class="step">
@@ -1497,6 +1510,57 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
     </div>
   </div>
 
+  <h3>双模式架构</h3>
+  <p>框架通过策略模式支持两种部署模式，所有 SPI 行为保持一致：</p>
+
+  <div class="card-grid" style="grid-template-columns: repeat(2, 1fr); margin-top: 24px;">
+    <div class="card">
+      <h4 style="color: #4F46E5;">&#x1F310; 集群模式（CLUSTER）</h4>
+      <div style="background: #F0FDF4; padding: 16px; border-radius: 8px; margin: 12px 0;">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; flex-wrap: wrap;">
+          <span style="background: #fff; padding: 6px 12px; border-radius: 6px;">Publisher</span>
+          <span>→</span>
+          <span style="background: #166534; color: #fff; padding: 6px 12px; border-radius: 6px;">ClusterRepeater</span>
+          <span>→</span>
+          <span style="background: #fff; padding: 6px 12px; border-radius: 6px;">MQ</span>
+          <span>→</span>
+          <span style="background: #fff; padding: 6px 12px; border-radius: 6px;">Consumer</span>
+        </div>
+      </div>
+      <ul style="font-size: 13px; color: #6B7280;">
+        <li>✅ 多实例横向扩展</li>
+        <li>✅ 消息持久化</li>
+        <li>⏱️ 延迟 ~1-5ms</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h4 style="color: #10B981;">&#x1F4BB; 单机模式（STANDALONE）</h4>
+      <div style="background: #FEF3C7; padding: 16px; border-radius: 8px; margin: 12px 0;">
+        <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; flex-wrap: wrap;">
+          <span style="background: #fff; padding: 6px 12px; border-radius: 6px;">Publisher</span>
+          <span>→</span>
+          <span style="background: #92400E; color: #fff; padding: 6px 12px; border-radius: 6px;">StandaloneRepeater</span>
+          <span>→</span>
+          <span style="background: #fff; padding: 6px 12px; border-radius: 6px;">SSE</span>
+        </div>
+      </div>
+      <ul style="font-size: 13px; color: #6B7280;">
+        <li>✅ 零 MQ 依赖</li>
+        <li>✅ 极低延迟（&lt;0.1ms）</li>
+        <li>❌ 仅单节点</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout callout-info" style="margin-top: 24px;">
+    <span class="callout-icon">&#x2705;</span>
+    <div>
+      <strong>SPI 一致性保证</strong>
+      <p>除 MQ 传递路径外，所有 SPI 扩展点（拦截器、工厂、过滤器等）在两种模式下行为完全一致。切换模式无需修改业务代码。</p>
+    </div>
+  </div>
+
   <h3>关键设计决策</h3>
   <div class="table-wrapper">
     <table>
@@ -1702,7 +1766,7 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
         </tr>
         <tr>
           <td><strong>2</strong></td>
-          <td><code>TopicFactory</code></td>
+          <td><code>TopicResourceFactory</code></td>
           <td>按需创建 Stream binding（输出或输入）+ Consumer Bean</td>
         </tr>
         <tr>
@@ -1717,6 +1781,50 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
         </tr>
       </tbody>
     </table>
+  </div>
+
+  <h3>Spring Cloud Stream 限制说明</h3>
+  <div class="callout callout-warn">
+    <span class="callout-icon">&#x26A0;</span>
+    <div>
+      <strong>重要：Topic 销毁的架构约束</strong>
+      <p>Spring Cloud Stream 的 <code>BindingService</code> 不提供 <code>unbind()</code> API，已创建的 Consumer/Producer binding 无法通过编程方式销毁。</p>
+    </div>
+  </div>
+
+  <h4>具体影响</h4>
+  <div class="table-wrapper">
+    <table>
+      <thead><tr><th>操作</th><th>行为</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Topic 销毁</strong></td>
+          <td>清理配置 + Bean 定义 + 内部记录</td>
+          <td>实际的 RabbitMQ 连接会保留到应用重启</td>
+        </tr>
+        <tr>
+          <td><strong>Topic 重建</strong></td>
+          <td>创建新的配置和 Bean</td>
+          <td>复用已有的 MQ 连接，不会创建新连接</td>
+        </tr>
+        <tr>
+          <td><strong>内存泄漏</strong></td>
+          <td>不会发生</td>
+          <td>框架清理所有内部引用，MQ 连接由 Spring 管理</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>设计权衡</h4>
+  <div class="callout callout-info">
+    <span class="callout-icon">&#x1F4A1;</span>
+    <div>
+      <strong>为什么这样设计？</strong>
+      <p><b>Topic 通常是长期存在的</b>：IM 场景下，Topic 对应业务频道（如聊天室），生命周期与应用一致，很少需要销毁。</p>
+      <p><b>动态 Topic 场景</b>：如果确实需要频繁创建/销毁 Topic，建议使用<b>单机模式</b>（无 MQ 依赖），或接受 MQ 连接保留到重启的约束。</p>
+      <p><b>监控支持</b>：通过 <code>/im/admin/topics/lifecycle</code> API 可查询 Topic 状态，区分"逻辑销毁"和"物理销毁"。</p>
+    </div>
   </div>
 
 </div>
@@ -1804,6 +1912,15 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
     <div>
       <strong>瓶颈分析</strong>
       <p>延迟主要来源：① MQ 网络传输（0.5-2ms）；② 跨节点延迟（1-5ms）。SSE 协议本身开销极小（~0.001ms），架构简化是关键。</p>
+    </div>
+  </div>
+
+  <div class="callout callout-tip" style="margin-top: 24px;">
+    <span class="callout-icon">&#x26A1;</span>
+    <div>
+      <strong>部署模式对性能的影响</strong>
+      <p>上述性能数据基于<strong>集群模式</strong>（含 MQ 网络开销）。<strong>单机模式</strong>绕过 MQ，延迟可降至 <strong>&lt;0.1ms</strong>，但牺牲了横向扩展能力。</p>
+      <p style="margin-top: 8px; font-size: 13px;">详细对比请参见<a href="#architecture" onclick="switchTab('architecture')">架构设计 - 双模式架构</a>。</p>
     </div>
   </div>
 
@@ -2176,6 +2293,118 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
     </table>
   </div>
 
+  <h3>部署模式配置</h3>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>配置项</th><th>集群模式</th><th>单机模式</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>im.mode</code></td>
+          <td><code>cluster</code>（默认）</td>
+          <td><code>standalone</code></td>
+          <td>部署模式选择</td>
+        </tr>
+        <tr>
+          <td><code>spring.rabbitmq.*</code></td>
+          <td>✅ 必需</td>
+          <td>❌ 不需要</td>
+          <td>MQ 连接配置</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>集群模式完整配置</h4>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">YAML</span>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+    </div>
+    <pre><code><span class="attr">im</span>:
+  <span class="attr">mode</span>: <span class="val">cluster</span>  <span class="cm"># 可省略</span>
+  <span class="attr">endpoints</span>:
+    - <span class="attr">path</span>: <span class="val">/api/chat/push</span>
+      <span class="attr">topic</span>: <span class="val">im.chat</span>
+      <span class="attr">mode</span>: <span class="val">push</span>
+
+<span class="attr">spring</span>:
+  <span class="attr">rabbitmq</span>:
+    <span class="attr">host</span>: <span class="val">localhost</span>
+    <span class="attr">port</span>: <span class="num">5672</span></code></pre>
+  </div>
+
+  <h4>单机模式完整配置</h4>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">YAML</span>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+    </div>
+    <pre><code><span class="attr">im</span>:
+  <span class="attr">mode</span>: <span class="val">standalone</span>  <span class="cm"># 必须显式配置</span>
+  <span class="attr">endpoints</span>:
+    - <span class="attr">path</span>: <span class="val">/api/chat/push</span>
+      <span class="attr">topic</span>: <span class="val">im.chat</span>
+      <span class="attr">mode</span>: <span class="val">push</span>
+
+<span class="cm"># 不需要 RabbitMQ 配置！</span></code></pre>
+  </div>
+
+  <h4>依赖配置对比</h4>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>依赖</th><th>集群模式</th><th>单机模式</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>tools-im</code></td>
+          <td>✅ 必需</td>
+          <td>✅ 必需</td>
+        </tr>
+        <tr>
+          <td><code>spring-boot-starter-webflux</code></td>
+          <td>✅ 必需</td>
+          <td>✅ 必需</td>
+        </tr>
+        <tr>
+          <td><code>spring-cloud-stream-binder-rabbit</code></td>
+          <td>✅ 必需</td>
+          <td>❌ 不需要</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Topic 生命周期配置（v5.6.0+）</h3>
+  <p>控制 Topic 自动清理行为，防止动态 Topic 场景下的资源泄露。</p>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>配置项</th><th>类型</th><th>默认值</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>im.sse.cleanup.empty-topic-ttl</code></td><td>Duration</td><td><code>60s</code></td><td>空 Topic 保留时间（防抖动）</td></tr>
+        <tr><td><code>im.sse.cleanup.compact-ttl</code></td><td>Duration</td><td><code>1h</code></td><td>Topic 计数器压缩 TTL</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">&#x1F4A1;</span>
+    <div>
+      <strong>配置建议</strong>
+      <ul>
+        <li><b>间歇性流量</b>（如聊天室）：保持默认 60s，允许短暂空闲后快速恢复</li>
+        <li><b>高基数动态 Topic</b>：缩短至 30s，加快资源回收</li>
+        <li><b>静态 Topic</b>：设为 0 禁用缓冲期（立即清理）</li>
+      </ul>
+    </div>
+  </div>
+
 </div>
 
 <!-- ==================== Tab: SPI 扩展 ==================== -->
@@ -2229,7 +2458,7 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
     <pre><code><span class="ann">@Component</span>
 <span class="kw">public class</span> <span class="typ">RedisReplayInterceptor</span> <span class="kw">implements</span> <span class="typ">RepeaterInterceptor</span> {
     <span class="ann">@Autowired</span>
-    <span class="kw">private</span> <span class="typ">RedisTemplate</span>&lt;<span class="typ">String</span>, <span class="kw">byte</span[]>> redisTemplate;
+    <span class="kw">private</span> <span class="typ">RedisTemplate</span>&lt;<span class="typ">String</span>, <span class="typ">byte[]</span>&gt; redisTemplate;
 
     <span class="ann">@Override</span>
     <span class="kw">public</span> <span class="typ">Mono</span>&lt;<span class="typ">Boolean</span>&gt; <span class="fn">beforeSend</span>(<span class="typ">TopicMessage</span>&lt;<span class="typ">Msg</span>&gt; message) {
@@ -2343,6 +2572,83 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
         <span class="kw">return</span> redisReactiveTemplate.<span class="fn">listenToChannel</span>(topic()).<span class="fn">map</span>(<span class="kw">this</span>::deserialize);
     }
 }</code></pre>
+  </div>
+
+  <h3>Topic 生命周期管理（v5.6.0+）</h3>
+  <p>框架通过 <code>TopicLifecycleManager</code> 统一管理 Topic 的完整生命周期，解决动态 Topic 场景下的资源泄露问题。</p>
+
+  <h4>核心机制</h4>
+  <div class="card-grid" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="card">
+      <div class="card-icon">&#x1F4CA;</div>
+      <h4>引用计数</h4>
+      <p>端点注册时 <code>acquire(topic)</code> +1，注销时 <code>release(topic)</code> -1</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#x1F504;</div>
+      <h4>状态机</h4>
+      <p>CREATED → ACTIVE → DESTROYING → DESTROYED（可重新激活）</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#x267B;</div>
+      <h4>自动清理</h4>
+      <p>引用计数为 0 且超过 <code>cleanup.emptyTopicTtl</code>（默认 60s）后自动销毁</p>
+    </div>
+  </div>
+
+  <h4>使用示例</h4>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Java</span>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+    </div>
+    <pre><code><span class="ann">@Autowired</span>
+<span class="kw">private</span> <span class="typ">TopicLifecycleManager</span> topicLifecycleManager;
+
+<span class="cm">// 查询 Topic 状态</span>
+<span class="typ">TopicState</span> state = topicLifecycleManager.<span class="fn">getState</span>(<span class="str">"im.chat"</span>);
+<span class="kw">int</span> refCount = topicLifecycleManager.<span class="fn">getRefCount</span>(<span class="str">"im.chat"</span>);
+
+<span class="cm">// 手动销毁 Topic</span>
+<span class="kw">boolean</span> destroyed = topicLifecycleManager.<span class="fn">destroy</span>(<span class="str">"old.topic"</span>);
+
+<span class="cm">// 获取所有活跃 Topic</span>
+<span class="typ">Set</span>&lt;<span class="typ">String</span>&gt; topics = topicLifecycleManager.<span class="fn">getAllTopics</span>();</code></pre>
+  </div>
+
+  <h4>生命周期监听器</h4>
+  <p>实现 <code>TopicLifecycleListener</code> 接口监听 Topic 生命周期事件：</p>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Java</span>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+    </div>
+    <pre><code><span class="ann">@Component</span>
+<span class="kw">public class</span> <span class="typ">TopicMetricsListener</span> <span class="kw">implements</span> <span class="typ">TopicLifecycleListener</span> {
+    <span class="ann">@Override</span>
+    <span class="kw">public void</span> <span class="fn">onTopicCreated</span>(<span class="typ">String</span> topic) {
+        log.<span class="fn">info</span>(<span class="str">"Topic 已创建: {}"</span>, topic);
+    }
+
+    <span class="ann">@Override</span>
+    <span class="kw">public void</span> <span class="fn">onTopicDestroying</span>(<span class="typ">String</span> topic) {
+        log.<span class="fn">info</span>(<span class="str">"Topic 正在销毁: {}"</span>, topic);
+    }
+
+    <span class="ann">@Override</span>
+    <span class="kw">public void</span> <span class="fn">onTopicDestroyed</span>(<span class="typ">String</span> topic) {
+        log.<span class="fn">info</span>(<span class="str">"Topic 已销毁: {}"</span>, topic);
+    }
+}</code></pre>
+  </div>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">&#x1F4A1;</span>
+    <div>
+      <strong>自动模式 vs 手动模式</strong>
+      <p><b>自动模式</b>（推荐）：框架自动管理 Topic 生命周期，无需手动干预。</p>
+      <p><b>手动模式</b>（高级）：通过 <code>TopicLifecycleManager</code> API 精确控制 Topic 的创建和销毁。</p>
+    </div>
   </div>
 
 </div>
@@ -2822,14 +3128,47 @@ Content-Type: application/json
 
   <div class="table-wrapper">
     <table>
-      <thead><tr><th>接口</th><th>说明</th></tr></thead>
+      <thead><tr><th>接口</th><th>方法</th><th>说明</th></tr></thead>
       <tbody>
-        <tr><td><code>GET /im/admin/endpoints</code></td><td>查询所有已注册端点</td></tr>
-        <tr><td><code>GET /im/admin/topics</code></td><td>查询所有活跃 Topic 及连接数</td></tr>
-        <tr><td><code>GET /im/admin/connections/{topic}</code></td><td>查询指定 Topic 的连接详情</td></tr>
-        <tr><td><code>GET /im/admin/stats</code></td><td>查询全局统计信息</td></tr>
+        <tr><td><code>/im/admin/endpoints</code></td><td>GET</td><td>查询所有已注册端点</td></tr>
+        <tr><td><code>/im/admin/topics</code></td><td>GET</td><td>查询所有活跃 Topic 及连接数</td></tr>
+        <tr><td><code>/im/admin/topics/lifecycle</code></td><td>GET</td><td>查询 Topic 生命周期状态（v5.6.0+）</td></tr>
+        <tr><td><code>/im/admin/connections/{topic}</code></td><td>GET</td><td>查询指定 Topic 的连接详情</td></tr>
+        <tr><td><code>/im/admin/stats</code></td><td>GET</td><td>查询全局统计信息</td></tr>
+        <tr><td><code>/im/admin/topic/{topic}</code></td><td>DELETE</td><td>手动销毁 Topic（v5.6.0+）</td></tr>
       </tbody>
     </table>
+  </div>
+
+  <h4>Topic 生命周期查询示例</h4>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">Bash</span>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+    </div>
+    <pre><code><span class="cm"># 查询所有 Topic 的生命周期状态</span>
+curl http://localhost:8080/im/admin/topics/lifecycle
+
+<span class="cm"># 返回示例</span>
+{
+  <span class="str">"topics"</span>: [
+    {
+      <span class="str">"topic"</span>: <span class="str">"im.chat"</span>,
+      <span class="str">"state"</span>: <span class="str">"ACTIVE"</span>,
+      <span class="str">"refCount"</span>: 3,
+      <span class="str">"idleSeconds"</span>: 0
+    },
+    {
+      <span class="str">"topic"</span>: <span class="str">"im.notification"</span>,
+      <span class="str">"state"</span>: <span class="str">"CREATED"</span>,
+      <span class="str">"refCount"</span>: 1,
+      <span class="str">"idleSeconds"</span>: 120
+    }
+  ]
+}
+
+<span class="cm"># 手动销毁 Topic</span>
+curl -X DELETE http://localhost:8080/im/admin/topic/im.chat</code></pre>
   </div>
 
   <div class="callout callout-warn">
@@ -2856,6 +3195,51 @@ Content-Type: application/json
     </table>
   </div>
 
+  <h3>优雅关闭（SmartLifecycle）</h3>
+  <p><code>SseConnectionManager</code> 实现 <code>SmartLifecycle</code> 接口，支持应用关闭时优雅地排空 SSE 连接：</p>
+
+  <h4>关闭流程</h4>
+  <div class="card-grid" style="grid-template-columns: repeat(3, 1fr);">
+    <div class="card">
+      <div class="card-icon">&#x1F6D1;</div>
+      <h4>阶段 1：拒绝新连接</h4>
+      <p>设置 <code>accepting=false</code>，新订阅请求返回 503</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#x23F3;</div>
+      <h4>阶段 2：排空现有连接</h4>
+      <p>异步 drain 现有连接，等待客户端自然断开</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">&#x2705;</div>
+      <h4>阶段 3：强制关闭</h4>
+      <p>超时后强制关闭剩余连接，确保资源释放</p>
+    </div>
+  </div>
+
+  <h4>配置参数</h4>
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">YAML</span>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+    </div>
+    <pre><code><span class="attr">im</span>:
+  <span class="attr">sse</span>:
+    <span class="attr">shutdown</span>:
+      <span class="attr">grace-period</span>: <span class="val">30s</span>      <span class="cm"># 排空等待时间</span>
+      <span class="attr">force-close</span>: <span class="val">true</span>       <span class="cm"># 超时后是否强制关闭</span>
+      <span class="attr">propagate-interrupt</span>: <span class="val">true</span> <span class="cm"># 是否传播中断信号</span></code></pre>
+  </div>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">&#x1F4A1;</span>
+    <div>
+      <strong>生产部署建议</strong>
+      <p>配合 Kubernetes 的 <code>terminationGracePeriodSeconds</code> 使用，确保应用有足够时间排空连接。</p>
+      <p>示例：设置 <code>terminationGracePeriodSeconds: 60</code> + <code>im.sse.shutdown.grace-period: 30s</code></p>
+    </div>
+  </div>
+
 </div>
 
 <!-- ==================== Tab: 故障排查 ==================== -->
@@ -2877,7 +3261,7 @@ Content-Type: application/json
         <tr>
           <td><strong>消息未收到</strong></td>
           <td>RabbitMQ binding 未创建</td>
-          <td>查看启动日志中 <code>[TopicFactory]</code> 相关日志，确认 binding 已创建</td>
+          <td>查看启动日志中 <code>[TopicResourceFactory]</code> 相关日志，确认 binding 已创建</td>
         </tr>
         <tr>
           <td><strong>连接频繁断开</strong></td>

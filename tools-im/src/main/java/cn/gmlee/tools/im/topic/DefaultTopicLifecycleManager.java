@@ -1,6 +1,7 @@
 package cn.gmlee.tools.im.topic;
 
 import cn.gmlee.tools.im.conf.SseProperties;
+import cn.gmlee.tools.im.model.TopicState;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;

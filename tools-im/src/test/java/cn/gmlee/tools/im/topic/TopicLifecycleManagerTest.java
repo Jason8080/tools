@@ -1,6 +1,7 @@
 package cn.gmlee.tools.im.topic;
 
 import cn.gmlee.tools.im.conf.SseProperties;
+import cn.gmlee.tools.im.model.TopicState;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

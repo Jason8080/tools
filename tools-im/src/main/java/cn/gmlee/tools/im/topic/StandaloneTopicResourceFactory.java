@@ -1,6 +1,7 @@
 package cn.gmlee.tools.im.topic;
 
 import cn.gmlee.tools.im.conf.EndpointProperties;
+import cn.gmlee.tools.im.model.DeploymentMode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -64,7 +65,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 5.6.0
  * @see TopicResourceFactory
  * @see ClusterTopicResourceFactory
- * @see cn.gmlee.tools.im.conf.DeploymentMode#STANDALONE
+ * @see DeploymentMode#STANDALONE
  */
 @Slf4j
 @RequiredArgsConstructor

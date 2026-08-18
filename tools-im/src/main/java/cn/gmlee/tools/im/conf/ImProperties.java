@@ -1,5 +1,6 @@
 package cn.gmlee.tools.im.conf;
 
+import cn.gmlee.tools.im.model.DeploymentMode;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

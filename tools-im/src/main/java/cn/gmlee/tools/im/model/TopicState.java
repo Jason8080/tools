@@ -1,4 +1,4 @@
-package cn.gmlee.tools.im.topic;
+package cn.gmlee.tools.im.model;
 
 /**
  * Topic 生命周期状态.

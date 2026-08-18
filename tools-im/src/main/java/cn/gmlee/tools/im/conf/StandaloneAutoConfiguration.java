@@ -1,5 +1,6 @@
 package cn.gmlee.tools.im.conf;
 
+import cn.gmlee.tools.im.model.DeploymentMode;
 import cn.gmlee.tools.im.spi.factory.PublisherFactory;
 import cn.gmlee.tools.im.spi.factory.RepeaterFactory;
 import cn.gmlee.tools.im.spi.factory.SubscriberFactory;

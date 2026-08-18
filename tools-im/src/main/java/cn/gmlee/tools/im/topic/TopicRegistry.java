@@ -1,6 +1,6 @@
 package cn.gmlee.tools.im.topic;
 
-import cn.gmlee.tools.im.conf.DeploymentMode;
+import cn.gmlee.tools.im.model.DeploymentMode;
 import cn.gmlee.tools.im.conf.SseProperties;
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Repeater;
