@@ -27,18 +27,18 @@ import static org.mockito.Mockito.*;
 class TopicLifecycleManagerTest {
 
     private TopicRegistry topicRegistry;
-    private TopicFactory topicFactory;
+    private TopicResourceFactory topicResourceFactory;
     private SseProperties sseProperties;
     private DefaultTopicLifecycleManager manager;
 
     @BeforeEach
     void setUp() {
         topicRegistry = mock(TopicRegistry.class);
-        topicFactory = mock(TopicFactory.class);
+        topicResourceFactory = mock(TopicResourceFactory.class);
         sseProperties = new SseProperties();
         sseProperties.getCleanup().setEmptyTopicTtl(Duration.ofMillis(100));
 
-        manager = new DefaultTopicLifecycleManager(topicRegistry, topicFactory, sseProperties);
+        manager = new DefaultTopicLifecycleManager(topicRegistry, topicResourceFactory, sseProperties);
     }
 
     @Test
@@ -117,7 +117,7 @@ class TopicLifecycleManagerTest {
 
         assertTrue(destroyed);
         assertEquals(TopicState.DESTROYED, manager.getState(topic));
-        verify(topicFactory).cleanupTopicResources(topic);
+        verify(topicResourceFactory).cleanupResources(topic);
         verify(topicRegistry).destroyTopic(topic);
     }
 
@@ -127,7 +127,7 @@ class TopicLifecycleManagerTest {
         boolean destroyed = manager.destroy("non.exist");
 
         assertFalse(destroyed);
-        verify(topicFactory, never()).cleanupTopicResources(anyString());
+        verify(topicResourceFactory, never()).cleanupResources(anyString());
         verify(topicRegistry, never()).destroyTopic(anyString());
     }
 
@@ -146,7 +146,7 @@ class TopicLifecycleManagerTest {
         assertFalse(secondDestroy);
 
         // 只调用一次清理
-        verify(topicFactory, times(1)).cleanupTopicResources(topic);
+        verify(topicResourceFactory, times(1)).cleanupResources(topic);
     }
 
     @Test
@@ -211,7 +211,7 @@ class TopicLifecycleManagerTest {
         // 第二次 cleanup：移除 DESTROYED 条目
         manager.cleanup();
         assertNull(manager.getState(topic));
-        verify(topicFactory).cleanupTopicResources(topic);
+        verify(topicResourceFactory).cleanupResources(topic);
     }
 
     @Test
@@ -228,7 +228,7 @@ class TopicLifecycleManagerTest {
 
         assertEquals(0, cleaned);
         assertNotNull(manager.getState(topic));
-        verify(topicFactory, never()).cleanupTopicResources(topic);
+        verify(topicResourceFactory, never()).cleanupResources(topic);
     }
 
     @Test

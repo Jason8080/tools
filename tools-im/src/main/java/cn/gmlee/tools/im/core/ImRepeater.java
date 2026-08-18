@@ -121,7 +121,7 @@ public abstract class ImRepeater<ID extends Serializable, MSG extends Msg> imple
 
         return chain.filter(Boolean::booleanValue)
                 .flatMap(allowed -> doSend(message))
-                .map(id -> (ID) id);  // Serializable → ID: unchecked cast（DefaultRepeater 时退化为 no-op）
+                .map(id -> (ID) id);  // Serializable → ID: unchecked cast（ClusterRepeater 时退化为 no-op）
     }
 
     /**

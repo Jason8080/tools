@@ -27,7 +27,7 @@ import static org.mockito.Mockito.*;
 class TopicLifecycleIntegrationTest {
 
     private TopicRegistry topicRegistry;
-    private TopicFactory topicFactory;
+    private TopicResourceFactory topicResourceFactory;
     private SseProperties sseProperties;
     private EndpointRegistry endpointRegistry;
     private ConnectionReaper connectionReaper;
@@ -37,7 +37,7 @@ class TopicLifecycleIntegrationTest {
     void setUp() {
         // 创建 Mock 对象
         topicRegistry = mock(TopicRegistry.class);
-        topicFactory = mock(TopicFactory.class);
+        topicResourceFactory = mock(TopicResourceFactory.class);
         SseConnectionRegistry connectionRegistry = mock(SseConnectionRegistry.class);
         BackpressureStrategyResolver strategyResolver = topic -> new DropOldestBackpressureStrategy();
 
@@ -51,7 +51,7 @@ class TopicLifecycleIntegrationTest {
         endpointRegistry = new EndpointRegistry();
 
         // 创建生命周期管理器
-        lifecycleManager = new DefaultTopicLifecycleManager(topicRegistry, topicFactory, sseProperties);
+        lifecycleManager = new DefaultTopicLifecycleManager(topicRegistry, topicResourceFactory, sseProperties);
 
         // 注入依赖
         endpointRegistry.setTopicLifecycleManager(lifecycleManager);
@@ -157,7 +157,7 @@ class TopicLifecycleIntegrationTest {
         lifecycleManager.cleanup();
         assertNull(lifecycleManager.getState("test.topic"));
 
-        verify(topicFactory).cleanupTopicResources("test.topic");
+        verify(topicResourceFactory).cleanupResources("test.topic");
     }
 
     @Test
@@ -176,7 +176,7 @@ class TopicLifecycleIntegrationTest {
 
         assertTrue(destroyed);
         assertEquals(TopicState.DESTROYED, lifecycleManager.getState("test.topic"));
-        verify(topicFactory).cleanupTopicResources("test.topic");
+        verify(topicResourceFactory).cleanupResources("test.topic");
         verify(topicRegistry).destroyTopic("test.topic");
     }
 
@@ -252,7 +252,7 @@ class TopicLifecycleIntegrationTest {
 
         verify(listener).onTopicDestroying("test.topic");
         verify(listener).onTopicDestroyed("test.topic");
-        verify(topicFactory).cleanupTopicResources("test.topic");
+        verify(topicResourceFactory).cleanupResources("test.topic");
         verify(topicRegistry).destroyTopic("test.topic");
     }
 }

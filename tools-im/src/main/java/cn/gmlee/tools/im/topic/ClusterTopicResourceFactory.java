@@ -5,7 +5,6 @@ import cn.gmlee.tools.im.util.BindingNames;
 import cn.gmlee.tools.im.model.EndpointMode;
 import cn.gmlee.tools.im.core.Repeater;
 import cn.gmlee.tools.im.endpoint.EndpointRegistry;
-import cn.gmlee.tools.im.spi.listener.EndpointChangeListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
@@ -17,9 +16,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Topic 资源工厂.
+ * 集群模式 Topic 资源工厂.
  * <p>
- * 监听 {@link EndpointRegistry} 的变更事件，按需为每个 Topic 创建 Stream 资源：
+ * CLUSTER 部署模式下的 {@link TopicResourceFactory} 实现。
+ * 监听 {@link EndpointRegistry} 的变更事件，按需为每个 Topic 创建 Spring Cloud Stream 资源：
  * </p>
  * <ul>
  *   <li><b>PUSH 端点</b>：注册输出 binding（{@code {topic}-out-0}）</li>
@@ -40,11 +40,24 @@ import java.util.concurrent.ConcurrentHashMap;
  * 各自的资源独立创建、互不干扰。
  * </p>
  *
+ * <h3>SPI 行为一致性</h3>
+ * <p>
+ * 除创建 Stream binding 外，其他行为与 {@link StandaloneTopicResourceFactory} 完全一致：
+ * </p>
+ * <ul>
+ *   <li>✅ 监听端点注册/注销事件</li>
+ *   <li>✅ 确保 Repeater 组件创建</li>
+ *   <li>✅ 幂等性保证</li>
+ * </ul>
+ *
  * @since 5.6.0
+ * @see TopicResourceFactory
+ * @see StandaloneTopicResourceFactory
+ * @see cn.gmlee.tools.im.conf.DeploymentMode#CLUSTER
  */
 @Slf4j
 @RequiredArgsConstructor
-public class TopicFactory implements EndpointChangeListener {
+public class ClusterTopicResourceFactory implements TopicResourceFactory {
 
     private final BindingServiceProperties bindingServiceProperties;
     private final BeanDefinitionRegistry beanDefinitionRegistry;
@@ -74,13 +87,13 @@ public class TopicFactory implements EndpointChangeListener {
         }
         String bindingName = BindingNames.outputBinding(topic);
         if (bindingServiceProperties.getBindings().containsKey(bindingName)) {
-            log.debug("[TopicFactory] 输出 binding 已存在，跳过: {}", bindingName);
+            log.debug("[ClusterTopicResourceFactory] 输出 binding 已存在，跳过: {}", bindingName);
             return;
         }
         BindingProperties props = new BindingProperties();
         props.setDestination(topic);
         bindingServiceProperties.getBindings().put(bindingName, props);
-        log.info("[TopicFactory] 注册输出 binding: {} → destination={}", bindingName, topic);
+        log.info("[ClusterTopicResourceFactory] 注册输出 binding: {} → destination={}", bindingName, topic);
     }
 
     /**
@@ -107,11 +120,14 @@ public class TopicFactory implements EndpointChangeListener {
         // Spring Cloud Stream 自动发现 Consumer Bean 并创建 binding，无需手动调用 bindConsumer()
     }
 
+    // ==================== TopicResourceFactory 接口实现 ====================
+
     /**
      * 根据端点模式确保资源已创建.
      *
      * @param props 端点配置
      */
+    @Override
     public void ensureResources(EndpointProperties props) {
         if (props.getMode() == EndpointMode.PUSH) {
             ensureOutputBinding(props.getTopic());
@@ -119,8 +135,6 @@ public class TopicFactory implements EndpointChangeListener {
             ensureInputBinding(props.getTopic());
         }
     }
-
-    // ==================== EndpointChangeListener ====================
 
     @Override
     public void onEndpointRegistered(EndpointProperties props) {
@@ -131,7 +145,17 @@ public class TopicFactory implements EndpointChangeListener {
     public void onEndpointUnregistered(EndpointProperties props) {
         // 资源不随端点注销而销毁，避免影响其他共享同一 Topic 的端点。
         // Sink 由 SseConnectionManager 的空 Topic TTL 机制自动清理。
-        log.debug("[TopicFactory] 端点注销，保留 Topic 资源: topic={}", props.getTopic());
+        log.debug("[ClusterTopicResourceFactory] 端点注销，保留 Topic 资源: topic={}", props.getTopic());
+    }
+
+    @Override
+    public void cleanupResources(String topic) {
+        cleanupTopicResources(topic);
+    }
+
+    @Override
+    public boolean hasResources(String topic) {
+        return inputBindingTopics.contains(topic) || outputBindingTopics.contains(topic);
     }
 
     // ==================== 内部方法 ====================
@@ -139,19 +163,19 @@ public class TopicFactory implements EndpointChangeListener {
     private void registerInputBinding(String topic) {
         String bindingName = BindingNames.inputBinding(topic);
         if (bindingServiceProperties.getBindings().containsKey(bindingName)) {
-            log.debug("[TopicFactory] 输入 binding 已存在，跳过: {}", bindingName);
+            log.debug("[ClusterTopicResourceFactory] 输入 binding 已存在，跳过: {}", bindingName);
             return;
         }
         BindingProperties props = new BindingProperties();
         props.setDestination(topic);
         bindingServiceProperties.getBindings().put(bindingName, props);
-        log.info("[TopicFactory] 注册输入 binding: {} → destination={}", bindingName, topic);
+        log.info("[ClusterTopicResourceFactory] 注册输入 binding: {} → destination={}", bindingName, topic);
     }
 
     private void registerConsumerBean(String topic) {
         String beanName = BindingNames.consumerBean(topic);
         if (beanDefinitionRegistry.containsBeanDefinition(beanName)) {
-            log.debug("[TopicFactory] Consumer Bean 已存在，跳过: {}", beanName);
+            log.debug("[ClusterTopicResourceFactory] Consumer Bean 已存在，跳过: {}", beanName);
             return;
         }
 
@@ -163,7 +187,7 @@ public class TopicFactory implements EndpointChangeListener {
         beanDef.setBeanClass(ConsumerBridge.class);
         beanDef.setInstanceSupplier(() -> bridge);
         beanDefinitionRegistry.registerBeanDefinition(beanName, beanDef);
-        log.info("[TopicFactory] 注册 Consumer Bean: {} → ConsumerBridge", beanName);
+        log.info("[ClusterTopicResourceFactory] 注册 Consumer Bean: {} → ConsumerBridge", beanName);
     }
 
     // ==================== 生命周期管理（供 TopicLifecycleManager 调用） ====================
@@ -172,12 +196,12 @@ public class TopicFactory implements EndpointChangeListener {
      * 清理 Topic 的物理资源（Spring Cloud Stream binding）.
      * <p>
      * 执行完整的资源清理流程：
+     * </p>
      * <ol>
      *   <li>移除 binding 配置</li>
      *   <li>移除 Consumer Bean 定义</li>
      *   <li>清理内部记录</li>
      * </ol>
-     * </p>
      *
      * <h3>注意</h3>
      * <p>
@@ -209,32 +233,22 @@ public class TopicFactory implements EndpointChangeListener {
             if (beanDefinitionRegistry.containsBeanDefinition(beanName)) {
                 try {
                     beanDefinitionRegistry.removeBeanDefinition(beanName);
-                    log.debug("[TopicFactory] 移除 Consumer Bean: {}", beanName);
+                    log.debug("[ClusterTopicResourceFactory] 移除 Consumer Bean: {}", beanName);
                 } catch (Exception e) {
-                    log.warn("[TopicFactory] 移除 Consumer Bean 失败: {}", beanName, e);
+                    log.warn("[ClusterTopicResourceFactory] 移除 Consumer Bean 失败: {}", beanName, e);
                 }
             }
 
-            log.debug("[TopicFactory] 清理 input binding 配置: {}", inputBindingName);
+            log.debug("[ClusterTopicResourceFactory] 清理 input binding 配置: {}", inputBindingName);
         }
 
         // 2. 清理输出 binding 相关资源
         if (outputBindingTopics.remove(topic)) {
             // 移除 binding 配置
             bindingServiceProperties.getBindings().remove(outputBindingName);
-            log.debug("[TopicFactory] 清理 output binding 配置: {}", outputBindingName);
+            log.debug("[ClusterTopicResourceFactory] 清理 output binding 配置: {}", outputBindingName);
         }
 
-        log.info("[TopicFactory] Topic 物理资源已清理: topic={}", topic);
-    }
-
-    /**
-     * 检查 Topic 是否存在物理资源.
-     *
-     * @param topic Topic 名称
-     * @return 存在任意资源返回 true
-     */
-    public boolean hasResources(String topic) {
-        return inputBindingTopics.contains(topic) || outputBindingTopics.contains(topic);
+        log.info("[ClusterTopicResourceFactory] Topic 物理资源已清理: topic={}", topic);
     }
 }

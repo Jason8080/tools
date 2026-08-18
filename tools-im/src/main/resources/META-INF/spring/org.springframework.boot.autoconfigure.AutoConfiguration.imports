@@ -1,3 +1,5 @@
 cn.gmlee.tools.im.conf.ImAutoConfiguration
+cn.gmlee.tools.im.conf.ClusterAutoConfiguration
+cn.gmlee.tools.im.conf.StandaloneAutoConfiguration
 cn.gmlee.tools.im.conf.EndpointAutoConfiguration
 cn.gmlee.tools.im.conf.SpiAutoConfiguration

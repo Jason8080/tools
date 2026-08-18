@@ -9,7 +9,7 @@ import java.util.Set;
  * <ul>
  *   <li><b>状态管理</b>：跟踪每个 Topic 的状态（CREATED → ACTIVE → DESTROYING → DESTROYED）</li>
  *   <li><b>引用计数</b>：跟踪每个 Topic 的使用者数量（端点、连接等）</li>
- *   <li><b>资源协调</b>：协调 {@link TopicRegistry} 和 {@link TopicFactory} 的创建/销毁</li>
+ *   <li><b>资源协调</b>：协调 {@link TopicRegistry} 和 {@link TopicResourceFactory} 的创建/销毁</li>
  *   <li><b>自动清理</b>：支持 TTL、LRU 等策略自动清理不活跃的 Topic</li>
  * </ul>
  * </p>

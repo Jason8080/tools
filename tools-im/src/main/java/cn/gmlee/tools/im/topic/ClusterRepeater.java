@@ -11,7 +11,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 默认消息转发器（包级私有）.
+ * 集群模式消息转发器（包级私有）.
  * <p>
  * 继承 {@link ImRepeater} 框架骨架，拦截器自动织入。
  * 直接使用父类提供的 IM 标准实现，无需重写任何方法。
@@ -28,9 +28,9 @@ import java.util.List;
  * @since 5.6.0
  */
 @Slf4j
-class DefaultRepeater extends ImRepeater<Serializable, Msg> {
+class  ClusterRepeater extends ImRepeater<Serializable, Msg> {
 
-    public DefaultRepeater(String topic,
+    public ClusterRepeater(String topic,
                            StreamBridge streamBridge,
                            SseConnectionManager sseConnectionManager,
                            List<RepeaterInterceptor> interceptors) {

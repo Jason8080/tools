@@ -31,6 +31,23 @@ import java.util.List;
 public class ImProperties {
 
     /**
+     * 部署模式.
+     * <p>
+     * 决定框架使用 MQ（CLUSTER 模式）还是直接内存传递（STANDALONE 模式）。
+     * </p>
+     * <ul>
+     *   <li><b>CLUSTER</b>（默认）：使用 Spring Cloud Stream + MQ，支持集群部署</li>
+     *   <li><b>STANDALONE</b>：不依赖 MQ，消息直接内存传递，仅支持单机部署</li>
+     * </ul>
+     * <p>
+     * 两种模式下所有 SPI 行为完全一致，仅消息传递路径不同。
+     * </p>
+     *
+     * @since 5.6.0
+     */
+    private DeploymentMode mode = DeploymentMode.CLUSTER;
+
+    /**
      * 端点配置列表.
      * <p>
      * 每个端点定义一个 URL 路径到内部 Topic 的映射。

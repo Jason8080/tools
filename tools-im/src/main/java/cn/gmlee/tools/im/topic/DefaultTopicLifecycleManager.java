@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 /**
  * Topic 生命周期管理器默认实现.
  * <p>
- * 管理 Topic 的完整生命周期，协调 {@link TopicRegistry} 和 {@link TopicFactory} 的创建/销毁。
+ * 管理 Topic 的完整生命周期，协调 {@link TopicRegistry} 和 {@link TopicResourceFactory} 的创建/销毁。
  * </p>
  *
  * <h3>并发安全</h3>
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * <ol>
  *   <li>标记 Topic 为 DESTROYING 状态（防止并发销毁）</li>
  *   <li>触发 {@link TopicLifecycleListener#onTopicDestroying} 回调</li>
- *   <li>清理 {@link TopicFactory} 的物理资源（binding、Consumer Bean）</li>
+ *   <li>清理 {@link TopicResourceFactory} 的物理资源（CLUSTER: binding/Consumer Bean / STANDALONE: 内存资源）</li>
  *   <li>清理 {@link TopicRegistry} 的逻辑组件（Publisher/Repeater/Subscriber）</li>
  *   <li>标记 Topic 为 DESTROYED 状态</li>
  *   <li>触发 {@link TopicLifecycleListener#onTopicDestroyed} 回调</li>
@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 public class DefaultTopicLifecycleManager implements TopicLifecycleManager {
 
     private final TopicRegistry topicRegistry;
-    private final TopicFactory topicFactory;
+    private final TopicResourceFactory topicResourceFactory;
     private final SseProperties sseProperties;
 
     /**
@@ -65,15 +65,15 @@ public class DefaultTopicLifecycleManager implements TopicLifecycleManager {
     /**
      * 创建 Topic 生命周期管理器.
      *
-     * @param topicRegistry Topic 组件注册表
-     * @param topicFactory  Topic 资源工厂
-     * @param sseProperties SSE 配置
+     * @param topicRegistry        Topic 组件注册表
+     * @param topicResourceFactory Topic 资源工厂（CLUSTER 或 STANDALONE 模式实现）
+     * @param sseProperties        SSE 配置
      */
     public DefaultTopicLifecycleManager(TopicRegistry topicRegistry,
-                                        TopicFactory topicFactory,
+                                        TopicResourceFactory topicResourceFactory,
                                         SseProperties sseProperties) {
         this.topicRegistry = topicRegistry;
-        this.topicFactory = topicFactory;
+        this.topicResourceFactory = topicResourceFactory;
         this.sseProperties = sseProperties;
         // 使用 cleanup.emptyTopicTtl 作为 Topic 空闲 TTL
         this.idleTtl = sseProperties.getCleanup().getEmptyTopicTtl();
@@ -152,7 +152,7 @@ public class DefaultTopicLifecycleManager implements TopicLifecycleManager {
             fireTopicDestroying(topic);
 
             // 2. 清理物理资源（Spring Cloud Stream binding）
-            topicFactory.cleanupTopicResources(topic);
+            topicResourceFactory.cleanupResources(topic);
 
             // 3. 清理逻辑组件（Publisher/Repeater/Subscriber）
             topicRegistry.destroyTopic(topic);

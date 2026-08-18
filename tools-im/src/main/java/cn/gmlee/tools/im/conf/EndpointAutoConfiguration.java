@@ -1,31 +1,24 @@
 package cn.gmlee.tools.im.conf;
 
-import cn.gmlee.tools.im.spi.factory.PublisherFactory;
-import cn.gmlee.tools.im.spi.factory.RepeaterFactory;
-import cn.gmlee.tools.im.spi.interceptor.RepeaterInterceptor;
-import cn.gmlee.tools.im.spi.factory.SubscriberFactory;
-import cn.gmlee.tools.im.spi.routing.RoutingKeyComposer;
 import cn.gmlee.tools.im.endpoint.EndpointRegistry;
 import cn.gmlee.tools.im.endpoint.EndpointRouter;
 import cn.gmlee.tools.im.endpoint.ImAdminController;
 import cn.gmlee.tools.im.spi.access.AccessFilter;
 import cn.gmlee.tools.im.spi.converter.PrincipalRoutingKeyConverter;
+import cn.gmlee.tools.im.spi.routing.RoutingKeyComposer;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import cn.gmlee.tools.im.sse.cleanup.ConnectionReaper;
 import cn.gmlee.tools.im.sse.metrics.SseMetrics;
 import cn.gmlee.tools.im.topic.DefaultTopicLifecycleManager;
-import cn.gmlee.tools.im.topic.TopicFactory;
 import cn.gmlee.tools.im.topic.TopicLifecycleManager;
 import cn.gmlee.tools.im.topic.TopicRegistry;
+import cn.gmlee.tools.im.topic.TopicResourceFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.cloud.stream.config.BindingServiceProperties;
-import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -40,7 +33,7 @@ import java.util.List;
 /**
  * 端点自动配置.
  * <p>
- * 读取 {@code im.endpoints} YAML 配置，自动注册端点、创建 Stream 资源、构建动态路由。
+ * 读取 {@code im.endpoints} YAML 配置，自动注册端点、创建 Topic 资源、构建动态路由。
  * 开发者只需配置 YAML，无需编写任何 Java 代码。
  * </p>
  *
@@ -48,15 +41,22 @@ import java.util.List;
  * <pre>
  * YAML im.endpoints
  *   → EndpointRegistry 注册端点配置
- *   → TopicFactory 按需创建 Stream binding + Consumer Bean
+ *   → TopicResourceFactory 按需创建资源（CLUSTER: Stream binding / STANDALONE: 内存资源）
  *   → EndpointRouter 构建 RouterFunction
  * </pre>
  *
+ * <h3>双模式支持</h3>
+ * <p>
+ * 此配置类适用于 CLUSTER 和 STANDALONE 两种部署模式。具体的 TopicRegistry 和 TopicResourceFactory
+ * 实现由 {@link ClusterAutoConfiguration} 或 {@link StandaloneAutoConfiguration} 创建。
+ * </p>
+ *
  * @since 5.6.0
+ * @see ClusterAutoConfiguration
+ * @see StandaloneAutoConfiguration
  */
 @Slf4j
-@AutoConfiguration(after = ImAutoConfiguration.class)
-@ConditionalOnClass({StreamBridge.class, BindingServiceProperties.class})
+@AutoConfiguration(after = {ImAutoConfiguration.class, ClusterAutoConfiguration.class, StandaloneAutoConfiguration.class})
 @Import(EndpointAutoConfiguration.Registrar.class)
 public class EndpointAutoConfiguration {
 
@@ -79,97 +79,47 @@ public class EndpointAutoConfiguration {
     }
 
     /**
-     * Topic 组件注册表 Bean.
-     * <p>
-     * 自动发现自定义 {@link PublisherFactory}、{@link RepeaterFactory}、{@link SubscriberFactory}，
-     * 并为未自定义的 Topic 创建默认实现。
-     * </p>
-     */
-    @SuppressWarnings("rawtypes")
-    @Bean
-    @ConditionalOnMissingBean
-    public TopicRegistry topicRegistry(
-            @Autowired(required = false) List<PublisherFactory> publisherFactories,
-            @Autowired(required = false) List<RepeaterFactory> repeaterFactories,
-            @Autowired(required = false) List<SubscriberFactory> subscriberFactories,
-            StreamBridge streamBridge,
-            SseConnectionManager sseConnectionManager,
-            @Autowired(required = false) List<RepeaterInterceptor> interceptors,
-            @Autowired(required = false) RoutingKeyComposer composer) {
-        return new TopicRegistry(publisherFactories, repeaterFactories, subscriberFactories,
-                streamBridge, sseConnectionManager, interceptors, sseProperties, composer);
-    }
-
-    /**
-     * Topic 资源工厂 Bean.
-     * <p>
-     * 自动注册为 {@link EndpointRegistry} 的监听器，端点注册时按需创建 Stream 资源。
-     * 支持运行时动态注册端点，无需重启应用。
-     * </p>
-     *
-     * <h3>初始化顺序修复</h3>
-     * <p>
-     * 由于 {@code @PostConstruct registerYamlEndpoints()} 在 TopicFactory Bean 创建前已执行，
-     * 监听器会错过启动时注册的端点。因此在注册监听器后，立即为已存在的端点创建资源。
-     * </p>
-     *
-     * <h3>Consumer binding 启动</h3>
-     * <p>
-     * 不手动调用 {@code BindingService.bindConsumer()}（该 API 不适用于函数式编程模型）。
-     * Spring Cloud Stream 在上下文初始化时会自动发现注册的 Consumer Bean 并创建 binding。
-     * </p>
-     */
-    @Bean
-    @ConditionalOnMissingBean
-    public TopicFactory topicFactory(EndpointRegistry endpointRegistry,
-                                      BindingServiceProperties bindingServiceProperties,
-                                      TopicRegistry topicRegistry) {
-        TopicFactory factory = new TopicFactory(
-                bindingServiceProperties, beanDefinitionRegistry, topicRegistry);
-        endpointRegistry.addListener(factory);
-
-        // 修复初始化顺序问题：为启动时注册的端点创建资源（监听器错过了这些端点）
-        for (EndpointProperties props : endpointRegistry.listAll()) {
-            try {
-                factory.ensureResources(props);
-            } catch (Exception e) {
-                log.error("[EndpointAutoConfiguration] 为已有端点创建资源失败: {}", props.getPath(), e);
-            }
-        }
-
-        return factory;
-    }
-
-    /**
      * Topic 生命周期管理器 Bean.
      * <p>
      * 统一管理 Topic 的完整生命周期：状态管理、引用计数、资源协调、自动清理。
-     * 解决 Topic 资源泄露问题（Publisher/Repeater/Subscriber 和 Spring Cloud Stream binding）。
+     * 解决 Topic 资源泄露问题（Publisher/Repeater/Subscriber 和 Stream binding）。
      * </p>
      *
      * <h3>核心职责</h3>
      * <ul>
      *   <li>跟踪每个 Topic 的状态（CREATED → ACTIVE → DESTROYING → DESTROYED）</li>
      *   <li>管理 Topic 引用计数（端点注册时递增，注销时递减）</li>
-     *   <li>协调 {@link TopicRegistry} 和 {@link TopicFactory} 的创建/销毁</li>
+     *   <li>协调 {@link TopicRegistry} 和 {@link TopicResourceFactory} 的创建/销毁</li>
      *   <li>定期清理空闲 Topic（引用计数为 0 且超过 TTL）</li>
      * </ul>
      */
     @Bean
     @ConditionalOnMissingBean
     public TopicLifecycleManager topicLifecycleManager(TopicRegistry topicRegistry,
-                                                        TopicFactory topicFactory,
+                                                        TopicResourceFactory topicResourceFactory,
                                                         SseProperties sseProperties,
                                                         EndpointRegistry endpointRegistry,
                                                         ConnectionReaper connectionReaper) {
         DefaultTopicLifecycleManager manager = new DefaultTopicLifecycleManager(
-                topicRegistry, topicFactory, sseProperties);
+                topicRegistry, topicResourceFactory, sseProperties);
 
         // 注入到 EndpointRegistry（用于管理 Topic 引用计数）
         endpointRegistry.setTopicLifecycleManager(manager);
 
         // 注入到 ConnectionReaper（用于定期清理空闲 Topic）
         connectionReaper.setTopicLifecycleManager(manager);
+
+        // 注册 TopicResourceFactory 为端点监听器
+        endpointRegistry.addListener(topicResourceFactory);
+
+        // 修复初始化顺序问题：为启动时注册的端点创建资源（监听器错过了这些端点）
+        for (EndpointProperties props : endpointRegistry.listAll()) {
+            try {
+                topicResourceFactory.ensureResources(props);
+            } catch (Exception e) {
+                log.error("[EndpointAutoConfiguration] 为已有端点创建资源失败: {}", props.getPath(), e);
+            }
+        }
 
         log.info("[EndpointAutoConfiguration] TopicLifecycleManager 已初始化");
         return manager;
@@ -232,7 +182,7 @@ public class EndpointAutoConfiguration {
         for (EndpointProperties props : endpoints) {
             try {
                 endpointRegistry.register(props);
-                // 监听器 TopicFactory.onEndpointRegistered 已触发 ensureResources，无需重复调用
+                // 监听器 TopicResourceFactory.onEndpointRegistered 已触发 ensureResources，无需重复调用
             } catch (Exception e) {
                 log.error("[EndpointAutoConfiguration] 加载端点失败: {}", props, e);
             }
