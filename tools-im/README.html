@@ -1783,6 +1783,116 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
     </table>
   </div>
 
+  <h3>Topic 作为资源管理基本单元</h3>
+  <p>Topic 是框架的<b>基本资源管理单元</b>，从消息发布到 SSE 推送的整条链路上，所有中间组件都是 Topic 级别的资源。</p>
+
+  <h4>全链路资源归属</h4>
+  <div class="arch-diagram" style="padding: 30px 20px; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+      <div style="flex: 1; min-width: 280px;">
+        <h4 style="color: #166534; margin-bottom: 12px;">&#x1F3ED; 逻辑层资源（每个 Topic 一份）</h4>
+        <ul style="margin: 0; padding-left: 20px; line-height: 1.8;">
+          <li><code>Publisher</code> — 消息发布器</li>
+          <li><code>Repeater</code> — 消息转发器</li>
+          <li><code>Subscriber</code> — 消息订阅器</li>
+        </ul>
+      </div>
+      <div style="flex: 1; min-width: 280px;">
+        <h4 style="color: #1e40af; margin-bottom: 12px;">&#x1F50C; 物理层资源（CLUSTER 模式）</h4>
+        <ul style="margin: 0; padding-left: 20px; line-height: 1.8;">
+          <li>Spring Cloud Stream binding 配置</li>
+          <li>Consumer Bean 定义</li>
+          <li>RabbitMQ 连接（由 Spring 管理）</li>
+        </ul>
+      </div>
+      <div style="flex: 1; min-width: 280px;">
+        <h4 style="color: #9333ea; margin-bottom: 12px;">&#x1F4E1; 连接层资源（每个 Topic 一份）</h4>
+        <ul style="margin: 0; padding-left: 20px; line-height: 1.8;">
+          <li><code>topicSinks</code> — 广播消息 Sink</li>
+          <li><code>topicConnections</code> — 连接 ID 集合</li>
+          <li><code>routingKeyIndex</code> — 定向路由索引</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <h4>资源生命周期</h4>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>事件</th><th>创建的资源</th><th>清理的资源</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>首个连接/消息</strong></td>
+          <td>全链路资源（Publisher + Repeater + Subscriber + Sink + 路由索引）</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td><strong>Topic 变空</strong></td>
+          <td>—</td>
+          <td>等待 <code>emptyTopicTtl</code>（默认 60s）</td>
+        </tr>
+        <tr>
+          <td><strong>超时清理</strong></td>
+          <td>—</td>
+          <td>全链路资源（逻辑层 + 物理层 + 连接层）</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout callout-info">
+    <span class="callout-icon">&#x23F0;</span>
+    <div>
+      <strong>计时起点</strong>
+      <p><b>从最后一个连接离开时开始计时</b>，而非从最后一条消息开始。</p>
+      <p><b>防抖动设计</b>：使用 <code>putIfAbsent</code> 记录首次变空时间。如果 Topic 短暂恢复连接后再次变空，<b>不会重置计时器</b>，确保超时后必然被清理。</p>
+      <p><b>示例</b>：</p>
+      <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+        <li>10:00:00 - 最后一个连接断开，Topic 变空 → 记录时间戳 10:00:00</li>
+        <li>10:00:30 - 新连接加入（30s &lt; 60s TTL）→ 复用资源，从 <code>emptyTopics</code> 移除</li>
+        <li>10:01:00 - 连接断开，Topic 再次变空 → <b>不重置计时器</b>，仍按 10:00:00 计算</li>
+        <li>10:01:01 - 超过 60s TTL，触发清理</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout callout-tip">
+    <span class="callout-icon">&#x1F4A1;</span>
+    <div>
+      <strong>设计优势</strong>
+      <ul style="margin: 8px 0 0 0; padding-left: 20px;">
+        <li><b>资源隔离</b>：每个 Topic 独立管理，一个 Topic 的清理不影响其他 Topic</li>
+        <li><b>简化清理</b>：通过 Topic 名称即可定位和清理所有相关资源</li>
+        <li><b>生命周期一致性</b>：Topic 创建时创建所有资源，销毁时清理所有资源</li>
+      </ul>
+    </div>
+  </div>
+
+  <h4>静态 Topic vs 动态 Topic</h4>
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr><th>类型</th><th>特点</th><th>资源策略</th><th>示例</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>静态 Topic</strong></td>
+          <td>固定数量，长期存在</td>
+          <td>可配置为"永不清理"，避免首个用户负担</td>
+          <td><code>im.chat</code>、<code>im.notification</code></td>
+        </tr>
+        <tr>
+          <td><strong>动态 Topic</strong></td>
+          <td>按需创建，数量不固定</td>
+          <td>必须启用自动清理，防止内存泄漏</td>
+          <td><code>user.{userId}</code>、<code>session.{sessionId}</code></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
   <h3>Spring Cloud Stream 限制说明</h3>
   <div class="callout callout-warn">
     <span class="callout-icon">&#x26A0;</span>
@@ -2404,6 +2514,48 @@ es.<span class="fn">onmessage</span> = e =&gt; console.<span class="fn">log</spa
       </ul>
     </div>
   </div>
+
+  <h4>静态 Topic 永不清理配置（可选）</h4>
+  <p>对于<b>静态 Topic</b>（固定数量、长期存在），可配置为"永不清理"，避免首个用户承担资源创建开销。</p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">YAML</span>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+    </div>
+    <pre><code><span class="attr">im</span>:
+  <span class="attr">sse</span>:
+    <span class="attr">cleanup</span>:
+      <span class="attr">empty-topic-ttl</span>: <span class="val">36500d</span>  <span class="cm"># 100 年，实际上永不清理</span>
+      <span class="attr">compact-ttl</span>: <span class="val">36500d</span>      <span class="cm"># 同时禁用计数器压缩</span></code></pre>
+  </div>
+
+  <div class="callout callout-warn">
+    <span class="callout-icon">&#x26A0;</span>
+    <div>
+      <strong>⚠️ 重要：仅适用于静态 Topic</strong>
+      <p><b>适用场景</b>：固定数量的业务 Topic（如 <code>im.chat</code>、<code>im.notification</code>），资源创建后永久保留。</p>
+      <p><b>不适用场景</b>：动态 Topic（如 <code>user.{userId}</code>、<code>session.{sessionId}</code>），会导致内存持续增长。</p>
+      <p><b>内存影响</b>：每个空 Topic 占用 ~5 KB，100 个静态 Topic 仅占用 ~500 KB（可忽略）。</p>
+    </div>
+  </div>
+
+  <h4>折中方案：长缓冲期</h4>
+  <p>如果担心内存增长，可设置较长的缓冲期（如 24h），平衡资源复用和内存占用：</p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <span class="code-lang">YAML</span>
+      <button class="copy-btn" onclick="copyCode(this)">&#x1F4CB; 复制</button>
+    </div>
+    <pre><code><span class="attr">im</span>:
+  <span class="attr">sse</span>:
+    <span class="attr">cleanup</span>:
+      <span class="attr">empty-topic-ttl</span>: <span class="val">24h</span>  <span class="cm"># 保留 24 小时</span>
+      <span class="attr">compact-ttl</span>: <span class="val">7d</span>      <span class="cm"># 计数器保留 7 天</span></code></pre>
+  </div>
+
+  <p><b>效果</b>：日间流量波动时资源复用，夜间空闲时资源保留到第二天，长期不用的 Topic 在 24 小时后清理。</p>
 
 </div>
 
