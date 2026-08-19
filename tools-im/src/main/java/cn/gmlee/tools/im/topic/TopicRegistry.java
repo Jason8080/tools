@@ -2,6 +2,7 @@ package cn.gmlee.tools.im.topic;
 
 import cn.gmlee.tools.im.model.DeploymentMode;
 import cn.gmlee.tools.im.conf.SseProperties;
+import cn.gmlee.tools.im.core.MessageSender;
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Repeater;
 import cn.gmlee.tools.im.spi.factory.PublisherFactory;
@@ -14,7 +15,6 @@ import cn.gmlee.tools.im.core.Subscriber;
 import cn.gmlee.tools.im.ex.TopicNotFoundException;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.lang.Nullable;
 import tools.jackson.databind.ObjectMapper;
 
@@ -85,10 +85,10 @@ public class TopicRegistry {
     private final ConcurrentHashMap<String, Subscriber<?>> subscribers = new ConcurrentHashMap<>();
 
     /**
-     * Stream 桥接器（用于创建默认实现，CLUSTER 模式必需，STANDALONE 模式为 null）.
+     * 消息传输器（用于创建默认实现，CLUSTER 模式必需，STANDALONE 模式为 null）.
      */
     @Nullable
-    private final StreamBridge streamBridge;
+    private final MessageSender messageSender;
 
     /**
      * SSE 连接管理器（用于创建默认实现）
@@ -121,87 +121,12 @@ public class TopicRegistry {
     private final DeploymentMode deploymentMode;
 
     /**
-     * 创建 Topic 组件注册表.
-     *
-     * @param publisherFactories   Publisher 工厂列表（Spring 注入，可为 null）
-     * @param repeaterFactories    Repeater 工厂列表（Spring 注入，可为 null）
-     * @param subscriberFactories  Subscriber 工厂列表（Spring 注入，可为 null）
-     * @param streamBridge         Stream 桥接器（CLUSTER 模式必需，STANDALONE 模式可为 null）
-     * @param sseConnectionManager SSE 连接管理器
-     * @param interceptors         Repeater 拦截器列表（Spring 注入，可为 null）
-     * @deprecated 使用包含 {@link DeploymentMode} 参数的完整构造器
-     */
-    @Deprecated
-    public TopicRegistry(List<PublisherFactory> publisherFactories,
-                         List<RepeaterFactory> repeaterFactories,
-                         List<SubscriberFactory> subscriberFactories,
-                         @Nullable StreamBridge streamBridge,
-                         SseConnectionManager sseConnectionManager,
-                         List<RepeaterInterceptor> interceptors) {
-        this(publisherFactories, repeaterFactories, subscriberFactories,
-                streamBridge, sseConnectionManager, interceptors, null, null, null,
-                streamBridge != null ? DeploymentMode.CLUSTER : DeploymentMode.STANDALONE);
-    }
-
-    /**
-     * 创建 Topic 组件注册表.
-     *
-     * @param publisherFactories   Publisher 工厂列表（Spring 注入，可为 null）
-     * @param repeaterFactories    Repeater 工厂列表（Spring 注入，可为 null）
-     * @param subscriberFactories  Subscriber 工厂列表（Spring 注入，可为 null）
-     * @param streamBridge         Stream 桥接器（CLUSTER 模式必需，STANDALONE 模式可为 null）
-     * @param sseConnectionManager SSE 连接管理器
-     * @param interceptors         Repeater 拦截器列表（Spring 注入，可为 null）
-     * @param sseProperties        SSE 配置（用于传递 routingKeys 等配置到默认组件，可为 null）
-     * @deprecated 使用包含 {@link DeploymentMode} 参数的完整构造器
-     */
-    @Deprecated
-    public TopicRegistry(List<PublisherFactory> publisherFactories,
-                         List<RepeaterFactory> repeaterFactories,
-                         List<SubscriberFactory> subscriberFactories,
-                         @Nullable StreamBridge streamBridge,
-                         SseConnectionManager sseConnectionManager,
-                         List<RepeaterInterceptor> interceptors,
-                         SseProperties sseProperties) {
-        this(publisherFactories, repeaterFactories, subscriberFactories,
-                streamBridge, sseConnectionManager, interceptors, sseProperties, null, null,
-                streamBridge != null ? DeploymentMode.CLUSTER : DeploymentMode.STANDALONE);
-    }
-
-    /**
-     * 创建 Topic 组件注册表（含路由键组合器）.
-     *
-     * @param publisherFactories   Publisher 工厂列表（Spring 注入，可为 null）
-     * @param repeaterFactories    Repeater 工厂列表（Spring 注入，可为 null）
-     * @param subscriberFactories  Subscriber 工厂列表（Spring 注入，可为 null）
-     * @param streamBridge         Stream 桥接器（CLUSTER 模式必需，STANDALONE 模式可为 null）
-     * @param sseConnectionManager SSE 连接管理器
-     * @param interceptors         Repeater 拦截器列表（Spring 注入，可为 null）
-     * @param sseProperties        SSE 配置（用于传递 routingKeys 等配置到默认组件，可为 null）
-     * @param composer             路由键组合器（用于传递给默认 Publisher，可为 null 使用默认实现）
-     * @deprecated 使用包含 {@link DeploymentMode} 参数的完整构造器
-     */
-    @Deprecated
-    public TopicRegistry(List<PublisherFactory> publisherFactories,
-                         List<RepeaterFactory> repeaterFactories,
-                         List<SubscriberFactory> subscriberFactories,
-                         @Nullable StreamBridge streamBridge,
-                         SseConnectionManager sseConnectionManager,
-                         List<RepeaterInterceptor> interceptors,
-                         SseProperties sseProperties,
-                         RoutingKeyComposer composer) {
-        this(publisherFactories, repeaterFactories, subscriberFactories,
-                streamBridge, sseConnectionManager, interceptors, sseProperties, composer, null,
-                streamBridge != null ? DeploymentMode.CLUSTER : DeploymentMode.STANDALONE);
-    }
-
-    /**
      * 创建 Topic 组件注册表（完整参数）.
      *
      * @param publisherFactories   Publisher 工厂列表（Spring 注入，可为 null）
      * @param repeaterFactories    Repeater 工厂列表（Spring 注入，可为 null）
      * @param subscriberFactories  Subscriber 工厂列表（Spring 注入，可为 null）
-     * @param streamBridge         Stream 桥接器（CLUSTER 模式必需，STANDALONE 模式可为 null）
+     * @param messageSender        消息传输器（CLUSTER 模式必需，STANDALONE 模式可为 null）
      * @param sseConnectionManager SSE 连接管理器
      * @param interceptors         Repeater 拦截器列表（Spring 注入，可为 null）
      * @param sseProperties        SSE 配置（用于传递 routingKeys 等配置到默认组件，可为 null）
@@ -212,7 +137,7 @@ public class TopicRegistry {
     public TopicRegistry(List<PublisherFactory> publisherFactories,
                          List<RepeaterFactory> repeaterFactories,
                          List<SubscriberFactory> subscriberFactories,
-                         @Nullable StreamBridge streamBridge,
+                         @Nullable MessageSender messageSender,
                          SseConnectionManager sseConnectionManager,
                          List<RepeaterInterceptor> interceptors,
                          SseProperties sseProperties,
@@ -222,7 +147,7 @@ public class TopicRegistry {
         this.publisherFactories = publisherFactories != null ? publisherFactories : Collections.emptyList();
         this.repeaterFactories = repeaterFactories != null ? repeaterFactories : Collections.emptyList();
         this.subscriberFactories = subscriberFactories != null ? subscriberFactories : Collections.emptyList();
-        this.streamBridge = streamBridge;
+        this.messageSender = messageSender;
         this.sseConnectionManager = sseConnectionManager;
         this.interceptors = interceptors != null ? interceptors : Collections.emptyList();
         this.sseProperties = sseProperties;
@@ -341,7 +266,7 @@ public class TopicRegistry {
      * 根据部署模式选择不同的实现：
      * </p>
      * <ul>
-     *   <li><b>CLUSTER 模式</b>：{@link ClusterRepeater} - 使用 StreamBridge 发送到 MQ</li>
+     *   <li><b>CLUSTER 模式</b>：{@link ClusterRepeater} - 使用 MessageSender 发送到 MQ</li>
      *   <li><b>STANDALONE 模式</b>：{@link StandaloneRepeater} - 直接内存传递，绕过 MQ</li>
      * </ul>
      *
@@ -350,7 +275,7 @@ public class TopicRegistry {
      */
     public Repeater<?, ?> createDefaultRepeater(String topic) {
         return switch (deploymentMode) {
-            case CLUSTER -> new ClusterRepeater(topic, streamBridge, sseConnectionManager, interceptors);
+            case CLUSTER -> new ClusterRepeater(topic, messageSender, sseConnectionManager, interceptors);
             case STANDALONE -> new StandaloneRepeater(topic, sseConnectionManager, interceptors);
         };
     }

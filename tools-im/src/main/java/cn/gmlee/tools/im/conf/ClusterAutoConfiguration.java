@@ -1,5 +1,6 @@
 package cn.gmlee.tools.im.conf;
 
+import cn.gmlee.tools.im.core.MessageSender;
 import cn.gmlee.tools.im.model.DeploymentMode;
 import cn.gmlee.tools.im.spi.factory.PublisherFactory;
 import cn.gmlee.tools.im.spi.factory.RepeaterFactory;
@@ -37,7 +38,7 @@ import java.util.List;
  *
  * <h3>创建的 Bean</h3>
  * <ul>
- *   <li>{@link TopicRegistry} - 配置为 CLUSTER 模式，使用 {@link StreamBridge}</li>
+ *   <li>{@link TopicRegistry} - 配置为 CLUSTER 模式，通过 {@link MessageSender} 发送消息</li>
  *   <li>{@link ClusterTopicResourceFactory} - 创建 Spring Cloud Stream binding</li>
  * </ul>
  *
@@ -54,8 +55,8 @@ import java.util.List;
  *     <td>❌ 不需要</td>
  *   </tr>
  *   <tr>
- *     <td>StreamBridge</td>
- *     <td>✅ 注入</td>
+ *     <td>MessageSender</td>
+ *     <td>✅ 注入（由 StreamBridge 适配）</td>
  *     <td>❌ 不注入</td>
  *   </tr>
  *   <tr>
@@ -78,7 +79,7 @@ public class ClusterAutoConfiguration {
     /**
      * 创建集群模式的 TopicRegistry.
      * <p>
-     * 配置为 CLUSTER 模式，注入 {@link StreamBridge} 用于发送消息到 MQ。
+     * 配置为 CLUSTER 模式，将 {@link StreamBridge} 适配为 {@link MessageSender} 用于发送消息到 MQ。
      * </p>
      *
      * @param publisherFactories   Publisher 工厂列表
@@ -106,11 +107,12 @@ public class ClusterAutoConfiguration {
             ImProperties imProperties) {
 
         log.info("[ClusterAutoConfiguration] 创建 CLUSTER 模式 TopicRegistry");
+        MessageSender messageSender = streamBridge::send;
         return new TopicRegistry(
                 publisherFactories,
                 repeaterFactories,
                 subscriberFactories,
-                streamBridge,
+                messageSender,
                 sseConnectionManager,
                 interceptors,
                 sseProperties,

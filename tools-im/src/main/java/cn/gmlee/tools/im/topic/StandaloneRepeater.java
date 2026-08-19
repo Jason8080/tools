@@ -80,7 +80,7 @@ class StandaloneRepeater extends ImRepeater<Serializable, Msg> {
     public StandaloneRepeater(String topic,
                               SseConnectionManager sseConnectionManager,
                               List<RepeaterInterceptor> interceptors) {
-        super(topic, null,  // 不需要 StreamBridge
+        super(topic, null,  // 不需要 MessageSender（STANDALONE 模式直接调用 receive()）
               sseConnectionManager::publish,
               sseConnectionManager::subscribe,
               interceptors);

@@ -18,7 +18,7 @@ import java.util.Set;
  * <h3>默认实现</h3>
  * <p>
  * 框架自动创建 {@code DefaultPublisher}，将消息包装为 {@link TopicMessage}
- * 并通过 {@code StreamBridge} 发送到 MQ。
+ * 并通过 {@code MessageSender} 发送到 MQ。
  * </p>
  *
  * <h3>自定义扩展</h3>
@@ -49,7 +49,7 @@ public interface Publisher<ID extends Serializable, MSG extends Msg> extends Top
      * 发布消息.
      * <p>
      * 接收 HTTP PUSH 请求的消息载荷，执行消息注入逻辑，异步返回消息 ID。
-     * 默认实现将消息包装为 {@link TopicMessage} 并通过 StreamBridge 发送到 MQ。
+     * 默认实现将消息包装为 {@link TopicMessage} 并通过 MessageSender 发送到 MQ。
      * </p>
      * <p>
      * 返回 {@link Mono} 异步执行，不阻塞调用线程。拦截器链中的异步 I/O

@@ -7,7 +7,6 @@ import cn.gmlee.tools.im.spi.factory.RepeaterContext;
 import cn.gmlee.tools.im.spi.interceptor.RepeaterInterceptor;
 import cn.gmlee.tools.im.util.BindingNames;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.util.MultiValueMap;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -44,7 +43,7 @@ public abstract class ImRepeater<ID extends Serializable, MSG extends Msg> imple
 
     private final String topic;
     private final List<RepeaterInterceptor> interceptors;
-    private final StreamBridge streamBridge;
+    private final MessageSender messageSender;
     private final Consumer<TopicMessage> publishFunction;
     private final BiFunction<String, ConnectionMetadata, Flux<TopicMessage>> subscribeFunction;
 
@@ -52,7 +51,7 @@ public abstract class ImRepeater<ID extends Serializable, MSG extends Msg> imple
      * 创建 Repeater（使用上下文对象）.
      * <p>
      * 推荐用于自定义 Repeater 实现，通过 {@link RepeaterContext} 获取 SSE 能力。
-     * 此构造函数不包含 {@code streamBridge}，适用于不需要 MQ 发送的场景。
+     * 此构造函数不包含 {@code messageSender}，适用于不需要 MQ 发送的场景。
      * 如需 MQ 发送能力，请重写 {@link #doSend(TopicMessage)} 方法。
      * </p>
      *
@@ -69,23 +68,23 @@ public abstract class ImRepeater<ID extends Serializable, MSG extends Msg> imple
     /**
      * 创建 Repeater（完整参数，框架内部使用）.
      * <p>
-     * 此构造函数包含 {@code streamBridge}，用于默认实现的 MQ 发送。
+     * 此构造函数包含 {@code messageSender}，用于默认实现的 MQ 发送。
      * 自定义实现建议使用 {@link #ImRepeater(String, RepeaterContext, List)}。
      * </p>
      *
      * @param topic             Topic 名称
-     * @param streamBridge      Stream 桥接器（可为 null）
+     * @param messageSender     消息传输器（可为 null，CLUSTER 模式由 StreamBridge 适配）
      * @param publishFunction   SSE 发布函数（通常为 SseConnectionManager::publish）
      * @param subscribeFunction SSE 订阅函数（通常为 SseConnectionManager::subscribe）
      * @param interceptors      拦截器列表（可为 null）
      */
     protected ImRepeater(String topic,
-                         StreamBridge streamBridge,
+                         MessageSender messageSender,
                          Consumer<TopicMessage> publishFunction,
                          BiFunction<String, ConnectionMetadata, Flux<TopicMessage>> subscribeFunction,
                          List<RepeaterInterceptor> interceptors) {
         this.topic = topic;
-        this.streamBridge = streamBridge;
+        this.messageSender = messageSender;
         this.publishFunction = publishFunction;
         this.subscribeFunction = subscribeFunction;
         this.interceptors = interceptors != null ? interceptors : Collections.emptyList();
@@ -162,7 +161,7 @@ public abstract class ImRepeater<ID extends Serializable, MSG extends Msg> imple
     }
 
     /**
-     * 实际发送逻辑（IM 标准实现：通过 StreamBridge 发送到 MQ）.
+     * 实际发送逻辑（IM 标准实现：通过 MessageSender 发送到 MQ）.
      * <p>
      * 子类可重写以自定义发送行为。参数和返回值使用 {@code TopicMessage} / {@code Mono<Serializable>}，
      * 与 SSE 管道对齐，子类无需处理泛型。
@@ -174,7 +173,7 @@ public abstract class ImRepeater<ID extends Serializable, MSG extends Msg> imple
     protected Mono<Serializable> doSend(TopicMessage message) {
         return Mono.fromCallable(() -> {
             String bindingName = BindingNames.outputBinding(message.getTopic());
-            streamBridge.send(bindingName, message);
+            messageSender.send(bindingName, message);
             log.debug("[ImRepeater] 发送到 Stream: topic={}, id={}", message.getTopic(), message.getId());
             return message.getId();
         });

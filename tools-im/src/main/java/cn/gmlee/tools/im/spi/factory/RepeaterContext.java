@@ -18,7 +18,7 @@ import java.util.function.Consumer;
  *
  * <h3>设计原则</h3>
  * <ul>
- *   <li><b>封装性</b>：隐藏框架内部组件（如 StreamBridge），仅暴露必要的函数式接口</li>
+ *   <li><b>封装性</b>：隐藏框架内部组件（如 MessageSender），仅暴露必要的函数式接口</li>
  *   <li><b>不可变性</b>：所有字段在构造时设置，不可修改</li>
  *   <li><b>线程安全</b>：函数式接口本身是线程安全的</li>
  * </ul>

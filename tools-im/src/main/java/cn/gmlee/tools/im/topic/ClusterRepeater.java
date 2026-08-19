@@ -1,11 +1,11 @@
 package cn.gmlee.tools.im.topic;
 
 import cn.gmlee.tools.im.core.ImRepeater;
+import cn.gmlee.tools.im.core.MessageSender;
 import cn.gmlee.tools.im.model.Msg;
 import cn.gmlee.tools.im.spi.interceptor.RepeaterInterceptor;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.stream.function.StreamBridge;
 
 import java.io.Serializable;
 import java.util.List;
@@ -31,10 +31,10 @@ import java.util.List;
 class  ClusterRepeater extends ImRepeater<Serializable, Msg> {
 
     public ClusterRepeater(String topic,
-                           StreamBridge streamBridge,
+                           MessageSender messageSender,
                            SseConnectionManager sseConnectionManager,
                            List<RepeaterInterceptor> interceptors) {
-        super(topic, streamBridge,
+        super(topic, messageSender,
               sseConnectionManager::publish,
               sseConnectionManager::subscribe,
               interceptors);

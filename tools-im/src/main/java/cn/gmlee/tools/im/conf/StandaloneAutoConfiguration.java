@@ -32,7 +32,7 @@ import java.util.List;
  *
  * <h3>创建的 Bean</h3>
  * <ul>
- *   <li>{@link TopicRegistry} - 配置为 STANDALONE 模式，不注入 {@code StreamBridge}</li>
+ *   <li>{@link TopicRegistry} - 配置为 STANDALONE 模式，不注入 {@code MessageSender}</li>
  *   <li>{@link StandaloneTopicResourceFactory} - 不创建 Stream binding，仅确保 Repeater 创建</li>
  * </ul>
  *
@@ -49,8 +49,8 @@ import java.util.List;
  *     <td>❌ 不需要</td>
  *   </tr>
  *   <tr>
- *     <td>StreamBridge</td>
- *     <td>✅ 注入</td>
+ *     <td>MessageSender</td>
+ *     <td>✅ 注入（由 StreamBridge 适配）</td>
  *     <td>❌ 不注入（null）</td>
  *   </tr>
  *   <tr>
@@ -84,7 +84,7 @@ public class StandaloneAutoConfiguration {
     /**
      * 创建单机模式的 TopicRegistry.
      * <p>
-     * 配置为 STANDALONE 模式，不注入 {@code StreamBridge}（传 null）。
+     * 配置为 STANDALONE 模式，不注入 {@code MessageSender}（传 null）。
      * </p>
      *
      * @param publisherFactories   Publisher 工厂列表
@@ -114,7 +114,7 @@ public class StandaloneAutoConfiguration {
                 publisherFactories,
                 repeaterFactories,
                 subscriberFactories,
-                null,  // StreamBridge = null（STANDALONE 模式不需要）
+                null,  // MessageSender = null（STANDALONE 模式不需要 MQ 传输）
                 sseConnectionManager,
                 interceptors,
                 sseProperties,
