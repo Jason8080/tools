@@ -1,6 +1,14 @@
 package cn.gmlee.tools.im.conf;
 
 import cn.gmlee.tools.im.endpoint.EndpointRegistry;
+import cn.gmlee.tools.im.resume.AtomicSequenceEventIdGenerator;
+import cn.gmlee.tools.im.resume.EventIdCodec;
+import cn.gmlee.tools.im.resume.EventIdComparator;
+import cn.gmlee.tools.im.resume.EventIdGenerator;
+import cn.gmlee.tools.im.resume.InMemoryMessageHistoryStore;
+import cn.gmlee.tools.im.resume.MessageHistoryStore;
+import cn.gmlee.tools.im.resume.ResumeSupport;
+import cn.gmlee.tools.im.resume.SnowflakeEventIdGenerator;
 import cn.gmlee.tools.im.spi.listener.SseConnectionListener;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import cn.gmlee.tools.im.sse.SseConnectionRegistry;
@@ -22,13 +30,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * IM 框架核心自动配置.
@@ -94,6 +105,119 @@ public class ImAutoConfiguration {
                                                       EmitRetryStrategyResolver retryStrategyResolver,
                                                       @Autowired(required = false) List<SseConnectionListener> listeners) {
         return new SseConnectionManager(properties, registry, metrics, reaper, listeners, retryStrategyResolver);
+    }
+
+    // ==================== 断点续传（v5.7.0+） ====================
+
+    /**
+     * 事件 ID 编解码器（SSE {@code id:} 字段 ↔ 位点对象）.
+     *
+     * @since 5.7.0
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public EventIdCodec eventIdCodec() {
+        return EventIdCodec.DEFAULT;
+    }
+
+    /**
+     * 事件 ID 顺序比较器（水位线去重）.
+     *
+     * @since 5.7.0
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public EventIdComparator eventIdComparator() {
+        return EventIdComparator.DEFAULT;
+    }
+
+    /**
+     * 事件 ID 生成器（push 路径统一分配消息 ID）.
+     * <p>
+     * {@code im.sse.resume.snowflake.enabled=true} 时使用雪花算法
+     * （CLUSTER 多实例 + 续传场景必需），否则使用单 JVM 自增序列。
+     * </p>
+     *
+     * @since 5.7.0
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public EventIdGenerator eventIdGenerator(SseProperties properties) {
+        SseProperties.SnowflakeConfig snowflake = properties.getResume().getSnowflake();
+        if (!snowflake.isEnabled()) {
+            return new AtomicSequenceEventIdGenerator();
+        }
+        long workerId = snowflake.getWorkerId();
+        if (workerId < 0) {
+            workerId = autoWorkerId();
+            log.warn("[ImAutoConfiguration] 未配置 im.sse.resume.snowflake.worker-id，"
+                    + "按主机名哈希自动分配 workerId={}（存在小概率冲突，生产环境建议显式配置）", workerId);
+        }
+        log.info("[ImAutoConfiguration] 启用雪花算法事件 ID 生成器: workerId={}", workerId);
+        return new SnowflakeEventIdGenerator(workerId);
+    }
+
+    /**
+     * 断点续传支持门面.
+     * <p>
+     * 汇总全部 {@link MessageHistoryStore} Bean（无存储时读取侧自动退化为仅实时流，
+     * 写入侧挂点空转，开销可忽略）。
+     * </p>
+     *
+     * @since 5.7.0
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    public ResumeSupport resumeSupport(SseProperties properties,
+                                       EventIdCodec eventIdCodec,
+                                       EventIdComparator eventIdComparator,
+                                       @Autowired(required = false) List<MessageHistoryStore> stores,
+                                       SseMetrics metrics) {
+        int storeCount = stores != null ? stores.size() : 0;
+        log.info("[ImAutoConfiguration] 断点续传支持已装配: enabled={}, 历史存储数={}",
+                properties.getResume().isEnabled(), storeCount);
+        return new ResumeSupport(properties.getResume(), eventIdCodec, eventIdComparator, stores, metrics);
+    }
+
+    /**
+     * 内存历史存储配置（开发/单机场景）.
+     * <p>
+     * {@code im.sse.resume.in-memory.enabled=true} 时激活。
+     * </p>
+     *
+     * @since 5.7.0
+     */
+    @Configuration
+    @ConditionalOnProperty(prefix = "im.sse.resume.in-memory", name = "enabled", havingValue = "true")
+    static class InMemoryHistoryConfiguration {
+
+        @Bean
+        @ConditionalOnMissingBean
+        InMemoryMessageHistoryStore inMemoryMessageHistoryStore(SseProperties properties) {
+            SseProperties.InMemoryHistoryConfig config = properties.getResume().getInMemory();
+            log.info("[ImAutoConfiguration] 启用内存消息历史存储: capacityPerTopic={}",
+                    config.getCapacityPerTopic());
+            return new InMemoryMessageHistoryStore(config.getCapacityPerTopic());
+        }
+    }
+
+    /**
+     * 按主机名哈希分配雪花算法 workerId（0~1023）.
+     * <p>
+     * 主机名解析失败时随机分配。自动分配存在小概率冲突，仅为兜底。
+     * </p>
+     */
+    private static long autoWorkerId() {
+        String host;
+        try {
+            host = InetAddress.getLocalHost().getHostName();
+        } catch (Exception e) {
+            host = null;
+        }
+        if (host == null || host.isBlank()) {
+            return ThreadLocalRandom.current().nextLong(1024);
+        }
+        return (host.hashCode() & 0x7FFFFFFF) % 1024;
     }
 
     /**

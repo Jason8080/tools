@@ -49,6 +49,8 @@ public class MicrometerSseMetrics implements SseMetrics {
     private final ConcurrentHashMap<String, Timer> publishDurationTimers = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Counter> directedPublishCounters = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Timer> directedPublishDurationTimers = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Counter> resumeCounters = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Counter> resumedMessageCounters = new ConcurrentHashMap<>();
 
     private Counter reaperScans;
     private Counter reaperZombies;
@@ -216,6 +218,29 @@ public class MicrometerSseMetrics implements SseMetrics {
     }
 
     @Override
+    public void recordResume(String topic, String result) {
+        if (!enabled) return;
+        resumeCounters.computeIfAbsent(topic + ":" + result, k ->
+                Counter.builder(PREFIX + ".resume.rate")
+                        .tag("topic", topic)
+                        .tag("result", result)
+                        .description("SSE 断点续传会话结果")
+                        .register(registry)
+        ).increment();
+    }
+
+    @Override
+    public void recordResumedMessages(String topic, long count) {
+        if (!enabled || count <= 0) return;
+        resumedMessageCounters.computeIfAbsent(topic, k ->
+                Counter.builder(PREFIX + ".resume.messages")
+                        .tag("topic", topic)
+                        .description("回放给客户端的历史消息数")
+                        .register(registry)
+        ).increment(count);
+    }
+
+    @Override
     public void cleanupTopic(String topic) {
         if (!enabled) return;
 
@@ -267,6 +292,21 @@ public class MicrometerSseMetrics implements SseMetrics {
         if (directedTimer != null) {
             registry.remove(directedTimer);
         }
+
+        // 清理 resume counters (key = "topic:result")
+        resumeCounters.entrySet().removeIf(entry -> {
+            if (entry.getKey().startsWith(topic + ":")) {
+                registry.remove(entry.getValue());
+                return true;
+            }
+            return false;
+        });
+
+        // 清理 resumed message counters (key = topic)
+        Counter resumedCounter = resumedMessageCounters.remove(topic);
+        if (resumedCounter != null) {
+            registry.remove(resumedCounter);
+        }
     }
 
     @Override
@@ -280,6 +320,8 @@ public class MicrometerSseMetrics implements SseMetrics {
         publishDurationTimers.clear();
         directedPublishCounters.clear();
         directedPublishDurationTimers.clear();
+        resumeCounters.clear();
+        resumedMessageCounters.clear();
     }
 
     @Override

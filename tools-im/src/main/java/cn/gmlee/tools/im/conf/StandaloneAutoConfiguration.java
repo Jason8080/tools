@@ -1,6 +1,8 @@
 package cn.gmlee.tools.im.conf;
 
 import cn.gmlee.tools.im.model.DeploymentMode;
+import cn.gmlee.tools.im.resume.EventIdGenerator;
+import cn.gmlee.tools.im.resume.ResumeSupport;
 import cn.gmlee.tools.im.spi.factory.PublisherFactory;
 import cn.gmlee.tools.im.spi.factory.RepeaterFactory;
 import cn.gmlee.tools.im.spi.factory.SubscriberFactory;
@@ -107,7 +109,9 @@ public class StandaloneAutoConfiguration {
             @Autowired(required = false) List<RepeaterInterceptor> interceptors,
             SseProperties sseProperties,
             @Autowired(required = false) RoutingKeyComposer composer,
-            ImProperties imProperties) {
+            ImProperties imProperties,
+            ResumeSupport resumeSupport,
+            EventIdGenerator eventIdGenerator) {
 
         log.info("[StandaloneAutoConfiguration] 创建 STANDALONE 模式 TopicRegistry（无 MQ）");
         return new TopicRegistry(
@@ -120,7 +124,9 @@ public class StandaloneAutoConfiguration {
                 sseProperties,
                 composer,
                 null,  // objectMapper
-                DeploymentMode.STANDALONE
+                DeploymentMode.STANDALONE,
+                resumeSupport,
+                eventIdGenerator
         );
     }
 

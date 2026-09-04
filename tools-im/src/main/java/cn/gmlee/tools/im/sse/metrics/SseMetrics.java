@@ -21,6 +21,8 @@ package cn.gmlee.tools.im.sse.metrics;
  *   <li>im.sse.subscribe.duration - 订阅延迟（Timer，标签：topic）</li>
  *   <li>im.sse.publish.duration - 发布延迟（Timer，标签：topic）</li>
  *   <li>im.sse.topics.compacted - Topic 计数器压缩次数（Counter）</li>
+ *   <li>im.sse.resume.rate - 断点续传会话结果（Counter，标签：topic, result）</li>
+ *   <li>im.sse.resume.messages - 回放给客户端的历史消息数（Counter，标签：topic）</li>
  * </ul>
  *
  * @see MicrometerSseMetrics
@@ -140,6 +142,31 @@ public interface SseMetrics {
      * @param durationMs 延迟（毫秒）
      */
     default void recordDirectedPublishDuration(String topic, long durationMs) {
+        // 默认空实现，向后兼容
+    }
+
+    // ==================== 断点续传指标（default 方法，向后兼容） ====================
+
+    /**
+     * 记录断点续传会话结果.
+     *
+     * @param topic  Topic
+     * @param result 结果（success=完整回放 / gap=历史间隙已发 resync /
+     *               failed=存储读取失败已发 resync）
+     * @since 5.7.0
+     */
+    default void recordResume(String topic, String result) {
+        // 默认空实现，向后兼容
+    }
+
+    /**
+     * 记录回放给客户端的历史消息数.
+     *
+     * @param topic Topic
+     * @param count 回放消息数（经水位线过滤后实际下发）
+     * @since 5.7.0
+     */
+    default void recordResumedMessages(String topic, long count) {
         // 默认空实现，向后兼容
     }
 }

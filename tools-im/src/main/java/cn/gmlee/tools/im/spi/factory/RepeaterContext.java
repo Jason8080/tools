@@ -3,6 +3,7 @@ package cn.gmlee.tools.im.spi.factory;
 import cn.gmlee.tools.im.model.ConnectionMetadata;
 import cn.gmlee.tools.im.model.Msg;
 import cn.gmlee.tools.im.model.TopicMessage;
+import cn.gmlee.tools.im.resume.ResumeSupport;
 import lombok.Getter;
 import reactor.core.publisher.Flux;
 
@@ -73,13 +74,38 @@ public class RepeaterContext {
     private final BiFunction<String, ConnectionMetadata, Flux<TopicMessage>> subscribeFunction;
 
     /**
-     * 创建 Repeater 上下文.
+     * 断点续传支持（可为 null）.
+     * <p>
+     * 框架注入；自定义 Repeater 经 {@link cn.gmlee.tools.im.core.ImRepeater}
+     * 构造时自动获得续传能力，无需直接使用。
+     * </p>
+     *
+     * @since 5.7.0
+     */
+    private final ResumeSupport resumeSupport;
+
+    /**
+     * 创建 Repeater 上下文（无续传支持）.
      *
      * @param publishFunction   SSE 发布函数（不可为 null）
      * @param subscribeFunction SSE 订阅函数（不可为 null）
      */
     public RepeaterContext(Consumer<TopicMessage> publishFunction,
                            BiFunction<String, ConnectionMetadata, Flux<TopicMessage>> subscribeFunction) {
+        this(publishFunction, subscribeFunction, null);
+    }
+
+    /**
+     * 创建 Repeater 上下文.
+     *
+     * @param publishFunction   SSE 发布函数（不可为 null）
+     * @param subscribeFunction SSE 订阅函数（不可为 null）
+     * @param resumeSupport     断点续传支持（可为 null）
+     * @since 5.7.0
+     */
+    public RepeaterContext(Consumer<TopicMessage> publishFunction,
+                           BiFunction<String, ConnectionMetadata, Flux<TopicMessage>> subscribeFunction,
+                           ResumeSupport resumeSupport) {
         if (publishFunction == null) {
             throw new IllegalArgumentException("publishFunction must not be null");
         }
@@ -88,5 +114,6 @@ public class RepeaterContext {
         }
         this.publishFunction = publishFunction;
         this.subscribeFunction = subscribeFunction;
+        this.resumeSupport = resumeSupport;
     }
 }

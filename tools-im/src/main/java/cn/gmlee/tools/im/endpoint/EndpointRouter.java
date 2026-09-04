@@ -7,6 +7,9 @@ import cn.gmlee.tools.im.model.ConnectionMetadata;
 import cn.gmlee.tools.im.model.EndpointMode;
 import cn.gmlee.tools.im.model.MessageMap;
 import cn.gmlee.tools.im.model.Msg;
+import cn.gmlee.tools.im.model.ResumeSignal;
+import cn.gmlee.tools.im.model.TopicMessage;
+import cn.gmlee.tools.im.resume.EventIdCodec;
 import cn.gmlee.tools.im.sse.SseConnection;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import cn.gmlee.tools.im.core.Publisher;
@@ -31,10 +34,13 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 动态端点路由.
@@ -74,10 +80,24 @@ import java.util.Set;
  *   <li>URL 参数按 {@code im.sse.routing-keys} 配置组合（支持端点级覆盖）</li>
  * </ol>
  *
+ * <h3>断点续传（v5.7.0+）</h3>
+ * <ul>
+ *   <li>PULL 请求的 {@code Last-Event-ID} 请求头（浏览器重连自动携带）写入连接元数据，
+ *       触发历史回放；<b>不接受 URL 参数形式</b>（避免污染全参数模式的 routingKey 提取）</li>
+ *   <li>每条消息下发信封 ID 为 SSE {@code id:} 字段（{@code im.sse.resume.emit-id} 可关闭）</li>
+ *   <li>{@link ResumeSignal} 信号信封下发为命名事件（{@code event: resync}）</li>
+ *   <li>可选 {@code retry:} 字段（{@code im.sse.resume.retry-advice}）建议客户端重连间隔</li>
+ * </ul>
+ *
  * @since 5.6.0
  */
 @Slf4j
 public class EndpointRouter {
+
+    /**
+     * SSE 断点续传位点请求头（W3C SSE 规范；浏览器 EventSource 重连时自动携带）.
+     */
+    public static final String HEADER_LAST_EVENT_ID = "Last-Event-ID";
 
     private final EndpointRegistry registry;
     private final TopicRegistry topicRegistry;
@@ -85,6 +105,7 @@ public class EndpointRouter {
     private final List<AccessFilter> filters;
     private final List<PrincipalRoutingKeyConverter> converters;
     private final RoutingKeyComposer composer;
+    private final EventIdCodec eventIdCodec;
 
     /**
      * 创建动态路由器.
@@ -98,7 +119,7 @@ public class EndpointRouter {
                           TopicRegistry topicRegistry,
                           SseProperties sseProperties,
                           List<AccessFilter> filters) {
-        this(registry, topicRegistry, sseProperties, filters, null, null);
+        this(registry, topicRegistry, sseProperties, filters, null, null, null);
     }
 
     /**
@@ -115,7 +136,7 @@ public class EndpointRouter {
                           SseProperties sseProperties,
                           List<AccessFilter> filters,
                           List<PrincipalRoutingKeyConverter> converters) {
-        this(registry, topicRegistry, sseProperties, filters, converters, null);
+        this(registry, topicRegistry, sseProperties, filters, converters, null, null);
     }
 
     /**
@@ -134,10 +155,33 @@ public class EndpointRouter {
                           List<AccessFilter> filters,
                           List<PrincipalRoutingKeyConverter> converters,
                           RoutingKeyComposer composer) {
+        this(registry, topicRegistry, sseProperties, filters, converters, composer, null);
+    }
+
+    /**
+     * 创建动态路由器（完整参数）.
+     *
+     * @param registry      端点注册表
+     * @param topicRegistry Topic 组件注册表
+     * @param sseProperties SSE 配置
+     * @param filters       访问过滤器列表（可为 null）
+     * @param converters    principal 路由键转换器列表（可为 null）
+     * @param composer      路由键组合器（可为 null 使用默认实现）
+     * @param eventIdCodec  事件 ID 编解码器（可为 null 使用默认实现）
+     * @since 5.7.0
+     */
+    public EndpointRouter(EndpointRegistry registry,
+                          TopicRegistry topicRegistry,
+                          SseProperties sseProperties,
+                          List<AccessFilter> filters,
+                          List<PrincipalRoutingKeyConverter> converters,
+                          RoutingKeyComposer composer,
+                          EventIdCodec eventIdCodec) {
         this.registry = registry;
         this.topicRegistry = topicRegistry;
         this.sseProperties = sseProperties;
         this.composer = composer != null ? composer : new DefaultRoutingKeyComposer();
+        this.eventIdCodec = eventIdCodec != null ? eventIdCodec : EventIdCodec.DEFAULT;
 
         // 按 Order 排序过滤器，存储为不可变列表
         if (filters != null && !filters.isEmpty()) {
@@ -263,21 +307,25 @@ public class EndpointRouter {
      * PULL 分发（wildcard capture 辅助方法）.
      * <p>
      * 通过泛型方法参数捕获 {@code Subscriber<?>} 的 wildcard，
-     * 保证 {@code pull()} 返回类型安全的 {@code Flux<MSG>}。
+     * 保证 {@code pull()} 返回类型安全的信封流 {@code Flux<TopicMessage<?, MSG>>}。
      * </p>
+     * <p>
+     * 信封 → SSE 事件映射：
+     * </p>
+     * <ul>
+     *   <li>普通消息：{@code data:} = 载荷，{@code id:} = 信封 ID（可配置关闭）</li>
+     *   <li>{@link ResumeSignal} 信号：{@code event: resync} 命名事件（携带最小数据载荷，
+     *       保证浏览器派发自定义事件）</li>
+     *   <li>首个事件可附加 {@code retry:} 字段（{@code im.sse.resume.retry-advice}）</li>
+     * </ul>
      */
     private <MSG extends Msg> Mono<ServerResponse> dispatchPull(
             Subscriber<MSG> subscriber, MultiValueMap<String, String> urlParams, ConnectionMetadata metadata) {
-        Flux<MSG> msgFlux = subscriber.pull(urlParams, metadata);
-        Flux<ServerSentEvent<MessageMap>> sseFlux = msgFlux
-                .map(payload -> {
-                    MessageMap messageMap = payload instanceof MessageMap
-                            ? (MessageMap) payload
-                            : new MessageMap(Collections.singletonMap("data", payload));
-                    return ServerSentEvent.<MessageMap>builder()
-                            .data(messageMap)
-                            .build();
-                });
+        Flux<TopicMessage<?, MSG>> envelopeFlux = subscriber.pull(urlParams, metadata);
+        // retry: 指令仅随首个事件下发一次
+        AtomicBoolean retrySent = new AtomicBoolean(false);
+        Flux<ServerSentEvent<MessageMap>> sseFlux = envelopeFlux
+                .map(envelope -> toServerSentEvent(envelope, retrySent));
 
         // 心跳：deferContextual 读取连接（subscribe() 的 contextWrite 在最外层写入）
         // Context 传播方向：contextWrite → deferContextual（source → subscriber 方向）
@@ -290,6 +338,48 @@ public class EndpointRouter {
         return ServerResponse.ok()
                 .contentType(MediaType.TEXT_EVENT_STREAM)
                 .body(withHeartbeat, ServerSentEvent.class);
+    }
+
+    /**
+     * 信封 → SSE 事件.
+     * <p>
+     * 信号信封（{@link ResumeSignal}）映射为命名事件；普通信封载荷映射为
+     * {@code data:}，ID 映射为 {@code id:}（供客户端断线重连上报位点）。
+     * </p>
+     *
+     * @param envelope  消息信封
+     * @param retrySent retry 指令是否已下发（会话内至多一次）
+     * @return SSE 事件
+     * @since 5.7.0
+     */
+    ServerSentEvent<MessageMap> toServerSentEvent(TopicMessage<?, ?> envelope, AtomicBoolean retrySent) {
+        SseProperties.ResumeConfig resumeConfig = sseProperties.getResume();
+        ServerSentEvent.Builder<MessageMap> builder = ServerSentEvent.builder();
+
+        Object payload = envelope.getMsg();
+        if (payload instanceof ResumeSignal signal) {
+            // 命名事件必须携带 data 载荷，否则浏览器不派发事件
+            builder.event(signal.eventName())
+                    .data(new MessageMap(Map.of("signal", signal.eventName())));
+        } else {
+            MessageMap messageMap = payload instanceof MessageMap mm
+                    ? mm
+                    : new MessageMap(Collections.singletonMap("data", payload));
+            builder.data(messageMap);
+            if (resumeConfig.isEmitId() && envelope.getId() != null) {
+                try {
+                    builder.id(eventIdCodec.encode(envelope.getId()));
+                } catch (Exception e) {
+                    log.warn("[EndpointRouter] SSE id 编码失败，跳过 id 字段: id={}", envelope.getId(), e);
+                }
+            }
+        }
+
+        Duration retryAdvice = resumeConfig.getRetryAdvice();
+        if (retryAdvice != null && retrySent.compareAndSet(false, true)) {
+            builder.retry(retryAdvice);
+        }
+        return builder.build();
     }
 
     /**
@@ -371,9 +461,14 @@ public class EndpointRouter {
             routingKey = composer.composeRoutingKey(resolvedKeys, context.getRequest().queryParams());
         }
 
+        // 断点续传位点：仅接受 Last-Event-ID 请求头（浏览器重连自动携带）。
+        // 刻意不从 URL 参数读取——全参数模式下会污染 routingKey 提取。
+        String lastEventId = context.getHeader(HEADER_LAST_EVENT_ID).orElse(null);
+
         return ConnectionMetadata.builder()
                 .topic(props.getTopic())
                 .routingKey(routingKey)
+                .lastEventId(lastEventId)
                 .build();
     }
 

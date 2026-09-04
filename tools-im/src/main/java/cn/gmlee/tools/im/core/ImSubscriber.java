@@ -2,6 +2,7 @@ package cn.gmlee.tools.im.core;
 
 import cn.gmlee.tools.im.model.ConnectionMetadata;
 import cn.gmlee.tools.im.model.Msg;
+import cn.gmlee.tools.im.model.TopicMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.MultiValueMap;
 import reactor.core.publisher.Flux;
@@ -39,8 +40,9 @@ public abstract class ImSubscriber<MSG extends Msg>
     }
 
     @Override
-    public Flux<MSG> pull(MultiValueMap<String, String> urlParams, ConnectionMetadata metadata) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public Flux<TopicMessage<?, MSG>> pull(MultiValueMap<String, String> urlParams, ConnectionMetadata metadata) {
         log.debug("[ImSubscriber] 订阅消息流: topic={}", topic);
-        return resolveRepeater().subscribe(urlParams, metadata);
+        return (Flux) resolveRepeater().subscribe(urlParams, metadata);
     }
 }

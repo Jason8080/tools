@@ -5,6 +5,8 @@ import cn.gmlee.tools.im.conf.SseProperties;
 import cn.gmlee.tools.im.core.MessageSender;
 import cn.gmlee.tools.im.core.Publisher;
 import cn.gmlee.tools.im.core.Repeater;
+import cn.gmlee.tools.im.resume.EventIdGenerator;
+import cn.gmlee.tools.im.resume.ResumeSupport;
 import cn.gmlee.tools.im.spi.factory.PublisherFactory;
 import cn.gmlee.tools.im.spi.factory.RepeaterContext;
 import cn.gmlee.tools.im.spi.factory.RepeaterFactory;
@@ -121,7 +123,23 @@ public class TopicRegistry {
     private final DeploymentMode deploymentMode;
 
     /**
-     * 创建 Topic 组件注册表（完整参数）.
+     * 断点续传支持（可为 null，null 表示不启用续传）.
+     *
+     * @since 5.7.0
+     */
+    @Nullable
+    private final ResumeSupport resumeSupport;
+
+    /**
+     * 事件 ID 生成器（可为 null，默认组件的 push 路径统一分配消息 ID）.
+     *
+     * @since 5.7.0
+     */
+    @Nullable
+    private final EventIdGenerator idGenerator;
+
+    /**
+     * 创建 Topic 组件注册表（无续传参数，向后兼容）.
      *
      * @param publisherFactories   Publisher 工厂列表（Spring 注入，可为 null）
      * @param repeaterFactories    Repeater 工厂列表（Spring 注入，可为 null）
@@ -144,6 +162,40 @@ public class TopicRegistry {
                          RoutingKeyComposer composer,
                          ObjectMapper objectMapper,
                          DeploymentMode deploymentMode) {
+        this(publisherFactories, repeaterFactories, subscriberFactories, messageSender,
+                sseConnectionManager, interceptors, sseProperties, composer, objectMapper,
+                deploymentMode, null, null);
+    }
+
+    /**
+     * 创建 Topic 组件注册表（完整参数）.
+     *
+     * @param publisherFactories   Publisher 工厂列表（Spring 注入，可为 null）
+     * @param repeaterFactories    Repeater 工厂列表（Spring 注入，可为 null）
+     * @param subscriberFactories  Subscriber 工厂列表（Spring 注入，可为 null）
+     * @param messageSender        消息传输器（CLUSTER 模式必需，STANDALONE 模式可为 null）
+     * @param sseConnectionManager SSE 连接管理器
+     * @param interceptors         Repeater 拦截器列表（Spring 注入，可为 null）
+     * @param sseProperties        SSE 配置（用于传递 routingKeys 等配置到默认组件，可为 null）
+     * @param composer             路由键组合器（用于传递给默认 Publisher，可为 null 使用默认实现）
+     * @param objectMapper         JSON 序列化器（用于 ConsumerBridge 反序列化消息，可为 null 使用默认实例）
+     * @param deploymentMode       部署模式（决定使用哪种 Repeater 实现）
+     * @param resumeSupport        断点续传支持（可为 null，注入默认 Repeater 与上下文）
+     * @param idGenerator          事件 ID 生成器（可为 null，注入默认 Publisher）
+     * @since 5.7.0 新增 {@code resumeSupport} 与 {@code idGenerator} 参数
+     */
+    public TopicRegistry(List<PublisherFactory> publisherFactories,
+                         List<RepeaterFactory> repeaterFactories,
+                         List<SubscriberFactory> subscriberFactories,
+                         @Nullable MessageSender messageSender,
+                         SseConnectionManager sseConnectionManager,
+                         List<RepeaterInterceptor> interceptors,
+                         SseProperties sseProperties,
+                         RoutingKeyComposer composer,
+                         ObjectMapper objectMapper,
+                         DeploymentMode deploymentMode,
+                         @Nullable ResumeSupport resumeSupport,
+                         @Nullable EventIdGenerator idGenerator) {
         this.publisherFactories = publisherFactories != null ? publisherFactories : Collections.emptyList();
         this.repeaterFactories = repeaterFactories != null ? repeaterFactories : Collections.emptyList();
         this.subscriberFactories = subscriberFactories != null ? subscriberFactories : Collections.emptyList();
@@ -154,6 +206,8 @@ public class TopicRegistry {
         this.composer = composer;
         this.objectMapper = objectMapper != null ? objectMapper : new ObjectMapper();
         this.deploymentMode = deploymentMode != null ? deploymentMode : DeploymentMode.CLUSTER;
+        this.resumeSupport = resumeSupport;
+        this.idGenerator = idGenerator;
     }
 
     // ==================== Ensure 方法（幂等，供框架内部使用） ====================
@@ -257,7 +311,7 @@ public class TopicRegistry {
      */
     public Publisher<?, ?> createDefaultPublisher(String topic) {
         List<String> routingKeys = sseProperties != null ? sseProperties.getRoutingKeys() : null;
-        return new DefaultPublisher(topic, () -> ensureRepeater(topic), routingKeys, composer);
+        return new DefaultPublisher(topic, () -> ensureRepeater(topic), routingKeys, composer, idGenerator);
     }
 
     /**
@@ -275,8 +329,10 @@ public class TopicRegistry {
      */
     public Repeater<?, ?> createDefaultRepeater(String topic) {
         return switch (deploymentMode) {
-            case CLUSTER -> new ClusterRepeater(topic, messageSender, sseConnectionManager, interceptors);
-            case STANDALONE -> new StandaloneRepeater(topic, sseConnectionManager, interceptors);
+            case CLUSTER -> new ClusterRepeater(topic, messageSender, sseConnectionManager,
+                    resumeSupport, interceptors);
+            case STANDALONE -> new StandaloneRepeater(topic, sseConnectionManager,
+                    resumeSupport, interceptors);
         };
     }
 
@@ -312,10 +368,11 @@ public class TopicRegistry {
     @SuppressWarnings("unchecked")
     private Repeater<?, ?> ensureRepeaterTyped(String topic) {
         return repeaters.computeIfAbsent(topic, t -> {
-            // 创建 Repeater 上下文（封装 SSE 函数）
+            // 创建 Repeater 上下文（封装 SSE 函数 + 续传支持）
             RepeaterContext context = new RepeaterContext(
                     sseConnectionManager::publish,
-                    sseConnectionManager::subscribe
+                    sseConnectionManager::subscribe,
+                    resumeSupport
             );
 
             for (RepeaterFactory factory : repeaterFactories) {
@@ -348,7 +405,7 @@ public class TopicRegistry {
                     return component;
                 }
             }
-            Publisher<?, ?> def = new DefaultPublisher(t, () -> ensureRepeater(t), routingKeys, composer);
+            Publisher<?, ?> def = new DefaultPublisher(t, () -> ensureRepeater(t), routingKeys, composer, idGenerator);
             log.info("[TopicRegistry] 创建默认 Publisher: topic={}", t);
             return def;
         });

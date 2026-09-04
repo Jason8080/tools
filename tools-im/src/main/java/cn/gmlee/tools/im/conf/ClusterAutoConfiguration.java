@@ -2,6 +2,9 @@ package cn.gmlee.tools.im.conf;
 
 import cn.gmlee.tools.im.core.MessageSender;
 import cn.gmlee.tools.im.model.DeploymentMode;
+import cn.gmlee.tools.im.resume.EventIdGenerator;
+import cn.gmlee.tools.im.resume.MessageHistoryStore;
+import cn.gmlee.tools.im.resume.ResumeSupport;
 import cn.gmlee.tools.im.spi.factory.PublisherFactory;
 import cn.gmlee.tools.im.spi.factory.RepeaterFactory;
 import cn.gmlee.tools.im.spi.factory.SubscriberFactory;
@@ -104,9 +107,23 @@ public class ClusterAutoConfiguration {
             @Autowired(required = false) List<RepeaterInterceptor> interceptors,
             SseProperties sseProperties,
             @Autowired(required = false) RoutingKeyComposer composer,
-            ImProperties imProperties) {
+            ImProperties imProperties,
+            ResumeSupport resumeSupport,
+            EventIdGenerator eventIdGenerator,
+            @Autowired(required = false) List<MessageHistoryStore> historyStores) {
 
         log.info("[ClusterAutoConfiguration] 创建 CLUSTER 模式 TopicRegistry");
+
+        // CLUSTER + 续传场景要求全局有序 ID：注册了历史存储但未启用雪花算法时告警
+        if (historyStores != null && !historyStores.isEmpty()
+                && sseProperties.getResume().isEnabled()
+                && !sseProperties.getResume().getSnowflake().isEnabled()) {
+            log.warn("[ClusterAutoConfiguration] 检测到 CLUSTER 模式已注册 {} 个历史存储，"
+                    + "但未启用雪花算法 ID（im.sse.resume.snowflake.enabled=false）。"
+                    + "各实例自增序列交叉将导致断点续传回放乱序，请显式开启雪花算法"
+                    + "并为每个实例配置唯一 worker-id", historyStores.size());
+        }
+
         MessageSender messageSender = streamBridge::send;
         return new TopicRegistry(
                 publisherFactories,
@@ -118,7 +135,9 @@ public class ClusterAutoConfiguration {
                 sseProperties,
                 composer,
                 null,  // objectMapper
-                DeploymentMode.CLUSTER
+                DeploymentMode.CLUSTER,
+                resumeSupport,
+                eventIdGenerator
         );
     }
 

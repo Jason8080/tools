@@ -3,6 +3,7 @@ package cn.gmlee.tools.im.topic;
 import cn.gmlee.tools.im.core.ImRepeater;
 import cn.gmlee.tools.im.model.Msg;
 import cn.gmlee.tools.im.model.TopicMessage;
+import cn.gmlee.tools.im.resume.ResumeSupport;
 import cn.gmlee.tools.im.spi.interceptor.RepeaterInterceptor;
 import cn.gmlee.tools.im.sse.SseConnectionManager;
 import lombok.extern.slf4j.Slf4j;
@@ -75,14 +76,18 @@ class StandaloneRepeater extends ImRepeater<Serializable, Msg> {
      *
      * @param topic                Topic 名称
      * @param sseConnectionManager SSE 连接管理器（提供 publish/subscribe 函数）
+     * @param resumeSupport        断点续传支持（可为 null）
      * @param interceptors         拦截器列表（可为 null）
+     * @since 5.7.0 新增 {@code resumeSupport} 参数
      */
     public StandaloneRepeater(String topic,
                               SseConnectionManager sseConnectionManager,
+                              ResumeSupport resumeSupport,
                               List<RepeaterInterceptor> interceptors) {
         super(topic, null,  // 不需要 MessageSender（STANDALONE 模式直接调用 receive()）
               sseConnectionManager::publish,
               sseConnectionManager::subscribe,
+              resumeSupport,
               interceptors);
     }
 

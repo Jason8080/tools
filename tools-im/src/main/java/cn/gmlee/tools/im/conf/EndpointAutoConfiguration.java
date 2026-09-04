@@ -3,6 +3,7 @@ package cn.gmlee.tools.im.conf;
 import cn.gmlee.tools.im.endpoint.EndpointRegistry;
 import cn.gmlee.tools.im.endpoint.EndpointRouter;
 import cn.gmlee.tools.im.endpoint.ImAdminController;
+import cn.gmlee.tools.im.resume.EventIdCodec;
 import cn.gmlee.tools.im.spi.access.AccessFilter;
 import cn.gmlee.tools.im.spi.converter.PrincipalRoutingKeyConverter;
 import cn.gmlee.tools.im.spi.routing.RoutingKeyComposer;
@@ -10,11 +11,13 @@ import cn.gmlee.tools.im.sse.SseConnectionManager;
 import cn.gmlee.tools.im.sse.cleanup.ConnectionReaper;
 import cn.gmlee.tools.im.sse.metrics.SseMetrics;
 import cn.gmlee.tools.im.topic.DefaultTopicLifecycleManager;
+import cn.gmlee.tools.im.topic.TopicLifecycleListener;
 import cn.gmlee.tools.im.topic.TopicLifecycleManager;
 import cn.gmlee.tools.im.topic.TopicRegistry;
 import cn.gmlee.tools.im.topic.TopicResourceFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -68,7 +71,7 @@ public class EndpointAutoConfiguration {
 
     public EndpointAutoConfiguration(ImProperties imProperties,
                                       ConfigurableListableBeanFactory beanFactory,
-                                      BeanDefinitionRegistry beanDefinitionRegistry,
+                                      @Qualifier("imBeanDefinitionRegistry") BeanDefinitionRegistry beanDefinitionRegistry,
                                       SseProperties sseProperties,
                                       EndpointRegistry endpointRegistry) {
         this.imProperties = imProperties;
@@ -99,7 +102,8 @@ public class EndpointAutoConfiguration {
                                                         TopicResourceFactory topicResourceFactory,
                                                         SseProperties sseProperties,
                                                         EndpointRegistry endpointRegistry,
-                                                        ConnectionReaper connectionReaper) {
+                                                        ConnectionReaper connectionReaper,
+                                                        @Autowired(required = false) List<TopicLifecycleListener> lifecycleListeners) {
         DefaultTopicLifecycleManager manager = new DefaultTopicLifecycleManager(
                 topicRegistry, topicResourceFactory, sseProperties);
 
@@ -108,6 +112,11 @@ public class EndpointAutoConfiguration {
 
         // 注入到 ConnectionReaper（用于定期清理空闲 Topic）
         connectionReaper.setTopicLifecycleManager(manager);
+
+        // 注册 Topic 生命周期监听器（如内存历史存储的资源清理）
+        if (lifecycleListeners != null) {
+            lifecycleListeners.forEach(manager::addListener);
+        }
 
         // 注册 TopicResourceFactory 为端点监听器
         endpointRegistry.addListener(topicResourceFactory);
@@ -138,8 +147,10 @@ public class EndpointAutoConfiguration {
                                           TopicRegistry topicRegistry,
                                           @Autowired(required = false) List<AccessFilter> filters,
                                           @Autowired(required = false) List<PrincipalRoutingKeyConverter> converters,
-                                          @Autowired(required = false) RoutingKeyComposer composer) {
-        return new EndpointRouter(endpointRegistry, topicRegistry, sseProperties, filters, converters, composer);
+                                          @Autowired(required = false) RoutingKeyComposer composer,
+                                          @Autowired(required = false) EventIdCodec eventIdCodec) {
+        return new EndpointRouter(endpointRegistry, topicRegistry, sseProperties,
+                filters, converters, composer, eventIdCodec);
     }
 
     /**

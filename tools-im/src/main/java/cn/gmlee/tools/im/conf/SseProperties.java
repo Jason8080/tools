@@ -128,6 +128,13 @@ public class SseProperties {
     private EmitRetryConfig emitRetry = new EmitRetryConfig();
 
     /**
+     * 断点续传配置（SSE {@code id:} + {@code Last-Event-ID}）
+     *
+     * @since 5.7.0
+     */
+    private ResumeConfig resume = new ResumeConfig();
+
+    /**
      * 背压策略配置
      */
     @Data
@@ -340,5 +347,147 @@ public class SseProperties {
          * 按 Topic 覆盖策略（key=topic, value=strategyName）
          */
         private Map<String, String> topicOverrides = new HashMap<>();
+    }
+
+    /**
+     * 断点续传配置（v5.7.0）.
+     * <p>
+     * 控制 SSE {@code id:} 字段下发与 {@code Last-Event-ID} 重连回放。
+     * 完整机制见 {@link cn.gmlee.tools.im.resume.ResumeSupport}。
+     * </p>
+     *
+     * <h3>配置示例</h3>
+     * <pre>
+     * im:
+     *   sse:
+     *     resume:
+     *       enabled: true                    # 续传总开关（需注册 MessageHistoryStore Bean）
+     *       emit-id: true                    # 每条消息下发 SSE id: 字段
+     *       retry-advice: 3s                 # 可选：下发 retry: 字段建议客户端重连间隔
+     *       max-replay: 500                  # 单次重连最多回放条数（超限发 resync）
+     *       max-pending: 1024                # 回放期间实时消息待缓冲上限（溢出发 resync）
+     *       replay-timeout: 5s               # 历史回放总时长预算（超时降级 + resync；0 = 不限制）
+     *       snowflake:
+     *         enabled: false                 # CLUSTER 部署必须开启（全局有序 ID）
+     *         worker-id: -1                  # -1 = 按主机名哈希自动分配
+     *       in-memory:
+     *         enabled: false                 # 内存历史存储（开发/单机）
+     *         capacity-per-topic: 1000
+     * </pre>
+     *
+     * @since 5.7.0
+     */
+    @Data
+    public static class ResumeConfig {
+        /**
+         * 续传读取侧总开关.
+         * <p>
+         * 关闭后即使客户端携带 Last-Event-ID 也仅返回实时流。
+         * 写入侧（{@code MessageHistoryStore.store}）由是否注册存储 Bean 决定，不受此开关影响。
+         * </p>
+         */
+        private boolean enabled = true;
+
+        /**
+         * 是否下发 SSE {@code id:} 字段.
+         * <p>
+         * 关闭可节省少量带宽，但客户端将失去续传能力（无法上报位点）。
+         * </p>
+         */
+        private boolean emitId = true;
+
+        /**
+         * 客户端重连间隔建议（下发为 SSE {@code retry:} 字段）.
+         * <p>
+         * null 表示不下发（浏览器 EventSource 默认约 3s）。
+         * </p>
+         */
+        private Duration retryAdvice;
+
+        /**
+         * 单次重连最大回放条数.
+         * <p>
+         * 超出时停止回放并向客户端发送 {@code event: resync} 信号（提示全量刷新）。
+         * </p>
+         */
+        private int maxReplay = 500;
+
+        /**
+         * 回放期间实时消息待缓冲队列上限.
+         * <p>
+         * 溢出时发送 {@code event: resync} 并丢弃积压（续接不中断）。
+         * </p>
+         */
+        private int maxPending = 1024;
+
+        /**
+         * 历史回放超时（总时长预算）.
+         * <p>
+         * 限制单次续传会话回放的<b>总时长</b>：预算耗尽仍未回放完成
+         * （含元素缓慢持续到达、元素间隔超时始终未触发的场景），
+         * 降级为实时流并发送 {@code event: resync}。
+         * 预算内同时作为元素间隔超时，兜底存储读取挂起。
+         * {@code 0} 或负值表示不限制（不推荐）。
+         * </p>
+         */
+        private Duration replayTimeout = Duration.ofSeconds(5);
+
+        /**
+         * 雪花算法 ID 生成器配置
+         */
+        private SnowflakeConfig snowflake = new SnowflakeConfig();
+
+        /**
+         * 内存历史存储配置
+         */
+        private InMemoryHistoryConfig inMemory = new InMemoryHistoryConfig();
+    }
+
+    /**
+     * 雪花算法事件 ID 生成器配置.
+     * <p>
+     * <b>CLUSTER 多实例 + 断点续传场景必须开启</b>：默认自增 ID 仅单 JVM 有序，
+     * 多实例序列交叉会导致回放乱序。
+     * </p>
+     *
+     * @since 5.7.0
+     */
+    @Data
+    public static class SnowflakeConfig {
+        /**
+         * 是否启用雪花算法 ID 生成器
+         */
+        private boolean enabled = false;
+
+        /**
+         * 实例编号（0~1023），集群内必须唯一.
+         * <p>
+         * -1（默认）表示按主机名哈希自动分配（存在小概率冲突，
+         * 生产环境建议显式配置）。
+         * </p>
+         */
+        private long workerId = -1;
+    }
+
+    /**
+     * 内存历史存储配置.
+     * <p>
+     * 适用于 STANDALONE 单机部署与开发/测试环境；进程重启丢失历史。
+     * 生产 CLUSTER 部署请实现自定义 {@link cn.gmlee.tools.im.resume.MessageHistoryStore}。
+     * </p>
+     *
+     * @since 5.7.0
+     */
+    @Data
+    public static class InMemoryHistoryConfig {
+        /**
+         * 是否启用内存历史存储
+         */
+        private boolean enabled = false;
+
+        /**
+         * 每 Topic 最大保留消息数（超出逐出最旧）
+         */
+        private int capacityPerTopic = 1000;
     }
 }

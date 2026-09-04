@@ -1,9 +1,7 @@
 package cn.gmlee.tools.im.spi.interceptor;
 
-import cn.gmlee.tools.im.model.Msg;
 import cn.gmlee.tools.im.core.Repeater;
 import cn.gmlee.tools.im.model.TopicMessage;
-import org.springframework.util.MultiValueMap;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -21,25 +19,33 @@ import reactor.core.publisher.Mono;
  * <h3>使用示例</h3>
  * <pre>{@code
  * @Component
- * public class RedisReplayInterceptor implements RepeaterInterceptor {
- *     @Autowired
- *     private RedisTemplate<String, byte[]> redisTemplate;
+ * public class AuditInterceptor implements RepeaterInterceptor {
  *
  *     @Override
- *     public boolean beforeSend(TopicMessage message) {
- *         // 发送前持久化到 Redis
- *         redisTemplate.opsForList().rightPush(key(message.getTopic()), serialize(message));
- *         return true; // 允许发送
+ *     public Mono<Boolean> beforeSend(TopicMessage<?, ?> message) {
+ *         auditService.record(message);   // 审计
+ *         return Mono.just(true);         // 允许发送
  *     }
  *
  *     @Override
- *     public Flux<Msg> transformSubscribeStream(String topic, Flux<Msg> stream, MultiValueMap<String, String> urlParams) {
- *         // 订阅时先回放历史消息
- *         Flux<Msg> history = loadFromRedis(topic);
- *         return Flux.concat(history, stream);
+ *     public Flux<TopicMessage<?, ?>> transformSubscribeStream(
+ *             SubscribeContext context, Flux<TopicMessage<?, ?>> stream) {
+ *         // 订阅流转换：过滤 / 脱敏 / 富化
+ *         return stream.filter(env -> visibleTo(context, env));
  *     }
  * }
  * }</pre>
+ *
+ * <h3>续传相关约定（v5.7.0+）</h3>
+ * <ul>
+ *   <li>{@link #transformSubscribeStream} 收到的是<b>信封流</b>（含消息 ID），
+ *       且在断点续传包装之后执行——回放消息与实时消息都会经过拦截器。
+ *       <b>历史消息持久化/回放请优先使用
+ *       {@link cn.gmlee.tools.im.resume.MessageHistoryStore} SPI</b>，
+ *       它提供零间隙续接、水位线去重与降级保护，拦截器不再需要自行拼接历史。</li>
+ *   <li>流中可能出现 {@link cn.gmlee.tools.im.model.ResumeSignal} 信号信封
+ *       （{@code id=null}），拦截器应保持透传，不要丢弃或改写。</li>
+ * </ul>
  * <p>
  * 实现类注册为 Spring Bean 后，框架自动织入所有 {@link Repeater}，零配置生效。
  * </p>
@@ -61,7 +67,7 @@ public interface RepeaterInterceptor {
      * @param message 待发送的消息
      * @return {@code Mono<Boolean>} - true 允许发送，false 拦截消息
      */
-    default Mono<Boolean> beforeSend(TopicMessage message) {
+    default Mono<Boolean> beforeSend(TopicMessage<?, ?> message) {
         return Mono.just(true);
     }
 
@@ -69,33 +75,40 @@ public interface RepeaterInterceptor {
      * 接收后拦截（响应式）（MQ 消费后、推送 SSE 前）.
      * <p>
      * 在从 MQ 接收到消息后、推送到 SSE 连接之前调用。
-     * 可用于：消息持久化、指标收集、日志记录。
+     * 可用于：指标收集、日志记录、旁路通知。
+     * </p>
+     * <p>
+     * 消息持久化（用于断点续传）请使用
+     * {@link cn.gmlee.tools.im.resume.MessageHistoryStore#store}，
+     * 它在发送成功挂点触发，覆盖 CLUSTER / STANDALONE 两种模式。
      * </p>
      *
      * @param message 接收到的消息
      * @return {@code Mono<Void>} 表示异步操作完成
      */
-    default Mono<Void> afterReceive(TopicMessage message) {
+    default Mono<Void> afterReceive(TopicMessage<?, ?> message) {
         return Mono.empty();
     }
 
     /**
-     * 转换订阅流.
+     * 转换订阅流（信封流签名，v5.7.0）.
      * <p>
-     * 在返回 SSE 消息流之前调用，可对流进行转换。
-     * 可用于：历史消息回放、消息过滤、流式转换。
+     * 在返回 SSE 消息流之前调用，可对信封流进行转换（过滤、脱敏、富化）。
      * 默认直接返回原始流。
      * </p>
+     * <p>
+     * 执行时机位于断点续传包装之后：入参流已包含回放消息（若客户端在续传）。
+     * 需要消息上下文的实现可从 {@link SubscribeContext} 获取 Topic、URL 参数与
+     * 连接元数据（含续传位点 {@link SubscribeContext#lastEventId()}）。
+     * </p>
      *
-     * @param topic     Topic 名称
-     * @param stream    原始消息流
-     * @param urlParams 客户端请求参数
-     * @return 转换后的消息流
+     * @param context 订阅上下文（Topic / URL 参数 / 连接元数据）
+     * @param stream  原始信封流（可能含回放消息与 {@code ResumeSignal} 信号）
+     * @return 转换后的信封流
      */
-    default Flux<Msg> transformSubscribeStream(
-            String topic,
-            Flux<Msg> stream,
-            MultiValueMap<String, String> urlParams) {
+    default Flux<TopicMessage<?, ?>> transformSubscribeStream(
+            SubscribeContext context,
+            Flux<TopicMessage<?, ?>> stream) {
         return stream;
     }
 }

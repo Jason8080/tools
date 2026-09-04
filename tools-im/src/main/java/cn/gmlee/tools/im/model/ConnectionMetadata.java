@@ -46,6 +46,20 @@ public class ConnectionMetadata {
     String connectionId;
 
     /**
+     * 断点续传位点（Last-Event-ID）.
+     * <p>
+     * 客户端断线重连时由浏览器 {@code EventSource} 自动携带（仅通过
+     * {@code Last-Event-ID} 请求头，<b>不接受 URL 参数</b>——避免污染全参数模式
+     * 下的 routingKey 提取）。值为客户端最后收到的消息 ID 的字符串形式，
+     * 由 {@link cn.gmlee.tools.im.resume.EventIdCodec} 解码后用于历史回放。
+     * 首次订阅为 null。
+     * </p>
+     *
+     * @since 5.7.0
+     */
+    String lastEventId;
+
+    /**
      * 自定义扩展属性
      */
     @Builder.Default

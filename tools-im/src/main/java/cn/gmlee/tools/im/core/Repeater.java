@@ -42,12 +42,17 @@ public interface Repeater<ID extends Serializable, MSG extends Msg> extends Topi
 
     /**
      * 订阅 Topic 的实时消息流.
+     * <p>
+     * 返回完整消息信封（含 ID），供下游输出 SSE {@code id:} 字段与断点续传；
+     * 载荷通过 {@link TopicMessage#getMsg()} 获取。
+     * </p>
      *
      * @param urlParams 客户端请求参数（来自 SSE 订阅 URL）
-     * @param metadata  连接元数据（身份标识等）
-     * @return 消息流
+     * @param metadata  连接元数据（身份标识、续传位点等）
+     * @return 消息信封流
+     * @since 5.7.0 由 {@code Flux<MSG>} 升级为信封流（断点续传契约）
      */
-    Flux<MSG> subscribe(MultiValueMap<String, String> urlParams, ConnectionMetadata metadata);
+    Flux<TopicMessage<ID, MSG>> subscribe(MultiValueMap<String, String> urlParams, ConnectionMetadata metadata);
 
     /**
      * 接收 Stream 消息并转发到 SSE.
