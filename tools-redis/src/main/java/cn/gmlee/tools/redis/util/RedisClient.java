@@ -4,8 +4,11 @@ import cn.gmlee.tools.base.util.BoolUtil;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.core.script.RedisScript;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +22,27 @@ import java.util.concurrent.TimeUnit;
  * @date 2020 /8/28 (周五)
  */
 public class RedisClient<K, V> {
+
+    /**
+     * lua脚本: 校验持有者后删除 (GET == val -> DEL), 单条命令原子执行.
+     * <p>
+     * 避免 "先GET比对再DEL" 两步操作之间锁过期被他人抢占导致误删他人锁.
+     * </p>
+     */
+    private static final RedisScript<Long> DELETE_IF_EQ_SCRIPT = new DefaultRedisScript<>(
+            "if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) else return 0 end",
+            Long.class);
+
+    /**
+     * lua脚本: 校验持有者后续期 (GET == val -> PEXPIRE), 单条命令原子执行.
+     * <p>
+     * 避免 SET XX 只判断 key 存在不判断属主, 把他人持有的锁覆盖/续期的问题.
+     * </p>
+     */
+    private static final RedisScript<Long> EXPIRE_IF_EQ_SCRIPT = new DefaultRedisScript<>(
+            "if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('PEXPIRE', KEYS[1], ARGV[2]) else return 0 end",
+            Long.class);
+
     private RedisTemplate<K, V> redisTemplate;
 
     /**
@@ -158,6 +182,37 @@ public class RedisClient<K, V> {
     public Boolean setEx(K key, V val, long expire) {
         ValueOperations<K, V> ops = redisTemplate.opsForValue();
         return ops.setIfPresent(key, val, expire, TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * 删除键值, 当且仅当当前值与给定值一致 (lua原子执行: 校验持有者 + 删除).
+     * <p>
+     * 分布式锁安全解锁: 不会误删他人的锁.
+     * </p>
+     *
+     * @param key the key
+     * @param val the val (持有者标识)
+     * @return 是否删除成功 (false: 键不存在或值不匹配)
+     */
+    public Boolean deleteNx(K key, V val) {
+        Long rs = redisTemplate.execute(DELETE_IF_EQ_SCRIPT, Collections.singletonList(key), val);
+        return rs != null && rs > 0;
+    }
+
+    /**
+     * 续期键值, 当且仅当当前值与给定值一致 (lua原子执行: 校验持有者 + PEXPIRE).
+     * <p>
+     * 分布式锁安全续租: 不会给他人持有的锁续期.
+     * </p>
+     *
+     * @param key    the key
+     * @param val    the val (持有者标识)
+     * @param expire the expire 毫秒
+     * @return 是否续期成功 (false: 键不存在或值不匹配)
+     */
+    public Boolean expireNx(K key, V val, long expire) {
+        Long rs = redisTemplate.execute(EXPIRE_IF_EQ_SCRIPT, Collections.singletonList(key), val, expire);
+        return rs != null && rs > 0;
     }
 
     // -----------------------------------------------------------------------------------------------------------------

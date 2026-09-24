@@ -2,11 +2,11 @@ package cn.gmlee.tools.redis.util;
 
 import cn.gmlee.tools.base.enums.Int;
 import cn.gmlee.tools.base.util.AssertUtil;
-import cn.gmlee.tools.base.util.BoolUtil;
 import cn.gmlee.tools.base.util.ExceptionUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
@@ -106,28 +106,40 @@ public class RedisLock {
         return redisClient.setNx(key, val, expire);
     }
 
+    /**
+     * 续租 (lua原子: 校验持有者 + PEXPIRE).
+     * <p>
+     * 只有当前值仍是自己写入的 val 才会续期, 不会覆盖/续期他人的锁.
+     * </p>
+     */
     private boolean overtime(String key, Object val, long expire) {
         if (expire < Int.ONE) {
             return false;
         }
         AssertUtil.allNotNull(key, ExceptionUtil.sandbox(() -> String.format("键值对是空 -> %s: %s", key, val)), val);
-        return redisClient.setEx(key, val, expire);
+        return redisClient.expireNx(key, val, expire);
     }
 
     /**
      * 解锁 (删除).
+     * <p>
+     * lua原子执行 "校验持有者 + 删除": 避免 GET/DEL 两步之间锁过期被他人抢占导致误删他人的锁.
+     * </p>
      *
      * @param key the key
-     * @param val the val
-     * @return the boolean
+     * @param val the val (加锁时写入的值, 即持有者标识)
+     * @return the boolean 是否解锁成功 (false: 锁不存在或持有者不匹配)
      */
     public boolean unlock(String key, Object val) {
         AssertUtil.allNotNull(key, ExceptionUtil.sandbox(() -> String.format("键值对是空 -> %s: %s", key, val)), val);
-        Object old = redisClient.get(key);
-        if (BoolUtil.eq(val, old)) {
-            return redisClient.delete(key);
-        }
-        return false;
+        return redisClient.deleteNx(key, val);
+    }
+
+    /**
+     * 生成唯一持有者标识 (UUID + 线程ID): 作为锁值写入, 解锁/续租时校验属主.
+     */
+    private static String getToken() {
+        return UUID.randomUUID() + ":" + Thread.currentThread().threadId();
     }
 
     // =================================================================================================================
@@ -140,13 +152,14 @@ public class RedisLock {
      * 2. 如果代码运行中宕机依靠自动过期维持业务可用性。
      * 3. 自动在代码执行超时前3ms自动续期。
      * 4. 自旋锁实现每个线程都可以拿到锁。
+     * 5. 锁值为唯一持有者标识(UUID+线程ID), 解锁/续租经lua原子校验属主, 不会误删他人的锁。
      * </p>
      *
      * @param key    键名
-     * @param expire 键值(亦为运行时间)
+     * @param expire 过期时间(亦为运行时间)
      * @param run    函数(即为运行代码)
      */
-    public synchronized void lock(String key, long expire, Runnable run) {
+    public void lock(String key, long expire, Runnable run) {
         lock(key, expire, run, 1);
     }
 
@@ -156,39 +169,41 @@ public class RedisLock {
      * 建议采用此锁, 可将过期时间设长一些, 代码执行完自动解锁。
      * 1. 如果代码运行时间超过过期时间则自动终止执行并解锁。
      * 2. 如果代码运行中宕机依靠自动过期维持业务可用性。
-     * 3. 非自动续期模式需要开发者考虑thread.stop()问题: 不使用全局变量。
+     * 3. 非自动续期模式下任务超时后仅中断(cancel), 业务代码应响应中断、避免依赖强制终止。
      * 4. 自旋锁实现每个线程都可以拿到锁。
+     * 5. 锁值为唯一持有者标识(UUID+线程ID), 解锁/续租经lua原子校验属主, 不会误删他人的锁。
      * </p>
      *
      * @param key    键名
-     * @param expire 键值(亦为运行时间)
+     * @param expire 过期时间(亦为运行时间)
      * @param run    函数(即为运行代码)
      * @param ot     自动续期次数
      */
-    public synchronized void lock(String key, long expire, Runnable run, int ot) {
+    public void lock(String key, long expire, Runnable run, int ot) {
         if (expire < Int.ONE) {
             throw new RuntimeException(String.format("分布式锁使用异常: 代码运行时间过于短暂%s", expire));
         }
+        // 唯一持有者标识: 解锁/续租时校验属主
+        String token = getToken();
         FutureTask task = new FutureTask(run, null);
         Thread thread = new Thread(task);
         try {
-            while (!lock(key, expire, expire, false)) {
+            while (!lock(key, token, expire, false)) {
                 sleep(Int.THREE);
             }
             thread.start();
-            get(key, expire, task, run, ot);
+            get(key, token, expire, task, run, ot);
         } catch (Throwable e) {
             logger.error("分布式锁代码运行异常: 请检查代码{}", run.getClass());
             ExceptionUtil.cast(e);
         } finally {
             if (ot > -1) {
-                // 终止任务
+                // 终止任务: cancel(true)中断工作线程
+                // 注: 不再使用thread.stop(), 其在JDK20+直接抛出UnsupportedOperationException
                 task.cancel(true);
-                // 此处采用stop(): 使用者不允许在方法内使用静态变量
-                thread.stop();
             }
-            // 解锁
-            unlock(key, expire);
+            // 解锁 (lua原子: 校验持有者后删除)
+            unlock(key, token);
         }
     }
 
@@ -202,15 +217,16 @@ public class RedisLock {
      * 2. 如果代码运行中宕机依靠自动过期维持业务可用性。
      * 3. 自动在代码执行超时前3ms自动续期。
      * 4. 自旋锁实现每个线程都可以拿到锁。
+     * 5. 锁值为唯一持有者标识(UUID+线程ID), 解锁/续租经lua原子校验属主, 不会误删他人的锁。
      * </p>
      *
      * @param <V>    the type parameter
      * @param key    键名
-     * @param expire 键值(亦为运行时间)
+     * @param expire 过期时间(亦为运行时间)
      * @param call   函数(即为运行代码)
      * @return 函数返回结果. v
      */
-    public synchronized <V> V lock(String key, long expire, Callable<V> call) {
+    public <V> V lock(String key, long expire, Callable<V> call) {
         return lock(key, expire, call, 1);
     }
 
@@ -220,41 +236,43 @@ public class RedisLock {
      * 建议采用此锁, 可将过期时间设长一些, 代码执行完自动解锁。
      * 1. 如果代码运行时间超过过期时间则自动终止执行并解锁。
      * 2. 如果代码运行中宕机依靠自动过期维持业务可用性。
-     * 3. 非自动续期模式需要开发者考虑thread.stop()问题: 不使用全局变量。
+     * 3. 非自动续期模式下任务超时后仅中断(cancel), 业务代码应响应中断、避免依赖强制终止。
      * 4. 自旋锁实现每个线程都可以拿到锁。
+     * 5. 锁值为唯一持有者标识(UUID+线程ID), 解锁/续租经lua原子校验属主, 不会误删他人的锁。
      * </p>
      *
      * @param <V>    the type parameter
      * @param key    键名
-     * @param expire 键值(亦为运行时间)
+     * @param expire 过期时间(亦为运行时间)
      * @param call   函数(即为运行代码)
      * @param ot     自动续期次数
      * @return 函数返回结果. v
      */
-    public synchronized <V> V lock(String key, long expire, Callable<V> call, int ot) {
+    public <V> V lock(String key, long expire, Callable<V> call, int ot) {
         if (expire < Int.ONE) {
             throw new RuntimeException(String.format("分布式锁使用异常: 代码运行时间过于短暂%s", expire));
         }
+        // 唯一持有者标识: 解锁/续租时校验属主
+        String token = getToken();
         FutureTask<V> task = new FutureTask(call);
         Thread thread = new Thread(task);
         try {
-            while (!lock(key, expire, expire, false)) {
+            while (!lock(key, token, expire, false)) {
                 sleep(Int.THREE);
             }
             thread.start();
-            return get(key, expire, task, call, ot);
+            return get(key, token, expire, task, call, ot);
         } catch (Throwable e) {
             logger.error("分布式锁代码运行异常: 请检查代码{}", call.getClass());
             return ExceptionUtil.cast(e);
         } finally {
             if (ot > -1) {
-                // 终止任务
+                // 终止任务: cancel(true)中断工作线程
+                // 注: 不再使用thread.stop(), 其在JDK20+直接抛出UnsupportedOperationException
                 task.cancel(true);
-                // 此处采用stop(): 使用者不允许在方法内使用静态变量
-                thread.stop();
             }
-            // 解锁
-            unlock(key, expire);
+            // 解锁 (lua原子: 校验持有者后删除)
+            unlock(key, token);
         }
     }
 
@@ -264,8 +282,10 @@ public class RedisLock {
 
     /**
      * 阻塞执行 (自动续期).
+     *
+     * @param val 持有者标识 (续租时lua校验属主)
      */
-    private void get(String key, long expire, FutureTask task, Runnable run, int ot) throws InterruptedException, java.util.concurrent.ExecutionException {
+    private void get(String key, Object val, long expire, FutureTask task, Runnable run, int ot) throws InterruptedException, java.util.concurrent.ExecutionException {
         try {
             if (ot > 0) {
                 task.get(expire - Int.THREE, TimeUnit.MILLISECONDS);
@@ -274,9 +294,10 @@ public class RedisLock {
             }
         } catch (TimeoutException e) {
             if (ot > 0) {
-                if (overtime(key, expire, expire)) {
+                if (overtime(key, val, expire)) {
                     logger.debug(String.format("分布式锁代码运行超时: 续租成功%s", run.getClass()));
-                    get(key, expire, task, run, --ot);
+                    get(key, val, expire, task, run, --ot);
+                    return;
                 }
                 logger.error(String.format("分布式锁代码运行超时: 续租失败%s", run.getClass()));
             }
@@ -285,8 +306,10 @@ public class RedisLock {
 
     /**
      * 阻塞执行 (自动续期).
+     *
+     * @param val 持有者标识 (续租时lua校验属主)
      */
-    private <V> V get(String key, long expire, FutureTask<V> task, Callable<V> call, int ot) throws InterruptedException, java.util.concurrent.ExecutionException {
+    private <V> V get(String key, Object val, long expire, FutureTask<V> task, Callable<V> call, int ot) throws InterruptedException, java.util.concurrent.ExecutionException {
         try {
             if (ot > 0) {
                 return task.get(expire - Int.THREE, TimeUnit.MILLISECONDS);
@@ -295,9 +318,9 @@ public class RedisLock {
             }
         } catch (TimeoutException e) {
             if (ot> 0) {
-                if (overtime(key, expire, expire)) {
+                if (overtime(key, val, expire)) {
                     logger.debug(String.format("分布式锁代码运行超时: 续租成功%s", call.getClass()));
-                    return get(key, expire, task, call, --ot);
+                    return get(key, val, expire, task, call, --ot);
                 }
                 logger.error(String.format("分布式锁代码运行超时: 续租失败%s", call.getClass()));
             }
